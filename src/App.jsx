@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Onboarding from './pages/Onboarding'
 import PostShift from './pages/PostShift'
+import Professionals from './pages/Professionals'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/post-shift" element={<PostShift />} />
+      <Route path="/professionals" element={<Professionals />} />
     </Routes>
   )
 }
