@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import Onboarding from './pages/Onboarding'
 import PostShift from './pages/PostShift'
 import Professionals from './pages/Professionals'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/post-shift" element={<PostShift />} />
       <Route path="/professionals" element={<Professionals />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   )
 }
