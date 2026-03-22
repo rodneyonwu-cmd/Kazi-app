@@ -36,13 +36,13 @@ export default function Dashboard() {
 
         {/* Action buttons */}
         <div className="flex gap-3 mb-10 flex-wrap">
-          <button className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-sm transition flex items-center gap-2">
+          <button onClick={() => navigate('/post-shift')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-sm transition flex items-center gap-2">
             + Post a shift
           </button>
-          <button className="bg-white border border-[#e5e7eb] text-[#1a1a1a] font-semibold px-5 py-2.5 rounded-full text-sm hover:border-[#1a7f5e] transition">
+          <button onClick={() => navigate('/professionals')} className="bg-white border border-[#e5e7eb] text-[#1a1a1a] font-semibold px-5 py-2.5 rounded-full text-sm hover:border-[#1a7f5e] transition">
             Find professionals
           </button>
-          <button className="bg-white border border-[#e5e7eb] text-[#1a1a1a] font-semibold px-5 py-2.5 rounded-full text-sm hover:border-[#1a7f5e] transition">
+          <button onClick={() => navigate('/messages')} className="bg-white border border-[#e5e7eb] text-[#1a1a1a] font-semibold px-5 py-2.5 rounded-full text-sm hover:border-[#1a7f5e] transition">
             Messages
           </button>
         </div>
@@ -51,7 +51,6 @@ export default function Dashboard() {
         <div className="mb-10">
           <h2 className="text-base font-bold text-[#1a1a1a] mb-4">Upcoming shifts</h2>
           <div className="grid grid-cols-4 gap-4">
-
             {[
               { date: 'Mon Mar 17', role: 'Dental Hygienist', time: '8:00am – 5:00pm', name: 'Sarah R.', status: 'Confirmed', color: 'bg-[#e8f5f0] text-[#1a7f5e]' },
               { date: 'Wed Mar 19', role: 'Dental Assistant', time: '9:00am – 3:00pm', name: 'Marcus J.', status: 'Confirmed', color: 'bg-[#e8f5f0] text-[#1a7f5e]' },
@@ -71,7 +70,6 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
-
           </div>
         </div>
 
@@ -79,7 +77,6 @@ export default function Dashboard() {
         <div>
           <h2 className="text-base font-bold text-[#1a1a1a] mb-4">Featured professionals</h2>
           <div className="grid grid-cols-3 gap-4">
-
             {[
               { name: 'Sarah R.', role: 'Dental Hygienist', rate: '$52/hr', miles: '8.2 miles away', img: 'https://randomuser.me/api/portraits/women/44.jpg' },
               { name: 'Marcus J.', role: 'Dental Assistant', rate: '$48/hr', miles: '5.7 miles away', img: 'https://randomuser.me/api/portraits/men/32.jpg' },
@@ -105,7 +102,6 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
-
           </div>
         </div>
 
