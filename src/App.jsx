@@ -5,6 +5,7 @@ import Onboarding from './pages/Onboarding'
 import PostShift from './pages/PostShift'
 import Professionals from './pages/Professionals'
 import Profile from './pages/Profile'
+import Messages from './pages/Messages'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/post-shift" element={<PostShift />} />
       <Route path="/professionals" element={<Professionals />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/messages" element={<Messages />} />
     </Routes>
   )
 }
