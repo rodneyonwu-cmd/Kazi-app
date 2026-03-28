@@ -27,6 +27,18 @@ import FavoriteOffices from './pages/FavoriteOffices'
 import ProviderHelpCenter from './pages/ProviderHelpCenter'
 import ProviderSettings from './pages/ProviderSettings'
 import ProviderProfile from './pages/ProviderProfile'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminAnalytics from './pages/admin/AdminAnalytics'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminVerification from './pages/admin/AdminVerification'
+import AdminFlags from './pages/admin/AdminFlags'
+import AdminShifts from './pages/admin/AdminShifts'
+import AdminReviews from './pages/admin/AdminReviews'
+import AdminBilling from './pages/admin/AdminBilling'
+import AdminTickets from './pages/admin/AdminTickets'
+import AdminAnnouncements from './pages/admin/AdminAnnouncements'
+import AdminAudit from './pages/admin/AdminAudit'
 
 function App() {
   return (
@@ -60,6 +72,21 @@ function App() {
       <Route path="/provider-help" element={<ProviderHelpCenter />} />
       <Route path="/provider-settings" element={<ProviderSettings />} />
       <Route path="/provider-profile" element={<ProviderProfile />} />
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="verification" element={<AdminVerification />} />
+        <Route path="flags" element={<AdminFlags />} />
+        <Route path="shifts" element={<AdminShifts />} />
+        <Route path="reviews" element={<AdminReviews />} />
+        <Route path="billing" element={<AdminBilling />} />
+        <Route path="tickets" element={<AdminTickets />} />
+        <Route path="announce" element={<AdminAnnouncements />} />
+        <Route path="audit" element={<AdminAudit />} />
+      </Route>
     </Routes>
   )
 }

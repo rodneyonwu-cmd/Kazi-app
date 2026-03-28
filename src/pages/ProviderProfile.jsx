@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import ProviderNav from '../components/ProviderNav'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -17,6 +17,8 @@ const allReviews = [
 
 export default function ProviderProfile() {
   const navigate  = useNavigate()
+  const location  = useLocation()
+  const readOnly  = location.state?.readOnly === true
   const today     = new Date()
   const [monthIdx, setMonthIdx] = useState(today.getMonth())
   const [year,     setYear]     = useState(today.getFullYear())
@@ -118,18 +120,24 @@ export default function ProviderProfile() {
         </button>
       </div>
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-6 pb-20">
-        <div className="flex flex-col md:grid md:grid-cols-[1fr_240px] gap-5 items-start">
+      <div className={readOnly ? "max-w-[680px] mx-auto px-4 md:px-6 pb-20" : "max-w-[860px] mx-auto px-4 md:px-6 pb-20"}>
+        <div className={readOnly ? "flex flex-col gap-4" : "flex flex-col md:grid md:grid-cols-[1fr_240px] gap-5 items-start"}>
 
           {/* ── LEFT COLUMN ── */}
           <div className="flex flex-col gap-4">
 
             {/* Hero card */}
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
-              <div className="inline-flex items-center gap-1.5 bg-[#e8f5f0] text-[#1a7f5e] text-xs font-bold px-3 py-1 rounded-full mb-4">
+              {!readOnly && <div className="inline-flex items-center gap-1.5 bg-[#e8f5f0] text-[#1a7f5e] text-xs font-bold px-3 py-1 rounded-full mb-4">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                 Profile visible to offices
-              </div>
+              </div>}
+              {readOnly && (
+                <div className="inline-flex items-center gap-1.5 bg-[#e8f5f0] text-[#1a7f5e] text-xs font-bold px-3 py-1 rounded-full mb-4">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  This is how offices see your profile
+                </div>
+              )}
               <div className="flex items-start gap-4 mb-5">
                 <div className="relative flex-shrink-0">
                   <img src="https://randomuser.me/api/portraits/women/44.jpg" className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover" />
@@ -145,7 +153,7 @@ export default function ProviderProfile() {
                         ? <input type="number" value={rate} onChange={e => setRate(e.target.value)} className="w-16 border border-[#1a7f5e] rounded-lg px-2 py-0.5 text-[17px] font-black text-[#1a1a1a] outline-none text-right" />
                         : <p className="text-xl font-extrabold text-[#111827]">${rate}<span className="text-xs font-normal text-[#4b5563]">/hr</span></p>
                       }
-                      <button onClick={() => { if (editingRate) showToast('Rate updated!'); setEditingRate(!editingRate) }} className="text-[#1a7f5e] text-xs font-semibold hover:underline ml-1">{editingRate ? 'Save' : 'Edit'}</button>
+                      {!readOnly && <button onClick={() => { if (editingRate) showToast('Rate updated!'); setEditingRate(!editingRate) }} className="text-[#1a7f5e] text-xs font-semibold hover:underline ml-1">{editingRate ? 'Save' : 'Edit'}</button>}
                     </div>
                   </div>
                   <p className="text-sm font-semibold text-[#4b5563] mb-2">Dental Hygienist · Houston, TX</p>
@@ -176,7 +184,7 @@ export default function ProviderProfile() {
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a]">About</h2>
-                <button onClick={() => { if (editingAbout) showToast('About updated!'); setEditingAbout(!editingAbout) }} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">{editingAbout ? 'Save' : 'Edit'}</button>
+                {!readOnly && <button onClick={() => { if (editingAbout) showToast('About updated!'); setEditingAbout(!editingAbout) }} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">{editingAbout ? 'Save' : 'Edit'}</button>}
               </div>
               {editingAbout
                 ? <textarea value={about} onChange={e => setAbout(e.target.value)} rows={5} className="w-full bg-[#f9f8f6] border border-[#f3f4f6] rounded-xl px-4 py-3 text-[14px] text-[#374151] leading-relaxed outline-none focus:border-[#1a7f5e] transition resize-none" />
@@ -228,7 +236,7 @@ export default function ProviderProfile() {
                   <p className="text-xs text-[#6b7280]">Updated March 2026 · 245 KB</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="text-[12px] font-bold text-[#374151] border border-[#e5e7eb] px-3 py-1.5 rounded-full hover:border-[#1a7f5e] transition">Replace</button>
+{!readOnly && <button className="text-[12px] font-bold text-[#374151] border border-[#e5e7eb] px-3 py-1.5 rounded-full hover:border-[#1a7f5e] transition">Replace</button>}
                   <button onClick={() => showToast('Resume downloaded!')} className="text-[#6b7280] hover:text-[#1a7f5e] transition p-1.5">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </button>
@@ -240,7 +248,7 @@ export default function ProviderProfile() {
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a]">Skills & Experience</h2>
-                <button className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Edit</button>
+                {!readOnly && <button className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Edit</button>}
               </div>
               <div className="flex flex-wrap gap-2">
                 {['Scaling & Root Planing', 'Periodontal Charting', 'Digital X-rays', 'Patient Education', 'Nitrous Oxide Monitoring', 'Local Anesthesia Administration', 'Perio Maintenance', 'High-Volume Scheduling'].map(skill => (
@@ -253,7 +261,7 @@ export default function ProviderProfile() {
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a]">Certifications</h2>
-                <button onClick={() => navigate('/provider-documents')} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Manage →</button>
+{!readOnly && <button onClick={() => navigate('/provider-documents')} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Manage →</button>}
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -273,7 +281,7 @@ export default function ProviderProfile() {
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a]">Practice Software</h2>
-                <button className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Edit</button>
+                {!readOnly && <button className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Edit</button>}
               </div>
               <div className="flex flex-wrap gap-2">
                 {['Eaglesoft', 'Dentrix', 'Open Dental'].map(s => (
@@ -340,6 +348,33 @@ export default function ProviderProfile() {
           </div>
 
           {/* ── RIGHT SIDEBAR ── */}
+          {readOnly ? (
+            <div className="flex flex-col gap-4 md:sticky md:top-24">
+              {/* Office action buttons */}
+              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 flex flex-col gap-2">
+                <button onClick={() => showToast('Invite sent to Sarah R.!')} className="w-full bg-white border border-[#1a7f5e] text-[#1a7f5e] font-bold py-2.5 rounded-full text-sm hover:bg-[#e8f5f0] transition">Send invite</button>
+                <button onClick={() => showToast('Booking Sarah R...!')} className="w-full bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-2.5 rounded-full text-sm transition">Book Sarah</button>
+                <button onClick={() => showToast('Opening messages...')} className="w-full border border-[#e5e7eb] text-[#1a1a1a] font-bold py-2.5 rounded-full text-sm hover:border-[#1a7f5e] transition flex items-center justify-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  Message
+                </button>
+              </div>
+              {/* Badges */}
+              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4">
+                <h3 className="text-sm font-extrabold text-[#1a1a1a] mb-3">Badges</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { bg: '#0f4d38', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f5c842" strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>, tip: 'Top Rated' },
+                    { bg: '#e8f5f0', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f4d38" strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, tip: 'Verified' },
+                    { bg: '#e8f5f0', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f4d38" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>, tip: 'Fast Responder' },
+                    { bg: '#ede9fe', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>, tip: '98% Reliable' },
+                  ].map((badge, i) => (
+                    <div key={i} title={badge.tip} className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition" style={{ background: badge.bg }}>{badge.icon}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="flex flex-col gap-4 md:sticky md:top-24">
 
             {/* Edit actions */}
@@ -430,6 +465,7 @@ export default function ProviderProfile() {
             </div>
 
           </div>
+          )}
         </div>
       </div>
 

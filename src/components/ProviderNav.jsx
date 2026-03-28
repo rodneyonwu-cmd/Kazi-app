@@ -16,11 +16,10 @@ export default function ProviderNav() {
   ]
 
   const accountLinks = [
-    { icon: <UserIcon />,   label: 'My Profile',             path: '/provider-profile' },
+    { icon: <UserIcon />,   label: 'How offices view me',    path: '/provider-profile', state: { readOnly: true } },
     { icon: <DocIcon />,    label: 'Documents & Credentials', path: '/provider-documents', badge: '1 expiring' },
     { icon: <CalIcon />,    label: 'Availability',            path: '/provider-schedule' },
-    { icon: <DollarIcon />, label: 'Earnings & Payouts',      path: '/provider-earnings' },
-    { icon: <TaxIcon />,    label: 'Tax Information',         path: '/provider-tax' },
+    { icon: <DollarIcon />, label: 'Finance',                 path: '/provider-earnings' },
     { icon: <HeartIcon />,  label: 'Favorite Offices',        path: '/provider-favorites' },
   ]
 
@@ -36,7 +35,8 @@ export default function ProviderNav() {
 
         {/* Logo */}
         <span
-          className="text-[#1a7f5e] font-bold text-3xl tracking-tight cursor-pointer"
+          className="cursor-pointer"
+          style={{ fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize: '36px', fontWeight: 900, color: '#1a7f5e', letterSpacing: '-1px', WebkitTextStroke: '0.5px #1a7f5e' }}
           onClick={() => navigate('/provider-dashboard')}
         >
           kazi.
@@ -67,7 +67,7 @@ export default function ProviderNav() {
           {open && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-              <div className="absolute right-0 top-12 w-60 bg-white border border-[#e5e7eb] rounded-2xl shadow-xl z-50 overflow-hidden">
+              <div className="absolute right-0 top-12 w-60 bg-white border border-[#e5e7eb] rounded-2xl shadow-xl z-50 overflow-y-auto max-h-[80vh]">
 
                 {/* Header */}
                 <div className="px-4 py-4 border-b border-[#f3f4f6]">
@@ -84,10 +84,10 @@ export default function ProviderNav() {
                 {/* Account */}
                 <div className="py-1.5">
                   <p className="px-4 py-1 text-[10px] font-semibold text-[#d1d5db] uppercase tracking-widest">Account</p>
-                  {accountLinks.map(({ icon, label, path: linkPath, badge }) => (
+                  {accountLinks.map(({ icon, label, path: linkPath, badge, state }) => (
                     <div
                       key={label}
-                      onClick={() => { setOpen(false); navigate(linkPath) }}
+                      onClick={() => { setOpen(false); navigate(linkPath, { state: state || {} }) }}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-[#1a1a1a] hover:bg-[#f9f8f6] cursor-pointer"
                     >
                       <span className="text-[#9ca3af] flex-shrink-0">{icon}</span>
