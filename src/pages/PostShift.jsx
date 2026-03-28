@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Nav from '../components/Nav'
 
 export default function PostShift() {
   const navigate = useNavigate()
@@ -8,18 +9,21 @@ export default function PostShift() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#f9f8f6] flex flex-col items-center justify-center px-4">
-        <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 w-full max-w-md text-center">
-          <div className="text-5xl mb-4">🎉</div>
-          <h1 className="text-2xl font-extrabold text-[#1a1a1a] mb-2">Shift posted!</h1>
-          <p className="text-sm text-[#6b7280] mb-8">Your shift is live. Professionals in your area will be notified right away.</p>
-          <div className="flex flex-col gap-3">
-            <button onClick={() => navigate('/dashboard')} className="w-full bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 rounded-full text-sm transition">
-              Go to dashboard
-            </button>
-            <button onClick={() => { setStep(1); setDone(false) }} className="w-full bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#1a7f5e] transition">
-              Post another shift
-            </button>
+      <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
+        <Nav />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 w-full max-w-md text-center">
+            <div className="text-5xl mb-4">🎉</div>
+            <h1 className="text-2xl font-extrabold text-[#1a1a1a] mb-2">Shift posted!</h1>
+            <p className="text-sm text-[#6b7280] mb-8">Your shift is live. Professionals in your area will be notified right away.</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => navigate('/dashboard')} className="w-full bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 rounded-full text-sm transition">
+                Go to dashboard
+              </button>
+              <button onClick={() => { setStep(1); setDone(false) }} className="w-full bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#1a7f5e] transition">
+                Post another shift
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -28,19 +32,7 @@ export default function PostShift() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
-      <nav className="bg-white border-b border-[#e5e7eb] h-16 sticky top-0 z-50">
-        <div className="max-w-[1100px] mx-auto px-6 h-full flex items-center justify-between">
-          <span className="text-[#1a7f5e] font-bold text-2xl cursor-pointer" onClick={() => navigate('/dashboard')}>kazi.</span>
-          <div className="hidden md:flex items-center gap-8">
-            <span className="text-sm text-[#6b7280] cursor-pointer hover:text-[#1a1a1a]" onClick={() => navigate('/dashboard')}>Dashboard</span>
-            <span className="text-sm text-[#6b7280] cursor-pointer hover:text-[#1a1a1a]">Applicants</span>
-            <span className="text-sm text-[#6b7280] cursor-pointer hover:text-[#1a1a1a]">Professionals</span>
-            <span className="text-sm text-[#6b7280] cursor-pointer hover:text-[#1a1a1a]">Bookings</span>
-            <span className="text-sm text-[#6b7280] cursor-pointer hover:text-[#1a1a1a]">Messages</span>
-          </div>
-          <div className="w-9 h-9 rounded-full bg-[#1a7f5e] text-white text-sm font-bold flex items-center justify-center cursor-pointer">BS</div>
-        </div>
-      </nav>
+      <Nav />
 
       <div className="flex items-center justify-center gap-2 py-6">
         {[
@@ -117,7 +109,7 @@ export default function PostShift() {
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-[#1a1a1a] mb-1.5">Lunch break</label>
-                <select className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#1a7f5e] transition">
+                <select className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#1a7f5e] transition bg-white">
                   <option>No lunch break</option>
                   <option>30 minutes</option>
                   <option>60 minutes</option>
@@ -147,9 +139,7 @@ export default function PostShift() {
                 <label className="block text-sm font-semibold text-[#1a1a1a] mb-1.5">Practice software</label>
                 <div className="flex flex-wrap gap-2">
                   {['Eaglesoft', 'Dentrix', 'Open Dental', 'Curve Dental'].map(s => (
-                    <button key={s} className="px-3 py-1.5 border border-[#e5e7eb] rounded-full text-xs font-semibold text-[#6b7280] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition">
-                      {s}
-                    </button>
+                    <button key={s} className="px-3 py-1.5 border border-[#e5e7eb] rounded-full text-xs font-semibold text-[#6b7280] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition">{s}</button>
                   ))}
                 </div>
               </div>
