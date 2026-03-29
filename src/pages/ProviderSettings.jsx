@@ -14,11 +14,6 @@ export default function ProviderSettings() {
     payouts: true,
   })
 
-  const [privacy, setPrivacy] = useState({
-    profileVisible: true,
-    showRate: true,
-    showReviews: true,
-  })
 
   const [pushEnabled, setPushEnabled] = useState(true)
   const [emailEnabled, setEmailEnabled] = useState(true)
@@ -86,29 +81,6 @@ export default function ProviderSettings() {
                     <p className="text-[12px] text-[#9ca3af]">{sub}</p>
                   </div>
                   <Toggle value={notifs[key]} onChange={v => setNotifs(prev => ({ ...prev, [key]: v }))} />
-                </div>
-                {i < arr.length - 1 && <div className="h-px bg-[#f3f4f6] mt-4" />}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Privacy */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-5 mb-4">
-          <p className="text-[15px] font-black text-[#1a1a1a] mb-4">Privacy</p>
-          <div className="flex flex-col gap-4">
-            {[
-              { key: 'profileVisible', label: 'Profile visible to offices', sub: 'Offices can find and view your profile' },
-              { key: 'showRate', label: 'Show my rate', sub: 'Display your hourly rate on your profile' },
-              { key: 'showReviews', label: 'Show my reviews', sub: 'Display office reviews on your profile' },
-            ].map(({ key, label, sub }, i, arr) => (
-              <div key={key}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#1a1a1a]">{label}</p>
-                    <p className="text-[12px] text-[#9ca3af]">{sub}</p>
-                  </div>
-                  <Toggle value={privacy[key]} onChange={v => setPrivacy(prev => ({ ...prev, [key]: v }))} />
                 </div>
                 {i < arr.length - 1 && <div className="h-px bg-[#f3f4f6] mt-4" />}
               </div>
