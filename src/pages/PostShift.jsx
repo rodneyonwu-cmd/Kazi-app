@@ -7,6 +7,8 @@ export default function PostShift() {
   const [step, setStep] = useState(1)
   const [done, setDone] = useState(false)
 
+  const stepLabels = ['Role & Type', 'Date & Time', 'Rate & Details', 'Review']
+
   if (done) {
     return (
       <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
@@ -34,27 +36,20 @@ export default function PostShift() {
     <div className="min-h-screen bg-[#f9f8f6]">
       <Nav />
 
-      <div className="flex items-center justify-center gap-2 py-6">
-        {[
-          { n: 1, label: 'Role & Type' },
-          { n: 2, label: 'Date & Time' },
-          { n: 3, label: 'Rate & Details' },
-          { n: 4, label: 'Review' },
-        ].map((s) => (
-          <div key={s.n} className="flex items-center gap-2">
-            <div className="flex flex-col items-center gap-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition
-                ${step === s.n ? 'border-[#1a7f5e] text-[#1a7f5e]' : ''}
-                ${step > s.n ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : ''}
-                ${step < s.n ? 'border-[#e5e7eb] text-[#9ca3af]' : ''}
-              `}>
-                {step > s.n ? '✓' : s.n}
-              </div>
-              <span className={`text-xs font-semibold whitespace-nowrap ${step === s.n ? 'text-[#1a7f5e]' : 'text-[#9ca3af]'}`}>{s.label}</span>
-            </div>
-            {s.n < 4 && <div className={`w-12 h-0.5 mb-4 ${step > s.n ? 'bg-[#1a7f5e]' : 'bg-[#e5e7eb]'}`}></div>}
-          </div>
-        ))}
+      {/* Segmented progress bar */}
+      <div className="max-w-lg mx-auto px-4 pt-6 pb-4">
+        <div className="flex gap-1.5 mb-2">
+          {[1,2,3,4].map(n => (
+            <div
+              key={n}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${n <= step ? 'bg-[#1a7f5e]' : 'bg-[#e5e7eb]'}`}
+            />
+          ))}
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] font-semibold text-[#9ca3af]">Step {step} of 4</span>
+          <span className="text-[12px] font-bold text-[#1a7f5e]">{stepLabels[step - 1]}</span>
+        </div>
       </div>
 
       <div className="flex items-start justify-center px-4 pb-20">

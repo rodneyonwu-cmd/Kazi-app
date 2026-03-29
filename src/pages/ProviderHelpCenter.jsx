@@ -2,135 +2,157 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProviderNav from '../components/ProviderNav'
 
-const faqs = [
-  { q: 'How do I get paid?', a: 'Kazi pays you directly after each completed shift. Funds are available within 24 hours with Instant Pay, or within 3–5 business days with standard transfer. You can cash out anytime from your Earnings page.' },
-  { q: 'How does Rapid Fill work?', a: 'When an office uses Rapid Fill, they send the shift invite to multiple verified professionals at once. The first professional to accept secures the shift. You will receive a push notification — act quickly!' },
-  { q: 'Can I cancel a confirmed shift?', a: 'Yes, but please do so as early as possible. Cancellations within 24 hours of the shift may affect your reliability score. Repeated late cancellations can limit your ability to receive future invitations.' },
-  { q: 'How is my reliability score calculated?', a: 'Your reliability score reflects your history of accepting shifts and showing up on time. It is calculated based on your acceptance rate, cancellation history, and on-time arrival rate over your last 90 days.' },
-  { q: 'How do I update my availability?', a: 'Go to Schedule in the navigation, then tap "Edit hours" next to My Availability. You can set your regular weekly hours and add date exceptions for vacations or one-off availability.' },
-  { q: 'What if an office does not pay on time?', a: 'Contact our support team immediately. Kazi holds platform-level protections for verified professionals. We will investigate and resolve any payment issues directly with the office.' },
-  { q: 'How do I verify my license?', a: 'Go to Documents & Credentials and upload a photo of your current license. Our team reviews submissions within 1–2 business days. You will receive a notification once verified.' },
-  { q: 'Can I work at multiple offices on the same day?', a: 'No. Kazi only allows one shift per day to ensure quality care and prevent overcommitment. If you accept a shift, other same-day opportunities will be unavailable.' },
+const FAQS = [
+  { q: 'How does Kazi pay me?', a: "Kazi processes payments via Stripe. After a completed shift, your earnings are typically deposited to your connected bank account within 1–2 business days. If Instant Pay is enabled by the office, you'll receive funds the same day." },
+  { q: 'How do I cancel a confirmed shift?', a: 'Go to your Schedule, find the shift, and tap Cancel. Cancellations made more than 24 hours in advance are penalty-free. Late cancellations may affect your reliability score. We strongly recommend messaging the office before cancelling.' },
+  { q: 'What is Rapid Fill?', a: 'Rapid Fill is our urgent shift system. When an office needs a last-minute fill, up to 10 matching providers are simultaneously notified. The first to accept locks in the shift. Rapid Fill shifts often pay a premium rate.' },
+  { q: 'How is my reliability score calculated?', a: 'Your reliability score is based on the percentage of confirmed shifts you completed without a late cancellation. A score above 90% keeps your profile highly visible to offices. Cancellations made 24+ hours in advance do not impact your score.' },
+  { q: 'Do I need to verify my license to start working?', a: 'Yes. All providers must upload and verify their state dental license before accepting shifts. Verification typically takes 1 business day. You can upload your license in the Documents section of your profile.' },
 ]
+
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 10, marginBottom: 5, overflow: 'hidden' }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 13px', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#1a1a1a', background: open ? '#f9f8f6' : 'white' }}
+      >
+        {q}
+        <svg style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      {open && (
+        <div style={{ padding: '0 13px 12px', fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{a}</div>
+      )}
+    </div>
+  )
+}
 
 export default function ProviderHelpCenter() {
   const navigate = useNavigate()
-  const [openFaq, setOpenFaq] = useState(null)
   const [search, setSearch] = useState('')
+  const [toast, setToast] = useState(null)
 
-  const filtered = faqs.filter(f =>
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
+
+  const filtered = FAQS.filter(f =>
     f.q.toLowerCase().includes(search.toLowerCase()) ||
     f.a.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
-
+    <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
       <ProviderNav />
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <button onClick={() => navigate('/provider-dashboard')} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#9ca3af] hover:text-[#374151] mb-4 transition">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Back
-          </button>
-          <h1 className="text-[22px] font-black text-[#1a1a1a] mb-1">Help Center</h1>
-          <p className="text-[13px] text-[#9ca3af]">Find answers or reach our support team</p>
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', fontSize: 12, fontWeight: 600, padding: '9px 16px', borderRadius: 100, zIndex: 300, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,.2)', whiteSpace: 'nowrap' }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1a7f5e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
+          </div>
+          {toast}
         </div>
+      )}
+
+      {/* Inner */}
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '16px 14px 100px' }}>
+
+        <div style={{ fontSize: 20, fontWeight: 900, color: '#1a1a1a', marginBottom: 2 }}>Help Center</div>
+        <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>Find answers or contact support</div>
 
         {/* Search */}
-        <div className="relative mb-5">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" placeholder="Search help articles..." value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#e5e7eb] rounded-[14px] pl-10 pr-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] transition" />
-        </div>
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search for answers..."
+          style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 100, padding: '10px 16px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', marginBottom: 18, boxSizing: 'border-box' }}
+          onFocus={e => e.target.style.borderColor = '#1a7f5e'}
+          onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+        />
 
-        {/* Quick links */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[
-            { icon: '💰', label: 'Getting paid', color: 'bg-[#e8f5f0]' },
-            { icon: '📅', label: 'Scheduling', color: 'bg-[#ede9fe]' },
-            { icon: '🔒', label: 'Account & Security', color: 'bg-[#fef9c3]' },
-          ].map(({ icon, label, color }) => (
-            <div key={label} className={`${color} rounded-[14px] p-4 text-center cursor-pointer hover:opacity-80 transition`}>
-              <div className="text-2xl mb-1">{icon}</div>
-              <p className="text-[12px] font-bold text-[#1a1a1a]">{label}</p>
+        {/* Category tiles */}
+        {!search && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
+              {[
+                { label: 'Shifts', sub: 'Booking & cancellations', bg: '#e8f5f0', stroke: '#1a7f5e', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
+                { label: 'Payments', sub: 'Deposits & payouts', bg: '#ede9fe', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
+                { label: 'Profile', sub: 'Credentials & settings', bg: '#fef9c3', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+                { label: 'Trust & Safety', sub: 'Disputes & reports', bg: '#fee2e2', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> },
+              ].map(cat => (
+                <div key={cat.label} style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: 14, cursor: 'pointer', textAlign: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#1a7f5e'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: cat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                    {cat.icon}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{cat.label}</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>{cat.sub}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Frequently asked questions</div>
+          </>
+        )}
 
         {/* FAQs */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] overflow-hidden mb-5">
-          <div className="px-5 py-4 border-b border-[#f3f4f6]">
-            <p className="text-[15px] font-black text-[#1a1a1a]">Frequently asked questions</p>
+        {filtered.length === 0 ? (
+          <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '40px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4 }}>No results found</div>
+            <div style={{ fontSize: 12, color: '#9ca3af' }}>Try different keywords or contact support below</div>
           </div>
-          {filtered.length === 0 ? (
-            <div className="px-5 py-8 text-center text-[#9ca3af] text-[13px]">No results found for "{search}"</div>
-          ) : (
-            filtered.map((faq, i) => (
-              <div key={i} className={`border-b border-[#f3f4f6] last:border-none`}>
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#f9f8f6] transition"
-                >
-                  <span className="text-[14px] font-semibold text-[#1a1a1a] pr-4">{faq.q}</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"
-                    style={{ transform: openFaq === i ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s', flexShrink: 0 }}>
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-                {openFaq === i && (
-                  <div className="px-5 pb-4">
-                    <p className="text-[13px] text-[#6b7280] leading-relaxed">{faq.a}</p>
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
+        ) : (
+          filtered.map((faq, i) => <FaqItem key={i} q={faq.q} a={faq.a} />)
+        )}
 
         {/* Contact support */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-5">
-          <p className="text-[15px] font-black text-[#1a1a1a] mb-1">Still need help?</p>
-          <p className="text-[13px] text-[#9ca3af] mb-4">Our support team is available Mon–Fri, 8am–6pm CT.</p>
-          <div className="flex flex-col gap-2">
-            <button onClick={() => navigate('/provider-messages')} className="flex items-center gap-3 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-3 rounded-full text-[14px] transition w-full justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Contact Support
-            </button>
-            <button className="flex items-center gap-3 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] hover:border-[#1a7f5e] transition w-full justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.36 2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              support@kazi.com
-            </button>
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8, marginTop: 18 }}>Contact support</div>
+
+        {[
+          { label: 'Live chat', sub: 'Usually responds in under 5 minutes', bg: '#e8f5f0', onClick: () => showToast('Opening live chat...'), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+          { label: 'Email support', sub: 'support@kazi.com · Replies within 24 hrs', bg: '#ede9fe', onClick: () => showToast('Opening email...'), icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
+        ].map(row => (
+          <div key={row.label} onClick={row.onClick}
+            style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '12px 13px', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#1a7f5e'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#e5e7eb'}
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: row.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {row.icon}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{row.label}</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{row.sub}</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
-        </div>
+        ))}
+
       </div>
 
       {/* Mobile toolbar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
-        {[
-          { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
-          { label: 'Requests', path: '/provider-requests', icon: <ReqIcon />, badge: 2 },
-          { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages', path: '/provider-messages', icon: <MsgIcon /> },
-          { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },
-        ].map(({ label, path, icon, badge }) => (
-          <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
-            <div className="relative"><span className="text-[#9ca3af]">{icon}</span>
-              {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+      <div className="md:hidden" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e5e7eb', zIndex: 50 }}>
+        <div style={{ display: 'flex' }}>
+          {[
+            { label: 'Home',        path: '/provider-dashboard',   icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
+            { label: 'Requests',    path: '/provider-requests',    badge: 2, icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> },
+            { label: 'Find Shifts', path: '/provider-find-shifts', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
+            { label: 'Messages',    path: '/provider-messages',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+            { label: 'Finance',     path: '/provider-earnings',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
+          ].map(({ label, path, icon, badge }) => (
+            <div key={label} onClick={() => navigate(path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '10px 0', cursor: 'pointer' }}>
+              <div style={{ position: 'relative' }}>
+                {icon}
+                {badge && <span style={{ position: 'absolute', top: -4, right: -6, background: '#ef4444', color: 'white', fontSize: 9, fontWeight: 700, width: 14, height: 14, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white' }}>{badge}</span>}
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af' }}>{label}</span>
             </div>
-            <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
 }
-
-function HomeIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> }
-function ReqIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> }
-function SearchIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> }
-function MsgIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> }
-function EarnIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> }
