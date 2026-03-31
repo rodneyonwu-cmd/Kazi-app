@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/ronwu/Desktop/Kazi-app -maxdepth 2 -not -path */node_modules/* -not -path */.git/* -type d)",
+      "Bash(npm install:*)",
+      "Bash(timeout 5 node server/index.js)",
+      "Bash(npx prisma:*)",
+      "Bash(node -e \":*)"
+    ]
+  }
+}
