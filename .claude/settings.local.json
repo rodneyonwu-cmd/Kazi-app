@@ -5,7 +5,10 @@
       "Bash(npm install:*)",
       "Bash(timeout 5 node server/index.js)",
       "Bash(npx prisma:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(find /c/Users/ronwu/Desktop/Kazi-app/src -name *context* -o -name *provider*)",
+      "Bash(grep -r \"ClerkProvider\\\\|useAuth\\\\|AuthContext\" /c/Users/ronwu/Desktop/Kazi-app/src --include=*.jsx)",
+      "Bash(npx vite:*)"
     ]
   }
 }

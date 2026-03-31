@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react'
 import Login from './pages/Login'
 import Onboarding from './pages/Onboarding'
 import OTPVerification from './pages/OTPVerification'
@@ -46,6 +47,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/otp-verification" element={<OTPVerification />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
