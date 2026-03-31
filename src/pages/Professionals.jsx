@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Nav from '../components/Nav'
 
 const PROFESSIONALS = [
-  { id: 'sarah', name: 'Sarah R.', role: 'Dental Hygienist', rate: 52, rating: 5.0, reviews: 63, reliability: 98, shifts: 147, responseTime: '< 1 hr', miles: 8.2, software: ['Eaglesoft', 'Dentrix', 'Open Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Local Anesthesia', 'Nitrous Oxide'], about: 'Experienced RDH with 12 years in general and perio practices. Highly proficient in full-mouth debridement, periodontal charting, and advanced scaling procedures. Known for her gentle touch with anxious patients.', img: 'https://randomuser.me/api/portraits/women/44.jpg', booked: true, available: true, calendar: { 16:'avail',17:'avail',18:'booked',19:'avail',20:'avail',23:'avail',24:'booked',25:'avail',26:'avail',30:'avail',31:'avail' } },
-  { id: 'rachel', name: 'Rachel M.', role: 'Dental Hygienist', rate: 72, rating: 4.9, reviews: 71, reliability: 99, shifts: 203, responseTime: '< 1 hr', miles: 11.4, software: ['Eaglesoft', 'Open Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Nitrous Oxide'], about: 'With 12 years across general and specialty practices, Rachel brings precision and professionalism to every shift. She excels in perio maintenance, SRP, and patient education.', img: 'https://randomuser.me/api/portraits/women/55.jpg', booked: false, available: true, calendar: { 17:'avail',18:'avail',19:'booked',20:'avail',23:'avail',24:'avail',26:'avail',30:'avail' } },
-  { id: 'aisha', name: 'Aisha L.', role: 'Dental Hygienist', rate: 58, rating: 5.0, reviews: 48, reliability: 94, shifts: 142, responseTime: '< 2 hrs', miles: 6.1, software: ['Dentrix', 'Curve Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Local Anesthesia'], about: 'Periodontal specialist with 15 years of clinical experience focused on advanced perio therapy, precision scaling, and early disease detection. Highly sought after by specialty practices.', img: 'https://randomuser.me/api/portraits/women/65.jpg', booked: false, available: true, calendar: { 16:'avail',17:'avail',18:'booked',20:'avail',24:'avail',25:'avail',27:'avail',30:'avail' } },
-  { id: 'james', name: 'James T.', role: 'Dental Hygienist', rate: 75, rating: 4.8, reviews: 55, reliability: 91, shifts: 88, responseTime: '< 2 hrs', miles: 14.3, software: ['Open Dental', 'Eaglesoft'], certs: ['TX RDH License', 'CPR/BLS'], about: 'James thrives in collaborative, high-volume environments. With experience across several multi-doctor practices in Houston, he brings adaptability and professionalism to every shift.', img: 'https://randomuser.me/api/portraits/men/22.jpg', booked: false, available: false, calendar: { 17:'avail',19:'avail',24:'avail',25:'avail',31:'avail' } },
-  { id: 'nina', name: 'Nina P.', role: 'Dental Assistant', rate: 34, rating: 4.9, reviews: 52, reliability: 86, shifts: 98, responseTime: '< 2 hrs', miles: 9.8, software: ['Dentrix', 'Eaglesoft'], certs: ['Reg. DA', 'CPR/BLS', 'X-Ray'], about: 'Nina brings warmth, efficiency, and clinical precision to every practice. With 8 years assisting across general and cosmetic practices, she excels in four-handed dentistry and tray setup.', img: 'https://randomuser.me/api/portraits/women/28.jpg', booked: false, available: true, calendar: { 16:'avail',17:'booked',18:'avail',19:'avail',24:'avail',25:'avail',30:'avail' } },
-  { id: 'marcus', name: 'Marcus J.', role: 'Dental Assistant', rate: 38, rating: 4.8, reviews: 41, reliability: 73, shifts: 54, responseTime: '< 3 hrs', miles: 5.7, software: ['Dentrix', 'Open Dental'], certs: ['Reg. DA', 'CPR/BLS', 'X-Ray'], about: 'Marcus is a dependable dental assistant with 8 years in general and pediatric settings. Particularly skilled in instrument sterilization and impression taking.', img: 'https://randomuser.me/api/portraits/men/32.jpg', booked: true, available: true, calendar: { 17:'avail',18:'avail',20:'avail',23:'avail',26:'avail',31:'avail' } },
-  { id: 'tara', name: 'Tara C.', role: 'Front Desk', rate: 28, rating: 4.7, reviews: 34, reliability: 98, shifts: 61, responseTime: '< 2 hrs', miles: 7.5, software: ['Eaglesoft', 'Dentrix'], certs: ['CPR/BLS', 'HIPAA'], about: 'Tara is a polished front desk professional with a gift for patient relations and scheduling efficiency. She seamlessly steps into new office environments and quickly learns workflows.', img: 'https://randomuser.me/api/portraits/women/17.jpg', booked: false, available: true, calendar: { 16:'avail',18:'avail',19:'avail',23:'avail',24:'avail',31:'avail' } },
-  { id: 'devon', name: 'Devon K.', role: 'Treatment Coordinator', rate: 42, rating: 4.6, reviews: 28, reliability: 84, shifts: 32, responseTime: '< 5 hrs', miles: 18.2, software: ['Curve Dental'], certs: ['CPR/BLS', 'HIPAA', 'Dental Billing'], about: 'Devon specializes in presenting treatment plans that build patient trust and drive case acceptance. Strong background in insurance coordination and financial arrangements.', img: 'https://randomuser.me/api/portraits/men/41.jpg', booked: false, available: false, calendar: { 17:'avail',19:'avail',24:'avail',25:'avail',30:'avail' } },
+  { id: 'sarah', name: 'Sarah R.', role: 'Dental Hygienist', rate: 52, rating: 5.0, reviews: 63, reliability: 98, shifts: 147, responseTime: '< 1 hr', miles: 8.2, software: ['Eaglesoft', 'Dentrix', 'Open Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Local Anesthesia', 'Nitrous Oxide'], about: 'Experienced RDH with 12 years in general and perio practices. Highly proficient in full-mouth debridement, periodontal charting, and advanced scaling procedures. Known for her gentle touch with anxious patients.', img: 'https://i.pravatar.cc/150?img=47', calendar: { 16:'avail',17:'avail',18:'booked',19:'avail',20:'avail',23:'avail',24:'booked',25:'avail',26:'avail',30:'avail',31:'avail' } },
+  { id: 'rachel', name: 'Rachel M.', role: 'Dental Hygienist', rate: 72, rating: 4.9, reviews: 71, reliability: 99, shifts: 203, responseTime: '< 1 hr', miles: 11.4, software: ['Eaglesoft', 'Open Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Nitrous Oxide'], about: 'With 12 years across general and specialty practices, Rachel brings precision and professionalism to every shift. She excels in perio maintenance, SRP, and patient education.', img: 'https://i.pravatar.cc/150?img=32', calendar: { 17:'avail',18:'avail',19:'booked',20:'avail',23:'avail',24:'avail',26:'avail',30:'avail' } },
+  { id: 'aisha', name: 'Aisha L.', role: 'Dental Hygienist', rate: 58, rating: 5.0, reviews: 48, reliability: 94, shifts: 142, responseTime: '< 2 hrs', miles: 6.1, software: ['Dentrix', 'Curve Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Local Anesthesia'], about: 'Periodontal specialist with 15 years of clinical experience focused on advanced perio therapy, precision scaling, and early disease detection. Highly sought after by specialty practices.', img: 'https://i.pravatar.cc/150?img=25', calendar: { 16:'avail',17:'avail',18:'booked',20:'avail',24:'avail',25:'avail',27:'avail',30:'avail' } },
+  { id: 'james', name: 'James T.', role: 'Dental Hygienist', rate: 75, rating: 4.8, reviews: 55, reliability: 91, shifts: 88, responseTime: '< 2 hrs', miles: 14.3, software: ['Open Dental', 'Eaglesoft'], certs: ['TX RDH License', 'CPR/BLS'], about: 'James thrives in collaborative, high-volume environments. With experience across several multi-doctor practices in Houston, he brings adaptability and professionalism to every shift.', img: 'https://i.pravatar.cc/150?img=12', calendar: { 17:'avail',19:'avail',24:'avail',25:'avail',31:'avail' } },
+  { id: 'nina', name: 'Nina P.', role: 'Dental Assistant', rate: 34, rating: 4.9, reviews: 52, reliability: 86, shifts: 98, responseTime: '< 2 hrs', miles: 9.8, software: ['Dentrix', 'Eaglesoft'], certs: ['Reg. DA', 'CPR/BLS', 'X-Ray'], about: 'Nina brings warmth, efficiency, and clinical precision to every practice. With 8 years assisting across general and cosmetic practices, she excels in four-handed dentistry and tray setup.', img: 'https://i.pravatar.cc/150?img=49', calendar: { 16:'avail',17:'booked',18:'avail',19:'avail',24:'avail',25:'avail',30:'avail' } },
+  { id: 'marcus', name: 'Marcus J.', role: 'Dental Assistant', rate: 38, rating: 4.8, reviews: 41, reliability: 73, shifts: 54, responseTime: '< 3 hrs', miles: 5.7, software: ['Dentrix', 'Open Dental'], certs: ['Reg. DA', 'CPR/BLS', 'X-Ray'], about: 'Marcus is a dependable dental assistant with 8 years in general and pediatric settings. Particularly skilled in instrument sterilization and impression taking.', img: 'https://i.pravatar.cc/150?img=15', calendar: { 17:'avail',18:'avail',20:'avail',23:'avail',26:'avail',31:'avail' } },
+  { id: 'tara', name: 'Tara C.', role: 'Front Desk', rate: 28, rating: 4.7, reviews: 34, reliability: 98, shifts: 61, responseTime: '< 2 hrs', miles: 7.5, software: ['Eaglesoft', 'Dentrix'], certs: ['CPR/BLS', 'HIPAA'], about: 'Tara is a polished front desk professional with a gift for patient relations and scheduling efficiency. She seamlessly steps into new office environments and quickly learns workflows.', img: 'https://i.pravatar.cc/150?img=45', calendar: { 16:'avail',18:'avail',19:'avail',23:'avail',24:'avail',31:'avail' } },
+  { id: 'devon', name: 'Devon K.', role: 'Treatment Coordinator', rate: 42, rating: 4.6, reviews: 28, reliability: 84, shifts: 32, responseTime: '< 5 hrs', miles: 18.2, software: ['Curve Dental'], certs: ['CPR/BLS', 'HIPAA', 'Dental Billing'], about: 'Devon specializes in presenting treatment plans that build patient trust and drive case acceptance. Strong background in insurance coordination and financial arrangements.', img: 'https://i.pravatar.cc/150?img=67', calendar: { 17:'avail',19:'avail',24:'avail',25:'avail',30:'avail' } },
 ]
 
 const CAL_DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa']
@@ -22,188 +22,383 @@ function relDisplay(r) {
   return { label: 'Poor', bg: '#fee2e2', color: '#991b1b' }
 }
 
-function ProCard({ pro, rapidSelected, onToggleRapid, onBook, showToast }) {
-  const [calOpen, setCalOpen] = useState(false)
+const CheckIcon = () => (
+  <svg width="9" height="7" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+)
+const BoltIcon = ({ size = 12, color = 'white' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+)
+const CalIcon = ({ size = 15, color = '#1a7f5e' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+)
+
+// ─── PRO CARD ────────────────────────────────────────────────
+function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, hasDate }) {
   const isSelected = rapidSelected.includes(pro.id)
   const rel = relDisplay(pro.reliability)
-
-  const firstDay = new Date(2026, 2, 1).getDay()
-  const calDays = [...Array(firstDay).fill(null), ...Array.from({ length: 31 }, (_, i) => i + 1)]
-
   return (
-    <div className={`bg-white border rounded-[14px] overflow-hidden mb-2 transition-all ${isSelected ? 'border-[#1a7f5e] shadow-[0_0_0_1px_#1a7f5e]' : 'border-[#e5e7eb] hover:border-[#c5d9d4]'}`}>
-      <div className="flex gap-2.5 p-3">
-
-        {/* Rapid Fill Checkbox */}
+    <div
+      onClick={() => onOpenProfile(pro.id)}
+      style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 14, cursor: 'pointer', transition: 'border-color .15s', boxShadow: isSelected ? '0 2px 8px rgba(0,0,0,.07)' : 'none' }}
+    >
+      {/* Top section */}
+      <div style={{ display: 'flex', gap: 10, padding: 14 }}>
+        {/* Checkbox */}
         <div
-          onClick={() => onToggleRapid(pro.id)}
-          className={`w-4 h-4 rounded-[4px] border-2 flex items-center justify-center cursor-pointer flex-shrink-0 mt-1 transition-all ${isSelected ? 'bg-[#1a7f5e] border-[#1a7f5e]' : 'border-[#d1d5db] hover:border-[#1a7f5e] bg-white'}`}
+          onClick={e => { e.stopPropagation(); onToggleRapid(pro.id); }}
+          style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${isSelected ? '#1a7f5e' : '#d1d5db'}`, background: isSelected ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginTop: 3, transition: 'all .15s' }}
         >
-          {isSelected && <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>}
+          {isSelected && <CheckIcon />}
         </div>
-
         {/* Avatar */}
-        <img src={pro.img} className="w-[68px] h-[68px] rounded-full object-cover flex-shrink-0" alt={pro.name}/>
-
+        <img src={pro.img} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt={pro.name} />
         {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-0.5">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[15px] font-black text-[#1a1a1a]">{pro.name}</span>
-              {pro.booked && <span className="text-[9px] font-bold bg-[#e8f5f0] text-[#1a7f5e] px-1.5 py-0.5 rounded-full">✓ Worked with you</span>}
-              <span className={`text-[10px] font-semibold ${pro.available ? 'text-[#1a7f5e]' : 'text-[#9ca3af]'}`}>{pro.available ? '● Active' : '○ Unavailable'}</span>
-            </div>
-            <span className="text-[15px] font-black text-[#1a1a1a] flex-shrink-0">${pro.rate}<span className="text-[10px] font-normal text-[#9ca3af]">/hr</span></span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2 }}>{pro.name}</span>
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 }}>${pro.rate}<span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
           </div>
-
-          <p className="text-[11px] text-[#6b7280] mb-1.5">{pro.role} · {pro.miles} mi away</p>
-
-          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-            <span className="text-[13px] font-extrabold text-[#F97316]">★ {pro.rating}</span>
-            <span className="text-[11px] text-[#9ca3af]">({pro.reviews})</span>
-            <span className="text-[#d1d5db]">·</span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: rel.bg, color: rel.color }}>{rel.label} · {pro.reliability}%</span>
-            <span className="text-[#d1d5db]">·</span>
-            <span className="text-[11px] font-semibold text-[#374151]">{pro.shifts} shifts</span>
+          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>{pro.role} · {pro.miles} mi away</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
+            <span style={{ fontSize: 11, color: '#9ca3af' }}>({pro.reviews})</span>
           </div>
-
-          <div className="flex flex-wrap gap-1 mb-1.5">
-            {pro.software.map(s => <span key={s} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#e8f5f0] text-[#0f4d38]">{s}</span>)}
-            {pro.certs.map(c => <span key={c} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#f3f4f6] text-[#374151]">✓ {c}</span>)}
+          {/* Reliability */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <span style={{ fontSize: 11, color: '#374151' }}>Reliability: <span style={{ color: rel.color, fontWeight: 700 }}>{pro.reliability}%</span><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: rel.bg, color: rel.color, marginLeft: 3 }}>{rel.label}</span></span>
           </div>
-
-          <p className="text-[12px] text-[#374151] leading-relaxed mb-2 line-clamp-2">{pro.about}</p>
-
-          <div className="flex items-center justify-end gap-1.5">
-            <button onClick={() => showToast('Opening messages...')} className="flex items-center gap-1 border border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] text-[11px] font-bold px-3 py-1.5 rounded-full transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Message
-            </button>
-            <button onClick={() => setCalOpen(!calOpen)} className="flex items-center gap-1 bg-[#1a7f5e] hover:bg-[#156649] text-white text-[11px] font-bold px-3 py-1.5 rounded-full transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
-              Availability
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" className={`transition-transform ${calOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
+          {/* Shifts */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            <span style={{ fontSize: 11, color: '#374151' }}>{pro.shifts} shifts completed</span>
           </div>
         </div>
       </div>
-
-      {calOpen && (
-        <div className="border-t border-[#f3f4f6] bg-[#f9f8f6] px-3.5 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[12px] font-extrabold text-[#1a1a1a]">March 2026</span>
-            <div className="flex gap-3">
-              {[['#e8f5f0','#1a7f5e','Available'],['#fef3c7','#f59e0b','Booked']].map(([bg,bd,lbl]) => (
-                <div key={lbl} className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-[2px]" style={{ background: bg, border: `1px solid ${bd}` }}/>
-                  <span className="text-[10px] text-[#6b7280]">{lbl}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-7 gap-[2px] mb-1">
-            {CAL_DAYS.map(d => <div key={d} className="text-center text-[9px] font-bold text-[#9ca3af] uppercase py-1">{d}</div>)}
-          </div>
-          <div className="grid grid-cols-7 gap-[2px] mb-2">
-            {calDays.map((day, i) => {
-              if (!day) return <div key={`e${i}`}/>
-              const s = pro.calendar[day]
-              return (
-                <div
-                  key={day}
-                  onClick={() => s === 'avail' && onBook(pro, day)}
-                  className={`text-center text-[10px] font-semibold py-1.5 rounded-[5px] transition ${s === 'avail' ? 'bg-[#e8f5f0] text-[#1a7f5e] cursor-pointer hover:bg-[#1a7f5e] hover:text-white' : s === 'booked' ? 'bg-[#fef3c7] text-[#92400e]' : 'text-[#d1d5db]'}`}
-                >
-                  {day}
-                </div>
-              )
-            })}
-          </div>
-          <p className="text-[10px] text-[#9ca3af] italic">Tap an available date to send a booking request</p>
-        </div>
-      )}
+      {/* Description box */}
+      <div style={{ background: '#f9f8f6', borderRadius: 8, padding: '8px 12px', margin: '0 12px' }}>
+        <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{pro.about}</div>
+      </div>
+      {/* Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '8px 12px 12px', marginTop: 4 }}>
+        <button
+          onClick={e => { e.stopPropagation() }}
+          style={{ border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '7px 12px', borderRadius: 100, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Message
+        </button>
+        <button
+          onClick={e => { e.stopPropagation(); onOpenCal(pro.id); }}
+          style={{ background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '7px 12px', borderRadius: 100, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+        >
+          Book {pro.name.split(' ')[0]}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
     </div>
   )
 }
 
-function BookingModal({ pro, day, onClose }) {
-  const [agreed, setAgreed] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-
-  if (submitted) return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="w-12 h-12 bg-[#e8f5f0] rounded-full flex items-center justify-center mx-auto mb-3">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-        </div>
-        <p className="text-[15px] font-extrabold text-[#1a7f5e] mb-1">Booking request sent!</p>
-        <p className="text-[12px] text-[#6b7280] mb-4">{pro.name.split(' ')[0]} will respond within {pro.responseTime}</p>
-        <button onClick={onClose} className="bg-[#1a7f5e] text-white font-bold px-6 py-2 rounded-full text-[13px] border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Done</button>
-      </div>
-    </div>
-  )
-
+// ─── CALENDAR MODAL ──────────────────────────────────────────
+function CalModal({ pro, onClose, onChoose }) {
+  if (!pro) return null
+  const firstDay = new Date(2026, 2, 1).getDay()
+  const calDays = [...Array(firstDay).fill(null), ...Array.from({ length: 31 }, (_, i) => i + 1)]
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-[#f9f8f6] px-5 py-4 border-b border-[#e5e7eb] flex items-center gap-3">
-          <img src={pro.img} className="w-14 h-14 rounded-full object-cover flex-shrink-0"/>
-          <div className="flex-1">
-            <p className="text-[16px] font-extrabold text-[#1a1a1a]">{pro.name}</p>
-            <p className="text-[12px] text-[#6b7280]">{pro.role} · ${pro.rate}/hr</p>
-            <p className="text-[12px] font-bold text-[#1a7f5e]">March {day}, 2026</p>
-          </div>
-          <button onClick={onClose} className="text-[#9ca3af] hover:text-[#1a1a1a] text-lg bg-none border-none cursor-pointer">✕</button>
-        </div>
-        <div className="px-5 py-4">
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            {[['Start','8:00 AM',['7:00 AM','7:30 AM','8:00 AM','8:30 AM','9:00 AM']],['End','5:00 PM',['3:00 PM','4:00 PM','5:00 PM']]].map(([lbl, def, opts]) => (
-              <div key={lbl}>
-                <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-wider mb-1">{lbl} time</p>
-                <select className="w-full border border-[#e5e7eb] rounded-xl px-2.5 py-1.5 text-[12px] outline-none focus:border-[#1a7f5e] bg-white" style={{ fontFamily: 'inherit' }}>
-                  {opts.map(o => <option key={o}>{o}</option>)}
-                </select>
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 480, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
+      <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <img src={pro.img} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+        <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div></div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
+      </div>
+      <div style={{ padding: '16px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>March 2026</div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {[['#e8f5f0','#1a7f5e','Available'],['#fef3c7','#f59e0b','Booked']].map(([bg,bd,lbl]) => (
+              <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
+                <div style={{ width: 9, height: 9, borderRadius: 2, background: bg, border: `1px solid ${bd}` }}/>
+                {lbl}
               </div>
             ))}
           </div>
-          <div className="mb-3">
-            <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-wider mb-1">Note (optional)</p>
-            <textarea placeholder="e.g. Please arrive 10 minutes early..." className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2 text-[12px] outline-none focus:border-[#1a7f5e] resize-none h-10 bg-white" style={{ fontFamily: 'inherit' }}/>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 5 }}>
+          {CAL_DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#9ca3af', padding: 2 }}>{d}</div>)}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 10 }}>
+          {calDays.map((day, i) => {
+            if (!day) return <div key={`e${i}`} style={{ padding: '10px 4px' }} />
+            const st = pro.calendar[day]
+            return (
+              <div key={day} onClick={() => st === 'avail' && onChoose(`March ${day}`)}
+                style={{ textAlign: 'center', fontSize: 13, fontWeight: st === 'avail' ? 700 : 600, padding: '10px 4px', borderRadius: 7, background: st === 'avail' ? '#e8f5f0' : st === 'booked' ? '#fef3c7' : 'transparent', color: st === 'avail' ? '#1a7f5e' : st === 'booked' ? '#92400e' : '#d1d5db', cursor: st === 'avail' ? 'pointer' : 'default' }}>
+                {day}
+              </div>
+            )
+          })}
+        </div>
+        <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>Tap an available date to book or use Rapid Fill</div>
+      </div>
+    </div>
+  )
+}
+
+// ─── BOOKING CHOICE MODAL ────────────────────────────────────
+function ChoiceModal({ pro, date, onClose, onDirect, onRapidFill }) {
+  if (!pro) return null
+  return (
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 400, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
+      <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <img src={pro.img} style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a7f5e', marginTop: 2 }}>{date}, 2026</div>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
+      </div>
+      <div style={{ padding: '18px 20px' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a', marginBottom: 4 }}>How do you want to fill this shift?</div>
+        <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Book directly or blast to multiple professionals at once.</div>
+        <button onClick={onDirect} style={{ width: '100%', background: '#1a7f5e', border: 'none', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', marginBottom: 10, fontFamily: 'inherit' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'white', marginBottom: 3 }}>Book directly</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>Send a booking request to this professional only</div>
+        </button>
+        <button onClick={onRapidFill} style={{ width: '100%', background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 14, padding: '14px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a', marginBottom: 3, display: 'flex', alignItems: 'center', gap: 7 }}><BoltIcon color="#1a7f5e" />Use Rapid Fill</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>Select up to 10 professionals — first to accept gets the shift</div>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── DIRECT BOOKING MODAL ────────────────────────────────────
+function BookingModal({ pro, date, onClose, onSubmit }) {
+  const [agreed, setAgreed] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  if (!pro) return null
+  if (submitted) return (
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 360, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', padding: '40px 24px', textAlign: 'center' }}>
+      <div style={{ width: 52, height: 52, background: '#e8f5f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div style={{ fontSize: 17, fontWeight: 900, color: '#1a7f5e', marginBottom: 6 }}>Booking request sent!</div>
+      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>{pro.name.split(' ')[0]} will respond within {pro.responseTime}</div>
+      <button onClick={onClose} style={{ background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px 28px', borderRadius: 100, fontSize: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Done</button>
+    </div>
+  )
+  return (
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 400, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
+      <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <img src={pro.img} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>{pro.role} · ${pro.rate}/hr</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1a7f5e' }}>{date}, 2026</div>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
+      </div>
+      <div style={{ padding: '16px 18px' }}>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Shift times</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', color: '#374151' }}><option>8:00 AM</option><option>7:30 AM</option><option>9:00 AM</option></select>
+            <select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', color: '#374151' }}><option>5:00 PM</option><option>4:00 PM</option><option>3:00 PM</option></select>
           </div>
-          <div onClick={() => setAgreed(!agreed)} className="flex items-center gap-2 cursor-pointer mb-3 bg-[#f9f8f6] border border-[#e5e7eb] rounded-xl px-3 py-2.5">
-            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${agreed ? 'bg-[#1a7f5e] border-[#1a7f5e]' : 'border-[#d1d5db]'}`}>
-              {agreed && <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>}
-            </div>
-            <p className="text-[12px] text-[#374151]">I agree to kazi.'s <span className="text-[#1a7f5e] font-semibold">Booking Terms</span></p>
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Note (optional)</div>
+          <textarea style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', resize: 'none', height: 40, background: 'white', boxSizing: 'border-box' }} placeholder="e.g. Please arrive 10 minutes early..."/>
+        </div>
+        <div onClick={() => setAgreed(!agreed)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
+          <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${agreed ? '#1a7f5e' : '#d1d5db'}`, background: agreed ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {agreed && <CheckIcon />}
           </div>
-          <div className="flex gap-2">
-            <button onClick={onClose} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2 rounded-full text-[12px] hover:border-[#1a7f5e] transition cursor-pointer bg-white" style={{ fontFamily: 'inherit' }}>Cancel</button>
-            <button onClick={() => agreed && setSubmitted(true)} className={`flex-1 font-bold py-2 rounded-full text-[12px] transition border-none ${agreed ? 'bg-[#1a7f5e] hover:bg-[#156649] text-white cursor-pointer' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`} style={{ fontFamily: 'inherit' }}>Send request</button>
-          </div>
+          <div style={{ fontSize: 13, color: '#374151' }}>I agree to kazi.'s <span style={{ color: '#1a7f5e', fontWeight: 600 }}>Booking Terms</span></div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={onClose} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: 10, borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', background: 'white' }}>Cancel</button>
+          <button onClick={() => agreed && setSubmitted(true)} style={{ flex: 1, background: agreed ? '#1a7f5e' : '#e5e7eb', color: agreed ? 'white' : '#9ca3af', border: 'none', fontWeight: 800, padding: 10, borderRadius: 100, fontSize: 13, cursor: agreed ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>Send request</button>
         </div>
       </div>
     </div>
   )
 }
 
+// ─── RAPID FILL MODAL ────────────────────────────────────────
+function RFModal({ selected, allPros, date, onClose, onSend }) {
+  const [termsOk, setTermsOk] = useState(false)
+  const selPros = allPros.filter(p => selected.includes(p.id))
+  return (
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 460, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0 }}>
+        <div style={{ width: 46, height: 46, background: '#1a7f5e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><BoltIcon size={20} /></div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, color: '#1a1a1a' }}>Rapid Fill ⚡</div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>{selected.length} professional{selected.length !== 1 ? 's' : ''} · First to accept gets the shift</div>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
+      </div>
+      <div style={{ padding: '18px 20px' }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Selected Professionals</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+          {selPros.map(p => (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 100, padding: '4px 10px 4px 4px' }}>
+              <img src={p.img} style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{p.name.split(' ')[0]}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Shift Date</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+          <CalIcon /><span style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{date || 'No date selected'}</span>
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Shift Time</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+          <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>Start</div><select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white' }}><option>8:00 AM</option><option>7:30 AM</option><option>9:00 AM</option></select></div>
+          <div><div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>End</div><select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white' }}><option>5:00 PM</option><option>4:00 PM</option><option>3:00 PM</option></select></div>
+        </div>
+        <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Lunch Break</div>
+        <select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', marginBottom: 14 }}><option>No lunch break</option><option>30 minutes</option><option>1 hour</option></select>
+        <div onClick={() => setTermsOk(!termsOk)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
+          <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${termsOk ? '#1a7f5e' : '#d1d5db'}`, background: termsOk ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+            {termsOk && <CheckIcon />}
+          </div>
+          <div style={{ fontSize: 13, color: '#374151' }}>I agree to kazi.'s <span style={{ color: '#1a7f5e', fontWeight: 600 }}>Terms & Conditions</span> and confirm this Rapid Fill request will be sent to all selected professionals simultaneously. First to accept gets the shift.</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={onClose} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: 11, borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', background: 'white' }}>Cancel</button>
+          <button onClick={() => termsOk && onSend()} style={{ flex: 1, background: termsOk ? '#1a7f5e' : '#e5e7eb', color: termsOk ? 'white' : '#9ca3af', border: 'none', fontWeight: 800, padding: 11, borderRadius: 100, fontSize: 13, cursor: termsOk ? 'pointer' : 'not-allowed', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <BoltIcon size={13} />Send to {selected.length}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── PROFILE DRAWER ──────────────────────────────────────────
+function ProfileDrawer({ pro, onClose, onBook }) {
+  const [favSaved, setFavSaved] = useState(false)
+  if (!pro) return null
+  const rel = relDisplay(pro.reliability)
+  const firstName = pro.name.split(' ')[0]
+  return (
+    <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 580, background: 'white', zIndex: 350, display: 'flex', flexDirection: 'column', boxShadow: '-6px 0 40px rgba(0,0,0,.12)', overflowY: 'auto' }}>
+      <div onClick={onClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid #f3f4f6', fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer', position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to professionals
+        </div>
+        <button onClick={e => { e.stopPropagation(); setFavSaved(!favSaved) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill={favSaved ? '#ef4444' : 'none'} stroke={favSaved ? '#ef4444' : '#9ca3af'} strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ padding: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
+            <img src={pro.img} style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', marginBottom: 3 }}>{pro.name}</div>
+              <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>{pro.role} · {pro.miles} mi away</div>
+              <div style={{ fontSize: 17, fontWeight: 900, color: '#1a7f5e', marginBottom: 8 }}>${pro.rate}/hr</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
+                <span style={{ fontSize: 13, color: '#9ca3af' }}>({pro.reviews} reviews)</span>
+                <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 100, background: rel.bg, color: rel.color }}>{rel.label} · {pro.reliability}%</span>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+            {[['Shifts', pro.shifts, '#1a1a1a'], ['Response', pro.responseTime, '#1a1a1a'], ['Reliability', `${pro.reliability}%`, rel.color], ['Score', '94', '#1a7f5e']].map(([label, val, color]) => (
+              <div key={label} style={{ background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: 10, textAlign: 'center' }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color }}>{val}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {[
+          { title: 'About', content: <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{pro.about}</div> },
+          { title: 'Resume', content: (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 38, height: 38, background: '#e8f5f0', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{firstName}_Resume.pdf</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>PDF · Tap to download</div>
+                </div>
+              </div>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+          )},
+          { title: 'Practice Software', content: <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{pro.software.map(s => <span key={s} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{s}</span>)}</div> },
+          { title: 'Credentials', content: <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{pro.certs.map(c => <span key={c} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#f3f4f6', color: '#374151' }}>✓ {c}</span>)}</div> },
+          { title: 'Reviews', content: (
+            <div>
+              {[{text:'Fantastic hygienist. Showed up on time, ran the column independently. Patients loved her.',from:'Evolve Dentistry',date:'Mar 2026'},{text:'Very professional and efficient. Great communication before the shift.',from:'Clear Lake Dental',date:'Feb 2026'},{text:'Would rebook without hesitation. Excellent skills.',from:'Houston Family Dentistry',date:'Jan 2026'}].map((r, i) => (
+                <div key={i} style={{ borderBottom: '1px solid #f3f4f6', padding: '12px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{r.from}</span>
+                    <span style={{ fontSize: 12, color: '#9ca3af' }}>{r.date}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: '#F97316', marginBottom: 5 }}>★★★★★</div>
+                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{r.text}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        ].map(({ title, content }) => (
+          <div key={title} style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 14, padding: '16px 18px', margin: '0 22px 14px' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>{title}</div>
+            {content}
+          </div>
+        ))}
+        <div style={{ height: 90 }} />
+      </div>
+      <div style={{ padding: '16px 22px', borderTop: '1px solid #f3f4f6', display: 'flex', gap: 10, position: 'sticky', bottom: 0, background: 'white' }}>
+        <button style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          Invite
+        </button>
+        <button onClick={onBook} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 800, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+          Book {firstName}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── MAIN PAGE ───────────────────────────────────────────────
 export default function Professionals() {
   const location = useLocation()
-  const [search, setSearch] = useState('')
+  const dpRef = useRef(null)
+
   const [role, setRole] = useState('All')
   const [reliability, setReliability] = useState('All')
-  const [skill, setSkill] = useState('')
-  const [cert, setCert] = useState('')
   const [lang, setLang] = useState('')
   const [photoOnly, setPhotoOnly] = useState(false)
   const [maxMiles, setMaxMiles] = useState(20)
   const [minRate, setMinRate] = useState(0)
   const [maxRate, setMaxRate] = useState(150)
+  const [skill, setSkill] = useState('')
+  const [cert, setCert] = useState('')
   const [sortBy, setSortBy] = useState('Best match')
   const [rapidSelected, setRapidSelected] = useState([])
-  const [showRapidFill, setShowRapidFill] = useState(false)
-  const [rapidSubmitted, setRapidSubmitted] = useState(false)
-  const [bookingModal, setBookingModal] = useState(null)
+  const [dateVal, setDateVal] = useState('')
+  const [dateLabel, setDateLabel] = useState('Date needed')
   const [toast, setToast] = useState(null)
   const [page, setPage] = useState(1)
+
+  // modal state
+  const [modal, setModal] = useState(null) // 'cal'|'choice'|'booking'|'rf'|'profile'
+  const [activePro, setActivePro] = useState(null)
+  const [activeDate, setActiveDate] = useState('')
+
   const PER_PAGE = 8
 
   useEffect(() => {
@@ -211,7 +406,12 @@ export default function Professionals() {
   }, [])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
-  const toggleRapid = (id) => setRapidSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 10 ? [...prev, id] : prev)
+
+  const toggleRapid = (id) => {
+    if (!dateVal) { showToast('Please select a date first'); dpRef.current?.focus(); return }
+    setRapidSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 10 ? [...prev, id] : prev)
+  }
+
   const getRelBand = (r) => r >= 95 ? 'excellent' : r >= 85 ? 'verygood' : r >= 70 ? 'good' : 'poor'
 
   const filtered = PROFESSIONALS.filter(p => {
@@ -222,226 +422,240 @@ export default function Professionals() {
     if (cert && !p.certs.includes(cert)) return false
     if (skill && !p.software.includes(skill)) return false
     if (photoOnly && !p.img) return false
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.role.toLowerCase().includes(search.toLowerCase())) return false
     return true
   }).sort((a, b) => {
-    if (sortBy === 'Highest rated') return b.rating - a.rating
-    if (sortBy === 'Most reliable') return b.reliability - a.reliability
-    if (sortBy === 'Lowest rate') return a.rate - b.rate
-    if (sortBy === 'Most shifts') return b.shifts - a.shifts
-    if (sortBy === 'Closest') return a.miles - b.miles
+    if (sortBy === 'Rating') return b.rating - a.rating
+    if (sortBy === 'Reliability') return b.reliability - a.reliability
+    if (sortBy === 'Distance') return a.miles - b.miles
+    if (sortBy === '# of shifts') return b.shifts - a.shifts
     return b.reliability - a.reliability
   })
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
-  const clearFilters = () => { setRole('All'); setReliability('All'); setSkill(''); setCert(''); setLang(''); setPhotoOnly(false); setMaxMiles(20); setMinRate(0); setMaxRate(150); setSearch(''); setPage(1) }
-  const activeCount = [role !== 'All', reliability !== 'All', skill, cert, lang, photoOnly, maxMiles !== 20, minRate !== 0 || maxRate !== 150].filter(Boolean).length
-  const selectedPros = PROFESSIONALS.filter(p => rapidSelected.includes(p.id))
 
-  const FilterPanel = () => (
-    <div className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-3.5 py-3 border-b border-[#f3f4f6]">
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] font-extrabold text-[#1a1a1a]">Filters</span>
-          {activeCount > 0 && <span className="text-[10px] font-extrabold bg-[#1a7f5e] text-white w-4 h-4 rounded-full flex items-center justify-center">{activeCount}</span>}
-        </div>
-        {activeCount > 0 && <button onClick={clearFilters} className="text-[11px] font-semibold text-[#1a7f5e] hover:underline bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Clear all</button>}
-      </div>
-      <div className="p-3.5 flex flex-col gap-3">
-        {[
-          { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dental Hygienist','Dental Assistant','Front Desk','Treatment Coordinator','Sterilization Tech'], display: ['All roles','Dental Hygienist','Dental Assistant','Front Desk','Treatment Coordinator','Sterilization Tech'] },
-          { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good','poor'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%','Poor — <70%'] },
-          { label: 'Language', val: lang, set: setLang, opts: ['','Spanish','Mandarin','Vietnamese','Portuguese'], display: ['Any language','Spanish','Mandarin','Vietnamese','Portuguese'] },
-        ].map(f => (
-          <div key={f.label}>
-            <p className="text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-1.5">{f.label}</p>
-            <div className="relative">
-              <select value={f.val} onChange={e => f.set(e.target.value)} className={`w-full border rounded-[10px] px-2.5 py-2 pr-7 text-[12px] font-semibold outline-none appearance-none cursor-pointer transition text-[#374151] ${f.val && f.val !== 'All' ? 'border-[#1a7f5e] bg-[#f0faf5]' : 'border-[#e5e7eb] bg-[#f9f8f6]'}`} style={{ fontFamily: 'inherit' }}>
-                {f.display.map((o, i) => <option key={o} value={f.opts[i]}>{o}</option>)}
-              </select>
-              <svg className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-        ))}
-        <div className="h-px bg-[#f3f4f6]"/>
-        <div onClick={() => setPhotoOnly(!photoOnly)} className="flex items-center gap-2 cursor-pointer">
-          <div className={`w-[15px] h-[15px] rounded-[4px] border-2 flex items-center justify-center flex-shrink-0 transition ${photoOnly ? 'bg-[#1a7f5e] border-[#1a7f5e]' : 'border-[#d1d5db]'}`}>
-            {photoOnly && <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>}
-          </div>
-          <div><p className="text-[12px] font-semibold text-[#1a1a1a]">Profile photo</p><p className="text-[10px] text-[#9ca3af]">Only show pros with a photo</p></div>
-        </div>
-        <div className="h-px bg-[#f3f4f6]"/>
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em]">Hourly Rate</p>
-            <span className="text-[10px] font-bold text-[#1a7f5e]">${minRate}–${maxRate}/hr</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[[minRate, setMinRate, 'Min'],[maxRate, setMaxRate, 'Max']].map(([val, set, lbl]) => (
-              <div key={lbl} className="flex-1 relative">
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[#9ca3af] text-[11px]">$</span>
-                <input type="number" value={val} onChange={e => set(Number(e.target.value))} placeholder={lbl} className="w-full border border-[#e5e7eb] rounded-[10px] pl-5 pr-2 py-2 text-[12px] font-semibold bg-[#f9f8f6] outline-none focus:border-[#1a7f5e] text-[#1a1a1a]" style={{ fontFamily: 'inherit' }}/>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="h-px bg-[#f3f4f6]"/>
-        <div>
-          <p className="text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-1.5">Max Distance</p>
-          <div className="flex flex-wrap gap-1">
-            {[5,10,20,35,50].map(m => (
-              <button key={m} onClick={() => setMaxMiles(m)} className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition cursor-pointer ${maxMiles === m ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e] bg-white'}`} style={{ fontFamily: 'inherit' }}>{m} mi</button>
-            ))}
-          </div>
-        </div>
-        <div className="h-px bg-[#f3f4f6]"/>
-        {[
-          { label: 'Skill', val: skill, set: setSkill, opts: ['','Scaling & Root Planing','Periodontal Charting','Digital X-rays','Four-Handed Dentistry','Insurance Verification'] },
-          { label: 'Certification', val: cert, set: setCert, opts: ['','TX RDH License','CPR/BLS','Local Anesthesia','X-Ray','Reg. DA'] },
-        ].map(f => (
-          <div key={f.label}>
-            <p className="text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-1.5">{f.label}</p>
-            <div className="relative">
-              <select value={f.val} onChange={e => f.set(e.target.value)} className={`w-full border rounded-[10px] px-2.5 py-2 pr-7 text-[12px] font-semibold outline-none appearance-none cursor-pointer transition text-[#374151] ${f.val ? 'border-[#1a7f5e] bg-[#f0faf5]' : 'border-[#e5e7eb] bg-[#f9f8f6]'}`} style={{ fontFamily: 'inherit' }}>
-                {f.opts.map((o, i) => <option key={o} value={o}>{i === 0 ? `Any ${f.label.toLowerCase()}` : o}</option>)}
-              </select>
-              <svg className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  const clearFilters = () => { setRole('All'); setReliability('All'); setSkill(''); setCert(''); setLang(''); setPhotoOnly(false); setMaxMiles(20); setMinRate(0); setMaxRate(150); setPage(1) }
+  const activeCount = [role !== 'All', reliability !== 'All', skill, cert, lang, photoOnly, maxMiles !== 20, minRate !== 0 || maxRate !== 150].filter(Boolean).length
+
+  const handleDateChange = (e) => {
+    const val = e.target.value
+    setDateVal(val)
+    if (val) {
+      const d = new Date(val + 'T00:00:00')
+      setDateLabel(d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }))
+    } else {
+      setDateLabel('Date needed')
+    }
+  }
+
+  const openCal = (id) => { setActivePro(id); setModal('cal') }
+  const openProfile = (id) => { setActivePro(id); setModal('profile') }
+  const closeAll = () => setModal(null)
+
+  const handleCalChoose = (date) => { setActiveDate(date); setModal('choice') }
+  const handleDirect = () => setModal('booking')
+  const handleRapidFillChoice = () => {
+    if (!rapidSelected.includes(activePro)) setRapidSelected(prev => [...prev, activePro])
+    setModal('rf')
+  }
+  const handleLaunchRF = () => {
+    const d = dateVal ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : activeDate
+    setActiveDate(d)
+    setModal('rf')
+  }
+
+  const rfDate = dateVal
+    ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : activeDate
+
+  const activeProObj = PROFESSIONALS.find(p => p.id === activePro)
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
       <Nav />
 
+      {/* TOAST */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[12px] font-semibold px-5 py-2.5 rounded-full z-50 shadow-lg flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0"><svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg></div>
+        <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', fontSize: 13, fontWeight: 600, padding: '10px 18px', borderRadius: 100, zIndex: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(0,0,0,.2)' }}>
+          <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#1a7f5e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CheckIcon /></div>
           {toast}
         </div>
       )}
 
-      {bookingModal && <BookingModal pro={bookingModal.pro} day={bookingModal.day} onClose={() => setBookingModal(null)} />}
-
-      {showRapidFill && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden" style={{ maxHeight: '85vh' }}>
-            {!rapidSubmitted ? (
-              <>
-                <div className="bg-[#f9f8f6] border-b border-[#e5e7eb] px-5 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-[#1a7f5e] rounded-full flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-                    <div>
-                      <p className="text-[14px] font-extrabold text-[#1a1a1a]">Rapid Fill ⚡</p>
-                      <p className="text-[11px] text-[#6b7280]">First to accept gets the shift · {rapidSelected.length}/10 selected</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowRapidFill(false)} className="text-[#9ca3af] hover:text-[#1a1a1a] text-lg bg-none border-none cursor-pointer">✕</button>
-                </div>
-                <div className="overflow-y-auto px-5 py-3 flex flex-col gap-2" style={{ maxHeight: '50vh' }}>
-                  {selectedPros.map(p => (
-                    <div key={p.id} className="flex items-center gap-3 bg-[#f9f8f6] rounded-xl p-2.5 border border-[#e5e7eb]">
-                      <img src={p.img} className="w-9 h-9 rounded-full object-cover flex-shrink-0"/>
-                      <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-[#1a1a1a]">{p.name}</p><p className="text-[11px] text-[#6b7280]">${p.rate}/hr · {p.reliability}% reliable · ★ {p.rating}</p></div>
-                      <button onClick={() => toggleRapid(p.id)} className="text-[#9ca3af] hover:text-[#ef4444] bg-none border-none cursor-pointer text-lg">✕</button>
-                    </div>
-                  ))}
-                </div>
-                <div className="px-5 py-4 border-t border-[#e5e7eb]">
-                  <p className="text-[11px] text-[#9ca3af] mb-3">Once one professional accepts, the shift is locked and all others are notified.</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => setShowRapidFill(false)} className="flex-1 border border-[#e5e7eb] text-[#1a1a1a] font-bold py-2.5 rounded-full text-[12px] hover:border-[#1a7f5e] transition cursor-pointer bg-white" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={() => rapidSelected.length > 0 && setRapidSubmitted(true)} className={`flex-1 font-bold py-2.5 rounded-full text-[12px] flex items-center justify-center gap-1.5 border-none transition ${rapidSelected.length > 0 ? 'bg-[#1a7f5e] hover:bg-[#156649] text-white cursor-pointer' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`} style={{ fontFamily: 'inherit' }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                      Send to {rapidSelected.length}
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="px-6 py-12 text-center">
-                <div className="w-14 h-14 bg-[#e8f5f0] rounded-full flex items-center justify-center mx-auto mb-4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-                <p className="text-[18px] font-extrabold text-[#1a1a1a] mb-1">Rapid Fill sent! ⚡</p>
-                <p className="text-[13px] text-[#6b7280] mb-6">Blasted to <strong>{rapidSelected.length} professionals</strong>. First to accept gets the shift.</p>
-                <button onClick={() => { setShowRapidFill(false); setRapidSelected([]); setRapidSubmitted(false); showToast('Rapid Fill sent!') }} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-8 py-2.5 rounded-full text-[13px] border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Done</button>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* OVERLAY */}
+      {modal && modal !== 'profile' && (
+        <div onClick={closeAll} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 300 }} />
       )}
 
-      <div className="max-w-[860px] mx-auto px-4 py-5">
-        <div className="flex gap-5 items-start">
-          <div className="hidden md:block w-[210px] flex-shrink-0 sticky top-20 max-h-[calc(100vh-90px)] overflow-y-auto">
-            <FilterPanel />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-2.5 flex gap-2 mb-3 items-center">
-              <div className="relative flex-1">
-                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" placeholder="Search by name or role..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-8 pr-3 py-2 border border-[#e5e7eb] rounded-[10px] text-[12px] outline-none focus:border-[#1a7f5e] bg-[#f9f8f6] text-[#1a1a1a]" style={{ fontFamily: 'inherit' }}/>
-              </div>
-              <div className="relative flex-shrink-0">
-                <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border border-[#e5e7eb] rounded-[10px] px-2.5 py-2 text-[12px] font-semibold text-[#374151] bg-[#f9f8f6] outline-none cursor-pointer appearance-none pr-6" style={{ fontFamily: 'inherit' }}>
-                  {['Best match','Highest rated','Most reliable','Lowest rate','Most shifts','Closest'].map(o => <option key={o}>Sort: {o}</option>)}
-                </select>
-                <svg className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-            </div>
+      {/* MODALS */}
+      {modal === 'cal' && activeProObj && <CalModal pro={activeProObj} onClose={closeAll} onChoose={handleCalChoose} />}
+      {modal === 'choice' && activeProObj && <ChoiceModal pro={activeProObj} date={activeDate} onClose={closeAll} onDirect={handleDirect} onRapidFill={handleRapidFillChoice} />}
+      {modal === 'booking' && activeProObj && <BookingModal pro={activeProObj} date={activeDate} onClose={closeAll} onSubmit={() => { closeAll(); showToast(`Booking request sent to ${activeProObj.name.split(' ')[0]}!`) }} />}
+      {modal === 'rf' && <RFModal selected={rapidSelected} allPros={PROFESSIONALS} date={rfDate} onClose={closeAll} onSend={() => { closeAll(); setRapidSelected([]); showToast('Rapid Fill requests sent!') }} />}
+      {modal === 'profile' && activeProObj && (
+        <>
+          <div onClick={closeAll} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.3)', zIndex: 300 }} />
+          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} />
+        </>
+      )}
 
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[12px] text-[#6b7280]"><strong className="text-[#1a1a1a]">{filtered.length}</strong> professionals found</p>
-              {rapidSelected.length === 0 ? (
-                <div className="flex items-center gap-1.5 bg-[#e8f5f0] px-3 py-1.5 rounded-full">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  <p className="text-[11px] font-semibold text-[#0f4d38]">Check boxes to use Rapid Fill</p>
+      {/* PAGE */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 48px 80px' }}>
+
+        {/* PAGE TITLE */}
+        <div style={{ marginBottom: 20 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 4 }}>Find Professionals</h1>
+          <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 400 }}>Browse verified dental professionals available in your area</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+
+          {/* SIDEBAR */}
+          <div style={{ width: 190, flexShrink: 0, position: 'sticky', top: 88 }} className="hidden md:block">
+            <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>Filters</span>
+                  {activeCount > 0 && <span style={{ fontSize: 10, fontWeight: 800, background: '#1a7f5e', color: 'white', width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{activeCount}</span>}
                 </div>
-              ) : (
-                <button onClick={() => setShowRapidFill(true)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-3.5 py-1.5 rounded-full text-[11px] flex items-center gap-1.5 border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  Rapid Fill ({rapidSelected.length})
-                </button>
-              )}
+                {activeCount > 0 && <button onClick={clearFilters} style={{ fontSize: 11, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Clear all</button>}
+              </div>
+              <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Role */}
+                {[
+                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dental Hygienist','Dental Assistant','Front Desk','Treatment Coordinator'], display: ['All roles','Dental Hygienist','Dental Assistant','Front Desk','Treatment Coordinator'] },
+                  { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
+                  { label: 'Language', val: lang, set: setLang, opts: ['','Spanish','Mandarin','Vietnamese','Portuguese'], display: ['Any language','Spanish','Mandarin','Vietnamese','Portuguese'] },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, display: 'block' }}>{f.label}</label>
+                    <select value={f.val} onChange={e => f.set(e.target.value)} style={{ width: '100%', background: f.val && f.val !== 'All' ? '#f0faf5' : '#f9f8f6', border: `1.5px solid ${f.val && f.val !== 'All' ? '#1a7f5e' : '#e5e7eb'}`, borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#374151', cursor: 'pointer' }}>
+                      {f.display.map((o, i) => <option key={o} value={f.opts[i]}>{o}</option>)}
+                    </select>
+                  </div>
+                ))}
+                <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
+                {/* Profile photo */}
+                <div onClick={() => setPhotoOnly(!photoOnly)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
+                  <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${photoOnly ? '#1a7f5e' : '#d1d5db'}`, background: photoOnly ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                    {photoOnly && <CheckIcon />}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 2 }}>Profile photo</div>
+                    <span style={{ fontSize: 11, color: '#9ca3af' }}>Only show pros with a photo</span>
+                  </div>
+                </div>
+                <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
+                {/* Rate */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em' }}>Hourly Rate</label>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#1a7f5e' }}>${minRate}–${maxRate}/hr</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {[[minRate, setMinRate],[maxRate, setMaxRate]].map(([val, set], i) => (
+                      <div key={i} style={{ position: 'relative', flex: 1 }}>
+                        <span style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#9ca3af' }}>$</span>
+                        <input type="number" value={val} onChange={e => set(Number(e.target.value))} style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '7px 10px 7px 22px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: '#f9f8f6', color: '#1a1a1a', boxSizing: 'border-box' }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
+                {/* Distance */}
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, display: 'block' }}>Max Distance</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {[5,10,20,35,50].map(m => (
+                      <button key={m} onClick={() => setMaxMiles(m)} style={{ padding: '5px 12px', borderRadius: 100, fontSize: 12, fontWeight: 600, border: `1.5px solid ${maxMiles === m ? '#1a7f5e' : '#e5e7eb'}`, cursor: 'pointer', background: maxMiles === m ? '#1a7f5e' : 'white', color: maxMiles === m ? 'white' : '#374151', fontFamily: 'inherit' }}>{m} mi</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
+                {/* Skill + Cert */}
+                {[
+                  { label: 'Skill', val: skill, set: setSkill, opts: ['','Scaling & Root Planing','Periodontal Charting','Digital X-rays','Four-Handed Dentistry','Insurance Verification'] },
+                  { label: 'Certification', val: cert, set: setCert, opts: ['','TX RDH License','CPR/BLS','Local Anesthesia','X-Ray','Reg. DA'] },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, display: 'block' }}>{f.label}</label>
+                    <select value={f.val} onChange={e => f.set(e.target.value)} style={{ width: '100%', background: f.val ? '#f0faf5' : '#f9f8f6', border: `1.5px solid ${f.val ? '#1a7f5e' : '#e5e7eb'}`, borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#374151', cursor: 'pointer' }}>
+                      {f.opts.map((o, i) => <option key={o} value={o}>{i === 0 ? `Any ${f.label.toLowerCase()}` : o}</option>)}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RESULTS */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Date + Sort bar */}
+            <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center' }}>
+              <div onClick={() => dpRef.current?.showPicker?.() || dpRef.current?.focus()} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', position: 'relative' }}>
+                <CalIcon />
+                <span style={{ fontSize: 14, fontWeight: dateVal ? 700 : 600, color: dateVal ? '#1a1a1a' : '#9ca3af' }}>{dateLabel}</span>
+                <input ref={dpRef} type="date" onChange={handleDateChange} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
+              </div>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', fontFamily: 'inherit', background: '#f9f8f6', outline: 'none', whiteSpace: 'nowrap' }}>
+                {['Best match','Distance','Reliability','# of shifts','Rating'].map(o => <option key={o}>Sort: {o}</option>)}
+              </select>
             </div>
 
-            {paginated.length === 0 ? (
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl py-14 px-6 text-center">
-                <p className="text-[15px] font-extrabold text-[#1a1a1a] mb-2">No professionals found</p>
-                <p className="text-[13px] text-[#9ca3af] mb-4">Try adjusting your filters.</p>
-                <button onClick={clearFilters} className="border border-[#e5e7eb] text-[#374151] font-bold px-5 py-2 rounded-full text-[12px] hover:border-[#1a7f5e] transition cursor-pointer bg-white" style={{ fontFamily: 'inherit' }}>Clear all filters</button>
+            {/* Meta row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ fontSize: 15, color: '#6b7280' }}><strong style={{ color: '#1a1a1a', fontWeight: 800, fontSize: 16 }}>{filtered.length}</strong> professionals found</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#e8f5f0', padding: '7px 14px', borderRadius: 100, fontSize: 13, fontWeight: 600, color: '#0f4d38' }}>
+                <BoltIcon color="#1a7f5e" size={11} />Check boxes to use Rapid Fill
               </div>
-            ) : paginated.map(pro => (
-              <ProCard key={pro.id} pro={pro} rapidSelected={rapidSelected} onToggleRapid={toggleRapid} onBook={(p, d) => setBookingModal({ pro: p, day: d })} showToast={showToast} />
-            ))}
+            </div>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-4">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} className="w-8 h-8 rounded-[8px] border border-[#e5e7eb] bg-white flex items-center justify-center text-[#9ca3af] hover:border-[#1a7f5e] transition cursor-pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-[8px] border text-[12px] font-bold transition cursor-pointer ${page === p ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-white border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>{p}</button>
+            {/* Cards grid */}
+            {paginated.length === 0 ? (
+              <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: '56px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>No professionals found</div>
+                <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>Try adjusting your filters.</div>
+                <button onClick={clearFilters} style={{ border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 20px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Clear all filters</button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'start' }}>
+                {paginated.map(pro => (
+                  <ProCard key={pro.id} pro={pro} rapidSelected={rapidSelected} onToggleRapid={toggleRapid} onOpenCal={openCal} onOpenProfile={openProfile} hasDate={!!dateVal} />
                 ))}
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="w-8 h-8 rounded-[8px] border border-[#e5e7eb] bg-white flex items-center justify-center text-[#9ca3af] hover:border-[#1a7f5e] transition cursor-pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 20 }}>
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ width: 36, height: 36, borderRadius: 9, border: '1.5px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button key={p} onClick={() => setPage(p)} style={{ width: 36, height: 36, borderRadius: 9, border: `1.5px solid ${page === p ? '#1a7f5e' : '#e5e7eb'}`, background: page === p ? '#1a7f5e' : 'white', fontSize: 13, fontWeight: 700, color: page === p ? 'white' : '#374151', cursor: 'pointer', fontFamily: 'inherit' }}>{p}</button>
+                ))}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} style={{ width: 36, height: 36, borderRadius: 9, border: '1.5px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* RAPID FILL BAR */}
       {rapidSelected.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-4 w-full max-w-sm md:w-auto">
-          <div className="bg-[#1a1a1a] text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-3">
-            <div className="flex">{selectedPros.slice(0,3).map((p,i) => <img key={i} src={p.img} className="w-6 h-6 rounded-full object-cover border-2 border-[#1a1a1a]" style={{ marginLeft: i > 0 ? '-6px' : 0 }}/>)}</div>
-            <p className="text-[12px] font-semibold">{rapidSelected.length} selected</p>
-            <button onClick={() => setShowRapidFill(true)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-3.5 py-1.5 rounded-full text-[11px] flex items-center gap-1.5 border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Launch Rapid Fill
-            </button>
-            <button onClick={() => setRapidSelected([])} className="text-[#9ca3af] hover:text-white text-base bg-none border-none cursor-pointer">✕</button>
+        <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', padding: '11px 18px', borderRadius: 100, zIndex: 41, display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 8px 30px rgba(0,0,0,.25)', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex' }}>
+            {PROFESSIONALS.filter(p => rapidSelected.includes(p.id)).slice(0, 3).map((p, i) => (
+              <img key={p.id} src={p.img} style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1a1a1a', marginLeft: i > 0 ? -6 : 0 }} />
+            ))}
           </div>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{rapidSelected.length} selected</span>
+          <button onClick={handleLaunchRF} style={{ background: '#1a7f5e', color: 'white', border: 'none', borderRadius: 100, padding: '8px 16px', fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <BoltIcon />Launch Rapid Fill
+          </button>
+          <button onClick={() => setRapidSelected([])} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 18, cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>✕</button>
         </div>
       )}
     </div>

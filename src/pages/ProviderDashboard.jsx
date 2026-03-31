@@ -181,7 +181,7 @@ export default function ProviderDashboard() {
         <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-widest mb-3">Quick actions</p>
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div
-            onClick={() => navigate('/provider-schedule')}
+            onClick={() => navigate('/provider-availability')}
             className="bg-white border border-[#e5e7eb] rounded-[18px] p-5 cursor-pointer hover:border-[#1a7f5e] transition"
           >
             <div className="w-10 h-10 rounded-xl bg-[#e8f5f0] flex items-center justify-center mb-3">
@@ -293,7 +293,6 @@ export default function ProviderDashboard() {
   )
 }
 
-// ── ICON COMPONENTS ──────────────────────────────────────────
 function UserIcon() {
   return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 }

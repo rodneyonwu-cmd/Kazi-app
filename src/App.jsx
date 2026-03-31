@@ -27,6 +27,7 @@ import FavoriteOffices from './pages/FavoriteOffices'
 import ProviderHelpCenter from './pages/ProviderHelpCenter'
 import ProviderSettings from './pages/ProviderSettings'
 import ProviderProfile from './pages/ProviderProfile'
+import ProviderAvailability from './pages/ProviderAvailability'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
@@ -72,6 +73,7 @@ function App() {
       <Route path="/provider-help" element={<ProviderHelpCenter />} />
       <Route path="/provider-settings" element={<ProviderSettings />} />
       <Route path="/provider-profile" element={<ProviderProfile />} />
+      <Route path="/provider-availability" element={<ProviderAvailability />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

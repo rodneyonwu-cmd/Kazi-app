@@ -18,7 +18,7 @@ export default function ProviderNav() {
   const accountLinks = [
     { icon: <UserIcon />,   label: 'How offices view me',    path: '/provider-profile', state: { readOnly: true } },
     { icon: <DocIcon />,    label: 'Documents & Credentials', path: '/provider-documents', badge: '1 expiring' },
-    { icon: <CalIcon />,    label: 'Availability',            path: '/provider-schedule' },
+    { icon: <CalIcon />,    label: 'Availability',            path: '/provider-availability' },
     { icon: <DollarIcon />, label: 'Finance',                 path: '/provider-earnings' },
     { icon: <HeartIcon />,  label: 'Favorite Offices',        path: '/provider-favorites' },
   ]
