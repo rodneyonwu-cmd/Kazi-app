@@ -1,13 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
-
-const DEFAULT_AVAIL = {2:'8–5PM',3:'8–5PM',4:'8–5PM',6:'9AM–2PM',9:'8–5PM',11:'8–5PM',13:'8–5PM',16:'8–5PM',18:'8–5PM',19:'8–5PM',23:'8–5PM',24:'8–5PM',26:'8–5PM',27:'8–5PM',30:'8–5PM'}
-const DEFAULT_BOOKED = {10:{office:'Evolve Dentistry',time:'8AM–5PM'},14:{office:'Clear Lake Dental',time:'8AM–5PM'},17:{office:'Houston Family Dentistry',time:'8AM–5PM'},20:{office:'Bright Smile Dental',time:'8AM–5PM'},25:{office:'Westchase Dental',time:'9AM–3PM'},28:{office:'Sugar Land Smiles',time:'8AM–4PM'}}
-const DEFAULT_EXC = {6:{sub:'9AM–2PM'},20:{sub:'7AM–12PM'}}
 
 const CheckIcon = () => <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
 
@@ -33,20 +32,25 @@ function TypeOption({ icon, label, selected, color, onClick }) {
 
 export default function ProviderAvailability() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const today = new Date()
 
   const [monthIdx, setMonthIdx] = useState(today.getMonth())
   const [year, setYear] = useState(today.getFullYear())
   const [view, setView] = useState('cal')
   const [toast, setToast] = useState(null)
+  const [providerId, setProviderId] = useState(null)
+  const [availability, setAvailability] = useState([])
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Schedule toggles
   const [schedule, setSchedule] = useState({
-    Mon: { on:true,  start:'8:00 AM', end:'5:00 PM' },
-    Tue: { on:true,  start:'8:00 AM', end:'5:00 PM' },
+    Mon: { on:false, start:'8:00 AM', end:'5:00 PM' },
+    Tue: { on:false, start:'8:00 AM', end:'5:00 PM' },
     Wed: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Thu: { on:true,  start:'8:00 AM', end:'5:00 PM' },
-    Fri: { on:true,  start:'8:00 AM', end:'5:00 PM' },
+    Thu: { on:false, start:'8:00 AM', end:'5:00 PM' },
+    Fri: { on:false, start:'8:00 AM', end:'5:00 PM' },
     Sat: { on:false, start:'8:00 AM', end:'5:00 PM' },
     Sun: { on:false, start:'8:00 AM', end:'5:00 PM' },
   })
@@ -59,15 +63,227 @@ export default function ProviderAvailability() {
   const [dayType, setDayType] = useState('available')
   const [excDate, setExcDate] = useState('')
   const [excNote, setExcNote] = useState('')
+  const [blockStart, setBlockStart] = useState('')
+  const [blockEnd, setBlockEnd] = useState('')
+  const [blockReason, setBlockReason] = useState('')
+  const [dayStart, setDayStart] = useState('8:00 AM')
+  const [dayEnd, setDayEnd] = useState('5:00 PM')
+  const [dayNote, setDayNote] = useState('')
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
   const closeModal = () => setModal(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await getToken()
+        const headers = { Authorization: `Bearer ${token}` }
+        const meRes = await fetch(`${API_URL}/api/providers/me`, { headers })
+        if (meRes.ok) {
+          const profile = await meRes.json()
+          setProviderId(profile.id)
+          const [availRes, bookRes] = await Promise.all([
+            fetch(`${API_URL}/api/providers/${profile.id}/availability`, { headers }),
+            fetch(`${API_URL}/api/bookings?status=CONFIRMED`, { headers }),
+          ])
+          if (availRes.ok) {
+            const slots = await availRes.json()
+            setAvailability(slots)
+            // Seed schedule toggles from dayOfWeek-based slots
+            const dowNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+            const updates = {}
+            slots.forEach(slot => {
+              if (slot.dayOfWeek != null && !slot.date) {
+                const name = dowNames[slot.dayOfWeek]
+                if (name) updates[name] = { on: true, start: slot.startTime, end: slot.endTime }
+              }
+            })
+            if (Object.keys(updates).length > 0) {
+              setSchedule(prev => ({ ...prev, ...updates }))
+            }
+          }
+          if (bookRes.ok) setBookings(await bookRes.json())
+        }
+      } catch {}
+      setLoading(false)
+    }
+    fetchData()
+  }, [getToken])
+
+  const refreshAvailability = async () => {
+    if (!providerId) return
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) setAvailability(await res.json())
+    } catch {}
+  }
 
   const changeMonth = (delta) => {
     let m = monthIdx + delta, y = year
     if (m > 11) { m = 0; y++ }
     if (m < 0) { m = 11; y-- }
     setMonthIdx(m); setYear(y)
+  }
+
+  // Build calendar lookup
+  const availMap = {}
+  const excMap = {}
+  const shortTime = (t) => t.replace(':00 ', '').replace('AM', 'AM').replace('PM', 'PM')
+  const schedDayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  const daysInView = new Date(year, monthIdx + 1, 0).getDate()
+
+  // 1. Weekly schedule toggles are the source of truth for recurring days
+  for (const [day, val] of Object.entries(schedule)) {
+    if (val.on) {
+      const dow = schedDayMap[day]
+      for (let d = 1; d <= daysInView; d++) {
+        if (new Date(year, monthIdx, d).getDay() === dow) {
+          availMap[d] = { time: `${shortTime(val.start)}\u2013${shortTime(val.end)}`, id: null }
+        }
+      }
+    }
+  }
+  // 2. Date-specific slots from API (override weekly schedule for that date)
+  availability.forEach(slot => {
+    if (slot.date) {
+      const d = new Date(slot.date)
+      if (d.getFullYear() === year && d.getMonth() === monthIdx) {
+        const day = d.getDate()
+        if (slot.isException) {
+          excMap[day] = { sub: `${slot.startTime}\u2013${slot.endTime}`, id: slot.id }
+          delete availMap[day] // exception overrides weekly schedule
+        } else {
+          availMap[day] = { time: `${slot.startTime}\u2013${slot.endTime}`, id: slot.id }
+        }
+      }
+    }
+  })
+  // Build booked days from bookings
+  const bookedMap = {}
+  bookings.forEach(b => {
+    if (b.shift) {
+      const d = new Date(b.shift.date)
+      if (d.getFullYear() === year && d.getMonth() === monthIdx) {
+        const day = d.getDate()
+        bookedMap[day] = { office: b.office?.name || 'Office', time: `${b.shift.startTime}\u2013${b.shift.endTime}`, id: b.id }
+        // Booked days override available days
+        delete availMap[day]
+      }
+    }
+  })
+
+  const availCount = Object.keys(availMap).length + Object.keys(excMap).length
+  const bookedCount = Object.keys(bookedMap).length
+
+  // Save weekly schedule
+  const saveSchedule = async () => {
+    if (!providerId) return
+    try {
+      const token = await getToken()
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 }
+      for (const [day, val] of Object.entries(schedule)) {
+        if (val.on) {
+          await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ dayOfWeek: dayMap[day], startTime: val.start, endTime: val.end }),
+          })
+        }
+      }
+      showToast('Schedule saved!')
+      await refreshAvailability()
+    } catch { showToast('Failed to save schedule') }
+  }
+
+  // Save exception
+  const saveException = async () => {
+    if (!providerId || !excDate) { showToast('Please select a date'); return }
+    try {
+      const token = await getToken()
+      await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ date: new Date(excDate).toISOString(), startTime: '8:00 AM', endTime: '5:00 PM', isException: true, note: excNote || null }),
+      })
+      closeModal()
+      showToast('Exception saved!')
+      await refreshAvailability()
+    } catch { showToast('Failed to save exception') }
+  }
+
+  // Block dates
+  const saveBlockDates = async (startDate, endDate, reason) => {
+    if (!providerId || !startDate || !endDate) { showToast('Please select dates'); return }
+    try {
+      const token = await getToken()
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ date: new Date(d).toISOString(), startTime: '12:00 AM', endTime: '12:00 AM', isException: true, note: reason || 'Blocked' }),
+        })
+      }
+      closeModal()
+      showToast('Dates blocked!')
+      await refreshAvailability()
+    } catch { showToast('Failed to block dates') }
+  }
+
+  // Save day edit (DELETE old + POST new)
+  const saveDayEdit = async (dayStart, dayEnd, dayNote) => {
+    if (!providerId || !activeDayNum) return
+    try {
+      const token = await getToken()
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      // Delete existing slot if any
+      const existingSlot = availMap[activeDayNum] || excMap[activeDayNum]
+      if (existingSlot && existingSlot.id) {
+        await fetch(`${API_URL}/api/providers/${providerId}/availability/${existingSlot.id}`, {
+          method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+        })
+      }
+      // Create new slot
+      const date = new Date(year, monthIdx, activeDayNum)
+      await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ date: date.toISOString(), startTime: dayStart, endTime: dayEnd, isException: dayType === 'custom', note: dayNote || null }),
+      })
+      closeModal()
+      showToast('Day updated!')
+      await refreshAvailability()
+    } catch { showToast('Failed to update day') }
+  }
+
+  // Copy to next month
+  const copyToNextMonth = async () => {
+    if (!providerId) return
+    try {
+      const token = await getToken()
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      const currentSlots = availability.filter(slot => {
+        if (!slot.date) return false
+        const d = new Date(slot.date)
+        return d.getFullYear() === year && d.getMonth() === monthIdx
+      })
+      let nextMonth = monthIdx + 1, nextYear = year
+      if (nextMonth > 11) { nextMonth = 0; nextYear++ }
+      for (const slot of currentSlots) {
+        const oldDate = new Date(slot.date)
+        const newDate = new Date(nextYear, nextMonth, oldDate.getDate())
+        if (newDate.getMonth() !== nextMonth) continue // skip invalid dates (e.g. 31st)
+        await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ date: newDate.toISOString(), startTime: slot.startTime, endTime: slot.endTime, isException: slot.isException || false, note: slot.note || null }),
+        })
+      }
+      showToast('Copied to next month!')
+      await refreshAvailability()
+    } catch { showToast('Failed to copy to next month') }
   }
 
   const firstDay = new Date(year, monthIdx, 1).getDay()
@@ -102,14 +318,15 @@ export default function ProviderAvailability() {
     }
     for (let d = 1; d <= daysInMonth; d++) {
       const isToday = isCurrent && d === today.getDate()
-      const isBooked = DEFAULT_BOOKED[d]
-      const isAvail = DEFAULT_AVAIL[d] || DEFAULT_EXC[d]
+      const isBooked = bookedMap[d]
+      const isExc = excMap[d]
+      const isAvail = availMap[d]
       let bg = 'transparent', color = '#d1d5db', sub = '', cursor = 'default', onClick = null, border = '1.5px solid transparent'
 
-      if (isToday) { bg='#1a7f5e'; color='white'; sub='Today'; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('available');setModal('day')} }
+      if (isToday) { bg='#1a7f5e'; color='white'; sub='Today'; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('available');setDayStart('8:00 AM');setDayEnd('5:00 PM');setDayNote('');setModal('day')} }
       else if (isBooked) { bg='#fef3c7'; color='#92400e'; sub=isBooked.office.split(' ')[0]; cursor='pointer'; onClick=()=>{setBookedDayData({...isBooked,day:d});setModal('booked')} }
-      else if (DEFAULT_EXC[d]) { bg='#e8f5f0'; color='#166534'; sub=DEFAULT_EXC[d].sub; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('custom');setModal('day')} }
-      else if (DEFAULT_AVAIL[d]) { bg='#e8f5f0'; color='#166534'; sub=DEFAULT_AVAIL[d]; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('available');setModal('day')} }
+      else if (isExc) { bg='#e8f5f0'; color='#166534'; sub=isExc.sub; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('custom');setDayStart('8:00 AM');setDayEnd('5:00 PM');setDayNote('');setModal('day')} }
+      else if (isAvail) { bg='#e8f5f0'; color='#166534'; sub=isAvail.time; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('available');setDayStart('8:00 AM');setDayEnd('5:00 PM');setDayNote('');setModal('day')} }
 
       days.push(
         <div key={d} onClick={onClick} style={{ height:46,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:12,fontWeight:600,background:bg,color,cursor,border,gap:1,transition:'all .15s' }}
@@ -162,11 +379,11 @@ export default function ProviderAvailability() {
         {/* Stats */}
         <div style={{ display:'flex',gap:10,marginBottom:20 }}>
           <div style={{ background:'white',border:'1.5px solid #e5e7eb',borderRadius:12,padding:'12px 18px',flex:1,textAlign:'center' }}>
-            <div style={{ fontSize:20,fontWeight:900,color:'#1a7f5e',lineHeight:1,marginBottom:3 }}>12</div>
+            <div style={{ fontSize:20,fontWeight:900,color:'#1a7f5e',lineHeight:1,marginBottom:3 }}>{availCount}</div>
             <div style={{ fontSize:11,color:'#9ca3af',fontWeight:600 }}>Available days this month</div>
           </div>
           <div style={{ background:'white',border:'1.5px solid #e5e7eb',borderRadius:12,padding:'12px 18px',flex:1,textAlign:'center' }}>
-            <div style={{ fontSize:20,fontWeight:900,color:'#F97316',lineHeight:1,marginBottom:3 }}>6</div>
+            <div style={{ fontSize:20,fontWeight:900,color:'#F97316',lineHeight:1,marginBottom:3 }}>{bookedCount}</div>
             <div style={{ fontSize:11,color:'#9ca3af',fontWeight:600 }}>Booked shifts this month</div>
           </div>
         </div>
@@ -213,37 +430,38 @@ export default function ProviderAvailability() {
             {/* List view */}
             {view === 'list' && (
               <div>
-                {[
-                  {date:'Mon, Mar 2',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Tue, Mar 3',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Thu, Mar 5',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Fri, Mar 6',time:'9:00 AM – 2:00 PM',type:'avail',note:'Custom hours'},
-                  {date:'Mon, Mar 9',time:'8:00 AM – 5:00 PM',type:'booked',office:'Evolve Dentistry'},
-                  {date:'Tue, Mar 10',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Thu, Mar 12',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Fri, Mar 13',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Mon, Mar 16',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Tue, Mar 17',time:'8:00 AM – 5:00 PM',type:'booked',office:'Houston Family Dentistry'},
-                  {date:'Thu, Mar 19',time:'8:00 AM – 5:00 PM',type:'avail'},
-                  {date:'Fri, Mar 20',time:'7:00 AM – 12:00 PM',type:'avail',note:'Custom hours'},
-                ].map((row,i)=>{
-                  const isBooked = row.type === 'booked'
-                  const bg = isBooked ? '#fffbeb' : '#f0faf5'
-                  const borderColor = isBooked ? '#fde68a' : '#d1fae5'
-                  const dotColor = isBooked ? '#f59e0b' : '#1a7f5e'
-                  const timeColor = isBooked ? '#92400e' : '#1a7f5e'
-                  return (
-                    <div key={i} onClick={()=>showToast(isBooked?row.office+' booked':'Edit '+row.date)} style={{ display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:9,marginBottom:4,border:`1.5px solid ${borderColor}`,background:bg,cursor:'pointer',transition:'all .15s' }}>
-                      <div style={{ width:7,height:7,borderRadius:'50%',background:dotColor,flexShrink:0 }}/>
-                      <div style={{ fontSize:12,fontWeight:800,color:'#1a1a1a',width:80,flexShrink:0 }}>{row.date}</div>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:12,fontWeight:700,color:timeColor }}>{isBooked ? row.office : row.time}</div>
-                        <div style={{ fontSize:10,color:'#9ca3af',marginTop:1 }}>{isBooked ? row.time : (row.note || 'General schedule')}</div>
-                      </div>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                {availCount === 0 && bookedCount === 0 ? (
+                  <div style={{ textAlign:'center', padding:'40px 20px' }}>
+                    <div style={{ width:48, height:48, borderRadius:'50%', background:'#e8f5f0', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     </div>
-                  )
-                })}
+                    <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a', marginBottom:4 }}>No availability set yet</div>
+                    <div style={{ fontSize:13, color:'#9ca3af', maxWidth:260, margin:'0 auto' }}>Set your weekly schedule or add specific dates to let offices know when you're available.</div>
+                  </div>
+                ) : (
+                  [
+                    ...Object.entries(availMap).map(([day, val]) => ({ type:'available', day:Number(day), date:`${MONTHS[monthIdx]} ${day}`, time:val.time, note:null, id:val.id })),
+                    ...Object.entries(excMap).map(([day, val]) => ({ type:'exception', day:Number(day), date:`${MONTHS[monthIdx]} ${day}`, time:val.sub, note:'Exception', id:val.id })),
+                    ...Object.entries(bookedMap).map(([day, val]) => ({ type:'booked', day:Number(day), date:`${MONTHS[monthIdx]} ${day}`, time:val.time, office:val.office, id:val.id })),
+                  ].sort((a,b) => a.day - b.day).map((row,i)=>{
+                    const isBooked = row.type === 'booked'
+                    const bg = isBooked ? '#fffbeb' : '#f0faf5'
+                    const borderColor = isBooked ? '#fde68a' : '#d1fae5'
+                    const dotColor = isBooked ? '#f59e0b' : '#1a7f5e'
+                    const timeColor = isBooked ? '#92400e' : '#1a7f5e'
+                    return (
+                      <div key={i} onClick={()=>{if(isBooked){setBookedDayData({...row,day:row.day});setModal('booked')}else{setActiveDayNum(row.day);setDayType(row.type==='exception'?'custom':'available');setModal('day')}}} style={{ display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:9,marginBottom:4,border:`1.5px solid ${borderColor}`,background:bg,cursor:'pointer',transition:'all .15s' }}>
+                        <div style={{ width:7,height:7,borderRadius:'50%',background:dotColor,flexShrink:0 }}/>
+                        <div style={{ fontSize:12,fontWeight:800,color:'#1a1a1a',width:80,flexShrink:0 }}>{row.date}</div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:12,fontWeight:700,color:timeColor }}>{isBooked ? row.office : row.time}</div>
+                          <div style={{ fontSize:10,color:'#9ca3af',marginTop:1 }}>{isBooked ? row.time : (row.note || 'General schedule')}</div>
+                        </div>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                    )
+                  })
+                )}
               </div>
             )}
           </div>
@@ -252,7 +470,7 @@ export default function ProviderAvailability() {
           <div style={s.card}>
             <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14 }}>
               <span style={{ fontSize:13,fontWeight:800,color:'#1a1a1a' }}>Weekly schedule</span>
-              <button onClick={()=>showToast('Schedule saved!')} style={{ background:'white',color:'#1a7f5e',border:'1.5px solid #1a7f5e',fontWeight:700,padding:'5px 12px',borderRadius:100,fontSize:11,cursor:'pointer',fontFamily:'inherit' }}>Save</button>
+              <button onClick={saveSchedule} style={{ background:'white',color:'#1a7f5e',border:'1.5px solid #1a7f5e',fontWeight:700,padding:'5px 12px',borderRadius:100,fontSize:11,cursor:'pointer',fontFamily:'inherit' }}>Save</button>
             </div>
             {Object.entries(schedule).map(([day, val]) => (
               <div key={day} style={{ display:'flex',alignItems:'center',gap:8,padding:'7px 0',borderBottom:'1px solid #f3f4f6' }}>
@@ -272,11 +490,11 @@ export default function ProviderAvailability() {
             </div>
             <div style={{ marginTop:12,borderTop:'1px solid #f3f4f6',paddingTop:12 }}>
               <span style={{ fontSize:10,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8,display:'block' }}>Quick actions</span>
-              <button onClick={()=>setModal('block')} style={{ background:'white',color:'#374151',border:'1.5px solid #e5e7eb',fontWeight:700,padding:'7px 12px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,width:'100%',marginBottom:6 }}>
+              <button onClick={()=>{setBlockStart('');setBlockEnd('');setBlockReason('');setModal('block')}} style={{ background:'white',color:'#374151',border:'1.5px solid #e5e7eb',fontWeight:700,padding:'7px 12px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,width:'100%',marginBottom:6 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                 Block off dates
               </button>
-              <button onClick={()=>showToast('Copied to next month!')} style={{ background:'white',color:'#374151',border:'1.5px solid #e5e7eb',fontWeight:700,padding:'7px 12px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,width:'100%' }}>
+              <button onClick={copyToNextMonth} style={{ background:'white',color:'#374151',border:'1.5px solid #e5e7eb',fontWeight:700,padding:'7px 12px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,width:'100%' }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 Copy to next month
               </button>
@@ -313,7 +531,7 @@ export default function ProviderAvailability() {
             <input type="text" value={excNote} onChange={e=>setExcNote(e.target.value)} placeholder="e.g. Half day, CE course" style={s.input}/>
             <div style={{ display:'flex',gap:8 }}>
               <button onClick={closeModal} style={s.cancelBtn}>Cancel</button>
-              <button onClick={()=>{closeModal();showToast('Exception saved!')}} style={{ ...s.modalBtn,background:'#7c3aed' }}>Save exception</button>
+              <button onClick={saveException} style={{ ...s.modalBtn,background:'#7c3aed' }}>Save exception</button>
             </div>
           </div>
         </div>
@@ -328,14 +546,14 @@ export default function ProviderAvailability() {
           </div>
           <div style={{ padding:'16px 18px' }}>
             <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8 }}>
-              <div><label style={s.label}>Start date</label><input type="date" style={s.input}/></div>
-              <div><label style={s.label}>End date</label><input type="date" style={s.input}/></div>
+              <div><label style={s.label}>Start date</label><input type="date" value={blockStart} onChange={e=>setBlockStart(e.target.value)} style={s.input}/></div>
+              <div><label style={s.label}>End date</label><input type="date" value={blockEnd} onChange={e=>setBlockEnd(e.target.value)} style={s.input}/></div>
             </div>
             <label style={s.label}>Reason (optional)</label>
-            <input type="text" placeholder="e.g. Vacation, continuing education" style={s.input}/>
+            <input type="text" value={blockReason} onChange={e=>setBlockReason(e.target.value)} placeholder="e.g. Vacation, continuing education" style={s.input}/>
             <div style={{ display:'flex',gap:8 }}>
               <button onClick={closeModal} style={s.cancelBtn}>Cancel</button>
-              <button onClick={()=>{closeModal();showToast('Dates blocked!')}} style={s.modalBtn}>Block dates</button>
+              <button onClick={()=>saveBlockDates(blockStart,blockEnd,blockReason)} style={s.modalBtn}>Block dates</button>
             </div>
           </div>
         </div>
@@ -356,14 +574,14 @@ export default function ProviderAvailability() {
             </div>
             <label style={s.label}>Hours</label>
             <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12 }}>
-              <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>Start</div><select style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
-              <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>End</div><select style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
+              <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>Start</div><select value={dayStart} onChange={e=>setDayStart(e.target.value)} style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
+              <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>End</div><select value={dayEnd} onChange={e=>setDayEnd(e.target.value)} style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
             </div>
             <label style={s.label}>Note (optional)</label>
-            <input type="text" placeholder="Add a note for this day" style={s.input}/>
+            <input type="text" value={dayNote} onChange={e=>setDayNote(e.target.value)} placeholder="Add a note for this day" style={s.input}/>
             <div style={{ display:'flex',gap:8 }}>
               <button onClick={closeModal} style={s.cancelBtn}>Cancel</button>
-              <button onClick={()=>{closeModal();showToast('Day updated!')}} style={s.modalBtn}>Save changes</button>
+              <button onClick={()=>saveDayEdit(dayStart,dayEnd,dayNote)} style={s.modalBtn}>Save changes</button>
             </div>
           </div>
         </div>

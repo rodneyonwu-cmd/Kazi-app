@@ -1,17 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
+import InitialsAvatar from '../components/InitialsAvatar'
 
-const PROFESSIONALS = [
-  { id: 'sarah', name: 'Sarah R.', role: 'Dental Hygienist', rate: 52, rating: 5.0, reviews: 63, reliability: 98, shifts: 147, responseTime: '< 1 hr', miles: 8.2, software: ['Eaglesoft', 'Dentrix', 'Open Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Local Anesthesia', 'Nitrous Oxide'], about: 'Experienced RDH with 12 years in general and perio practices. Highly proficient in full-mouth debridement, periodontal charting, and advanced scaling procedures. Known for her gentle touch with anxious patients.', img: 'https://i.pravatar.cc/150?img=47', calendar: { 16:'avail',17:'avail',18:'booked',19:'avail',20:'avail',23:'avail',24:'booked',25:'avail',26:'avail',30:'avail',31:'avail' } },
-  { id: 'rachel', name: 'Rachel M.', role: 'Dental Hygienist', rate: 72, rating: 4.9, reviews: 71, reliability: 99, shifts: 203, responseTime: '< 1 hr', miles: 11.4, software: ['Eaglesoft', 'Open Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Nitrous Oxide'], about: 'With 12 years across general and specialty practices, Rachel brings precision and professionalism to every shift. She excels in perio maintenance, SRP, and patient education.', img: 'https://i.pravatar.cc/150?img=32', calendar: { 17:'avail',18:'avail',19:'booked',20:'avail',23:'avail',24:'avail',26:'avail',30:'avail' } },
-  { id: 'aisha', name: 'Aisha L.', role: 'Dental Hygienist', rate: 58, rating: 5.0, reviews: 48, reliability: 94, shifts: 142, responseTime: '< 2 hrs', miles: 6.1, software: ['Dentrix', 'Curve Dental'], certs: ['TX RDH License', 'CPR/BLS', 'Local Anesthesia'], about: 'Periodontal specialist with 15 years of clinical experience focused on advanced perio therapy, precision scaling, and early disease detection. Highly sought after by specialty practices.', img: 'https://i.pravatar.cc/150?img=25', calendar: { 16:'avail',17:'avail',18:'booked',20:'avail',24:'avail',25:'avail',27:'avail',30:'avail' } },
-  { id: 'james', name: 'James T.', role: 'Dental Hygienist', rate: 75, rating: 4.8, reviews: 55, reliability: 91, shifts: 88, responseTime: '< 2 hrs', miles: 14.3, software: ['Open Dental', 'Eaglesoft'], certs: ['TX RDH License', 'CPR/BLS'], about: 'James thrives in collaborative, high-volume environments. With experience across several multi-doctor practices in Houston, he brings adaptability and professionalism to every shift.', img: 'https://i.pravatar.cc/150?img=12', calendar: { 17:'avail',19:'avail',24:'avail',25:'avail',31:'avail' } },
-  { id: 'nina', name: 'Nina P.', role: 'Dental Assistant', rate: 34, rating: 4.9, reviews: 52, reliability: 86, shifts: 98, responseTime: '< 2 hrs', miles: 9.8, software: ['Dentrix', 'Eaglesoft'], certs: ['Reg. DA', 'CPR/BLS', 'X-Ray'], about: 'Nina brings warmth, efficiency, and clinical precision to every practice. With 8 years assisting across general and cosmetic practices, she excels in four-handed dentistry and tray setup.', img: 'https://i.pravatar.cc/150?img=49', calendar: { 16:'avail',17:'booked',18:'avail',19:'avail',24:'avail',25:'avail',30:'avail' } },
-  { id: 'marcus', name: 'Marcus J.', role: 'Dental Assistant', rate: 38, rating: 4.8, reviews: 41, reliability: 73, shifts: 54, responseTime: '< 3 hrs', miles: 5.7, software: ['Dentrix', 'Open Dental'], certs: ['Reg. DA', 'CPR/BLS', 'X-Ray'], about: 'Marcus is a dependable dental assistant with 8 years in general and pediatric settings. Particularly skilled in instrument sterilization and impression taking.', img: 'https://i.pravatar.cc/150?img=15', calendar: { 17:'avail',18:'avail',20:'avail',23:'avail',26:'avail',31:'avail' } },
-  { id: 'tara', name: 'Tara C.', role: 'Front Desk', rate: 28, rating: 4.7, reviews: 34, reliability: 98, shifts: 61, responseTime: '< 2 hrs', miles: 7.5, software: ['Eaglesoft', 'Dentrix'], certs: ['CPR/BLS', 'HIPAA'], about: 'Tara is a polished front desk professional with a gift for patient relations and scheduling efficiency. She seamlessly steps into new office environments and quickly learns workflows.', img: 'https://i.pravatar.cc/150?img=45', calendar: { 16:'avail',18:'avail',19:'avail',23:'avail',24:'avail',31:'avail' } },
-  { id: 'devon', name: 'Devon K.', role: 'Treatment Coordinator', rate: 42, rating: 4.6, reviews: 28, reliability: 84, shifts: 32, responseTime: '< 5 hrs', miles: 18.2, software: ['Curve Dental'], certs: ['CPR/BLS', 'HIPAA', 'Dental Billing'], about: 'Devon specializes in presenting treatment plans that build patient trust and drive case acceptance. Strong background in insurance coordination and financial arrangements.', img: 'https://i.pravatar.cc/150?img=67', calendar: { 17:'avail',19:'avail',24:'avail',25:'avail',30:'avail' } },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const CAL_DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa']
 
@@ -51,14 +44,14 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
           {isSelected && <CheckIcon />}
         </div>
         {/* Avatar */}
-        <img src={pro.img} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt={pro.name} />
+        <InitialsAvatar name={pro.name} size={52} />
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
             <span style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2 }}>{pro.name}</span>
             <span style={{ fontSize: 14, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 }}>${pro.rate}<span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
           </div>
-          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>{pro.role} · {pro.miles} mi away</div>
+          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi away` : ''}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
             <span style={{ fontSize: 11, color: '#9ca3af' }}>({pro.reviews})</span>
@@ -105,10 +98,11 @@ function CalModal({ pro, onClose, onChoose }) {
   if (!pro) return null
   const firstDay = new Date(2026, 2, 1).getDay()
   const calDays = [...Array(firstDay).fill(null), ...Array.from({ length: 31 }, (_, i) => i + 1)]
+  const calendar = pro.calendar || {}
   return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 480, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
       <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <img src={pro.img} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+        <InitialsAvatar name={pro.name} size={46} />
         <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div></div>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
       </div>
@@ -130,7 +124,7 @@ function CalModal({ pro, onClose, onChoose }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 10 }}>
           {calDays.map((day, i) => {
             if (!day) return <div key={`e${i}`} style={{ padding: '10px 4px' }} />
-            const st = pro.calendar[day]
+            const st = calendar[day]
             return (
               <div key={day} onClick={() => st === 'avail' && onChoose(`March ${day}`)}
                 style={{ textAlign: 'center', fontSize: 13, fontWeight: st === 'avail' ? 700 : 600, padding: '10px 4px', borderRadius: 7, background: st === 'avail' ? '#e8f5f0' : st === 'booked' ? '#fef3c7' : 'transparent', color: st === 'avail' ? '#1a7f5e' : st === 'booked' ? '#92400e' : '#d1d5db', cursor: st === 'avail' ? 'pointer' : 'default' }}>
@@ -151,7 +145,7 @@ function ChoiceModal({ pro, date, onClose, onDirect, onRapidFill }) {
   return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 400, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
       <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src={pro.img} style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+        <InitialsAvatar name={pro.name} size={50} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 16, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#1a7f5e', marginTop: 2 }}>{date}, 2026</div>
@@ -185,14 +179,14 @@ function BookingModal({ pro, date, onClose, onSubmit }) {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
       <div style={{ fontSize: 17, fontWeight: 900, color: '#1a7f5e', marginBottom: 6 }}>Booking request sent!</div>
-      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>{pro.name.split(' ')[0]} will respond within {pro.responseTime}</div>
+      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>{pro.name.split(' ')[0]} will respond within {pro.responseTime || '24 hrs'}</div>
       <button onClick={onClose} style={{ background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px 28px', borderRadius: 100, fontSize: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Done</button>
     </div>
   )
   return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 400, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
       <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <img src={pro.img} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+        <InitialsAvatar name={pro.name} size={46} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div>
           <div style={{ fontSize: 12, color: '#6b7280' }}>{pro.role} · ${pro.rate}/hr</div>
@@ -246,7 +240,7 @@ function RFModal({ selected, allPros, date, onClose, onSend }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
           {selPros.map(p => (
             <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 100, padding: '4px 10px 4px 4px' }}>
-              <img src={p.img} style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }} />
+              <InitialsAvatar name={p.name} size={22} />
               <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{p.name.split(' ')[0]}</span>
             </div>
           ))}
@@ -280,7 +274,7 @@ function RFModal({ selected, allPros, date, onClose, onSend }) {
 }
 
 // ─── PROFILE DRAWER ──────────────────────────────────────────
-function ProfileDrawer({ pro, onClose, onBook }) {
+function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
   const [favSaved, setFavSaved] = useState(false)
   if (!pro) return null
   const rel = relDisplay(pro.reliability)
@@ -292,17 +286,17 @@ function ProfileDrawer({ pro, onClose, onBook }) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           Back to professionals
         </div>
-        <button onClick={e => { e.stopPropagation(); setFavSaved(!favSaved) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+        <button onClick={e => { e.stopPropagation(); setFavSaved(!favSaved); onSavePro(pro.id, !favSaved) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill={favSaved ? '#ef4444' : 'none'} stroke={favSaved ? '#ef4444' : '#9ca3af'} strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ padding: 22 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-            <img src={pro.img} style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            <InitialsAvatar name={pro.name} size={84} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', marginBottom: 3 }}>{pro.name}</div>
-              <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>{pro.role} · {pro.miles} mi away</div>
+              <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi away` : ''}</div>
               <div style={{ fontSize: 17, fontWeight: 900, color: '#1a7f5e', marginBottom: 8 }}>${pro.rate}/hr</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
@@ -312,7 +306,7 @@ function ProfileDrawer({ pro, onClose, onBook }) {
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
-            {[['Shifts', pro.shifts, '#1a1a1a'], ['Response', pro.responseTime, '#1a1a1a'], ['Reliability', `${pro.reliability}%`, rel.color], ['Score', '94', '#1a7f5e']].map(([label, val, color]) => (
+            {[['Shifts', pro.shifts, '#1a1a1a'], ['Response', pro.responseTime || 'N/A', '#1a1a1a'], ['Reliability', `${pro.reliability}%`, rel.color], ['Score', '94', '#1a7f5e']].map(([label, val, color]) => (
               <div key={label} style={{ background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{label}</div>
                 <div style={{ fontSize: 15, fontWeight: 900, color }}>{val}</div>
@@ -321,7 +315,7 @@ function ProfileDrawer({ pro, onClose, onBook }) {
           </div>
         </div>
         {[
-          { title: 'About', content: <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{pro.about}</div> },
+          { title: 'About', content: <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{pro.about || 'No bio available.'}</div> },
           { title: 'Resume', content: (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -336,20 +330,22 @@ function ProfileDrawer({ pro, onClose, onBook }) {
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </div>
           )},
-          { title: 'Practice Software', content: <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{pro.software.map(s => <span key={s} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{s}</span>)}</div> },
-          { title: 'Credentials', content: <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{pro.certs.map(c => <span key={c} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#f3f4f6', color: '#374151' }}>✓ {c}</span>)}</div> },
+          { title: 'Practice Software', content: <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{(pro.software || []).length > 0 ? pro.software.map(s => <span key={s} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{s}</span>) : <span style={{ fontSize: 12, color: '#9ca3af' }}>Not specified</span>}</div> },
+          { title: 'Credentials', content: <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{(pro.certs || []).length > 0 ? pro.certs.map(c => <span key={c} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#f3f4f6', color: '#374151' }}>✓ {c}</span>) : <span style={{ fontSize: 12, color: '#9ca3af' }}>No credentials listed</span>}</div> },
           { title: 'Reviews', content: (
             <div>
-              {[{text:'Fantastic hygienist. Showed up on time, ran the column independently. Patients loved her.',from:'Evolve Dentistry',date:'Mar 2026'},{text:'Very professional and efficient. Great communication before the shift.',from:'Clear Lake Dental',date:'Feb 2026'},{text:'Would rebook without hesitation. Excellent skills.',from:'Houston Family Dentistry',date:'Jan 2026'}].map((r, i) => (
+              {(pro.reviewsList || []).length > 0 ? pro.reviewsList.map((r, i) => (
                 <div key={i} style={{ borderBottom: '1px solid #f3f4f6', padding: '12px 0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{r.from}</span>
                     <span style={{ fontSize: 12, color: '#9ca3af' }}>{r.date}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: '#F97316', marginBottom: 5 }}>★★★★★</div>
+                  <div style={{ fontSize: 13, color: '#F97316', marginBottom: 5 }}>{'★'.repeat(r.rating || 5)}</div>
                   <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{r.text}</div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ fontSize: 13, color: '#9ca3af', padding: '8px 0' }}>No reviews yet.</div>
+              )}
             </div>
           )}
         ].map(({ title, content }) => (
@@ -376,8 +372,11 @@ function ProfileDrawer({ pro, onClose, onBook }) {
 // ─── MAIN PAGE ───────────────────────────────────────────────
 export default function Professionals() {
   const location = useLocation()
+  const { getToken } = useAuth()
   const dpRef = useRef(null)
 
+  const [professionals, setProfessionals] = useState([])
+  const [loading, setLoading] = useState(true)
   const [role, setRole] = useState('All')
   const [reliability, setReliability] = useState('All')
   const [lang, setLang] = useState('')
@@ -405,6 +404,72 @@ export default function Professionals() {
     if (location.state?.rapidFillPreselect) setRapidSelected([location.state.rapidFillPreselect])
   }, [])
 
+  // Fetch providers from API
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/providers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch providers')
+        const data = await res.json()
+
+        // Transform API response to match what ProCard expects
+        const transformed = data.map(provider => {
+          const firstName = provider.user?.firstName || ''
+          const lastName = provider.user?.lastName || ''
+          const lastInitial = lastName ? `${lastName.charAt(0)}.` : ''
+          const name = `${firstName} ${lastInitial}`.trim() || 'Unknown'
+
+          // Calculate average rating from reviews if available
+          const reviews = provider.reviews || []
+          const avgRating = reviews.length > 0
+            ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+            : 0
+          const reviewCount = reviews.length
+
+          // Build review list for profile drawer
+          const reviewsList = reviews.map(r => ({
+            text: r.comment || '',
+            from: 'Verified Practice',
+            date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+            rating: r.rating,
+          }))
+
+          // Calculate completed shifts from bookings
+          const completedShifts = provider.bookings?.filter(b => b.status === 'COMPLETED').length || 0
+
+          return {
+            id: provider.id,
+            name,
+            role: provider.role || 'Professional',
+            rate: provider.hourlyRate || 0,
+            rating: Number(avgRating) || 0,
+            reviews: reviewCount,
+            reliability: provider.reliabilityScore || 0,
+            shifts: completedShifts,
+            responseTime: null,
+            miles: null,
+            software: provider.software || [],
+            skills: provider.skills || [],
+            certs: (provider.credentials || []).map(c => c.type),
+            about: provider.bio || '',
+            calendar: {},
+            reviewsList,
+          }
+        })
+
+        setProfessionals(transformed)
+      } catch (err) {
+        console.error('Error fetching providers:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProviders()
+  }, [getToken])
+
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
 
   const toggleRapid = (id) => {
@@ -414,19 +479,18 @@ export default function Professionals() {
 
   const getRelBand = (r) => r >= 95 ? 'excellent' : r >= 85 ? 'verygood' : r >= 70 ? 'good' : 'poor'
 
-  const filtered = PROFESSIONALS.filter(p => {
+  const filtered = professionals.filter(p => {
     if (role !== 'All' && p.role !== role) return false
     if (reliability !== 'All' && getRelBand(p.reliability) !== reliability) return false
     if (p.rate < minRate || p.rate > maxRate) return false
-    if (p.miles > maxMiles) return false
+    if (p.miles != null && p.miles > maxMiles) return false
     if (cert && !p.certs.includes(cert)) return false
     if (skill && !p.software.includes(skill)) return false
-    if (photoOnly && !p.img) return false
     return true
   }).sort((a, b) => {
     if (sortBy === 'Rating') return b.rating - a.rating
     if (sortBy === 'Reliability') return b.reliability - a.reliability
-    if (sortBy === 'Distance') return a.miles - b.miles
+    if (sortBy === 'Distance') return (a.miles || 999) - (b.miles || 999)
     if (sortBy === '# of shifts') return b.shifts - a.shifts
     return b.reliability - a.reliability
   })
@@ -464,11 +528,36 @@ export default function Professionals() {
     setModal('rf')
   }
 
+  const handleSavePro = (proId, saving) => {
+    showToast(saving ? 'Professional saved - Coming soon!' : 'Professional unsaved')
+  }
+
   const rfDate = dateVal
     ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : activeDate
 
-  const activeProObj = PROFESSIONALS.find(p => p.id === activePro)
+  const activeProObj = professionals.find(p => p.id === activePro)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f9f8f6]">
+        <Nav />
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 48px 80px' }}>
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 4 }}>Find Professionals</h1>
+            <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 400 }}>Browse verified dental professionals available in your area</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: 32, height: 32, border: '2px solid #1a7f5e', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }}></div>
+              <p style={{ fontSize: 14, color: '#9ca3af' }}>Loading professionals...</p>
+              <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
@@ -491,11 +580,11 @@ export default function Professionals() {
       {modal === 'cal' && activeProObj && <CalModal pro={activeProObj} onClose={closeAll} onChoose={handleCalChoose} />}
       {modal === 'choice' && activeProObj && <ChoiceModal pro={activeProObj} date={activeDate} onClose={closeAll} onDirect={handleDirect} onRapidFill={handleRapidFillChoice} />}
       {modal === 'booking' && activeProObj && <BookingModal pro={activeProObj} date={activeDate} onClose={closeAll} onSubmit={() => { closeAll(); showToast(`Booking request sent to ${activeProObj.name.split(' ')[0]}!`) }} />}
-      {modal === 'rf' && <RFModal selected={rapidSelected} allPros={PROFESSIONALS} date={rfDate} onClose={closeAll} onSend={() => { closeAll(); setRapidSelected([]); showToast('Rapid Fill requests sent!') }} />}
+      {modal === 'rf' && <RFModal selected={rapidSelected} allPros={professionals} date={rfDate} onClose={closeAll} onSend={() => { closeAll(); setRapidSelected([]); showToast('Rapid Fill requests sent!') }} />}
       {modal === 'profile' && activeProObj && (
         <>
           <div onClick={closeAll} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.3)', zIndex: 300 }} />
-          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} />
+          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} onSavePro={handleSavePro} showToast={showToast} />
         </>
       )}
 
@@ -613,9 +702,15 @@ export default function Professionals() {
             {/* Cards grid */}
             {paginated.length === 0 ? (
               <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: '56px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>No professionals found</div>
-                <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>Try adjusting your filters.</div>
-                <button onClick={clearFilters} style={{ border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 20px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Clear all filters</button>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
+                  {professionals.length === 0 ? 'No professionals available yet' : 'No professionals found'}
+                </div>
+                <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>
+                  {professionals.length === 0 ? 'Check back as providers join Kazi.' : 'Try adjusting your filters.'}
+                </div>
+                {professionals.length > 0 && (
+                  <button onClick={clearFilters} style={{ border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 20px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Clear all filters</button>
+                )}
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'start' }}>
@@ -647,8 +742,10 @@ export default function Professionals() {
       {rapidSelected.length > 0 && (
         <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', padding: '11px 18px', borderRadius: 100, zIndex: 41, display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 8px 30px rgba(0,0,0,.25)', whiteSpace: 'nowrap' }}>
           <div style={{ display: 'flex' }}>
-            {PROFESSIONALS.filter(p => rapidSelected.includes(p.id)).slice(0, 3).map((p, i) => (
-              <img key={p.id} src={p.img} style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1a1a1a', marginLeft: i > 0 ? -6 : 0 }} />
+            {professionals.filter(p => rapidSelected.includes(p.id)).slice(0, 3).map((p, i) => (
+              <div key={p.id} style={{ marginLeft: i > 0 ? -6 : 0 }}>
+                <InitialsAvatar name={p.name} size={26} />
+              </div>
             ))}
           </div>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{rapidSelected.length} selected</span>

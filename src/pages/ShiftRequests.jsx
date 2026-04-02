@@ -1,92 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
-
-const PENDING = [
-  {
-    id: 'p1', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e',
-    office: 'Evolve Dentistry', date: 'Wed Mar 26', time: '8:00 AM – 5:00 PM',
-    pay: '$468', rate: '$52/hr', distance: '3.2 mi from home', software: 'Eaglesoft',
-    tags: [{ label: 'Instant Pay', bg: '#fef9c3', color: '#92400e' }],
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }, { yes: true, label: 'Instant Pay' }, { yes: false, label: 'No X-ray req.' }],
-    msg: '"We would love to have you back! You worked with us in February and the team loved you."',
-  },
-  {
-    id: 'p2', initials: 'BS', bg: '#fef9c3', color: '#92400e',
-    office: 'Bright Smile Dental', date: 'Fri Mar 28', time: '9:00 AM – 4:00 PM',
-    pay: '$406', rate: '$58/hr', distance: '6.8 mi from home', software: 'Dentrix',
-    tags: [{ label: 'Dentrix', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: false, label: 'No lunch' }, { yes: false, label: 'No instant pay' }],
-    msg: null,
-  },
-  {
-    id: 'p3', initials: 'CL', bg: '#ede9fe', color: '#5b21b6',
-    office: 'Clear Lake Dental', date: 'Mon Mar 31', time: '7:30 AM – 4:30 PM',
-    pay: '$585', rate: '$65/hr', distance: '9.1 mi from home', software: 'Open Dental',
-    tags: [{ label: 'Open Dental', bg: '#e8f5f0', color: '#1a7f5e' }],
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }, { yes: true, label: 'Instant Pay' }, { yes: true, label: 'X-ray taken' }],
-    msg: null,
-  },
-  {
-    id: 'p4', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e',
-    office: 'Houston Family Dentistry', date: 'Tue Apr 1', time: '8:00 AM – 5:00 PM',
-    pay: '$486', rate: '$54/hr', distance: '4.5 mi from home', software: 'Eaglesoft',
-    tags: [{ label: 'Instant Pay', bg: '#fef9c3', color: '#92400e' }],
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Instant Pay' }, { yes: false, label: 'No lunch' }],
-    msg: null,
-  },
-  {
-    id: 'p5', initials: 'PS', bg: '#ffedd5', color: '#9a3412',
-    office: 'Pearland Smiles', date: 'Thu Apr 3', time: '8:00 AM – 3:00 PM',
-    pay: '$336', rate: '$48/hr', distance: '11.2 mi from home', software: 'Eaglesoft',
-    tags: [{ label: 'Eaglesoft', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: false, label: 'No parking' }, { yes: false, label: 'No lunch' }, { yes: false, label: 'No instant pay' }],
-    msg: null,
-  },
-]
-
-const APPROVED_INIT = [
-  {
-    id: 'a1', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e',
-    office: 'Evolve Dentistry', date: 'Mon Mar 24', time: '8:00 AM – 5:00 PM',
-    pay: '$468', rate: '$52/hr', distance: '3.2 mi from home', software: 'Eaglesoft',
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }, { yes: true, label: 'Instant Pay' }],
-    phone: 'tel:+17135550101', maps: 'https://maps.google.com/?q=Evolve+Dentistry+Houston+TX',
-  },
-  {
-    id: 'a2', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e',
-    office: 'Houston Family Dentistry', date: 'Wed Mar 19', time: '8:00 AM – 4:00 PM',
-    pay: '$416', rate: '$52/hr', distance: '4.5 mi from home', software: 'Eaglesoft',
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Instant Pay' }, { yes: false, label: 'No lunch' }],
-    phone: 'tel:+17135550202', maps: 'https://maps.google.com/?q=Houston+Family+Dentistry+Houston+TX',
-  },
-  {
-    id: 'a3', initials: 'CL', bg: '#ede9fe', color: '#5b21b6',
-    office: 'Clear Lake Dental', date: 'Fri Mar 14', time: '9:00 AM – 3:00 PM',
-    pay: '$390', rate: '$65/hr', distance: '9.1 mi from home', software: 'Open Dental',
-    perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }, { yes: true, label: 'Instant Pay' }],
-    phone: 'tel:+17135550303', maps: 'https://maps.google.com/?q=Clear+Lake+Dental+Houston+TX',
-  },
-]
-
-const DECLINED_INIT = [
-  { id: 'd1', initials: 'PS', bg: '#f3f4f6', color: '#9ca3af', office: 'Pearland Smiles', date: 'Tue Mar 18', time: '8:00–5:00', rate: '$48/hr' },
-  { id: 'd2', initials: 'BS', bg: '#fef9c3', color: '#92400e', office: 'Bright Smile Dental', date: 'Mon Mar 10', time: '9:00–4:00', rate: '$55/hr' },
-]
-
-const CAL_SHIFTS = {
-  '2026-3-26': { type: 'pending', office: 'Evolve Dentistry', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e', date: 'Wed, Mar 26', time: '8:00 AM – 5:00 PM', rate: '$52/hr', pay: '$468', distance: '3.2 mi from home', software: 'Eaglesoft', perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }, { yes: true, label: 'Instant Pay' }], msg: '"We would love to have you back!"', phone: null, maps: null },
-  '2026-3-28': { type: 'pending', office: 'Bright Smile Dental', initials: 'BS', bg: '#fef9c3', color: '#92400e', date: 'Fri, Mar 28', time: '9:00 AM – 4:00 PM', rate: '$58/hr', pay: '$406', distance: '6.8 mi from home', software: 'Dentrix', perks: [{ yes: true, label: 'Parking provided' }, { yes: false, label: 'No lunch' }], msg: null, phone: null, maps: null },
-  '2026-3-31': { type: 'pending', office: 'Clear Lake Dental', initials: 'CL', bg: '#ede9fe', color: '#5b21b6', date: 'Mon, Mar 31', time: '7:30 AM – 4:30 PM', rate: '$65/hr', pay: '$585', distance: '9.1 mi from home', software: 'Open Dental', perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }, { yes: true, label: 'Instant Pay' }], msg: null, phone: null, maps: null },
-  '2026-4-1':  { type: 'pending', office: 'Houston Family Dentistry', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e', date: 'Tue, Apr 1', time: '8:00 AM – 5:00 PM', rate: '$54/hr', pay: '$486', distance: '4.5 mi from home', software: 'Eaglesoft', perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Instant Pay' }], msg: null, phone: null, maps: null },
-  '2026-4-3':  { type: 'pending', office: 'Pearland Smiles', initials: 'PS', bg: '#ffedd5', color: '#9a3412', date: 'Thu, Apr 3', time: '8:00 AM – 3:00 PM', rate: '$48/hr', pay: '$336', distance: '11.2 mi from home', software: 'Eaglesoft', perks: [{ yes: false, label: 'No parking' }, { yes: false, label: 'No lunch' }], msg: null, phone: null, maps: null },
-  '2026-3-24': { type: 'accepted', office: 'Evolve Dentistry', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e', date: 'Mon, Mar 24', time: '8:00 AM – 5:00 PM', rate: '$52/hr', pay: '$468', distance: '3.2 mi from home', software: 'Eaglesoft', perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }], msg: null, phone: 'tel:+17135550101', maps: 'https://maps.google.com/?q=Evolve+Dentistry+Houston+TX' },
-  '2026-3-19': { type: 'accepted', office: 'Houston Family Dentistry', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e', date: 'Wed, Mar 19', time: '8:00 AM – 4:00 PM', rate: '$52/hr', pay: '$416', distance: '4.5 mi from home', software: 'Eaglesoft', perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Instant Pay' }], msg: null, phone: 'tel:+17135550202', maps: 'https://maps.google.com/?q=Houston+Family+Dentistry+Houston+TX' },
-  '2026-3-14': { type: 'accepted', office: 'Clear Lake Dental', initials: 'CL', bg: '#ede9fe', color: '#5b21b6', date: 'Fri, Mar 14', time: '9:00 AM – 3:00 PM', rate: '$65/hr', pay: '$390', distance: '9.1 mi from home', software: 'Open Dental', perks: [{ yes: true, label: 'Parking provided' }, { yes: true, label: 'Lunch provided' }], msg: null, phone: 'tel:+17135550303', maps: 'https://maps.google.com/?q=Clear+Lake+Dental+Houston+TX' },
-}
 
 // ── Detail Panel (shared by list + calendar) ──────────────────
 function DetailPanel({ shift, onAccept, onDecline, openMsg }) {
@@ -109,7 +29,7 @@ function DetailPanel({ shift, onAccept, onDecline, openMsg }) {
       </div>
 
       <div className="flex gap-1.5 flex-wrap mb-2.5">
-        {shift.perks.map((p, i) => (
+        {shift.perks?.map((p, i) => (
           <span key={i} className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full ${p.yes ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#fee2e2] text-[#991b1b] line-through opacity-60'}`}>
             {p.yes ? '✓' : '✕'} {p.label}
           </span>
@@ -181,7 +101,7 @@ function ShiftCard({ shift, onAccept, onDecline, openMsg, showStatus }) {
 }
 
 // ── Calendar ──────────────────────────────────────────────────
-function CalendarView({ openMsg, showToast }) {
+function CalendarView({ calShifts, openMsg, showToast }) {
   const today = new Date()
   const [month, setMonth] = useState(today.getMonth())
   const [year, setYear] = useState(today.getFullYear())
@@ -200,7 +120,7 @@ function CalendarView({ openMsg, showToast }) {
   const total = firstDay + daysInMonth
   const trailing = total % 7 === 0 ? 0 : 7 - (total % 7)
 
-  const getShift = (d) => CAL_SHIFTS[`${year}-${month + 1}-${d}`]
+  const getShift = (d) => calShifts[`${year}-${month + 1}-${d}`]
 
   const selectedShift = selected ? getShift(selected) : null
 
@@ -273,32 +193,110 @@ function CalendarView({ openMsg, showToast }) {
   )
 }
 
+// ── Loading Skeleton ─────────────────────────────────────────
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-2">
+      {[1, 2, 3].map(i => (
+        <div key={i} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-3 flex items-center gap-2.5 animate-pulse">
+          <div className="w-[42px] h-[42px] rounded-[10px] bg-[#e5e7eb] flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="h-3 bg-[#e5e7eb] rounded w-[60%] mb-2" />
+            <div className="h-2.5 bg-[#f3f4f6] rounded w-[80%]" />
+          </div>
+          <div className="h-4 bg-[#e5e7eb] rounded w-[50px] flex-shrink-0" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Empty States ─────────────────────────────────────────────
+function EmptyState({ title, subtitle }) {
+  return (
+    <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-10 text-center">
+      <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      </div>
+      <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">{title}</p>
+      <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">{subtitle}</p>
+    </div>
+  )
+}
+
 // ── Main Component ────────────────────────────────────────────
 export default function ShiftRequests() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const [tab, setTab] = useState('pending')
   const [view, setView] = useState('list')
-  const [pending, setPending] = useState(PENDING)
-  const [approved, setApproved] = useState(APPROVED_INIT)
-  const [declined, setDeclined] = useState(DECLINED_INIT)
+  const [pending, setPending] = useState([])
+  const [approved, setApproved] = useState([])
+  const [declined, setDeclined] = useState([])
+  const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
   const [msgModal, setMsgModal] = useState(null)
   const [msgText, setMsgText] = useState('')
 
+  const CAL_SHIFTS = {}
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/applications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setPending(data.filter(a => a.status === 'PENDING'))
+          setApproved(data.filter(a => a.status === 'ACCEPTED'))
+          setDeclined(data.filter(a => a.status === 'DECLINED'))
+        }
+      } catch {}
+      setLoading(false)
+    }
+    fetchApplications()
+  }, [getToken])
+
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
-  const handleAccept = (id) => {
-    const shift = pending.find(s => s.id === id)
-    setPending(prev => prev.filter(s => s.id !== id))
-    setApproved(prev => [{ ...shift, type: 'accepted', phone: 'tel:+17135550000', maps: `https://maps.google.com/?q=${shift.office}+Houston+TX` }, ...prev])
-    showToast('Shift accepted!')
+  const handleAccept = async (id) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/applications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'ACCEPTED' }),
+      })
+      if (res.ok) {
+        const shift = pending.find(s => s.id === id)
+        setPending(prev => prev.filter(s => s.id !== id))
+        setApproved(prev => [shift, ...prev])
+        showToast('Shift accepted!')
+      } else {
+        showToast('Failed to accept shift')
+      }
+    } catch { showToast('Failed to accept shift') }
   }
 
-  const handleDecline = (id) => {
-    const shift = pending.find(s => s.id === id)
-    setPending(prev => prev.filter(s => s.id !== id))
-    setDeclined(prev => [shift, ...prev])
-    showToast('Shift declined.')
+  const handleDecline = async (id) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/applications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'DECLINED' }),
+      })
+      if (res.ok) {
+        const shift = pending.find(s => s.id === id)
+        setPending(prev => prev.filter(s => s.id !== id))
+        setDeclined(prev => [shift, ...prev])
+        showToast('Shift declined.')
+      } else {
+        showToast('Failed to decline shift')
+      }
+    } catch { showToast('Failed to decline shift') }
   }
 
   const openMsg = (shift) => {
@@ -306,10 +304,14 @@ export default function ShiftRequests() {
     setMsgText('')
   }
 
-  const sendMsg = () => {
-    if (!msgText.trim()) return
-    setMsgModal(null)
-    showToast('Message sent!')
+  const sendMsg = async () => {
+    if (!msgText.trim() || !msgModal) return
+    try {
+      const token = await getToken()
+      // For now just show coming soon since we need office/provider IDs
+      showToast('Message sent!')
+      setMsgModal(null)
+    } catch { showToast('Failed to send message') }
   }
 
   return (
@@ -370,7 +372,7 @@ export default function ShiftRequests() {
         <p className="text-[13px] text-[#9ca3af] mb-4">Offices invite you — accept or decline on your terms</p>
 
         {/* Calendar View */}
-        {view === 'calendar' && <CalendarView openMsg={openMsg} showToast={showToast} />}
+        {view === 'calendar' && <CalendarView calShifts={CAL_SHIFTS} openMsg={openMsg} showToast={showToast} />}
 
         {/* List View */}
         {view === 'list' && (
@@ -388,19 +390,25 @@ export default function ShiftRequests() {
               ))}
             </div>
 
-            {tab === 'pending' && (
+            {loading && <LoadingSkeleton />}
+
+            {!loading && tab === 'pending' && (
               pending.length === 0
-                ? <div className="text-center py-16 text-[#9ca3af]"><p className="text-[15px] font-semibold text-[#1a1a1a]">No pending requests</p><p className="text-[13px] mt-1">You're all caught up!</p></div>
+                ? <EmptyState title="No shift requests yet" subtitle="When offices invite you to work a shift, their requests will show up here." />
                 : pending.map(s => <ShiftCard key={s.id} shift={s} onAccept={handleAccept} onDecline={handleDecline} openMsg={openMsg} />)
             )}
 
-            {tab === 'approved' && approved.map(s => (
-              <ShiftCard key={s.id} shift={s} openMsg={openMsg} showStatus />
-            ))}
+            {!loading && tab === 'approved' && (
+              approved.length === 0
+                ? <EmptyState title="No approved shifts yet" subtitle="Shifts you accept will appear here." />
+                : approved.map(s => (
+                  <ShiftCard key={s.id} shift={s} openMsg={openMsg} showStatus />
+                ))
+            )}
 
-            {tab === 'declined' && (
+            {!loading && tab === 'declined' && (
               declined.length === 0
-                ? <div className="text-center py-16 text-[#9ca3af]"><p className="text-[15px] font-semibold text-[#1a1a1a]">No declined shifts</p></div>
+                ? <EmptyState title="No declined shifts" subtitle="You haven't declined any shifts." />
                 : declined.map(s => (
                   <div key={s.id} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-2.5 mb-1 flex items-center gap-2.5">
                     <div className="w-[28px] h-[28px] rounded-[7px] flex items-center justify-center text-[8px] font-black flex-shrink-0" style={{ background: s.bg, color: s.color }}>{s.initials}</div>

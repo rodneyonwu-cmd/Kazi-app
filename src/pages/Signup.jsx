@@ -1,7 +1,7 @@
-import { SignIn } from '@clerk/clerk-react'
+import { SignUp } from '@clerk/clerk-react'
 import { useNavigate } from 'react-router-dom'
 
-export default function Login() {
+export default function Signup() {
   const navigate = useNavigate()
 
   return (
@@ -15,20 +15,20 @@ export default function Login() {
           kazi.
         </span>
         <span className="text-sm text-[#6b7280]">
-          Don't have an account?{' '}
+          Already have an account?{' '}
           <span
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate('/login')}
             className="text-[#1a7f5e] font-semibold cursor-pointer hover:underline"
           >
-            Sign up free
+            Sign in
           </span>
         </span>
       </nav>
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <SignIn
+        <SignUp
           routing="hash"
-          afterSignInUrl="/onboarding"
-          signUpUrl="/signup"
+          afterSignUpUrl="/onboarding"
+          signInUrl="/login"
           appearance={{
             variables: {
               colorPrimary: '#1a7f5e',

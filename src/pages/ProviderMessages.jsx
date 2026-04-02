@@ -1,32 +1,56 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 
-const conversations = [
-  { id: 'ed', initials: 'ED', logoBg: 'bg-[#e8f5f0]', logoColor: 'text-[#1a7f5e]', name: 'Evolve Dentistry', online: true, time: '10:24 AM', unread: 2, preview: 'We would love to have you back on Mar 25!', messages: [{ from: 'office', text: 'Hi Sarah! We have a shift open on Tuesday Mar 25, 8am to 5pm. Would you be available?', time: '10:18 AM' }, { from: 'office', text: 'The rate is $52/hr and we can confirm Instant Pay.', time: '10:19 AM' }, { from: 'me', text: 'Hi! That sounds great, I would love to come back. Let me check my schedule.', time: '10:21 AM' }, { from: 'office', text: 'We would love to have you back on Mar 25! Let us know!', time: '10:24 AM' }] },
-  { id: 'cl', initials: 'CL', logoBg: 'bg-[#ede9fe]', logoColor: 'text-[#5b21b6]', name: 'Clear Lake Dental', online: false, time: 'Yesterday', unread: 0, preview: 'You: Sounds great, I will be there at 7:30!', messages: [{ from: 'office', text: 'Hey Sarah, we have a shift on Wednesday Mar 26 from 7:30am to 4:30pm. Interested?', time: 'Yesterday 2:10 PM' }, { from: 'me', text: 'Yes! Is parking still free on-site?', time: 'Yesterday 2:45 PM' }, { from: 'office', text: 'Yes, free parking as always! We will send the booking confirmation shortly.', time: 'Yesterday 3:02 PM' }, { from: 'me', text: 'Sounds great, I will be there at 7:30!', time: 'Yesterday 3:15 PM' }] },
-  { id: 'bs', initials: 'BS', logoBg: 'bg-[#fef9c3]', logoColor: 'text-[#92400e]', name: 'Bright Smile Dental', online: true, time: 'Mon', unread: 0, preview: 'Do you have availability this Friday?', messages: [{ from: 'office', text: 'Hi Sarah, do you have availability this Friday? We had a last-minute opening.', time: 'Mon 9:30 AM' }] },
-  { id: 'hf', initials: 'HF', logoBg: 'bg-[#e8f5f0]', logoColor: 'text-[#1a7f5e]', name: 'Houston Family Dentistry', online: false, time: 'Mar 19', unread: 0, preview: 'You: Thank you for reaching out!', messages: [{ from: 'office', text: 'Hi Sarah, we wanted to reach out about our full-time Dental Hygienist position. Would you be open to a conversation?', time: 'Mar 19 11:00 AM' }, { from: 'me', text: 'Thank you for reaching out! I am currently open to permanent positions.', time: 'Mar 19 11:42 AM' }, { from: 'office', text: 'Absolutely! We will send over the full job description shortly.', time: 'Mar 19 12:05 PM' }] },
-  { id: 'ps', initials: 'PS', logoBg: 'bg-[#f3f4f6]', logoColor: 'text-[#6b7280]', name: 'Pearland Smiles', online: false, time: 'Mar 14', unread: 0, preview: 'We have an opening on Mar 28.', messages: [{ from: 'office', text: 'We have an opening on Mar 28 if you are interested. $48/hr for an 8am to 5pm shift.', time: 'Mar 14 3:20 PM' }] },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function ProviderMessages() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
+  const [conversations, setConversations] = useState([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeId, setActiveId] = useState(null)
   const [extraMessages, setExtraMessages] = useState({})
   const [input, setInput] = useState('')
 
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/messages/conversations`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) setConversations(await res.json())
+      } catch {}
+      setLoading(false)
+    }
+    fetchConversations()
+  }, [getToken])
+
   const filtered = conversations.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
   const activeConv = conversations.find(c => c.id === activeId)
   const activeMessages = activeConv ? [...activeConv.messages, ...(extraMessages[activeId] || [])] : []
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim() || !activeId) return
     const now = new Date()
     const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    setExtraMessages(prev => ({ ...prev, [activeId]: [...(prev[activeId] || []), { from: 'me', text: input.trim(), time }] }))
+    const text = input.trim()
+    setExtraMessages(prev => ({ ...prev, [activeId]: [...(prev[activeId] || []), { from: 'me', text, time }] }))
     setInput('')
+    try {
+      const token = await getToken()
+      const activeConv = conversations.find(c => c.id === activeId)
+      if (activeConv?.officeId && activeConv?.providerId) {
+        await fetch(`${API_URL}/api/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ officeId: activeConv.officeId, providerId: activeConv.providerId, body: text, fromRole: 'PROVIDER' }),
+        })
+      }
+    } catch {}
   }
 
   const hasConvos = filtered.length > 0
@@ -35,8 +59,8 @@ export default function ProviderMessages() {
   const NoConversations = () => (
     <div className="flex-1 flex items-center justify-center bg-[#f9f8f6]">
       <div className="text-center px-8">
-        <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div className="w-16 h-16 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">No messages yet</p>
         <p className="text-[14px] text-[#9ca3af] leading-relaxed max-w-[240px] mx-auto">When offices reach out to you your conversations will appear here.</p>
@@ -75,13 +99,25 @@ export default function ProviderMessages() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {!hasConvos ? (
+              {loading ? (
+                <div className="flex flex-col gap-0">
+                  {[0, 1, 2].map(i => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-[#f3f4f6] animate-pulse">
+                      <div className="w-10 h-10 rounded-[11px] bg-[#e5e7eb] flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="h-3 bg-[#e5e7eb] rounded w-3/4 mb-2" />
+                        <div className="h-2.5 bg-[#f3f4f6] rounded w-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : !hasConvos ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                  <div className="w-10 h-10 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-3">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mb-3">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  <p className="text-[13px] font-bold text-[#1a1a1a] mb-1">No messages</p>
-                  <p className="text-[12px] text-[#9ca3af]">Your conversations will appear here.</p>
+                  <p className="text-[14px] font-bold text-[#1a1a1a] mb-1">No messages yet</p>
+                  <p className="text-[12px] text-[#9ca3af] max-w-[200px]">When offices reach out, your conversations will appear here.</p>
                 </div>
               ) : (
                 filtered.map(conv => (
@@ -153,7 +189,7 @@ export default function ProviderMessages() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
         {[
           { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
-          { label: 'Requests', path: '/provider-requests', icon: <ReqIcon />, badge: 2 },
+          { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
           { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, active: true },
           { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },

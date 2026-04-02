@@ -1,55 +1,159 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
+import InitialsAvatar from '../components/InitialsAvatar'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function Messages() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const [activeConvo, setActiveConvo] = useState(null)
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState({
-    aisha: [
-      { id: 1, sent: false, text: 'Hi! I just wanted to confirm I\'ll be there Monday at 8am. Should I bring anything specific?', time: '8:00 AM' },
-      { id: 2, sent: true, text: 'Hi Aisha, we have an opening for a dental hygienist on March 17th. Are you available?', time: '8:15 AM' },
-      { id: 3, sent: false, text: 'I have experience with Eaglesoft and can arrive early if needed. What time would you need me?', time: '8:30 AM' },
-    ],
-    sarah: [
-      { id: 1, sent: true, text: 'Hi Sarah, looking forward to seeing you on the 17th!', time: 'Yesterday' },
-      { id: 2, sent: false, text: 'Looking forward to it!', time: 'Yesterday' },
-    ],
-    marcus: [
-      { id: 1, sent: false, text: 'What time should I arrive?', time: 'Mon' },
-      { id: 2, sent: true, text: 'Please arrive by 7:45am so we can get you set up.', time: 'Mon' },
-    ],
-    nina: [
-      { id: 1, sent: false, text: 'Thank you for the invite!', time: 'Sun' },
-    ],
-    devon: [
-      { id: 1, sent: true, text: 'We\'ll see you on the 10th!', time: 'Sat' },
-      { id: 2, sent: false, text: 'Sounds good, see you then.', time: 'Sat' },
-    ],
-  })
+  const [conversations, setConversations] = useState([])
+  const [threadMessages, setThreadMessages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [threadLoading, setThreadLoading] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [toast, setToast] = useState(null)
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
-  const convos = [
-    { id: 'aisha', name: 'Aisha L.', role: 'Dental Hygienist', lastMsg: 'I have experience with Eaglesoft...', time: '8:30 AM', unread: true, bg: '#b0bec5' },
-    { id: 'sarah', name: 'Sarah R.', role: 'Dental Hygienist', lastMsg: 'Looking forward to it!', time: 'Yesterday', unread: false, bg: '#c8e6c9' },
-    { id: 'marcus', name: 'Marcus J.', role: 'Dental Assistant', lastMsg: 'What time should I arrive?', time: 'Mon', unread: false, bg: '#d7ccc8' },
-    { id: 'nina', name: 'Nina P.', role: 'Dental Hygienist', lastMsg: 'Thank you for the invite!', time: 'Sun', unread: false, bg: '#e1bee7' },
-    { id: 'devon', name: 'Devon K.', role: 'Dental Assistant', lastMsg: 'Sounds good, see you then.', time: 'Sat', unread: false, bg: '#546e7a' },
-  ]
+  // Fetch conversations list
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/messages/conversations`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch conversations')
+        const data = await res.json()
 
-  const active = convos.find(c => c.id === activeConvo)
-  const activeMessages = activeConvo ? messages[activeConvo] : []
-  const lastSentMsg = activeMessages ? [...activeMessages].reverse().find(m => m.sent) : null
+        // Transform API data into conversation list
+        const convos = data.map(msg => {
+          // Determine the "other" party in the conversation
+          const otherUser = msg.fromRole === 'OFFICE'
+            ? msg.provider?.user
+            : msg.office?.user
+          const name = otherUser
+            ? `${otherUser.firstName || ''} ${otherUser.lastName ? otherUser.lastName.charAt(0) + '.' : ''}`.trim()
+            : 'Unknown'
+          const role = msg.provider?.role || 'Professional'
 
-  const handleSend = () => {
-    if (!message.trim()) return
-    const newMsg = { id: Date.now(), sent: true, text: message.trim(), time: 'Just now' }
-    setMessages(prev => ({ ...prev, [activeConvo]: [...prev[activeConvo], newMsg] }))
+          return {
+            id: `${msg.officeId}-${msg.providerId}`,
+            officeId: msg.officeId,
+            providerId: msg.providerId,
+            name,
+            role,
+            lastMsg: msg.body,
+            time: formatTime(msg.createdAt),
+            unread: !msg.read && msg.fromRole !== 'OFFICE',
+          }
+        })
+        setConversations(convos)
+      } catch (err) {
+        console.error('Error fetching conversations:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchConversations()
+  }, [getToken])
+
+  // Fetch thread messages when a conversation is selected
+  useEffect(() => {
+    if (!activeConvo) { setThreadMessages([]); return }
+    const convo = conversations.find(c => c.id === activeConvo)
+    if (!convo) return
+
+    const fetchThread = async () => {
+      setThreadLoading(true)
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/messages/${convo.officeId}/${convo.providerId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch messages')
+        const data = await res.json()
+
+        const msgs = data.map(m => ({
+          id: m.id,
+          sent: m.fromRole === 'OFFICE',
+          text: m.body,
+          time: formatTime(m.createdAt),
+          read: m.read,
+        }))
+        setThreadMessages(msgs)
+
+        // Mark messages as read
+        await fetch(`${API_URL}/api/messages/read-all/${convo.officeId}/${convo.providerId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      } catch (err) {
+        console.error('Error fetching thread:', err)
+      } finally {
+        setThreadLoading(false)
+      }
+    }
+    fetchThread()
+  }, [activeConvo, conversations, getToken])
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now - date
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    } else if (diffDays === 1) {
+      return 'Yesterday'
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'short' })
+    }
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  const active = conversations.find(c => c.id === activeConvo)
+  const lastSentMsg = threadMessages.length > 0
+    ? [...threadMessages].reverse().find(m => m.sent)
+    : null
+
+  const handleSend = async () => {
+    if (!message.trim() || !active) return
+    const newMsg = { id: Date.now().toString(), sent: true, text: message.trim(), time: 'Just now' }
+    setThreadMessages(prev => [...prev, newMsg])
+    const msgText = message.trim()
     setMessage('')
+
+    try {
+      const token = await getToken()
+      await fetch(`${API_URL}/api/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          officeId: active.officeId,
+          providerId: active.providerId,
+          body: msgText,
+        }),
+      })
+
+      // Update last message in conversation list
+      setConversations(prev => prev.map(c =>
+        c.id === activeConvo ? { ...c, lastMsg: msgText, time: 'Just now' } : c
+      ))
+    } catch (err) {
+      console.error('Error sending message:', err)
+      showToast('Failed to send message')
+    }
   }
 
   const handleKeyDown = (e) => {
@@ -64,7 +168,7 @@ export default function Messages() {
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">No messages yet</p>
-        <p className="text-[14px] text-[#9ca3af] leading-relaxed mb-6 max-w-[240px] mx-auto">When you connect with professionals your conversations will appear here.</p>
+        <p className="text-[14px] text-[#9ca3af] leading-relaxed mb-6 max-w-[240px] mx-auto">Start a conversation with a professional.</p>
         <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">
           Browse professionals
         </button>
@@ -85,7 +189,21 @@ export default function Messages() {
     </div>
   )
 
-  const hasConvos = convos.length > 0
+  const hasConvos = conversations.length > 0
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
+        <Nav />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p className="text-sm text-[#9ca3af]">Loading messages...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
@@ -118,9 +236,9 @@ export default function Messages() {
                   <p className="text-[12px] text-[#9ca3af]">Your conversations will appear here.</p>
                 </div>
               ) : (
-                convos.map(convo => (
+                conversations.map(convo => (
                   <div key={convo.id} onClick={() => setActiveConvo(convo.id)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#e5e7eb] transition ${activeConvo === convo.id ? 'bg-[#e8f5f0]' : 'hover:bg-[#f9f8f6]'}`}>
-                    <div className="w-10 h-10 rounded-full flex-shrink-0" style={{ background: convo.bg }}></div>
+                    <InitialsAvatar name={convo.name} size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-bold text-[#1a1a1a]">{convo.name}</p>
@@ -145,7 +263,8 @@ export default function Messages() {
               {/* Convo header */}
               <div className="bg-white border-b border-[#e5e7eb] px-5 h-16 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full relative flex-shrink-0" style={{ background: active.bg }}>
+                  <div className="relative">
+                    <InitialsAvatar name={active.name} size={40} />
                     <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#1a7f5e] border-2 border-white"></div>
                   </div>
                   <div>
@@ -182,49 +301,50 @@ export default function Messages() {
                 </div>
               </div>
 
-              {/* Shift banner */}
-              <div className="bg-[#e8f5f0] border-b border-[#c6e6d9] px-5 py-2.5 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-2">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  <p className="text-sm font-semibold text-[#1a7f5e]">Shift: Mon Mar 17 · Dental Hygienist · 8:00am – 5:00pm</p>
-                </div>
-                <span className="text-xs font-bold bg-[#1a7f5e] text-white px-3 py-1 rounded-full">Confirmed</span>
-              </div>
-
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3">
-                {activeMessages.map((msg, index) => {
-                  const isLastSent = msg.sent && msg.id === lastSentMsg?.id
-                  const isLastOverall = index === activeMessages.length - 1
-                  return (
-                    <div key={msg.id} className={`flex items-end gap-2 ${msg.sent ? 'flex-row-reverse' : ''}`}>
-                      {!msg.sent && <div className="w-7 h-7 rounded-full flex-shrink-0" style={{ background: active.bg }}></div>}
-                      <div className="max-w-[65%]">
-                        <div className={`rounded-2xl px-4 py-2.5 ${msg.sent ? 'bg-[#1a7f5e] rounded-br-sm' : 'bg-white border border-[#e5e7eb] rounded-bl-sm'}`}>
-                          <p className={`text-sm ${msg.sent ? 'text-white' : 'text-[#1a1a1a]'}`}>{msg.text}</p>
-                        </div>
-                        <div className={`flex items-center gap-1 mt-1 ${msg.sent ? 'justify-end mr-1' : 'ml-1'}`}>
-                          <p className="text-xs text-[#9ca3af]">{msg.time}</p>
-                          {msg.sent && isLastSent && isLastOverall && (
-                            <span className="text-xs text-[#1a7f5e] font-semibold flex items-center gap-0.5">
+                {threadLoading ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : threadMessages.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center">
+                    <p className="text-sm text-[#9ca3af]">No messages yet. Say hello!</p>
+                  </div>
+                ) : (
+                  threadMessages.map((msg, index) => {
+                    const isLastSent = msg.sent && msg.id === lastSentMsg?.id
+                    const isLastOverall = index === threadMessages.length - 1
+                    return (
+                      <div key={msg.id} className={`flex items-end gap-2 ${msg.sent ? 'flex-row-reverse' : ''}`}>
+                        {!msg.sent && <InitialsAvatar name={active.name} size={28} />}
+                        <div className="max-w-[65%]">
+                          <div className={`rounded-2xl px-4 py-2.5 ${msg.sent ? 'bg-[#1a7f5e] rounded-br-sm' : 'bg-white border border-[#e5e7eb] rounded-bl-sm'}`}>
+                            <p className={`text-sm ${msg.sent ? 'text-white' : 'text-[#1a1a1a]'}`}>{msg.text}</p>
+                          </div>
+                          <div className={`flex items-center gap-1 mt-1 ${msg.sent ? 'justify-end mr-1' : 'ml-1'}`}>
+                            <p className="text-xs text-[#9ca3af]">{msg.time}</p>
+                            {msg.sent && isLastSent && isLastOverall && msg.read && (
+                              <span className="text-xs text-[#1a7f5e] font-semibold flex items-center gap-0.5">
+                                <svg width="16" height="10" viewBox="0 0 18 10" fill="none">
+                                  <path d="M1 5l3.5 3.5L11 1" stroke="#1a7f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M6 5l3.5 3.5L16 1" stroke="#1a7f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                Read
+                              </span>
+                            )}
+                            {msg.sent && !(isLastSent && isLastOverall && msg.read) && (
                               <svg width="16" height="10" viewBox="0 0 18 10" fill="none">
-                                <path d="M1 5l3.5 3.5L11 1" stroke="#1a7f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M6 5l3.5 3.5L16 1" stroke="#1a7f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M1 5l3.5 3.5L11 1" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M6 5l3.5 3.5L16 1" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
-                              Read
-                            </span>
-                          )}
-                          {msg.sent && !(isLastSent && isLastOverall) && (
-                            <svg width="16" height="10" viewBox="0 0 18 10" fill="none">
-                              <path d="M1 5l3.5 3.5L11 1" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M6 5l3.5 3.5L16 1" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                )}
               </div>
 
               {/* Input */}

@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const DOC_TYPES = [
   { label: 'License', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
@@ -10,18 +13,40 @@ const DOC_TYPES = [
   { label: 'Resume / CV', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>, full: true },
 ]
 
-const CREDENTIALS = [
-  { id: 1, name: 'TX Dental Hygiene License', detail: 'TX-48291033 · Expires Dec 31, 2026', status: 'verified', warn: false },
-  { id: 2, name: 'CPR / BLS Certification', detail: 'Expires Apr 12, 2026 ⚠', status: 'expiring', warn: true },
-  { id: 3, name: 'Local Anesthesia Permit', detail: 'TX-LA-2024-8821 · Expires Jun 30, 2027', status: 'verified', warn: false },
-  { id: 4, name: 'X-Ray Certification', detail: 'TX-XR-2023-5512 · Expires Sep 15, 2026', status: 'verified', warn: false },
-]
-
 export default function ProviderDocuments() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const [modal, setModal] = useState(false)
   const [docType, setDocType] = useState('License')
   const [toast, setToast] = useState(null)
+  const [credentials, setCredentials] = useState([])
+  const [loading, setLoading] = useState(true)
+  const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    const fetchCredentials = async () => {
+      try {
+        const token = await getToken()
+        const profileRes = await fetch(`${API_URL}/api/providers/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!profileRes.ok) throw new Error('Failed to fetch profile')
+        const profile = await profileRes.json()
+
+        const credsRes = await fetch(`${API_URL}/api/providers/${profile.id}/credentials`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!credsRes.ok) throw new Error('Failed to fetch credentials')
+        const creds = await credsRes.json()
+        setCredentials(creds)
+      } catch (err) {
+        console.error('Error fetching credentials:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCredentials()
+  }, [getToken])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
@@ -32,6 +57,7 @@ export default function ProviderDocuments() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+      <input type="file" ref={fileInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) { setModal(false); showToast(`${e.target.files[0].name} selected — upload coming soon`) } }} />
       <ProviderNav />
 
       {/* Toast */}
@@ -71,7 +97,7 @@ export default function ProviderDocuments() {
 
             {/* Upload zone */}
             <div
-              onClick={() => showToast('File browser opened...')}
+              onClick={() => fileInputRef.current?.click()}
               className="border-2 border-dashed border-[#e5e7eb] rounded-[12px] py-4 text-center cursor-pointer hover:border-[#1a7f5e] transition mb-3"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" className="mx-auto mb-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -81,7 +107,7 @@ export default function ProviderDocuments() {
 
             <div className="flex gap-2">
               <button onClick={() => setModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={handleUpload} className="flex-[2] bg-[#1a7f5e] hover:bg-[#156649] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>Upload</button>
+              <button onClick={() => fileInputRef.current?.click()} className="flex-[2] bg-[#1a7f5e] hover:bg-[#156649] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>Upload</button>
             </div>
           </div>
         </div>
@@ -91,57 +117,49 @@ export default function ProviderDocuments() {
         <h1 className="text-[20px] font-black text-[#1a1a1a] mb-0.5">Documents</h1>
         <p className="text-[13px] text-[#9ca3af] mb-4">Your licenses, certifications, and credentials</p>
 
-        {/* Expiry alert */}
-        <div className="flex items-center justify-between gap-2.5 bg-[#fef9c3] border border-[#fde68a] rounded-[10px] px-3 py-2.5 mb-4">
-          <div className="flex items-center gap-2">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <div>
-              <div className="text-[12px] font-bold text-[#92400e]">CPR / BLS Certification expiring soon</div>
-              <div className="text-[11px] text-[#92400e] opacity-80">Expires Apr 12, 2026</div>
-            </div>
-          </div>
-          <button onClick={() => { setDocType('CPR / BLS'); setModal(true) }} className="text-[11px] font-bold text-[#92400e] border border-[#fbbf24] bg-white rounded-full px-2.5 py-1 cursor-pointer hover:bg-[#fde68a] transition" style={{ fontFamily: 'inherit' }}>Renew</button>
-        </div>
-
         {/* Credentials */}
         <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-2">Credentials</div>
 
-        {CREDENTIALS.map(c => (
-          <div key={c.id} className={`bg-white border rounded-[10px] px-3 py-2.5 mb-1.5 flex items-center gap-2.5 transition hover:border-[#1a7f5e] ${c.warn ? 'border-[#fde68a]' : 'border-[#e5e7eb]'}`}>
-            <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 ${c.warn ? 'bg-[#fef9c3]' : 'bg-[#e8f5f0]'}`}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.warn ? '#92400e' : '#1a7f5e'} strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[12px] font-bold text-[#1a1a1a] truncate">{c.name}</div>
-              <div className="text-[10px] text-[#9ca3af]">{c.detail}</div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.warn ? 'bg-[#fef9c3] text-[#92400e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>
-                {c.warn ? 'Expiring' : 'Verified'}
-              </span>
-              {c.warn
-                ? <button onClick={() => { setDocType('CPR / BLS'); setModal(true) }} className="text-[11px] font-bold text-[#92400e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Renew</button>
-                : <button onClick={() => showToast('Opening document...')} className="text-[11px] font-bold text-[#1a7f5e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>View</button>
-              }
-            </div>
+        {loading ? (
+          <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-8 text-center mb-4">
+            <p className="text-[13px] text-[#9ca3af]">Loading credentials...</p>
           </div>
-        ))}
+        ) : credentials.length === 0 ? (
+          <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-8 text-center mb-4">
+            <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <p className="text-[15px] font-bold text-[#1a1a1a] mb-1">No documents uploaded yet</p>
+            <p className="text-[13px] text-[#9ca3af] max-w-[260px] mx-auto">Upload your licenses, certifications, and credentials to get verified and start booking shifts.</p>
+          </div>
+        ) : (
+          credentials.map(c => (
+            <div key={c.id} className={`bg-white border rounded-[10px] px-3 py-2.5 mb-1.5 flex items-center gap-2.5 transition hover:border-[#1a7f5e] ${c.warn ? 'border-[#fde68a]' : 'border-[#e5e7eb]'}`}>
+              <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 ${c.warn ? 'bg-[#fef9c3]' : 'bg-[#e8f5f0]'}`}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.warn ? '#92400e' : '#1a7f5e'} strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-bold text-[#1a1a1a] truncate">{c.name}</div>
+                <div className="text-[10px] text-[#9ca3af]">{c.detail}</div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.warn ? 'bg-[#fef9c3] text-[#92400e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>
+                  {c.warn ? 'Expiring' : 'Verified'}
+                </span>
+                {c.warn
+                  ? <button onClick={() => { setDocType('CPR / BLS'); setModal(true) }} className="text-[11px] font-bold text-[#92400e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Renew</button>
+                  : <button onClick={() => showToast('Opening document...')} className="text-[11px] font-bold text-[#1a7f5e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>View</button>
+                }
+              </div>
+            </div>
+          ))
+        )}
 
         {/* Resume */}
         <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-2 mt-4">Resume</div>
 
-        <div className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-2.5 mb-1.5 flex items-center gap-2.5 hover:border-[#1a7f5e] transition">
-          <div className="w-8 h-8 rounded-[8px] bg-[#fee2e2] flex items-center justify-center flex-shrink-0">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[12px] font-bold text-[#1a1a1a] truncate">Sarah_Rodriguez_Resume.pdf</div>
-            <div className="text-[10px] text-[#9ca3af]">Updated March 2026 · 245 KB</div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => showToast('Opening resume...')} className="text-[11px] font-bold text-[#1a7f5e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>View</button>
-            <button onClick={() => { setDocType('Resume / CV'); setModal(true) }} className="text-[11px] font-bold text-[#6b7280] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Replace</button>
-          </div>
+        <div className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-3 mb-1.5 text-center">
+          <p className="text-[12px] text-[#9ca3af]">No resume uploaded yet</p>
         </div>
 
         {/* Add new */}
@@ -166,7 +184,7 @@ export default function ProviderDocuments() {
         <div className="flex">
           {[
             { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
-            { label: 'Requests', path: '/provider-requests', icon: <ReqIcon />, badge: 2 },
+            { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
             { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
             { label: 'Messages', path: '/provider-messages', icon: <MsgIcon /> },
             { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },

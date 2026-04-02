@@ -1,19 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 
-const FAVORITES = [
-  { id: 'ed', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e', name: 'Evolve Dentistry',         type: 'General Dentistry',   distance: '3.2 mi', stars: '4.9', reviews: 38, software: 'Eaglesoft',    lastWorked: 'Feb 12, 2026', shifts: 3 },
-  { id: 'cl', initials: 'CL', bg: '#ede9fe', color: '#5b21b6', name: 'Clear Lake Dental',         type: 'Family Dentistry',    distance: '9.4 mi', stars: '5.0', reviews: 51, software: 'Open Dental', lastWorked: 'Jan 8, 2026',  shifts: 1 },
-  { id: 'hf', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e', name: 'Houston Family Dentistry',  type: 'General Dentistry',   distance: '5.3 mi', stars: '4.8', reviews: 29, software: 'Eaglesoft',    lastWorked: 'Dec 3, 2025',  shifts: 2 },
-  { id: 'bs', initials: 'BS', bg: '#fef9c3', color: '#92400e', name: 'Bright Smile Dental',       type: 'Cosmetic & General',  distance: '6.8 mi', stars: '4.7', reviews: 22, software: 'Dentrix',      lastWorked: 'Nov 14, 2025', shifts: 1 },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function FavoriteOffices() {
   const navigate = useNavigate()
-  const [favs, setFavs] = useState(FAVORITES)
+  const { getToken } = useAuth()
+  const [favs, setFavs] = useState([])
+  const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
   const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const token = await getToken()
+        // First get the provider profile to get providerId
+        const meRes = await fetch(`${API_URL}/api/providers/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (meRes.ok) {
+          const profile = await meRes.json()
+          const res = await fetch(`${API_URL}/api/providers/${profile.id}/saved-offices`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          if (res.ok) setFavs(await res.json())
+        }
+      } catch {}
+      setLoading(false)
+    }
+    fetchFavorites()
+  }, [getToken])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
   const toggleExpand = (id) => setExpanded(prev => prev === id ? null : id)
@@ -35,16 +54,28 @@ export default function FavoriteOffices() {
 
       <div className="max-w-[520px] mx-auto px-3.5 py-5 pb-24">
         <h1 className="text-[20px] font-black text-[#1a1a1a] mb-0.5">Favorite Offices</h1>
-        <p className="text-[13px] text-[#9ca3af] mb-4">{favs.length} saved offices</p>
+        <p className="text-[13px] text-[#9ca3af] mb-4">{loading ? '...' : `${favs.length} saved office${favs.length !== 1 ? 's' : ''}`}</p>
 
-        {favs.length === 0 ? (
+        {loading ? (
+          <div className="space-y-1.5">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-2.5 flex items-center gap-2.5 animate-pulse">
+                <div className="w-[38px] h-[38px] rounded-[9px] bg-[#f3f4f6] flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="h-3.5 bg-[#f3f4f6] rounded w-3/4 mb-1.5" />
+                  <div className="h-2.5 bg-[#f3f4f6] rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : favs.length === 0 ? (
           <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-10 text-center">
-            <div className="w-12 h-12 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             </div>
-            <p className="text-[14px] font-bold text-[#1a1a1a] mb-1">No favorite offices yet</p>
-            <p className="text-[12px] text-[#9ca3af] mb-4">Save offices you love to quickly find and rebook.</p>
-            <button onClick={() => navigate('/provider-find-shifts')} className="bg-[#1a7f5e] text-white font-bold px-5 py-2 rounded-full text-[12px] hover:bg-[#156649] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Browse shifts</button>
+            <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No favorite offices yet</p>
+            <p className="text-[13px] text-[#9ca3af] mb-4 max-w-[260px] mx-auto">Save offices you love to quickly find and rebook them later.</p>
+            <button onClick={() => navigate('/provider-find-shifts')} className="bg-[#1a7f5e] text-white font-bold px-5 py-2.5 rounded-full text-[13px] hover:bg-[#156649] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Browse shifts</button>
           </div>
         ) : (
           favs.map(office => (

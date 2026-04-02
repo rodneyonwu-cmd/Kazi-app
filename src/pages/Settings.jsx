@@ -1,24 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useUser, useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function Settings() {
   const navigate = useNavigate()
+  const { user } = useUser()
+  const { getToken } = useAuth()
   const [activeSection, setActiveSection] = useState('office')
   const [toast, setToast] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [officeId, setOfficeId] = useState(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
 
   // Office Profile state
-  const [officeName, setOfficeName] = useState('Evolve Dentistry')
-  const [officePhone, setOfficePhone] = useState('832-440-1144')
-  const [officeAddress, setOfficeAddress] = useState('123 Dental Way')
-  const [officeCity, setOfficeCity] = useState('Missouri City')
-  const [officeState, setOfficeState] = useState('TX')
-  const [officeZip, setOfficeZip] = useState('77459')
-  const [officeWebsite, setOfficeWebsite] = useState('www.evolvedentistry.com')
+  const [officeName, setOfficeName] = useState('')
+  const [officePhone, setOfficePhone] = useState('')
+  const [officeAddress, setOfficeAddress] = useState('')
+  const [officeCity, setOfficeCity] = useState('')
+  const [officeState, setOfficeState] = useState('')
+  const [officeZip, setOfficeZip] = useState('')
+  const [officeWebsite, setOfficeWebsite] = useState('')
   const [officeSpecialty, setOfficeSpecialty] = useState('General Dentistry')
-  const [officeBio, setOfficeBio] = useState('A modern, patient-focused dental practice serving the Missouri City and Houston area. We pride ourselves on clinical excellence and a warm, welcoming environment.')
+  const [officeBio, setOfficeBio] = useState('')
 
   // Notifications state
   const [notifBookings, setNotifBookings] = useState(true)
@@ -30,20 +37,8 @@ export default function Settings() {
   const [notifSMS, setNotifSMS] = useState(true)
   const [notifEmail, setNotifEmail] = useState(true)
 
-  // Account state
-  const [currentEmail] = useState('rodney@evolvedentistry.com')
-  const [newEmail, setNewEmail] = useState('')
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-
   // Team members state
-  const [teamMembers] = useState([
-    { id: 1, name: 'Rodney O.', role: 'Owner / Lead Dentist', email: 'rodney@evolvedentistry.com', access: 'Admin', avatar: 'RO' },
-    { id: 2, name: 'Tyree A.', role: 'Dental Assistant', email: 'tyree@evolvedentistry.com', access: 'Staff', avatar: 'TA' },
-    { id: 3, name: 'Dee M.', role: 'Dental Assistant', email: 'dee@evolvedentistry.com', access: 'Staff', avatar: 'DM' },
-    { id: 4, name: 'Lu P.', role: 'Dental Assistant', email: 'lu@evolvedentistry.com', access: 'Staff', avatar: 'LP' },
-  ])
+  const [teamMembers] = useState([])
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('Staff')
@@ -56,17 +51,75 @@ export default function Settings() {
   const [newCardName, setNewCardName] = useState('')
   const [invoiceFilter, setInvoiceFilter] = useState('All')
 
-  const invoices = [
-    { date: 'Mar 17, 2026', desc: 'Platform fee · Mar 17 shift', sub: 'Dental Hygienist · Sarah R.', amount: '$70.20', status: 'Paid', statusStyle: 'bg-[#e8f5f0] text-[#1a7f5e]' },
-    { date: 'Mar 10, 2026', desc: 'Platform fee · Mar 10 shift', sub: 'Dental Assistant · Devon K.', amount: '$57.30', status: 'Paid', statusStyle: 'bg-[#e8f5f0] text-[#1a7f5e]' },
-    { date: 'Mar 5, 2026', desc: 'Platform fee · Mar 5 shift', sub: 'Dental Hygienist · Nina P.', amount: '$0.00', status: 'Cancelled', statusStyle: 'bg-[#fef2f2] text-[#dc2626]' },
-    { date: 'Feb 28, 2026', desc: 'Platform fee · Feb 28 shift', sub: 'Dental Hygienist · Aisha L.', amount: '$82.50', status: 'Paid', statusStyle: 'bg-[#e8f5f0] text-[#1a7f5e]' },
-    { date: 'Feb 14, 2026', desc: 'Platform fee · Feb 14 shift', sub: 'Dental Assistant · Tara C.', amount: '$48.00', status: 'Paid', statusStyle: 'bg-[#e8f5f0] text-[#1a7f5e]' },
-  ]
+  const invoices = []
 
   const filteredInvoices = invoiceFilter === 'All' ? invoices : invoices.filter(i => i.date.startsWith(invoiceFilter))
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
+
+  const clerkEmail = user?.primaryEmailAddress?.emailAddress || ''
+
+  // Fetch office profile on mount
+  useEffect(() => {
+    const fetchOffice = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/offices/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setOfficeId(data.id)
+          setOfficeName(data.name || '')
+          setOfficePhone(data.phone || '')
+          setOfficeAddress(data.address || '')
+          setOfficeCity(data.city || '')
+          setOfficeState(data.state || '')
+          setOfficeZip(data.zip || '')
+          setOfficeWebsite(data.website || '')
+          setOfficeSpecialty(data.specialty || 'General Dentistry')
+          setOfficeBio(data.bio || '')
+        }
+      } catch (err) {
+        console.error('Failed to fetch office profile:', err)
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+    fetchOffice()
+  }, [getToken])
+
+  const handleSaveOffice = async () => {
+    if (!officeId) {
+      showToast('Office profile not found')
+      return
+    }
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/offices/${officeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          name: officeName,
+          phone: officePhone,
+          address: officeAddress,
+          city: officeCity,
+          state: officeState,
+          zip: officeZip,
+          website: officeWebsite,
+          specialty: officeSpecialty,
+          bio: officeBio,
+        }),
+      })
+      if (res.ok) {
+        showToast('Office profile saved!')
+      } else {
+        showToast('Failed to save office profile')
+      }
+    } catch (err) {
+      showToast('Failed to save office profile')
+    }
+  }
 
   const navItems = [
     { id: 'office', label: 'Office Profile', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -155,73 +208,79 @@ export default function Settings() {
           {/* MAIN CONTENT */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
 
-            {/* ── OFFICE PROFILE ── */}
+            {/* OFFICE PROFILE */}
             {activeSection === 'office' && (
               <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Office Profile</h2>
-                <div className="flex items-center gap-4 mb-5 pb-5 border-b border-[#e5e7eb]">
-                  <div className="w-16 h-16 rounded-2xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-extrabold text-xl">ED</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#1a1a1a] mb-1">Office Logo</p>
-                    <p className="text-xs text-[#6b7280] mb-2">PNG or JPG, max 2MB</p>
-                    <button className="text-xs font-bold text-[#1a7f5e] border border-[#1a7f5e] px-3 py-1.5 rounded-full hover:bg-[#e8f5f0] transition">Upload logo</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Office Name</label>
-                    <input value={officeName} onChange={e => setOfficeName(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Phone</label>
-                    <input value={officePhone} onChange={e => setOfficePhone(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Specialty</label>
-                    <select value={officeSpecialty} onChange={e => setOfficeSpecialty(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]">
-                      <option>General Dentistry</option>
-                      <option>Cosmetic Dentistry</option>
-                      <option>Orthodontics</option>
-                      <option>Periodontics</option>
-                      <option>Oral Surgery</option>
-                      <option>Pediatric Dentistry</option>
-                      <option>Endodontics</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Website</label>
-                    <input value={officeWebsite} onChange={e => setOfficeWebsite(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Street Address</label>
-                  <input value={officeAddress} onChange={e => setOfficeAddress(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">City</label>
-                    <input value={officeCity} onChange={e => setOfficeCity(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">State</label>
-                    <input value={officeState} onChange={e => setOfficeState(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">ZIP</label>
-                    <input value={officeZip} onChange={e => setOfficeZip(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                </div>
-                <div className="mb-5">
-                  <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Office Bio</label>
-                  <textarea value={officeBio} onChange={e => setOfficeBio(e.target.value)} rows={3} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a] resize-none" />
-                </div>
-                <button onClick={() => showToast('Office profile saved!')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Save changes</button>
+                {loadingProfile ? (
+                  <p className="text-sm text-[#9ca3af] py-8 text-center">Loading...</p>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4 mb-5 pb-5 border-b border-[#e5e7eb]">
+                      <div className="w-16 h-16 rounded-2xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-extrabold text-xl">{officeName ? officeName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-[#1a1a1a] mb-1">Office Logo</p>
+                        <p className="text-xs text-[#6b7280] mb-2">PNG or JPG, max 2MB</p>
+                        <button className="text-xs font-bold text-[#1a7f5e] border border-[#1a7f5e] px-3 py-1.5 rounded-full hover:bg-[#e8f5f0] transition">Upload logo</button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Office Name</label>
+                        <input value={officeName} onChange={e => setOfficeName(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Phone</label>
+                        <input value={officePhone} onChange={e => setOfficePhone(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Specialty</label>
+                        <select value={officeSpecialty} onChange={e => setOfficeSpecialty(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]">
+                          <option>General Dentistry</option>
+                          <option>Cosmetic Dentistry</option>
+                          <option>Orthodontics</option>
+                          <option>Periodontics</option>
+                          <option>Oral Surgery</option>
+                          <option>Pediatric Dentistry</option>
+                          <option>Endodontics</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Website</label>
+                        <input value={officeWebsite} onChange={e => setOfficeWebsite(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Street Address</label>
+                      <input value={officeAddress} onChange={e => setOfficeAddress(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">City</label>
+                        <input value={officeCity} onChange={e => setOfficeCity(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">State</label>
+                        <input value={officeState} onChange={e => setOfficeState(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">ZIP</label>
+                        <input value={officeZip} onChange={e => setOfficeZip(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
+                      </div>
+                    </div>
+                    <div className="mb-5">
+                      <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Office Bio</label>
+                      <textarea value={officeBio} onChange={e => setOfficeBio(e.target.value)} rows={3} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a] resize-none" />
+                    </div>
+                    <button onClick={handleSaveOffice} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Save changes</button>
+                  </>
+                )}
               </div>
             )}
 
-            {/* ── NOTIFICATIONS ── */}
+            {/* NOTIFICATIONS */}
             {activeSection === 'notifications' && (
               <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Notification Preferences</h2>
@@ -229,8 +288,8 @@ export default function Settings() {
                   <p className="text-xs font-extrabold text-[#9ca3af] uppercase tracking-widest mb-3">Delivery Channels</p>
                   <div className="flex flex-col gap-3">
                     {[
-                      { label: 'Email notifications', sub: 'Receive updates to rodney@evolvedentistry.com', val: notifEmail, set: setNotifEmail },
-                      { label: 'SMS notifications', sub: 'Receive text messages to 832-440-1144', val: notifSMS, set: setNotifSMS },
+                      { label: 'Email notifications', sub: `Receive updates to ${clerkEmail || 'your email'}`, val: notifEmail, set: setNotifEmail },
+                      { label: 'SMS notifications', sub: `Receive text messages to ${officePhone || 'your phone'}`, val: notifSMS, set: setNotifSMS },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center justify-between">
                         <div><p className="text-sm font-semibold text-[#1a1a1a]">{item.label}</p><p className="text-xs text-[#6b7280]">{item.sub}</p></div>
@@ -267,7 +326,7 @@ export default function Settings() {
               </div>
             )}
 
-            {/* ── TEAM MEMBERS ── */}
+            {/* TEAM MEMBERS */}
             {activeSection === 'team' && (
               <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
@@ -283,7 +342,7 @@ export default function Settings() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                       <div>
                         <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Email</label>
-                        <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="name@evolvedentistry.com" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#1a7f5e] bg-white" />
+                        <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="name@office.com" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#1a7f5e] bg-white" />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1">Access Level</label>
@@ -300,32 +359,42 @@ export default function Settings() {
                     </div>
                   </div>
                 )}
-                <div className="flex flex-col gap-3">
-                  {teamMembers.map(member => (
-                    <div key={member.id} className="flex items-center gap-3 p-3 border border-[#e5e7eb] rounded-2xl bg-[#f9f8f6]">
-                      <div className="w-10 h-10 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-extrabold">{member.avatar}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-[#1a1a1a]">{member.name}</p>
-                        <p className="text-xs text-[#6b7280]">{member.role} · {member.email}</p>
-                      </div>
-                      <span className={'text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ' + (member.access === 'Admin' ? 'bg-[#ede9fe] text-[#5b21b6]' : member.access === 'Manager' ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#f3f4f6] text-[#374151]')}>
-                        {member.access}
-                      </span>
-                      {member.access !== 'Admin' && (
-                        <button onClick={() => showToast(member.name + ' removed')} className="text-[#9ca3af] hover:text-red-400 transition text-xs ml-1">✕</button>
-                      )}
+                {teamMembers.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="w-14 h-14 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-3">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
-                  ))}
-                </div>
+                    <p className="text-[15px] font-extrabold text-[#1a1a1a] mb-1">No team members yet</p>
+                    <p className="text-[13px] text-[#9ca3af]">Invite team members to collaborate on shifts and messaging.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {teamMembers.map(member => (
+                      <div key={member.id} className="flex items-center gap-3 p-3 border border-[#e5e7eb] rounded-2xl bg-[#f9f8f6]">
+                        <div className="w-10 h-10 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-extrabold">{member.avatar}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#1a1a1a]">{member.name}</p>
+                          <p className="text-xs text-[#6b7280]">{member.role} · {member.email}</p>
+                        </div>
+                        <span className={'text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 ' + (member.access === 'Admin' ? 'bg-[#ede9fe] text-[#5b21b6]' : member.access === 'Manager' ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#f3f4f6] text-[#374151]')}>
+                          {member.access}
+                        </span>
+                        {member.access !== 'Admin' && (
+                          <button onClick={() => showToast(member.name + ' removed')} className="text-[#9ca3af] hover:text-red-400 transition text-xs ml-1">✕</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="mt-4 bg-[#f9f8f6] border border-[#e5e7eb] rounded-xl p-3">
                   <p className="text-xs text-[#6b7280]"><span className="font-bold text-[#1a1a1a]">Admin</span> — full access · <span className="font-bold text-[#1a1a1a]">Manager</span> — can book and message · <span className="font-bold text-[#1a1a1a]">Staff</span> — view only</p>
                 </div>
               </div>
             )}
 
-            {/* ── BILLING & PLAN ── */}
+            {/* BILLING & PLAN */}
             {activeSection === 'billing' && (
               <>
                 {/* Current plan hero */}
@@ -413,7 +482,7 @@ export default function Settings() {
                       <p className="text-xs font-extrabold text-[#9ca3af] uppercase tracking-widest mb-3">New Card</p>
                       <div className="mb-3">
                         <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Name on card</label>
-                        <input value={newCardName} onChange={e => setNewCardName(e.target.value)} placeholder="Rodney Onwu" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
+                        <input value={newCardName} onChange={e => setNewCardName(e.target.value)} placeholder="Your name" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
                       </div>
                       <div className="mb-3">
                         <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Card number</label>
@@ -480,44 +549,27 @@ export default function Settings() {
               </>
             )}
 
-            {/* ── EMAIL & PASSWORD ── */}
+            {/* EMAIL & PASSWORD */}
             {activeSection === 'account' && (
               <>
                 <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
                   <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Email Address</h2>
                   <div className="mb-4">
                     <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Current Email</label>
-                    <input value={currentEmail} disabled className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm bg-[#f9f8f6] text-[#6b7280] outline-none" />
+                    <input value={clerkEmail} disabled className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm bg-[#f9f8f6] text-[#6b7280] outline-none" />
                   </div>
-                  <div className="mb-5">
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">New Email</label>
-                    <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Enter new email address" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
-                  </div>
-                  <button onClick={() => { if (newEmail) { showToast('Email updated!'); setNewEmail('') } else showToast('Please enter a new email') }} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Update email</button>
+                  <p className="text-xs text-[#6b7280] mb-3">Email changes are managed through your Clerk account.</p>
+                  <button onClick={() => showToast('Email and password are managed through Clerk')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Manage account</button>
                 </div>
                 <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
                   <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Change Password</h2>
-                  <div className="mb-3">
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Current Password</label>
-                    <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder="Enter current password" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
-                  </div>
-                  <div className="mb-3">
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">New Password</label>
-                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 8 characters" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
-                  </div>
-                  <div className="mb-5">
-                    <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Confirm New Password</label>
-                    <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat new password" className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
-                  </div>
-                  {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                    <p className="text-xs text-red-500 font-semibold mb-3">Passwords do not match</p>
-                  )}
-                  <button onClick={() => { if (!currentPassword) { showToast('Please enter your current password'); return } if (newPassword !== confirmPassword) { showToast('Passwords do not match'); return } if (newPassword.length < 8) { showToast('Password must be at least 8 characters'); return } showToast('Password updated!'); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Update password</button>
+                  <p className="text-sm text-[#6b7280] leading-relaxed mb-4">Password management is handled through Clerk. Click the button below to update your password securely.</p>
+                  <button onClick={() => showToast('Password changes are managed through Clerk')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Manage password</button>
                 </div>
               </>
             )}
 
-            {/* ── DELETE ACCOUNT ── */}
+            {/* DELETE ACCOUNT */}
             {activeSection === 'danger' && (
               <div className="bg-white border border-red-200 rounded-2xl p-5">
                 <h2 className="text-sm font-extrabold text-red-500 mb-2">Delete Account</h2>

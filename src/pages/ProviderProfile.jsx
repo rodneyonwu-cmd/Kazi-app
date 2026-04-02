@@ -1,17 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useUser, useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import InitialsAvatar from '../components/InitialsAvatar'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
-const bookedDays = [10, 14, 17, 20, 25, 28]
-const availDays  = [2,3,4,6,9,11,13,16,18,19,23,24,26,27,30]
-
-const allReviews = [
-  { id:1, office:'Evolve Dentistry', initials:'ED', logoBg:'#e8f5f0', logoColor:'#1a7f5e', date:'Feb 12, 2026', stars:5, text:'Sarah was absolutely phenomenal. She arrived early, was incredibly professional with patients, and her clinical skills are top-notch. Will definitely request her again!', tags:['Professional','On-time','Great communication','Skilled'] },
-  { id:2, office:'Clear Lake Dental', initials:'CL', logoBg:'#ede9fe', logoColor:'#5b21b6', date:'Jan 8, 2026', stars:5, text:'One of the best hygienists we have had through Kazi. Excellent with patients and very thorough. Our team loved working with her.', tags:['Skilled','Professional','Great communication'] },
-  { id:3, office:'Houston Family Dentistry', initials:'HF', logoBg:'#e8f5f0', logoColor:'#1a7f5e', date:'Dec 3, 2025', stars:5, text:'Sarah is reliable, skilled, and a pleasure to work with. She adapted quickly to our workflow and our patients adored her.', tags:['Professional','On-time','Great communication'] },
-  { id:4, office:'Bright Smile Dental', initials:'BS', logoBg:'#fef9c3', logoColor:'#92400e', date:'Nov 14, 2025', stars:4, text:'Great hygienist, very professional and thorough. Would book again without hesitation.', tags:['Professional','Skilled'] },
-]
 
 const CheckIcon = () => (
   <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
@@ -21,6 +16,8 @@ export default function ProviderProfile() {
   const navigate = useNavigate()
   const location = useLocation()
   const readOnly = location.state?.readOnly === true
+  const { user } = useUser()
+  const { getToken } = useAuth()
 
   const today = new Date()
   const [monthIdx, setMonthIdx] = useState(today.getMonth())
@@ -30,10 +27,99 @@ export default function ProviderProfile() {
   const [editingRate, setEditingRate] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [toast, setToast] = useState(null)
-  const [about, setAbout] = useState('Experienced RDH with 12 years in general and perio practices. Highly proficient in full-mouth debridement, periodontal charting, and advanced scaling procedures. Known for her gentle touch with anxious patients and her ability to run a full column independently.')
-  const [rate, setRate] = useState('52')
+
+  const [profile, setProfile] = useState(null)
+  const [reviews, setReviews] = useState([])
+  const [credentials, setCreds] = useState([])
+  const [availability, setAvailability] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const [about, setAbout] = useState('')
+  const [rate, setRate] = useState('')
+  const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const token = await getToken()
+        const headers = { Authorization: `Bearer ${token}` }
+
+        // Fetch profile first to get provider ID
+        const profileRes = await fetch(`${API_URL}/api/providers/me`, { headers })
+        const profileData = await profileRes.json()
+        setProfile(profileData)
+        setAbout(profileData?.bio || '')
+        setRate(profileData?.hourlyRate ? String(profileData.hourlyRate) : '')
+
+        // Fetch reviews, credentials, availability in parallel
+        const providerId = profileData?.id
+        if (providerId) {
+          const [revRes, credRes, availRes] = await Promise.all([
+            fetch(`${API_URL}/api/reviews?providerId=${providerId}`, { headers }),
+            fetch(`${API_URL}/api/providers/${providerId}/credentials`, { headers }),
+            fetch(`${API_URL}/api/providers/${providerId}/availability`, { headers }),
+          ])
+          const [revData, credData, availData] = await Promise.all([
+            revRes.json(),
+            credRes.json(),
+            availRes.json(),
+          ])
+          setReviews(Array.isArray(revData) ? revData : [])
+          setCreds(Array.isArray(credData) ? credData : [])
+          setAvailability(Array.isArray(availData) ? availData : [])
+        }
+      } catch (err) {
+        console.error('Failed to load profile data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [getToken])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
+
+  const saveProfile = async () => {
+    if (!profile?.id) return
+    try {
+      const token = await getToken()
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      await fetch(`${API_URL}/api/providers/${profile.id}`, {
+        method: 'PATCH', headers,
+        body: JSON.stringify({ bio: about, hourlyRate: rate ? parseFloat(rate) : null }),
+      })
+      setShowEditModal(false)
+      showToast('Profile updated!')
+    } catch { showToast('Failed to update profile') }
+  }
+
+  const saveRate = async () => {
+    if (!profile?.id || !rate) return
+    try {
+      const token = await getToken()
+      await fetch(`${API_URL}/api/providers/${profile.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ hourlyRate: parseFloat(rate) }),
+      })
+      setEditingRate(false)
+      showToast('Rate updated!')
+    } catch { showToast('Failed to update rate') }
+  }
+
+  const saveAbout = async () => {
+    if (!profile?.id) return
+    try {
+      const token = await getToken()
+      await fetch(`${API_URL}/api/providers/${profile.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ bio: about }),
+      })
+      setEditingAbout(false)
+      showToast('About updated!')
+    } catch { showToast('Failed to update about') }
+  }
 
   const changeMonth = (delta) => {
     let m = monthIdx + delta, y = year
@@ -49,7 +135,58 @@ export default function ProviderProfile() {
   const total       = firstDay + daysInMonth
   const trailing    = total % 7 === 0 ? 0 : 7 - (total % 7)
 
-  const avgRating = (allReviews.reduce((s, r) => s + r.stars, 0) / allReviews.length).toFixed(1)
+  // Derive display values from profile
+  const firstName   = profile?.firstName || user?.firstName || ''
+  const lastName    = profile?.lastName || user?.lastName || ''
+  const displayName = firstName ? `${firstName} ${lastName ? lastName.charAt(0) + '.' : ''}`.trim() : ''
+  const roleName    = profile?.role || ''
+  const locationStr = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : ''
+  const softwareList = profile?.software || []
+  const skillsList   = profile?.skills || []
+  const completedShifts = profile?.stats?.completedShifts || 0
+
+  // Compute availability days for the calendar
+  const bookedDays = []
+  const availDays  = []
+  availability.forEach(slot => {
+    const d = new Date(slot.date || slot.startTime)
+    if (d.getMonth() === monthIdx && d.getFullYear() === year) {
+      const day = d.getDate()
+      if (slot.status === 'booked') {
+        bookedDays.push(day)
+      } else {
+        availDays.push(day)
+      }
+    }
+  })
+
+  // Reviews
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + (r.stars || r.rating || 0), 0) / reviews.length).toFixed(1)
+    : '—'
+
+  const filteredReviews = reviews.filter(r =>
+    reviewTab === 'All' || (reviewTab === 'Positive' && (r.stars || r.rating) >= 4) || (reviewTab === 'Critical' && (r.stars || r.rating) < 4)
+  )
+
+  // Profile strength calculation
+  const hasPhoto       = !!(user?.imageUrl || profile?.avatarUrl)
+  const hasAbout       = !!(profile?.bio)
+  const hasRate        = !!(profile?.hourlyRate)
+  const hasCreds       = credentials.length > 0
+  const hasResume      = !!(profile?.resumeUrl)
+  const hasAvailability = availability.length > 0
+  const strengthItems  = [
+    ['Profile photo',       hasPhoto],
+    ['About section',       hasAbout],
+    ['Hourly rate',         hasRate],
+    ['Credentials uploaded', hasCreds],
+    ['Resume uploaded',     hasResume],
+    ['Availability set',    hasAvailability],
+  ]
+  const strengthCount = strengthItems.filter(([, done]) => done).length
+  const strengthPct   = Math.round((strengthCount / strengthItems.length) * 100)
+  const strengthTip   = !hasPhoto ? 'Add a profile photo' : !hasAbout ? 'Write an about section' : !hasRate ? 'Set your hourly rate' : !hasCreds ? 'Upload your credentials' : !hasResume ? 'Add a resume' : !hasAvailability ? 'Set your availability' : 'Looking great!'
 
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -59,9 +196,20 @@ export default function ProviderProfile() {
     sideCard: { background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: 16, marginBottom: 14 },
   }
 
-  const filteredReviews = allReviews.filter(r =>
-    reviewTab === 'All' || (reviewTab === 'Positive' && r.stars >= 4) || (reviewTab === 'Critical' && r.stars < 4)
-  )
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+        <ProviderNav />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 120 }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#1a7f5e', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 600 }}>Loading profile...</p>
+            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
@@ -84,13 +232,19 @@ export default function ProviderProfile() {
             </div>
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <img src="https://i.pravatar.cc/150?img=47" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #e5e7eb' }} />
+                <InitialsAvatar name={firstName} size={64} />
                 <button style={{ border: '1px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Change photo</button>
               </div>
-              {[['Full name','Sarah R.','text'],['Role','Dental Hygienist','text'],['City','Houston, TX','text'],['Hourly rate','52','number'],['Travel radius (miles)','25','number']].map(([label, placeholder, type]) => (
+              {[
+                ['Full name', displayName || '', 'text'],
+                ['Role', roleName || '', 'text'],
+                ['City', locationStr || '', 'text'],
+                ['Hourly rate', rate || '', 'number'],
+                ['Travel radius (miles)', '25', 'number'],
+              ].map(([label, placeholder, type]) => (
                 <div key={label}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{label}</p>
-                  <input type={type} placeholder={placeholder} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                  <input type={type} placeholder={placeholder} defaultValue={placeholder} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
               ))}
               <div>
@@ -99,7 +253,7 @@ export default function ProviderProfile() {
               </div>
               <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
                 <button onClick={() => setShowEditModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
-                <button onClick={() => { setShowEditModal(false); showToast('Profile updated!') }} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save changes</button>
+                <button onClick={saveProfile} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save changes</button>
               </div>
             </div>
           </div>
@@ -119,7 +273,7 @@ export default function ProviderProfile() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 100px' }}>
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
-          {/* ── MAIN COLUMN ── */}
+          {/* -- MAIN COLUMN -- */}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
             {/* HERO */}
@@ -136,33 +290,46 @@ export default function ProviderProfile() {
                   This is how offices see your profile
                 </div>
               )}
-              {/* Photo + Info row — matches screenshot exactly */}
+              {/* Photo + Info row */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-                <img src="https://i.pravatar.cc/150?img=47" style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                <InitialsAvatar name={firstName} size={84} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {/* Name */}
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2, marginBottom: 3 }}>Sarah R.</div>
-                  {/* Role · miles */}
-                  <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>Dental Hygienist · 8.2 mi away</div>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2, marginBottom: 3 }}>
+                    {displayName || 'Complete your profile'}
+                  </div>
+                  {/* Role + location */}
+                  <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>
+                    {roleName || 'Set your role'}{locationStr ? ` \u00b7 ${locationStr}` : ''}
+                  </div>
                   {/* Rate */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     {editingRate
                       ? <input type="number" value={rate} onChange={e => setRate(e.target.value)} style={{ width: 72, border: '1.5px solid #1a7f5e', borderRadius: 8, padding: '3px 8px', fontSize: 20, fontWeight: 900, color: '#1a7f5e', outline: 'none' }} />
-                      : <span style={{ fontSize: 22, fontWeight: 900, color: '#1a7f5e' }}>${rate}/hr</span>
+                      : <span style={{ fontSize: 22, fontWeight: 900, color: '#1a7f5e' }}>${profile?.hourlyRate || '\u2014'}/hr</span>
                     }
-                    {!readOnly && <button onClick={() => { if (editingRate) showToast('Rate updated!'); setEditingRate(!editingRate) }} style={{ fontSize: 12, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{editingRate ? 'Save' : 'Edit'}</button>}
+                    {!readOnly && <button onClick={() => { if (editingRate) { saveRate() } else { setEditingRate(true) } }} style={{ fontSize: 12, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{editingRate ? 'Save' : 'Edit'}</button>}
                   </div>
                   {/* Stars + badge */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>★ {avgRating}</span>
-                    <span style={{ fontSize: 13, color: '#6b7280' }}>({allReviews.length} reviews)</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100, background: '#dcfce7', color: '#166534' }}>Excellent · 98%</span>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>{'\u2605'} {profile?.stats?.rating || '\u2014'}</span>
+                    <span style={{ fontSize: 13, color: '#6b7280' }}>({reviews.length} reviews)</span>
+                    {completedShifts > 0 && (
+                      <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100, background: '#dcfce7', color: '#166534' }}>
+                        {(profile?.stats?.reliability || 0) >= 95 ? 'Excellent' : (profile?.stats?.reliability || 0) >= 80 ? 'Good' : 'Building'} {'\u00b7'} {Math.round(profile?.stats?.reliability || 0)}%
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               {/* 4 stat tiles */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
-                {[['SHIFTS','147','#1a1a1a'],['RESPONSE','<1 hr','#1a1a1a'],['RELIABILITY','98%','#166534'],['SCORE','94','#1a7f5e']].map(([label,val,color]) => (
+                {[
+                  ['SHIFTS', String(completedShifts), '#1a1a1a'],
+                  ['RESPONSE', '\u2014', '#1a1a1a'],
+                  ['RELIABILITY', completedShifts === 0 ? 'New' : Math.round(profile?.stats?.reliability || 0) + '%', completedShifts === 0 ? '#9ca3af' : '#166534'],
+                  ['SCORE', '\u2014', '#1a7f5e'],
+                ].map(([label,val,color]) => (
                   <div key={label} style={{ background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{label}</div>
                     <div style={{ fontSize: 16, fontWeight: 900, color }}>{val}</div>
@@ -175,11 +342,13 @@ export default function ProviderProfile() {
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>About</span>
-                {!readOnly && <button onClick={() => { if (editingAbout) showToast('About updated!'); setEditingAbout(!editingAbout) }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{editingAbout ? 'Save' : 'Edit'}</button>}
+                {!readOnly && <button onClick={() => { if (editingAbout) { saveAbout() } else { setEditingAbout(true) } }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{editingAbout ? 'Save' : 'Edit'}</button>}
               </div>
               {editingAbout
                 ? <textarea value={about} onChange={e => setAbout(e.target.value)} rows={5} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#374151', lineHeight: 1.7, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-                : <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{about}</div>
+                : about
+                  ? <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{about}</div>
+                  : <div style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, fontStyle: 'italic' }}>Tell offices about yourself {'\u2014'} your experience, specialties, and what makes you a great team member.</div>
               }
             </div>
 
@@ -187,12 +356,12 @@ export default function ProviderProfile() {
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Availability</span>
-                <button onClick={() => navigate('/provider-availability')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit hours →</button>
+                <button onClick={() => navigate('/provider-availability')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit hours {'\u2192'}</button>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>‹</button>
+                <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u2039'}</button>
                 <span style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>{months[monthIdx]} {year}</span>
-                <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>›</button>
+                <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u203a'}</button>
               </div>
               {/* Legend */}
               <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
@@ -231,131 +400,166 @@ export default function ProviderProfile() {
                   <div key={`t${i}`} style={{ textAlign: 'center', fontSize: 11, padding: '8px 2px', color: '#d1d5db' }}>{i + 1}</div>
                 ))}
               </div>
+              {availability.length === 0 && (
+                <p style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Set your availability to get booked by offices.</p>
+              )}
               <p style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>This calendar is visible to offices when they view your profile</p>
             </div>
 
             {/* RESUME */}
+            <input type="file" ref={fileInputRef} accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) showToast('Resume upload coming soon') }} />
             <div style={s.card}>
               <span style={s.sectionLabel}>Resume</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '12px 14px' }}>
-                <div style={{ width: 38, height: 38, background: '#e8f5f0', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              {profile?.resumeUrl ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ width: 38, height: 38, background: '#e8f5f0', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{firstName ? `${firstName}_Resume.pdf` : 'Resume.pdf'}</div>
+                    <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Uploaded</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {!readOnly && <button style={{ fontSize: 12, fontWeight: 700, color: '#374151', border: '1.5px solid #e5e7eb', padding: '6px 12px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Replace</button>}
+                    <button onClick={() => showToast('Resume downloaded!')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>Sarah_Resume.pdf</div>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Updated March 2026 · 245 KB</div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '16px 14px' }}>
+                  <span style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No resume uploaded yet</span>
+                  {!readOnly && (
+                    <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 12, fontWeight: 700, color: '#1a7f5e', border: '1.5px solid #1a7f5e', padding: '6px 14px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Upload resume</button>
+                  )}
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {!readOnly && <button style={{ fontSize: 12, fontWeight: 700, color: '#374151', border: '1.5px solid #e5e7eb', padding: '6px 12px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Replace</button>}
-                  <button onClick={() => showToast('Resume downloaded!')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* PRACTICE SOFTWARE */}
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Practice Software</span>
-                {!readOnly && <button style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
+                {!readOnly && <button onClick={() => showToast('Coming soon')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {['Eaglesoft','Dentrix','Open Dental'].map(s => (
-                  <span key={s} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{s}</span>
-                ))}
-              </div>
+              {softwareList.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {softwareList.map(sw => (
+                    <span key={sw} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{sw}</span>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No software added yet</div>
+              )}
             </div>
 
             {/* SKILLS */}
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Skills & Experience</span>
-                {!readOnly && <button style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
+                {!readOnly && <button onClick={() => showToast('Coming soon')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {['Scaling & Root Planing','Periodontal Charting','Digital X-rays','Patient Education','Nitrous Oxide Monitoring','Local Anesthesia Administration','Perio Maintenance','High-Volume Scheduling'].map(skill => (
-                  <span key={skill} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{skill}</span>
-                ))}
-              </div>
+              {skillsList.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {skillsList.map(skill => (
+                    <span key={skill} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{skill}</span>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No skills added yet</div>
+              )}
             </div>
 
             {/* CREDENTIALS */}
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Credentials</span>
-                {!readOnly && <button onClick={() => navigate('/provider-documents')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Manage →</button>}
+                {!readOnly && <button onClick={() => navigate('/provider-documents')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Manage {'\u2192'}</button>}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {[{label:'Texas RDH License',ok:true},{label:'CPR/BLS Certified',ok:false},{label:'Local Anesthesia Permit',ok:true},{label:'Nitrous Oxide Permit',ok:true}].map(c => (
-                  <span key={c.label} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: c.ok ? '#f3f4f6' : '#fef9c3', color: c.ok ? '#374151' : '#92400e' }}>
-                    {c.ok ? '✓' : '⚠'} {c.label}
-                  </span>
-                ))}
-              </div>
+              {credentials.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {credentials.map(c => (
+                    <span key={c.id || c.label || c.name} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: (c.verified || c.ok) ? '#f3f4f6' : '#fef9c3', color: (c.verified || c.ok) ? '#374151' : '#92400e' }}>
+                      {(c.verified || c.ok) ? '\u2713' : '\u26a0'} {c.label || c.name || c.type}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No credentials uploaded yet</div>
+              )}
             </div>
 
             {/* REVIEWS */}
             <div style={s.card}>
-              <span style={s.sectionLabel}>Reviews ({allReviews.length})</span>
-              {/* Rating summary */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, background: '#f9f8f6', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-                <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                  <div style={{ fontSize: 40, fontWeight: 900, color: '#1a1a1a', lineHeight: 1 }}>{avgRating}</div>
-                  <div style={{ color: '#F97316', fontSize: 13, margin: '4px 0' }}>★★★★★</div>
-                  <div style={{ fontSize: 11, color: '#9ca3af' }}>{allReviews.length} reviews</div>
-                </div>
-                <div style={{ flex: 1 }}>
-                  {[5,4,3,2,1].map(star => {
-                    const count = allReviews.filter(r => r.stars === star).length
-                    const pct = Math.round((count / allReviews.length) * 100)
-                    return (
-                      <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, color: '#9ca3af', width: 8 }}>{star}</span>
-                        <div style={{ flex: 1, height: 5, background: '#e5e7eb', borderRadius: 100, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: '#F97316', borderRadius: 100 }}/>
-                        </div>
-                        <span style={{ fontSize: 11, color: '#9ca3af', width: 28 }}>{pct}%</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              {/* Tabs */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                {['All','Positive','Critical'].map(t => (
-                  <button key={t} onClick={() => setReviewTab(t)} style={{ padding: '6px 16px', borderRadius: 100, fontSize: 12, fontWeight: 600, border: `1.5px solid ${reviewTab === t ? '#1a7f5e' : '#e5e7eb'}`, background: reviewTab === t ? '#1a7f5e' : 'white', color: reviewTab === t ? 'white' : '#6b7280', cursor: 'pointer', fontFamily: 'inherit' }}>{t}</button>
-                ))}
-              </div>
-              {/* Reviews list */}
-              {filteredReviews.map((r, i) => (
-                <div key={r.id} style={{ borderBottom: i < filteredReviews.length - 1 ? '1px solid #f3f4f6' : 'none', padding: '14px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: r.logoBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: r.logoColor, flexShrink: 0 }}>{r.initials}</div>
+              <span style={s.sectionLabel}>Reviews ({reviews.length})</span>
+              {reviews.length > 0 ? (
+                <>
+                  {/* Rating summary */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20, background: '#f9f8f6', borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                      <div style={{ fontSize: 40, fontWeight: 900, color: '#1a1a1a', lineHeight: 1 }}>{avgRating}</div>
+                      <div style={{ color: '#F97316', fontSize: 13, margin: '4px 0' }}>{'\u2605\u2605\u2605\u2605\u2605'}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{reviews.length} reviews</div>
+                    </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{r.office}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{r.date}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 1 }}>
-                      {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize: 13, color: s <= r.stars ? '#F97316' : '#e5e7eb' }}>★</span>)}
+                      {[5,4,3,2,1].map(star => {
+                        const count = reviews.filter(r => (r.stars || r.rating) === star).length
+                        const pct = Math.round((count / reviews.length) * 100)
+                        return (
+                          <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <span style={{ fontSize: 11, color: '#9ca3af', width: 8 }}>{star}</span>
+                            <div style={{ flex: 1, height: 5, background: '#e5e7eb', borderRadius: 100, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${pct}%`, background: '#F97316', borderRadius: 100 }}/>
+                            </div>
+                            <span style={{ fontSize: 11, color: '#9ca3af', width: 28 }}>{pct}%</span>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
-                  <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>{r.text}</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                    {r.tags.map(tag => <span key={tag} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: '#f9f8f6', border: '1px solid #e5e7eb', color: '#6b7280' }}>{tag}</span>)}
+                  {/* Tabs */}
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                    {['All','Positive','Critical'].map(t => (
+                      <button key={t} onClick={() => setReviewTab(t)} style={{ padding: '6px 16px', borderRadius: 100, fontSize: 12, fontWeight: 600, border: `1.5px solid ${reviewTab === t ? '#1a7f5e' : '#e5e7eb'}`, background: reviewTab === t ? '#1a7f5e' : 'white', color: reviewTab === t ? 'white' : '#6b7280', cursor: 'pointer', fontFamily: 'inherit' }}>{t}</button>
+                    ))}
                   </div>
+                  {/* Reviews list */}
+                  {filteredReviews.map((r, i) => (
+                    <div key={r.id || i} style={{ borderBottom: i < filteredReviews.length - 1 ? '1px solid #f3f4f6' : 'none', padding: '14px 0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: r.logoBg || '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: r.logoColor || '#1a7f5e', flexShrink: 0 }}>{r.initials || (r.office || r.officeName || '?').substring(0, 2).toUpperCase()}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{r.office || r.officeName || 'Office'}</div>
+                          <div style={{ fontSize: 11, color: '#9ca3af' }}>{r.date || ''}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 1 }}>
+                          {[1,2,3,4,5].map(sv => <span key={sv} style={{ fontSize: 13, color: sv <= (r.stars || r.rating) ? '#F97316' : '#e5e7eb' }}>{'\u2605'}</span>)}
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>{r.text || r.comment || ''}</p>
+                      {(r.tags || []).length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                          {r.tags.map(tag => <span key={tag} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: '#f9f8f6', border: '1px solid #e5e7eb', color: '#6b7280' }}>{tag}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                  <p style={{ fontSize: 14, color: '#9ca3af', fontStyle: 'italic' }}>No reviews yet {'\u2014'} complete shifts to earn your first review.</p>
                 </div>
-              ))}
+              )}
             </div>
 
           </div>
 
-          {/* ── RIGHT SIDEBAR ── */}
+          {/* -- RIGHT SIDEBAR -- */}
           {readOnly ? (
             <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
               <div style={s.sideCard}>
-                <button onClick={() => showToast('Invite sent to Sarah R.!')} style={{ width: '100%', background: 'white', border: '1.5px solid #1a7f5e', color: '#1a7f5e', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Send invite</button>
-                <button onClick={() => showToast('Booking Sarah...')} style={{ width: '100%', background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 800, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Book Sarah</button>
+                <button onClick={() => showToast(`Invite sent to ${displayName || 'provider'}!`)} style={{ width: '100%', background: 'white', border: '1.5px solid #1a7f5e', color: '#1a7f5e', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Send invite</button>
+                <button onClick={() => showToast(`Booking ${firstName || 'provider'}...`)} style={{ width: '100%', background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 800, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Book {firstName || 'Provider'}</button>
                 <button onClick={() => showToast('Opening messages...')} style={{ width: '100%', background: 'white', border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   Message
@@ -363,16 +567,20 @@ export default function ProviderProfile() {
               </div>
               <div style={s.sideCard}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Badges</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {[['#0f4d38','#f5c842','star'],['#e8f5f0','#0f4d38','shield'],['#e8f5f0','#0f4d38','bolt'],['#ede9fe','#5b21b6','pulse']].map(([bg,ic,type],i) => (
-                    <div key={i} style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                      {type==='star' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
-                      {type==='shield' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-                      {type==='bolt' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
-                      {type==='pulse' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
-                    </div>
-                  ))}
-                </div>
+                {completedShifts > 0 ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[['#0f4d38','#f5c842','star'],['#e8f5f0','#0f4d38','shield'],['#e8f5f0','#0f4d38','bolt'],['#ede9fe','#5b21b6','pulse']].map(([bg,ic,type],i) => (
+                      <div key={i} style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        {type==='star' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
+                        {type==='shield' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+                        {type==='bolt' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
+                        {type==='pulse' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Complete shifts to earn badges</div>
+                )}
               </div>
             </div>
           ) : (
@@ -395,13 +603,13 @@ export default function ProviderProfile() {
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Profile strength</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <div style={{ flex: 1, height: 8, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: '85%', background: '#1a7f5e', borderRadius: 100 }}/>
+                    <div style={{ height: '100%', width: `${strengthPct}%`, background: '#1a7f5e', borderRadius: 100 }}/>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: '#1a7f5e' }}>85%</span>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: '#1a7f5e' }}>{strengthPct}%</span>
                 </div>
-                <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 12 }}>Add a resume to reach 100%</p>
+                <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 12 }}>{strengthPct < 100 ? strengthTip + ' to improve' : 'Your profile is complete!'}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {[['Profile photo',true],['About section',true],['Hourly rate',true],['Credentials uploaded',true],['Resume uploaded',false],['Availability set',true]].map(([label,done]) => (
+                  {strengthItems.map(([label, done]) => (
                     <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                       <div style={{ width: 16, height: 16, borderRadius: '50%', background: done ? '#1a7f5e' : 'white', border: done ? 'none' : '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {done && <CheckIcon />}
@@ -415,40 +623,52 @@ export default function ProviderProfile() {
               {/* Badges */}
               <div style={s.sideCard}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Badges</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {[['#0f4d38','#f5c842','star'],['#e8f5f0','#0f4d38','shield'],['#e8f5f0','#0f4d38','bolt'],['#ede9fe','#5b21b6','pulse']].map(([bg,ic,type],i) => (
-                    <div key={i} style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                      {type==='star' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
-                      {type==='shield' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-                      {type==='bolt' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
-                      {type==='pulse' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
-                    </div>
-                  ))}
-                </div>
+                {completedShifts > 0 ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[['#0f4d38','#f5c842','star'],['#e8f5f0','#0f4d38','shield'],['#e8f5f0','#0f4d38','bolt'],['#ede9fe','#5b21b6','pulse']].map(([bg,ic,type],i) => (
+                      <div key={i} style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        {type==='star' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
+                        {type==='shield' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
+                        {type==='bolt' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
+                        {type==='pulse' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Complete shifts to earn badges</div>
+                )}
               </div>
 
               {/* Verifications */}
               <div style={s.sideCard}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Verifications</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {[['Texas RDH License','✓ Verified','#1a7f5e'],['CPR/BLS Certified','⚠ Expiring','#92400e'],['Local Anesthesia','✓ Verified','#1a7f5e'],['Nitrous Oxide Permit','✓ Verified','#1a7f5e']].map(([label,val,color],i,arr) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: i < arr.length-1 ? '1px solid #f3f4f6' : 'none' }}>
-                      <span style={{ fontSize: 12, color: '#6b7280' }}>{label}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color }}>{val}</span>
-                    </div>
-                  ))}
-                </div>
+                {credentials.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {credentials.map((c, i) => (
+                      <div key={c.id || i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: i < credentials.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>{c.label || c.name || c.type}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: (c.verified || c.ok) ? '#1a7f5e' : '#92400e' }}>
+                          {(c.verified || c.ok) ? '\u2713 Verified' : '\u26a0 Pending'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No verifications yet</div>
+                )}
               </div>
 
-              {/* Response time */}
-              <div style={s.sideCard}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Response time</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a7f5e' }}/>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>&lt; 2 hours</span>
+              {/* Response time - only show if provider has completed shifts */}
+              {completedShifts > 0 && (
+                <div style={s.sideCard}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Response time</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a7f5e' }}/>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>&lt; 2 hours</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#9ca3af' }}>Average response to invites</p>
                 </div>
-                <p style={{ fontSize: 11, color: '#9ca3af' }}>Average response to invites</p>
-              </div>
+              )}
 
             </div>
           )}
@@ -459,15 +679,14 @@ export default function ProviderProfile() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
         {[
           { label: 'Home',        path: '/provider-dashboard',   icon: <HomeIcon /> },
-          { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon />, badge: 2 },
+          { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
           { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon /> },
           { label: 'Earnings',    path: '/provider-earnings',    icon: <EarnIcon /> },
-        ].map(({ label, path, icon, badge }) => (
+        ].map(({ label, path, icon }) => (
           <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
             <div className="relative">
               <span className="text-[#9ca3af]">{icon}</span>
-              {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
             </div>
             <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
           </div>

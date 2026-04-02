@@ -200,7 +200,7 @@ export default function ProviderSchedule() {
                 <button className="text-[13px] font-semibold text-[#1a7f5e] hover:underline">Update</button>
               </div>
               <p className="text-[32px] font-black text-[#1a1a1a] mb-0.5">25 <span className="text-[16px] font-semibold text-[#9ca3af]">miles</span></p>
-              <p className="text-[13px] text-[#9ca3af] mb-3">From Houston, TX 77001</p>
+              <p className="text-[13px] text-[#9ca3af] mb-3">From your location</p>
               <div className="h-1.5 bg-[#f3f4f6] rounded-full overflow-hidden mb-1">
                 <div className="h-full w-1/2 bg-[#1a7f5e] rounded-full" />
               </div>
@@ -217,7 +217,7 @@ export default function ProviderSchedule() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
         {[
           { label: 'Home',        path: '/provider-dashboard',   icon: <HomeIcon /> },
-          { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon />, badge: 2 },
+          { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
           { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon /> },
           { label: 'Earnings',    path: '/provider-earnings',    icon: <EarnIcon /> },

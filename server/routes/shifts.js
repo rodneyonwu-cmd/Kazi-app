@@ -67,10 +67,27 @@ router.post('/', async (req, res) => {
       where: { clerkId: req.auth.userId },
       include: { office: true },
     });
-    if (!user?.office) return res.status(403).json({ error: 'Only offices can create shifts' });
 
+    // If user has an office but role isn't set, fix it
+    if (user?.office && user.role !== 'OFFICE') {
+      await prisma.user.update({ where: { id: user.id }, data: { role: 'OFFICE' } });
+    }
+
+    if (!user?.office) return res.status(403).json({ error: 'Only offices can create shifts. Please complete onboarding first.' });
+
+    const { role, date, startTime, endTime, hourlyRate, description, software, isRapidFill } = req.body;
     const shift = await prisma.shift.create({
-      data: { officeId: user.office.id, ...req.body },
+      data: {
+        officeId: user.office.id,
+        role: role || 'Dental Hygienist',
+        date: new Date(date),
+        startTime: startTime || '8:00 AM',
+        endTime: endTime || '5:00 PM',
+        hourlyRate: typeof hourlyRate === 'number' ? hourlyRate : parseFloat(hourlyRate) || 0,
+        description: description || null,
+        software: software || [],
+        isRapidFill: isRapidFill || false,
+      },
     });
     res.status(201).json(shift);
   } catch (err) {

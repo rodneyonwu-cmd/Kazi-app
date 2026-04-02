@@ -1,100 +1,75 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 
-const TEMP_SHIFTS = [
-  {
-    id: 'ed', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e',
-    name: 'Evolve Dentistry', type: 'General Dentistry', distance: '3.2 mi',
-    stars: '4.9', reviews: 38, date: 'Tue Mar 25', time: '8:00–5:00 PM',
-    role: 'Dental Hygienist', parking: 'Free on-site', software: 'Eaglesoft',
-    estPay: '$468', rate: '$52/hr', applicants: 7,
-    tags: [{ label: 'Instant Pay', bg: '#fef9c3', color: '#92400e' }, { label: 'Eaglesoft', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking' }, { yes: true, label: 'Lunch' }, { yes: true, label: 'Instant Pay' }],
-  },
-  {
-    id: 'bs', initials: 'BS', bg: '#fef9c3', color: '#92400e',
-    name: 'Bright Smile Dental', type: 'Pediatric', distance: '6.8 mi',
-    stars: '4.7', reviews: 22, date: 'Mon Mar 24', time: '9:00–4:00 PM',
-    role: 'Dental Hygienist', parking: 'Street parking', software: 'Dentrix',
-    estPay: '$406', rate: '$58/hr', applicants: 3,
-    tags: [{ label: 'Dentrix', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking' }, { yes: false, label: 'No lunch' }, { yes: false, label: 'No instant pay' }],
-  },
-  {
-    id: 'cl', initials: 'CL', bg: '#ede9fe', color: '#5b21b6',
-    name: 'Clear Lake Dental', type: 'Family Dentistry', distance: '9.4 mi',
-    stars: '5.0', reviews: 51, date: 'Wed Mar 26', time: '7:30–4:30 PM',
-    role: 'Dental Hygienist', parking: 'Free on-site', software: 'Open Dental',
-    estPay: '$585', rate: '$65/hr', applicants: 12,
-    tags: [{ label: 'Instant Pay', bg: '#fef9c3', color: '#92400e' }, { label: 'Open Dental', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking' }, { yes: true, label: 'Lunch' }, { yes: true, label: 'Instant Pay' }],
-  },
-  {
-    id: 'hf', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e',
-    name: 'Houston Family Dentistry', type: 'General Dentistry', distance: '5.3 mi',
-    stars: '4.8', reviews: 29, date: 'Thu Mar 27', time: '8:00–4:00 PM',
-    role: 'Dental Hygienist', parking: 'Free on-site', software: 'Eaglesoft',
-    estPay: '$432', rate: '$54/hr', applicants: 5,
-    tags: [{ label: 'Eaglesoft', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking' }, { yes: true, label: 'Lunch' }, { yes: false, label: 'No instant pay' }],
-  },
-  {
-    id: 'pd', initials: 'PD', bg: '#fce7f3', color: '#9d174d',
-    name: 'Pearland Dental', type: 'General Dentistry', distance: '14.1 mi',
-    stars: '4.8', reviews: 33, date: 'Thu Mar 27', time: '8:00–4:00 PM',
-    role: 'Dental Hygienist', parking: 'Free on-site', software: 'Curve Dental',
-    estPay: '$432', rate: '$54/hr', applicants: 4,
-    tags: [{ label: 'Curve Dental', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking' }, { yes: false, label: 'No lunch' }, { yes: false, label: 'No instant pay' }],
-  },
-  {
-    id: 'sl', initials: 'SL', bg: '#fee2e2', color: '#991b1b',
-    name: 'Sugar Land Smiles', type: 'General Dentistry', distance: '18.7 mi',
-    stars: '4.9', reviews: 41, date: 'Mon Mar 31', time: '8:00–5:00 PM',
-    role: 'Dental Hygienist', parking: 'Free on-site', software: 'Eaglesoft',
-    estPay: '$558', rate: '$62/hr', applicants: 9,
-    tags: [{ label: 'Eaglesoft', bg: '#f3f4f6', color: '#374151' }],
-    perks: [{ yes: true, label: 'Parking' }, { yes: true, label: 'Lunch' }, { yes: false, label: 'No instant pay' }],
-  },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-const PERM_JOBS = [
-  {
-    id: 'hfp', initials: 'HF', bg: '#e8f5f0', color: '#1a7f5e',
-    name: 'Houston Family Dentistry', title: 'Dental Hygienist',
-    stars: '4.8', reviews: 29, distance: '5.3 mi', pay: '$68–$75',
-    type: 'Full-time', schedule: 'Mon–Fri · 8:00–5:00 PM', posted: '2 days ago', applicants: 14,
-    tags: [{ label: 'Full-time', bg: '#e8f5f0', color: '#1a7f5e' }, { label: 'Eaglesoft', bg: '#f3f4f6', color: '#374151' }, { label: 'Signing bonus', bg: '#fef9c3', color: '#92400e' }],
-    benefits: ['Health insurance', '401(k)', 'PTO', 'Dental coverage'],
-  },
-  {
-    id: 'md', initials: 'MD', bg: '#ede9fe', color: '#5b21b6',
-    name: 'Memorial Dental Associates', title: 'Dental Hygienist',
-    stars: '4.9', reviews: 44, distance: '8.7 mi', pay: '$72–$80',
-    type: 'Full-time', schedule: 'Mon–Fri · 7:30–4:30 PM', posted: '1 week ago', applicants: 31,
-    tags: [{ label: 'Full-time', bg: '#e8f5f0', color: '#1a7f5e' }, { label: 'Curve Dental', bg: '#f3f4f6', color: '#374151' }],
-    benefits: ['Health + dental + vision', '401(k) match', 'Paid holidays', 'Signing bonus'],
-  },
-  {
-    id: 'kd', initials: 'KD', bg: '#fef9c3', color: '#92400e',
-    name: 'Katy Dental Group', title: 'Dental Hygienist',
-    stars: '4.6', reviews: 17, distance: '18.2 mi', pay: '$60–$68',
-    type: 'Part-time', schedule: 'Tue, Thu, Fri · Flexible', posted: '5 days ago', applicants: 6,
-    tags: [{ label: 'Part-time', bg: '#ede9fe', color: '#5b21b6' }, { label: 'Open Dental', bg: '#f3f4f6', color: '#374151' }],
-    benefits: ['Flexible schedule', 'PTO', 'CE reimbursement'],
-  },
-  {
-    id: 'pd2', initials: 'PD', bg: '#fce7f3', color: '#9d174d',
-    name: 'Premier Dental Houston', title: 'Dental Hygienist',
-    stars: '4.7', reviews: 26, distance: '11.2 mi', pay: '$65–$72',
-    type: 'Full-time', schedule: 'Mon–Fri · 8:00–5:00 PM', posted: '3 days ago', applicants: 9,
-    tags: [{ label: 'Full-time', bg: '#e8f5f0', color: '#1a7f5e' }, { label: 'Dentrix', bg: '#f3f4f6', color: '#374151' }],
-    benefits: ['Health insurance', 'PTO', 'Paid holidays'],
-  },
-]
+const BG_COLORS = ['#e8f5f0', '#fef9c3', '#ede9fe', '#fce7f3', '#fee2e2']
+const FG_COLORS = ['#1a7f5e', '#92400e', '#5b21b6', '#9d174d', '#991b1b']
 
-function ShiftCard({ shift, applied, onApply, onDetails }) {
+function transformShift(s, index) {
+  const initials = (s.office?.name || '')
+    .split(' ')
+    .map(w => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+  const colorIdx = index % BG_COLORS.length
+  const dateObj = s.date ? new Date(s.date) : null
+  const dateStr = dateObj
+    ? dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    : ''
+  const fmtTime = (t) => {
+    if (!t) return ''
+    const [h, m] = t.split(':').map(Number)
+    const ampm = h >= 12 ? 'PM' : 'AM'
+    const h12 = h % 12 || 12
+    return m === 0 ? `${h12}:00` : `${h12}:${String(m).padStart(2, '0')}`
+  }
+  const startFmt = fmtTime(s.startTime)
+  const endFmt = fmtTime(s.endTime)
+  const timeStr = startFmt && endFmt ? `${startFmt}–${endFmt} ${s.endTime && parseInt(s.endTime) >= 12 ? 'PM' : 'AM'}` : ''
+
+  // Estimate hours and pay
+  const startParts = (s.startTime || '0:0').split(':').map(Number)
+  const endParts = (s.endTime || '0:0').split(':').map(Number)
+  const hours = (endParts[0] + endParts[1] / 60) - (startParts[0] + startParts[1] / 60)
+  const estPay = hours > 0 && s.hourlyRate ? `$${Math.round(hours * s.hourlyRate)}` : ''
+  const rate = s.hourlyRate ? `$${s.hourlyRate}/hr` : ''
+
+  const tags = []
+  if (s.isRapidFill) tags.push({ label: 'Instant Pay', bg: '#fef9c3', color: '#92400e' })
+  if (s.software && s.software.length > 0) {
+    s.software.forEach(sw => tags.push({ label: sw, bg: '#f3f4f6', color: '#374151' }))
+  }
+
+  return {
+    id: s.id,
+    initials,
+    bg: BG_COLORS[colorIdx],
+    color: FG_COLORS[colorIdx],
+    name: s.office?.name || 'Unknown Office',
+    type: 'Dental Office',
+    distance: s.office?.city ? `${s.office.city}, ${s.office.state}` : '',
+    stars: '–',
+    reviews: 0,
+    date: dateStr,
+    time: timeStr,
+    role: s.role || '',
+    parking: 'Contact office',
+    software: (s.software || []).join(', ') || 'N/A',
+    estPay,
+    rate,
+    applicants: s._count?.applications || 0,
+    tags,
+    perks: [],
+    description: s.description || '',
+  }
+}
+
+function ShiftCard({ shift, applied, onApply, onDetails, showToast }) {
   return (
     <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 hover:border-[#1a7f5e] transition cursor-pointer flex flex-col" onClick={() => onDetails(shift)}>
       <div className="flex items-center gap-3 mb-3">
@@ -127,7 +102,7 @@ function ShiftCard({ shift, applied, onApply, onDetails }) {
       <div className="flex gap-2 mt-auto" onClick={e => e.stopPropagation()}>
         <button onClick={() => onDetails(shift)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2 rounded-full text-[12px] hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Details</button>
         <button onClick={() => onApply(shift.id)} className={`flex-1 font-bold py-2 rounded-full text-[12px] transition border-none cursor-pointer ${applied ? 'bg-[#0f4d38] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white'}`} style={{ fontFamily: 'inherit' }}>{applied ? '✓ Applied' : 'Apply'}</button>
-        <button className="w-8 h-8 border border-[#e5e7eb] rounded-full flex items-center justify-center hover:border-[#ef4444] transition flex-shrink-0 bg-white cursor-pointer">
+        <button onClick={(e) => { e.stopPropagation(); showToast('Favorites coming soon') }} className="w-8 h-8 border border-[#e5e7eb] rounded-full flex items-center justify-center hover:border-[#ef4444] transition flex-shrink-0 bg-white cursor-pointer">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>
@@ -343,23 +318,76 @@ function PermDetailDrawer({ job, applied, onApply, onClose }) {
 
 export default function FindShifts() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
+  const searchParams = new URLSearchParams(window.location.search)
   const [shiftType, setShiftType] = useState('temp')
   const [filterOpen, setFilterOpen] = useState(false)
-  const [filterDate, setFilterDate] = useState('')
-  const [filterZip, setFilterZip] = useState('77001')
-  const [filterDist, setFilterDist] = useState('Within 25 miles')
+  const [filterDate, setFilterDate] = useState(searchParams.get('date') || '')
+  const [filterZip, setFilterZip] = useState(searchParams.get('zip') || '77459')
+  const [filterDist, setFilterDist] = useState(searchParams.get('distance') ? `Within ${searchParams.get('distance')} miles` : 'Within 25 miles')
   const [filterMinPay, setFilterMinPay] = useState('')
   const [filterPosted, setFilterPosted] = useState('Last 7 days')
   const [sortBy, setSortBy] = useState('Newest')
   const [applied, setApplied] = useState([])
-  const [page, setPage] = useState(1)
   const [selectedShift, setSelectedShift] = useState(null)
   const [selectedPerm, setSelectedPerm] = useState(null)
   const [toast, setToast] = useState(null)
+  const [shifts, setShifts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchShifts = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/shifts?status=OPEN`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setShifts(data.map((s, i) => transformShift(s, i)))
+        }
+      } catch {}
+      setLoading(false)
+    }
+    fetchShifts()
+  }, [getToken])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
-  const handleApply = (id) => { setApplied(prev => [...prev, id]); showToast('Application submitted!') }
-  const totalPages = shiftType === 'temp' ? 4 : 2
+  const handleApply = async (id) => {
+    setApplied(prev => [...prev, id])
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/applications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ shiftId: id }),
+      })
+      if (!res.ok) {
+        setApplied(prev => prev.filter(x => x !== id))
+        showToast('Failed to apply')
+      } else {
+        showToast('Application submitted!')
+      }
+    } catch {
+      setApplied(prev => prev.filter(x => x !== id))
+      showToast('Failed to apply')
+    }
+  }
+
+  const filteredShifts = shifts.filter(s => {
+    if (filterDate) {
+      const shiftDateStr = s.date // e.g. "Mon, Mar 31"
+      // Compare against filterDate (YYYY-MM-DD)
+      const filterDateObj = new Date(filterDate + 'T00:00:00')
+      const filterFormatted = filterDateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      if (shiftDateStr && shiftDateStr !== filterFormatted) return false
+    }
+    if (filterMinPay) {
+      const payNum = parseFloat((s.rate || '').replace(/[^0-9.]/g, ''))
+      if (!payNum || payNum < parseFloat(filterMinPay)) return false
+    }
+    return true
+  })
 
   const FilterFields = ({ mobile }) => (
     <>
@@ -373,7 +401,7 @@ export default function FindShifts() {
         <div className={mobile ? '' : 'mb-4'}>
           <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-wider mb-2">ZIP Code</p>
           <div className="flex items-center gap-2 bg-[#f9f8f6] border border-[#f3f4f6] rounded-xl px-3 py-2.5 focus-within:border-[#1a7f5e] transition">
-            <PinIcon /><input type="text" value={filterZip} onChange={e => setFilterZip(e.target.value)} maxLength={5} placeholder="77001" className="bg-transparent border-none outline-none text-[13px] text-[#1a1a1a] w-full" style={{ fontFamily: 'inherit' }}/>
+            <PinIcon /><input type="text" value={filterZip} onChange={e => setFilterZip(e.target.value)} maxLength={5} placeholder="77459" className="bg-transparent border-none outline-none text-[13px] text-[#1a1a1a] w-full" style={{ fontFamily: 'inherit' }}/>
           </div>
         </div>
         <div className={mobile ? '' : 'mb-4'}>
@@ -402,8 +430,8 @@ export default function FindShifts() {
           <svg className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
       </div>
-      <button onClick={() => { if (mobile) setFilterOpen(false); showToast('Filters applied!') }} className="w-full bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-2.5 rounded-full text-[13px] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Apply filters</button>
-      {!mobile && <button onClick={() => { setFilterDate(''); setFilterZip('77001'); setFilterDist('Within 25 miles'); setFilterMinPay(''); setFilterPosted('Last 7 days') }} className="w-full text-[#9ca3af] hover:text-[#374151] text-[13px] font-semibold mt-2 bg-none border-none cursor-pointer text-center block" style={{ fontFamily: 'inherit' }}>Clear all</button>}
+      <button onClick={() => { setFilterOpen(false); showToast('Filters applied!') }} className="w-full bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-2.5 rounded-full text-[13px] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Apply filters</button>
+      {!mobile && <button onClick={() => { setFilterDate(''); setFilterZip('77459'); setFilterDist('Within 25 miles'); setFilterMinPay(''); setFilterPosted('Last 7 days') }} className="w-full text-[#9ca3af] hover:text-[#374151] text-[13px] font-semibold mt-2 bg-none border-none cursor-pointer text-center block" style={{ fontFamily: 'inherit' }}>Clear all</button>}
     </>
   )
 
@@ -501,8 +529,8 @@ export default function FindShifts() {
         <p className="text-[13px] text-[#9ca3af] mt-0.5 mb-5">Houston, TX</p>
 
         <div className="flex bg-[#f3f4f6] rounded-full p-1 w-fit gap-1 mb-5">
-          <button onClick={() => { setShiftType('temp'); setPage(1) }} className={`px-5 py-2 rounded-full text-[13px] font-bold transition border-none cursor-pointer ${shiftType === 'temp' ? 'bg-[#1a7f5e] text-white' : 'text-[#6b7280] bg-transparent'}`} style={{ fontFamily: 'inherit' }}>Temp shifts</button>
-          <button onClick={() => { setShiftType('perm'); setPage(1) }} className={`px-5 py-2 rounded-full text-[13px] font-bold transition border-none cursor-pointer ${shiftType === 'perm' ? 'bg-[#1a7f5e] text-white' : 'text-[#6b7280] bg-transparent'}`} style={{ fontFamily: 'inherit' }}>Permanent</button>
+          <button onClick={() => setShiftType('temp')} className={`px-5 py-2 rounded-full text-[13px] font-bold transition border-none cursor-pointer ${shiftType === 'temp' ? 'bg-[#1a7f5e] text-white' : 'text-[#6b7280] bg-transparent'}`} style={{ fontFamily: 'inherit' }}>Temp shifts</button>
+          <button onClick={() => setShiftType('perm')} className={`px-5 py-2 rounded-full text-[13px] font-bold transition border-none cursor-pointer ${shiftType === 'perm' ? 'bg-[#1a7f5e] text-white' : 'text-[#6b7280] bg-transparent'}`} style={{ fontFamily: 'inherit' }}>Permanent</button>
         </div>
 
         {/* Mobile filter */}
@@ -527,7 +555,7 @@ export default function FindShifts() {
 
           <div className="flex-1 min-w-0">
             <div className="bg-white border border-[#e5e7eb] rounded-[14px] px-4 py-3 flex items-center justify-between mb-4">
-              <span className="text-[13px] text-[#9ca3af] font-semibold">{shiftType === 'temp' ? '24 shifts near you' : '4 positions near you'}</span>
+              <span className="text-[13px] text-[#9ca3af] font-semibold">{shiftType === 'temp' ? `${filteredShifts.length} shift${filteredShifts.length !== 1 ? 's' : ''} near you` : '0 positions near you'}</span>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-transparent border-none text-[13px] text-[#6b7280] outline-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
                 <option>Sort: Newest</option><option>Sort: Top pay</option><option>Sort: Nearest</option><option>Sort: Highest rated</option>
               </select>
@@ -535,26 +563,45 @@ export default function FindShifts() {
 
             {shiftType === 'temp' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-                {TEMP_SHIFTS.map(s => <ShiftCard key={s.id} shift={s} applied={applied.includes(s.id)} onApply={handleApply} onDetails={setSelectedShift} />)}
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 animate-pulse">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-[68px] h-[68px] rounded-[16px] bg-[#f3f4f6]" />
+                        <div className="flex-1">
+                          <div className="h-4 bg-[#f3f4f6] rounded w-3/4 mb-2" />
+                          <div className="h-3 bg-[#f3f4f6] rounded w-1/2" />
+                        </div>
+                      </div>
+                      <div className="h-3 bg-[#f3f4f6] rounded w-full mb-2" />
+                      <div className="h-3 bg-[#f3f4f6] rounded w-2/3 mb-2" />
+                      <div className="h-8 bg-[#f3f4f6] rounded-full w-full mt-3" />
+                    </div>
+                  ))
+                ) : filteredShifts.length === 0 ? (
+                  <div className="col-span-full bg-white border border-[#e5e7eb] rounded-[18px] p-10 text-center">
+                    <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                    <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No shifts available in your area yet</p>
+                    <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">We're growing! Check back soon as offices join Kazi and post shifts near you.</p>
+                  </div>
+                ) : (
+                  filteredShifts.map(s => <ShiftCard key={s.id} shift={s} applied={applied.includes(s.id)} onApply={handleApply} onDetails={setSelectedShift} showToast={showToast} />)
+                )}
               </div>
             )}
             {shiftType === 'perm' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-                {PERM_JOBS.map(j => <PermCard key={j.id} job={j} applied={applied.includes(j.id)} onApply={handleApply} onDetails={setSelectedPerm} />)}
+                <div className="col-span-full bg-white border border-[#e5e7eb] rounded-[18px] p-10 text-center">
+                  <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  </div>
+                  <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No shifts available in your area yet</p>
+                  <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">We're growing! Check back soon as offices join Kazi and post shifts near you.</p>
+                </div>
               </div>
             )}
-
-            <div className="flex items-center justify-center gap-1.5">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} className="w-9 h-9 rounded-[10px] border border-[#e5e7eb] bg-white flex items-center justify-center text-[#9ca3af] hover:border-[#1a7f5e] transition cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button key={p} onClick={() => setPage(p)} className={`w-9 h-9 rounded-[10px] border text-[13px] font-bold transition cursor-pointer ${page === p ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-white border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>{p}</button>
-              ))}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="w-9 h-9 rounded-[10px] border border-[#e5e7eb] bg-white flex items-center justify-center text-[#9ca3af] hover:border-[#1a7f5e] transition cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-            </div>
           </div>
         </div>
       </div>

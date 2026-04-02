@@ -1,15 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
+import InitialsAvatar from '../components/InitialsAvatar'
 
-const saved = [
-  { id: 'sarah', name: 'Sarah R.', role: 'Dental Hygienist', rating: 5.0, reviews: 63, reliability: 98, rate: 52, shifts: 147, miles: 8.2, verified: true, available: true, img: 'https://randomuser.me/api/portraits/women/44.jpg', software: ['Eaglesoft', 'Dentrix'] },
-  { id: 'aisha', name: 'Aisha L.', role: 'Dental Hygienist', rating: 5.0, reviews: 48, reliability: 94, rate: 58, shifts: 142, miles: 6.1, verified: true, available: true, img: 'https://randomuser.me/api/portraits/women/65.jpg', software: ['Dentrix', 'Curve Dental'] },
-  { id: 'nina', name: 'Nina P.', role: 'Dental Assistant', rating: 4.9, reviews: 52, reliability: 86, rate: 34, shifts: 98, miles: 9.8, verified: true, available: true, img: 'https://randomuser.me/api/portraits/women/28.jpg', software: ['Dentrix', 'Eaglesoft'] },
-  { id: 'tara', name: 'Tara C.', role: 'Front Desk', rating: 4.7, reviews: 34, reliability: 98, rate: 28, shifts: 61, miles: 7.5, verified: false, available: true, img: 'https://randomuser.me/api/portraits/women/17.jpg', software: ['Eaglesoft', 'Dentrix'] },
-  { id: 'marcus', name: 'Marcus J.', role: 'Dental Assistant', rating: 4.8, reviews: 41, reliability: 73, rate: 38, shifts: 54, miles: 5.7, verified: false, available: false, img: 'https://randomuser.me/api/portraits/men/32.jpg', software: ['Dentrix', 'Open Dental'] },
-  { id: 'rachel', name: 'Rachel M.', role: 'Dental Hygienist', rating: 4.9, reviews: 71, reliability: 99, rate: 72, shifts: 203, miles: 11.4, verified: true, available: true, img: 'https://randomuser.me/api/portraits/women/55.jpg', software: ['Eaglesoft', 'Open Dental'] },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const roles = ['All', 'Dental Hygienist', 'Dental Assistant', 'Front Desk', 'Treatment Coordinator']
 
@@ -22,21 +17,74 @@ const reliabilityDisplay = (r) => {
 
 export default function SavedProfessionals() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const [selectedRole, setSelectedRole] = useState('All')
-  const [removed, setRemoved] = useState([])
   const [toast, setToast] = useState(null)
+  const [saved, setSaved] = useState([])
+  const [officeId, setOfficeId] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
+  useEffect(() => {
+    const fetchSaved = async () => {
+      try {
+        const token = await getToken()
+        const headers = { Authorization: `Bearer ${token}` }
+
+        // Get office ID first
+        const meRes = await fetch(`${API_URL}/api/offices/me`, { headers })
+        if (!meRes.ok) return
+        const meData = await meRes.json()
+        setOfficeId(meData.id)
+
+        // Then fetch saved providers
+        const savedRes = await fetch(`${API_URL}/api/offices/${meData.id}/saved-providers`, { headers })
+        if (savedRes.ok) {
+          const savedData = await savedRes.json()
+          setSaved(savedData)
+        }
+      } catch (err) {
+        console.error('Failed to fetch saved professionals:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSaved()
+  }, [getToken])
+
   const filtered = saved.filter(p => {
-    if (removed.includes(p.id)) return false
     if (selectedRole !== 'All' && p.role !== selectedRole) return false
     return true
   })
 
-  const handleRemove = (pro) => {
-    setRemoved(prev => [...prev, pro.id])
-    showToast(`${pro.name} removed from saved`)
+  const handleRemove = async (pro) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/offices/${officeId}/save-provider/${pro.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        setSaved(prev => prev.filter(p => p.id !== pro.id))
+        showToast(`${pro.name} removed from saved`)
+      } else {
+        showToast('Failed to remove professional')
+      }
+    } catch (err) {
+      showToast('Failed to remove professional')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f9f8f6]">
+        <Nav />
+        <div className="flex items-center justify-center py-20">
+          <p className="text-sm text-[#9ca3af]">Loading saved professionals...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -95,13 +143,13 @@ export default function SavedProfessionals() {
         ) : (
           <div className="flex flex-col gap-3">
             {filtered.map(pro => {
-              const rel = reliabilityDisplay(pro.reliability)
+              const rel = reliabilityDisplay(pro.reliability || 0)
               return (
                 <div key={pro.id} className="bg-white border border-[#e5e7eb] rounded-2xl p-4 flex items-center gap-4 hover:border-[#d1d5db] transition">
 
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
-                    <img src={pro.img} className="w-14 h-14 rounded-full object-cover" />
+                    <InitialsAvatar name={pro.name} size={56} />
                     {pro.verified && (
                       <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center" style={{ backgroundColor: '#4c1d95' }}>
                         <svg width="9" height="7" viewBox="0 0 14 11" fill="none"><path d="M1.5 5.5L5.5 9.5L12.5 1.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -118,11 +166,15 @@ export default function SavedProfessionals() {
                         : <span className="text-[11px] font-semibold text-[#9ca3af]">○ Unavailable</span>
                       }
                     </div>
-                    <p className="text-[13px] text-[#6b7280] mb-1.5">{pro.role} · {pro.miles} mi · ${pro.rate}/hr</p>
+                    <p className="text-[13px] text-[#6b7280] mb-1.5">{pro.role}{pro.miles != null ? ` · ${pro.miles} mi` : ''}{pro.rate != null ? ` · $${pro.rate}/hr` : ''}</p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold text-[#F97316]">★ {pro.rating} <span className="text-xs font-normal text-[#9ca3af]">({pro.reviews})</span></span>
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${rel.bg} ${rel.color}`}>{rel.label} · {pro.reliability}%</span>
-                      {pro.software.slice(0, 2).map(s => (
+                      {pro.rating != null && (
+                        <span className="text-sm font-bold text-[#F97316]">★ {pro.rating} {pro.reviews != null && <span className="text-xs font-normal text-[#9ca3af]">({pro.reviews})</span>}</span>
+                      )}
+                      {pro.reliability != null && (
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${rel.bg} ${rel.color}`}>{rel.label} · {pro.reliability}%</span>
+                      )}
+                      {(pro.software || []).slice(0, 2).map(s => (
                         <span key={s} className="text-[11px] font-semibold text-[#0f4d38] bg-[#e8f5f0] px-2 py-0.5 rounded-full">{s}</span>
                       ))}
                     </div>

@@ -8,7 +8,18 @@
       "Bash(node -e \":*)",
       "Bash(find /c/Users/ronwu/Desktop/Kazi-app/src -name *context* -o -name *provider*)",
       "Bash(grep -r \"ClerkProvider\\\\|useAuth\\\\|AuthContext\" /c/Users/ronwu/Desktop/Kazi-app/src --include=*.jsx)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(npx -y acorn-jsx)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(npx --no-install vite build --mode development)",
+      "Bash(ls C:UsersronwuDesktopKazi-app/.env*)",
+      "Bash(ls -la C:UsersronwuDesktopKazi-app/.env*)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s -X OPTIONS -H \"Origin: http://localhost:5173\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: Content-Type,Authorization\" http://localhost:3001/api/offices -v)",
+      "Bash(netstat -ano)",
+      "Bash(powershell.exe -Command \"Get-NetTCPConnection -State Listen | Where-Object { $_ocalPort -in 5173,5174,5175,3000,3001 } | Select-Object LocalPort,OwningProcess\")",
+      "Bash(curl -s -X OPTIONS -H \"Origin: http://localhost:5174\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: Content-Type,Authorization\" http://localhost:3001/api/offices -v)",
+      "Bash(curl -s -X POST http://localhost:3001/api/offices -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"Test\"\"\"\",\"\"\"\"_email\"\"\"\":\"\"\"\"nonexistent@test.com\"\"\"\"}')"
     ]
   }
 }

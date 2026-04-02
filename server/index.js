@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
-import { requireAuth } from './middleware/auth.js';
+import { requireAuth, optionalAuth } from './middleware/auth.js';
 import usersRouter from './routes/users.js';
 import officesRouter from './routes/offices.js';
 import providersRouter from './routes/providers.js';
@@ -19,7 +19,15 @@ const PORT = process.env.PORT || 3001;
 
 // ── Middleware ──────────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    // Allow any localhost port in development
+    if (origin.match(/^http:\/\/localhost:\d+$/)) return callback(null, true);
+    // Allow configured production URL
+    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -34,8 +42,8 @@ app.use('/api/webhooks', webhooksRouter);
 
 // ── Auth-protected routes ───────────────────────────
 app.use('/api/users', requireAuth, usersRouter);
-app.use('/api/offices', requireAuth, officesRouter);
-app.use('/api/providers', requireAuth, providersRouter);
+app.use('/api/offices', optionalAuth, officesRouter);
+app.use('/api/providers', optionalAuth, providersRouter);
 app.use('/api/shifts', requireAuth, shiftsRouter);
 app.use('/api/applications', requireAuth, applicationsRouter);
 app.use('/api/bookings', requireAuth, bookingsRouter);

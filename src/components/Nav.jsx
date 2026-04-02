@@ -1,5 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useUser, useAuth, useClerk } from '@clerk/clerk-react'
+import InitialsAvatar from './InitialsAvatar'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 // ── Icons ────────────────────────────────────────────
 const Icon = ({ d, d2, circle, rect, poly, line1, line2, box }) => (
@@ -13,15 +17,6 @@ const Icon = ({ d, d2, circle, rect, poly, line1, line2, box }) => (
     {line2 && <line x1={line2[0]} y1={line2[1]} x2={line2[2]} y2={line2[3]} />}
   </svg>
 )
-
-// sample notifications — in production these come from your backend
-const NOTIFICATIONS = [
-  { id: 1, unread: true,  icon: 'accept',   title: 'Sarah R. accepted your invite',       sub: 'Mar 25 · Dental Hygienist · 8am–5pm',              time: '2 min ago',   path: '/bookings' },
-  { id: 2, unread: true,  icon: 'applicant', title: '3 new applicants for Mar 21 shift',   sub: 'Tara C., Devon K., and 1 other applied',            time: '18 min ago',  path: '/applicants' },
-  { id: 3, unread: false, icon: 'message',   title: 'New message from Aisha L.',           sub: '"I have experience with Eaglesoft..."',             time: 'Yesterday',   path: '/messages' },
-  { id: 4, unread: false, icon: 'cancel',    title: 'Shift cancellation — Nina P.',        sub: 'Nina cancelled her Mar 5 shift',                    time: 'Mar 4',       path: '/professionals' },
-  { id: 5, unread: false, icon: 'review',    title: 'Leave a review for Sarah R.',         sub: 'You worked together on Mar 14',                     time: 'Mar 14',      path: '/bookings' },
-]
 
 const NotifDot = ({ icon }) => {
   const map = {
@@ -48,18 +43,53 @@ const NotifDot = ({ icon }) => {
 export default function Nav() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useUser()
+  const { getToken } = useAuth()
+  const { signOut } = useClerk()
   const [showDropdown, setShowDropdown] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [readIds, setReadIds] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
+  const [office, setOffice] = useState(null)
+  const [notifications, setNotifications] = useState([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await getToken()
+        const headers = { Authorization: `Bearer ${token}` }
+
+        const [officeRes, notifRes] = await Promise.all([
+          fetch(`${API_URL}/api/offices/me`, { headers }),
+          fetch(`${API_URL}/api/notifications`, { headers }),
+        ])
+
+        if (officeRes.ok) {
+          const officeData = await officeRes.json()
+          setOffice(officeData)
+        }
+        if (notifRes.ok) {
+          const notifData = await notifRes.json()
+          setNotifications(notifData)
+        }
+      } catch (err) {
+        console.error('Nav: failed to fetch data', err)
+      }
+    }
+    fetchData()
+  }, [getToken])
+
+  const firstName = office?.firstName || user?.firstName || ''
+  const officeName = office?.name || 'My Office'
+  const officeInitials = officeName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 
   const isActive = (path) => location.pathname === path
 
-  const unreadCount = NOTIFICATIONS.filter(n => n.unread && !readIds.includes(n.id)).length
+  const unreadCount = notifications.filter(n => !n.read).length
 
   const markAllRead = (e) => {
     e.stopPropagation()
-    setReadIds(NOTIFICATIONS.map(n => n.id))
+    setReadIds(notifications.map(n => n.id))
   }
 
   const handleNotif = (notif) => {
@@ -67,6 +97,11 @@ export default function Nav() {
     setShowDropdown(false)
     setNotifOpen(false)
     navigate(notif.path)
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login')
   }
 
   const navLinks = [
@@ -149,9 +184,9 @@ export default function Nav() {
           <div className="relative hidden md:block">
             <div
               onClick={() => setShowDropdown(!showDropdown)}
-              className="w-10 h-10 rounded-full bg-[#1a7f5e] text-white text-sm font-bold flex items-center justify-center cursor-pointer border-2 border-[#e5e7eb] hover:border-[#1a7f5e] transition relative"
+              className="cursor-pointer relative"
             >
-              RO
+              <InitialsAvatar name={firstName} size={40} />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
                   {unreadCount}
@@ -167,12 +202,10 @@ export default function Nav() {
                   {/* Office header */}
                   <div className="px-4 py-4 border-b border-[#f3f4f6]">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-extrabold">ED</span>
-                      </div>
+                      <InitialsAvatar name={officeName} size={36} />
                       <div>
-                        <p className="text-[15px] font-semibold text-[#1a1a1a]">Evolve Dentistry</p>
-                        <p className="text-[12px] text-[#1a7f5e] font-medium">✓ Verified</p>
+                        <p className="text-[15px] font-semibold text-[#1a1a1a]">{officeName}</p>
+                        <p className="text-[12px] text-[#1a7f5e] font-medium">{office?.verified ? '✓ Verified' : 'Complete your profile'}</p>
                       </div>
                     </div>
                     <p onClick={() => { setShowDropdown(false); navigate('/office-profile') }} className="text-[12px] text-[#1a7f5e] font-medium mt-2 cursor-pointer hover:underline">View office profile →</p>
@@ -209,23 +242,29 @@ export default function Nav() {
                                     <button onClick={markAllRead} className="text-[11px] font-semibold text-[#1a7f5e] hover:underline">Mark all read</button>
                                   )}
                                 </div>
-                                {NOTIFICATIONS.map(notif => {
-                                  const isUnread = notif.unread && !readIds.includes(notif.id)
-                                  return (
-                                    <div
-                                      key={notif.id}
-                                      onClick={() => handleNotif(notif)}
-                                      className={`flex items-start gap-2.5 px-4 py-2.5 cursor-pointer hover:bg-[#f3f4f6] transition border-b border-[#f3f4f6] last:border-0 ${isUnread ? 'bg-[#fafffe]' : ''}`}
-                                    >
-                                      <NotifDot icon={notif.icon} />
-                                      <div className="flex-1 min-w-0">
-                                        <p className={`text-[12px] leading-snug mb-0.5 ${isUnread ? 'font-bold text-[#1a1a1a]' : 'font-medium text-[#374151]'}`}>{notif.title}</p>
-                                        <p className="text-[11px] text-[#9ca3af]">{notif.time}</p>
+                                {notifications.length === 0 ? (
+                                  <div className="px-4 py-4 text-center">
+                                    <p className="text-[12px] text-[#9ca3af]">No notifications yet</p>
+                                  </div>
+                                ) : (
+                                  notifications.map(notif => {
+                                    const isUnread = !notif.read && !readIds.includes(notif.id)
+                                    return (
+                                      <div
+                                        key={notif.id}
+                                        onClick={() => handleNotif(notif)}
+                                        className={`flex items-start gap-2.5 px-4 py-2.5 cursor-pointer hover:bg-[#f3f4f6] transition border-b border-[#f3f4f6] last:border-0 ${isUnread ? 'bg-[#fafffe]' : ''}`}
+                                      >
+                                        <NotifDot icon={notif.icon} />
+                                        <div className="flex-1 min-w-0">
+                                          <p className={`text-[12px] leading-snug mb-0.5 ${isUnread ? 'font-bold text-[#1a1a1a]' : 'font-medium text-[#374151]'}`}>{notif.title}</p>
+                                          <p className="text-[11px] text-[#9ca3af]">{notif.time}</p>
+                                        </div>
+                                        {isUnread && <div className="w-1.5 h-1.5 rounded-full bg-[#1a7f5e] flex-shrink-0 mt-1.5" />}
                                       </div>
-                                      {isUnread && <div className="w-1.5 h-1.5 rounded-full bg-[#1a7f5e] flex-shrink-0 mt-1.5" />}
-                                    </div>
-                                  )
-                                })}
+                                    )
+                                  })
+                                )}
                               </div>
                             )}
                           </div>
@@ -263,7 +302,7 @@ export default function Nav() {
                   {/* Sign out */}
                   <div className="border-t border-[#f3f4f6] py-1.5">
                     <div
-                      onClick={() => { setShowDropdown(false); navigate('/login') }}
+                      onClick={async () => { setShowDropdown(false); await signOut(); navigate('/login') }}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-[#ef4444] hover:bg-[#fef2f2] cursor-pointer"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -277,8 +316,8 @@ export default function Nav() {
           </div>
 
           {/* Mobile button */}
-          <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden relative w-10 h-10 rounded-full bg-[#1a7f5e] text-white text-sm font-bold flex items-center justify-center">
-            RO
+          <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden relative">
+            <InitialsAvatar name={firstName} size={40} />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
                 {unreadCount}
@@ -296,12 +335,10 @@ export default function Nav() {
 
             {/* Office header */}
             <div className="flex items-center gap-3 px-6 py-4 border-b border-[#e5e7eb]">
-              <div className="w-11 h-11 rounded-xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-sm font-extrabold">ED</span>
-              </div>
+              <InitialsAvatar name={officeName} size={44} />
               <div>
-                <p className="text-sm font-bold text-[#1a1a1a]">Evolve Dentistry</p>
-                <p className="text-xs text-[#1a7f5e] font-semibold">✓ Verified</p>
+                <p className="text-sm font-bold text-[#1a1a1a]">{officeName}</p>
+                <p className="text-xs text-[#1a7f5e] font-semibold">{office?.verified ? '✓ Verified' : 'Complete your profile'}</p>
               </div>
             </div>
 
@@ -321,19 +358,25 @@ export default function Nav() {
                 <p className="text-xs font-bold uppercase tracking-widest text-[#9ca3af]">Notifications</p>
                 {unreadCount > 0 && <span className="text-[10px] font-extrabold bg-[#dc2626] text-white px-2 py-0.5 rounded-full">{unreadCount} new</span>}
               </div>
-              {NOTIFICATIONS.slice(0, 4).map(notif => {
-                const isUnread = notif.unread && !readIds.includes(notif.id)
-                return (
-                  <div key={notif.id} onClick={() => { handleNotif(notif); setShowMobileMenu(false) }} className={`flex items-start gap-3 px-6 py-3 cursor-pointer hover:bg-[#f9f8f6] ${isUnread ? 'bg-[#fafffe]' : ''}`}>
-                    <NotifDot icon={notif.icon} />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[13px] leading-snug ${isUnread ? 'font-bold text-[#1a1a1a]' : 'font-medium text-[#374151]'}`}>{notif.title}</p>
-                      <p className="text-[11px] text-[#9ca3af]">{notif.time}</p>
+              {notifications.length === 0 ? (
+                <div className="px-6 py-4 text-center">
+                  <p className="text-[13px] text-[#9ca3af]">No notifications yet</p>
+                </div>
+              ) : (
+                notifications.slice(0, 4).map(notif => {
+                  const isUnread = !notif.read && !readIds.includes(notif.id)
+                  return (
+                    <div key={notif.id} onClick={() => { handleNotif(notif); setShowMobileMenu(false) }} className={`flex items-start gap-3 px-6 py-3 cursor-pointer hover:bg-[#f9f8f6] ${isUnread ? 'bg-[#fafffe]' : ''}`}>
+                      <NotifDot icon={notif.icon} />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[13px] leading-snug ${isUnread ? 'font-bold text-[#1a1a1a]' : 'font-medium text-[#374151]'}`}>{notif.title}</p>
+                        <p className="text-[11px] text-[#9ca3af]">{notif.time}</p>
+                      </div>
+                      {isUnread && <div className="w-2 h-2 rounded-full bg-[#1a7f5e] flex-shrink-0 mt-1.5" />}
                     </div>
-                    {isUnread && <div className="w-2 h-2 rounded-full bg-[#1a7f5e] flex-shrink-0 mt-1.5" />}
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
             </div>
 
             {/* Account */}
@@ -356,7 +399,7 @@ export default function Nav() {
                   {item.label}
                 </div>
               ))}
-              <div onClick={() => { navigate('/login'); setShowMobileMenu(false) }} className="flex items-center gap-3 px-6 py-3.5 text-[15px] font-medium text-red-500 hover:bg-[#f9f8f6] cursor-pointer">
+              <div onClick={async () => { setShowMobileMenu(false); await signOut(); navigate('/login') }} className="flex items-center gap-3 px-6 py-3.5 text-[15px] font-medium text-red-500 hover:bg-[#f9f8f6] cursor-pointer">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 Sign out
               </div>

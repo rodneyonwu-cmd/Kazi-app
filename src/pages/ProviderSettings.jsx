@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useUser } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 
 export default function ProviderSettings() {
   const navigate = useNavigate()
+  const { user } = useUser()
+  const userEmail = user?.primaryEmailAddress?.emailAddress || ''
 
   const [notifs, setNotifs] = useState({
     shiftInvites: true,
@@ -18,6 +21,8 @@ export default function ProviderSettings() {
   const [pushEnabled, setPushEnabled] = useState(true)
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [toast, setToast] = useState(null)
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
   const Toggle = ({ value, onChange }) => (
     <div onClick={() => onChange(!value)} className={`w-11 h-6 rounded-full cursor-pointer transition-colors flex-shrink-0 relative ${value ? 'bg-[#1a7f5e]' : 'bg-[#d1d5db]'}`}>
@@ -27,6 +32,15 @@ export default function ProviderSettings() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[12px] font-semibold px-4 py-2.5 rounded-full z-[300] flex items-center gap-2 shadow-xl whitespace-nowrap">
+          <div className="w-4 h-4 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
+            <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
+          </div>
+          {toast}
+        </div>
+      )}
 
       <ProviderNav />
 
@@ -55,7 +69,7 @@ export default function ProviderSettings() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[14px] font-semibold text-[#1a1a1a]">Email notifications</p>
-                <p className="text-[12px] text-[#9ca3af]">sarah@example.com</p>
+                <p className="text-[12px] text-[#9ca3af]">{userEmail}</p>
               </div>
               <Toggle value={emailEnabled} onChange={setEmailEnabled} />
             </div>
@@ -92,11 +106,11 @@ export default function ProviderSettings() {
         <div className="bg-white border border-[#e5e7eb] rounded-[18px] overflow-hidden mb-4">
           <p className="text-[15px] font-black text-[#1a1a1a] px-5 py-4 border-b border-[#f3f4f6]">Account</p>
           {[
-            { label: 'Change email', sub: 'sarah@example.com' },
-            { label: 'Change password', sub: 'Last updated 3 months ago' },
-            { label: 'Linked accounts', sub: 'Google · Connected' },
-          ].map(({ label, sub }, i, arr) => (
-            <div key={label} className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#f9f8f6] transition ${i < arr.length - 1 ? 'border-b border-[#f3f4f6]' : ''}`}>
+            { label: 'Change email', sub: userEmail, onClick: () => showToast('Email changes are managed through Clerk') },
+            { label: 'Change password', sub: 'Manage via account settings', onClick: () => showToast('Password changes are managed through Clerk') },
+            { label: 'Linked accounts', sub: 'Google', onClick: () => showToast('Linked accounts are managed through Clerk') },
+          ].map(({ label, sub, onClick }, i, arr) => (
+            <div key={label} onClick={onClick} className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#f9f8f6] transition ${i < arr.length - 1 ? 'border-b border-[#f3f4f6]' : ''}`}>
               <div>
                 <p className="text-[14px] font-semibold text-[#1a1a1a]">{label}</p>
                 <p className="text-[12px] text-[#9ca3af]">{sub}</p>
@@ -111,7 +125,7 @@ export default function ProviderSettings() {
           <p className="text-[15px] font-black text-[#1a1a1a] mb-1">Danger zone</p>
           <p className="text-[12px] text-[#9ca3af] mb-4">These actions are permanent and cannot be undone.</p>
           <div className="flex flex-col gap-2">
-            <button className="w-full border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px] hover:border-[#ef4444] hover:text-[#ef4444] transition">
+            <button onClick={() => showToast('Account deactivation coming soon')} className="w-full border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px] hover:border-[#ef4444] hover:text-[#ef4444] transition">
               Deactivate account
             </button>
             <button onClick={() => setShowDeleteConfirm(true)} className="w-full bg-[#fee2e2] text-[#991b1b] font-bold py-2.5 rounded-full text-[13px] hover:bg-[#fecaca] transition">
@@ -140,7 +154,7 @@ export default function ProviderSettings() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
         {[
           { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
-          { label: 'Requests', path: '/provider-requests', icon: <ReqIcon />, badge: 2 },
+          { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
           { label: 'Messages', path: '/provider-messages', icon: <MsgIcon /> },
           { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },

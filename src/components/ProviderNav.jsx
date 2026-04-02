@@ -1,23 +1,58 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useUser, useAuth, useClerk } from '@clerk/clerk-react'
+import InitialsAvatar from './InitialsAvatar'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function ProviderNav() {
   const navigate  = useNavigate()
   const location  = useLocation()
   const [open, setOpen] = useState(false)
+  const { user } = useUser()
+  const { getToken } = useAuth()
+  const { signOut } = useClerk()
+  const [profile, setProfile] = useState(null)
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/providers/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setProfile(data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch provider profile:', err)
+      }
+    }
+    fetchProfile()
+  }, [getToken])
+
+  const firstName = profile?.firstName || user?.firstName || ''
+  const lastName = profile?.lastName || user?.lastName || ''
+  const displayName = firstName ? `${firstName} ${lastName?.charAt(0) || ''}.` : 'My Account'
+  const email = user?.primaryEmailAddress?.emailAddress || profile?.email || ''
+  const rawRole = profile?.role || null
+  const roleName = rawRole ? rawRole.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null
+  const loc = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : null
+  const pendingCount = profile?.stats?.pendingRequests || 0
 
   const path = location.pathname
 
   const navLinks = [
     { label: 'Dashboard',   path: '/provider-dashboard' },
-    { label: 'Requests',    path: '/provider-requests', badge: 2 },
+    { label: 'Requests',    path: '/provider-requests', badge: pendingCount > 0 ? pendingCount : null },
     { label: 'Find Shifts', path: '/provider-find-shifts' },
     { label: 'Messages',    path: '/provider-messages' },
   ]
 
   const accountLinks = [
     { icon: <UserIcon />,   label: 'How offices view me',    path: '/provider-profile', state: { readOnly: true } },
-    { icon: <DocIcon />,    label: 'Documents & Credentials', path: '/provider-documents', badge: '1 expiring' },
+    { icon: <DocIcon />,    label: 'Documents & Credentials', path: '/provider-documents' },
     { icon: <CalIcon />,    label: 'Availability',            path: '/provider-availability' },
     { icon: <DollarIcon />, label: 'Finance',                 path: '/provider-earnings' },
     { icon: <HeartIcon />,  label: 'Favorite Offices',        path: '/provider-favorites' },
@@ -61,7 +96,7 @@ export default function ProviderNav() {
             className="w-10 h-10 rounded-full overflow-hidden cursor-pointer border-2 border-[#e5e7eb] hover:border-[#1a7f5e] transition"
             onClick={() => setOpen(!open)}
           >
-            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah" className="w-full h-full object-cover" />
+            <InitialsAvatar name={firstName} size={40} />
           </div>
 
           {open && (
@@ -72,10 +107,16 @@ export default function ProviderNav() {
                 {/* Header */}
                 <div className="px-4 py-4 border-b border-[#f3f4f6]">
                   <div className="flex items-center gap-3">
-                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                    <InitialsAvatar name={firstName} size={36} />
                     <div>
-                      <p className="text-[15px] font-semibold text-[#1a1a1a]">Sarah R.</p>
-                      <p className="text-[12px] text-[#1a7f5e]">Dental Hygienist · <span className="text-[#9ca3af]">Houston, TX</span></p>
+                      <p className="text-[15px] font-semibold text-[#1a1a1a]">{displayName}</p>
+                      {email && <p className="text-[11px] text-[#9ca3af] truncate">{email}</p>}
+                      <p className="text-[12px]">
+                        {roleName && <span className="text-[#1a7f5e]">{roleName}</span>}
+                        {roleName && loc && <span className="text-[#9ca3af]"> · </span>}
+                        {loc && <span className="text-[#9ca3af]">{loc}</span>}
+                        {!roleName && !loc && <span className="text-[#9ca3af]">Complete your profile</span>}
+                      </p>
                     </div>
                   </div>
                   <p onClick={() => { setOpen(false); navigate('/provider-profile') }} className="text-[12px] text-[#1a7f5e] font-medium mt-2 cursor-pointer hover:underline">View profile →</p>
@@ -115,7 +156,7 @@ export default function ProviderNav() {
                 {/* Sign out */}
                 <div className="border-t border-[#f3f4f6] py-1.5">
                   <div
-                    onClick={() => { setOpen(false); navigate('/login') }}
+                    onClick={async () => { setOpen(false); await signOut(); navigate('/login') }}
                     className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-[#ef4444] hover:bg-[#fef2f2] cursor-pointer"
                   >
                     <SignOutIcon />

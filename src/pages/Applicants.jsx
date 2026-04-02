@@ -1,6 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
+import InitialsAvatar from '../components/InitialsAvatar'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const EmptyState = ({ icon, title, sub, action }) => (
   <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
@@ -11,46 +15,155 @@ const EmptyState = ({ icon, title, sub, action }) => (
   </div>
 )
 
+const SkeletonCard = () => (
+  <div className="flex items-start gap-4 px-6 py-4 border-b border-[#e5e7eb] last:border-0 animate-pulse">
+    <div className="w-12 h-12 rounded-full bg-[#e5e7eb] flex-shrink-0" />
+    <div className="flex-1">
+      <div className="h-4 bg-[#e5e7eb] rounded w-32 mb-2" />
+      <div className="h-3 bg-[#f3f4f6] rounded w-48 mb-1" />
+      <div className="h-3 bg-[#f3f4f6] rounded w-24" />
+    </div>
+    <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="h-7 bg-[#e5e7eb] rounded-full w-16" />
+      <div className="h-7 bg-[#f3f4f6] rounded-full w-16" />
+    </div>
+  </div>
+)
+
+const LoadingSkeleton = () => (
+  <div className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-4">
+    <div className="flex items-center justify-between px-6 py-4 animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="h-6 bg-[#e5e7eb] rounded-full w-20" />
+        <div>
+          <div className="h-4 bg-[#e5e7eb] rounded w-48 mb-1" />
+          <div className="h-3 bg-[#f3f4f6] rounded w-36" />
+        </div>
+      </div>
+    </div>
+    <div className="border-t border-[#e5e7eb]">
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+    </div>
+  </div>
+)
+
 export default function Applicants() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const [activeTopTab, setActiveTopTab] = useState('all')
-  const [openGroups, setOpenGroups] = useState({ 1: true, 2: true, 3: true })
+  const [openGroups, setOpenGroups] = useState({})
   const [toast, setToast] = useState(null)
   const [accepted, setAccepted] = useState({})
   const [declined, setDeclined] = useState({})
   const [shortlisted, setShortlisted] = useState({})
-  const [subTabs, setSubTabs] = useState({ 1: 'All', 2: 'All', 3: 'All' })
+  const [subTabs, setSubTabs] = useState({})
+  const [applications, setApplications] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/applications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch applications')
+        const data = await res.json()
+        setApplications(data)
+
+        // Initialize open groups and sub-tabs for each shift
+        const grouped = groupByShift(data)
+        const initialOpen = {}
+        const initialSubTabs = {}
+        Object.keys(grouped).forEach(shiftId => {
+          initialOpen[shiftId] = true
+          initialSubTabs[shiftId] = 'All'
+        })
+        setOpenGroups(initialOpen)
+        setSubTabs(initialSubTabs)
+      } catch (err) {
+        console.error('Error fetching applications:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchApplications()
+  }, [getToken])
+
+  const groupByShift = (apps) => {
+    const groups = {}
+    apps.forEach(app => {
+      const key = app.shiftId
+      if (!groups[key]) groups[key] = []
+      groups[key].push(app)
+    })
+    return groups
+  }
 
   const toggleGroup = (id) => setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
 
-  const handleAccept = (key, name) => {
-    setAccepted(prev => ({ ...prev, [key]: true }))
-    setDeclined(prev => ({ ...prev, [key]: false }))
-    setToast(`${name} accepted — shift confirmed!`)
-    setTimeout(() => setToast(null), 3000)
+  const handleAccept = async (appId, name) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/applications/${appId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'ACCEPTED' }),
+      })
+      if (!res.ok) throw new Error('Failed to accept application')
+      setAccepted(prev => ({ ...prev, [appId]: true }))
+      setDeclined(prev => ({ ...prev, [appId]: false }))
+      setToast(`${name} accepted — shift confirmed!`)
+      setTimeout(() => setToast(null), 3000)
+    } catch (err) {
+      console.error('Error accepting application:', err)
+      setToast('Failed to accept applicant. Please try again.')
+      setTimeout(() => setToast(null), 3000)
+    }
   }
 
-  const handleDecline = (key, name) => {
-    setDeclined(prev => ({ ...prev, [key]: true }))
-    setAccepted(prev => ({ ...prev, [key]: false }))
-    setShortlisted(prev => ({ ...prev, [key]: false }))
-    setToast(`${name} declined`)
-    setTimeout(() => setToast(null), 3000)
+  const handleDecline = async (appId, name) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/applications/${appId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'DECLINED' }),
+      })
+      if (!res.ok) throw new Error('Failed to decline application')
+      setDeclined(prev => ({ ...prev, [appId]: true }))
+      setAccepted(prev => ({ ...prev, [appId]: false }))
+      setShortlisted(prev => ({ ...prev, [appId]: false }))
+      setToast(`${name} declined`)
+      setTimeout(() => setToast(null), 3000)
+    } catch (err) {
+      console.error('Error declining application:', err)
+      setToast('Failed to decline applicant. Please try again.')
+      setTimeout(() => setToast(null), 3000)
+    }
   }
 
-  const handleShortlist = (key, name) => {
-    const isNow = !shortlisted[key]
-    setShortlisted(prev => ({ ...prev, [key]: isNow }))
+  const handleShortlist = (appId, name) => {
+    const isNow = !shortlisted[appId]
+    setShortlisted(prev => ({ ...prev, [appId]: isNow }))
     setToast(isNow ? `${name} shortlisted!` : `${name} removed from shortlist`)
     setTimeout(() => setToast(null), 3000)
   }
 
   const filterApplicants = (applicants, groupId) => {
-    const tab = subTabs[groupId]
-    return applicants.filter(ap => {
-      const isAccepted = ap.preAccepted || accepted[ap.key]
-      const isDeclined = declined[ap.key]
-      const isShortlisted = shortlisted[ap.key]
+    const tab = subTabs[groupId] || 'All'
+    return applicants.filter(app => {
+      const isAccepted = app.status === 'ACCEPTED' || accepted[app.id]
+      const isDeclined = app.status === 'DECLINED' || declined[app.id]
+      const isShortlisted = shortlisted[app.id]
       if (tab === 'All') return true
       if (tab === 'Pending') return !isAccepted && !isDeclined && !isShortlisted
       if (tab === 'Accepted') return isAccepted
@@ -61,38 +174,61 @@ export default function Applicants() {
     })
   }
 
-  const group1 = [
-    { key: '1-sarah', name: 'Sarah R.', rating: '⭐ 4.9', reviews: 47, meta: '$52/hr · 2.1 mi · 97% reliable', applied: 'Applied 2 hours ago', bg: '#c8e6c9', img: 'https://randomuser.me/api/portraits/women/44.jpg', preAccepted: true },
-    { key: '1-aisha', name: 'Aisha L.', rating: '⭐ 5', reviews: 63, meta: '$58/hr · 3.8 mi · 94% reliable', applied: 'Applied 3 hours ago', quote: '"I have experience with Eaglesoft and can arrive early if needed."', bg: '#b0bec5', img: 'https://randomuser.me/api/portraits/women/65.jpg' },
-    { key: '1-nina', name: 'Nina P.', rating: '⭐ 4.9', reviews: 52, meta: '$54/hr · 5.2 mi · 86% reliable', applied: 'Applied 5 hours ago', bg: '#e1bee7', img: 'https://randomuser.me/api/portraits/women/28.jpg' },
-    { key: '1-marcus', name: 'Marcus J.', rating: '⭐ 4.8', reviews: 38, meta: '$48/hr · 6.7 mi · 73% reliable', applied: 'Applied 6 hours ago', quote: '"Available for last-minute shifts and have my own equipment."', bg: '#d7ccc8', img: 'https://randomuser.me/api/portraits/men/32.jpg' },
-  ]
-  const group2 = [
-    { key: '2-tara', name: 'Tara C.', rating: '⭐ 4.7', reviews: 34, meta: '$42/hr · 4.3 mi · 98% reliable', applied: 'Applied 1 hour ago', bg: '#ffccbc', img: 'https://randomuser.me/api/portraits/women/17.jpg' },
-    { key: '2-devon', name: 'Devon K.', rating: '⭐ 4.6', reviews: 28, meta: '$40/hr · 7.1 mi · 84% reliable', applied: 'Applied 4 hours ago', bg: '#546e7a', img: 'https://randomuser.me/api/portraits/men/41.jpg' },
-  ]
-  const group3 = [
-    { key: '3-rachel', name: 'Rachel M.', rating: '⭐ 4.9', reviews: 71, meta: '$72,000/yr · 3.2 mi · 99% reliable · Eaglesoft ✓ · 5 yrs', applied: 'Applied Mar 14, 2026', quote: '"I\'m excited about joining a practice focused on patient care."', bg: '#d7ccc8', img: 'https://randomuser.me/api/portraits/women/55.jpg' },
-    { key: '3-james', name: 'James T.', rating: '⭐ 4.8', reviews: 55, meta: '$75,000/yr · 5.8 mi · 91% reliable · Eaglesoft ✓ · 7 yrs', applied: 'Applied Mar 13, 2026', quote: '"Looking for a long-term opportunity where I can grow with the team."', bg: '#c5cae9', img: 'https://randomuser.me/api/portraits/men/22.jpg' },
-    { key: '3-emily', name: 'Emily S.', rating: '⭐ 5', reviews: 82, meta: '$78,000/yr · 8.4 mi · 68% reliable · Eaglesoft ✓ · 4 yrs', applied: 'Applied Mar 15, 2026', quote: '"I bring 4 years of experience in fast-paced practices."', bg: '#f8bbd9', img: 'https://randomuser.me/api/portraits/women/33.jpg' },
-  ]
+  const formatTime = (timeStr) => {
+    if (!timeStr) return ''
+    const [h, m] = timeStr.split(':')
+    const hour = parseInt(h, 10)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const display = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
+    return `${display}:${m} ${ampm}`
+  }
 
-  const renderApplicant = (ap, type = 'temp') => {
-    const isAccepted = ap.preAccepted || accepted[ap.key]
-    const isDeclined = declined[ap.key]
-    const isShortlisted = shortlisted[ap.key]
+  const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
+  const getApplicantName = (app) => {
+    const u = app.provider?.user
+    if (u?.firstName && u?.lastName) return `${u.firstName} ${u.lastName.charAt(0)}.`
+    if (u?.firstName) return u.firstName
+    return 'Unknown'
+  }
+
+  const getFullName = (app) => {
+    const u = app.provider?.user
+    if (u?.firstName && u?.lastName) return `${u.firstName} ${u.lastName}`
+    if (u?.firstName) return u.firstName
+    return 'Unknown'
+  }
+
+  const renderApplicant = (app, type = 'temp') => {
+    const isAccepted = app.status === 'ACCEPTED' || accepted[app.id]
+    const isDeclined = app.status === 'DECLINED' || declined[app.id]
+    const isShortlisted = shortlisted[app.id]
+    const name = getApplicantName(app)
+    const fullName = getFullName(app)
+    const provider = app.provider
+    const reliability = provider?.reliabilityScore != null ? `${provider.reliabilityScore}% reliable` : ''
+    const rate = provider?.hourlyRate ? `$${provider.hourlyRate}/hr` : ''
+    const meta = [rate, reliability].filter(Boolean).join(' · ')
+
     return (
-      <div key={ap.key} className="flex items-start gap-4 px-6 py-4 border-b border-[#e5e7eb] last:border-0">
-        <img src={ap.img} onClick={() => navigate('/profile')} className="w-12 h-12 rounded-full object-cover flex-shrink-0 cursor-pointer" />
+      <div key={app.id} className="flex items-start gap-4 px-6 py-4 border-b border-[#e5e7eb] last:border-0">
+        <div onClick={() => navigate('/profile')} className="cursor-pointer flex-shrink-0">
+          <InitialsAvatar name={fullName} size={48} />
+        </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-sm font-bold text-[#1a1a1a]">{ap.name}</span>
-            <span className="text-xs text-[#f59e0b]">{ap.rating}</span>
-            <span className="text-xs text-[#6b7280]">({ap.reviews})</span>
+            <span className="text-sm font-bold text-[#1a1a1a]">{name}</span>
+            {provider?.reliabilityScore != null && (
+              <span className="text-xs text-[#6b7280]">({provider.reliabilityScore}%)</span>
+            )}
           </div>
-          <p className="text-xs text-[#6b7280] mb-0.5">{ap.meta}</p>
-          <p className="text-xs text-[#9ca3af] mb-1">{ap.applied}</p>
-          {ap.quote && <p className="text-xs text-[#6b7280] italic">{ap.quote}</p>}
+          {meta && <p className="text-xs text-[#6b7280] mb-0.5">{meta}</p>}
+          <p className="text-xs text-[#9ca3af] mb-1">{provider?.role || ''}</p>
+          {app.note && <p className="text-xs text-[#6b7280] italic">"{app.note}"</p>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {isDeclined ? (
@@ -107,14 +243,14 @@ export default function Applicants() {
             </>
           ) : type === 'perm' ? (
             <>
-              <button onClick={() => handleShortlist(ap.key, ap.name)} className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${isShortlisted ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#1a7f5e]'}`}>{isShortlisted ? '✓ Shortlisted' : 'Shortlist'}</button>
-              <button onClick={() => handleDecline(ap.key, ap.name)} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-1.5 rounded-full hover:border-red-400 hover:text-red-400 transition">Decline</button>
+              <button onClick={() => handleShortlist(app.id, name)} className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${isShortlisted ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#1a7f5e]'}`}>{isShortlisted ? '✓ Shortlisted' : 'Shortlist'}</button>
+              <button onClick={() => handleDecline(app.id, name)} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-1.5 rounded-full hover:border-red-400 hover:text-red-400 transition">Decline</button>
               <button onClick={() => navigate('/profile')} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-1.5 rounded-full hover:border-[#1a7f5e] transition">Profile</button>
             </>
           ) : (
             <>
-              <button onClick={() => handleAccept(ap.key, ap.name)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white text-xs font-bold px-3 py-1.5 rounded-full transition">Accept</button>
-              <button onClick={() => handleDecline(ap.key, ap.name)} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-1.5 rounded-full hover:border-red-400 hover:text-red-400 transition">Decline</button>
+              <button onClick={() => handleAccept(app.id, name)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white text-xs font-bold px-3 py-1.5 rounded-full transition">Accept</button>
+              <button onClick={() => handleDecline(app.id, name)} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-1.5 rounded-full hover:border-red-400 hover:text-red-400 transition">Decline</button>
               <button onClick={() => navigate('/profile')} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-1.5 rounded-full hover:border-[#1a7f5e] transition">Profile</button>
             </>
           )}
@@ -123,16 +259,44 @@ export default function Applicants() {
     )
   }
 
-  const renderGroup = (groupId, label, badge, meta, stats, applicants, type, tabOptions) => {
-    const filtered = filterApplicants(applicants, groupId)
+  const renderGroup = (shiftId, shift, applicants, type, tabOptions) => {
+    const filtered = filterApplicants(applicants, shiftId)
+    const label = `${shift.role} — ${formatDate(shift.date)}`
+    const badge = type === 'perm' ? 'Permanent' : 'Temp shift'
+    const timeRange = `${formatTime(shift.startTime)} – ${formatTime(shift.endTime)}`
+    const rateDisplay = shift.hourlyRate ? `$${shift.hourlyRate}/hr` : ''
+    const metaText = [timeRange, rateDisplay].filter(Boolean).join(' · ')
+
+    const pendingCount = applicants.filter(a => {
+      const acc = a.status === 'ACCEPTED' || accepted[a.id]
+      const dec = a.status === 'DECLINED' || declined[a.id]
+      return !acc && !dec
+    }).length
+    const acceptedCount = applicants.filter(a => a.status === 'ACCEPTED' || accepted[a.id]).length
+
+    const stats = type === 'perm'
+      ? [
+          { val: pendingCount, label: 'Reviewing', color: 'text-[#f59e0b]' },
+          { val: applicants.filter(a => shortlisted[a.id]).length, label: 'Shortlisted' },
+          { val: applicants.length, label: 'Total' },
+        ]
+      : [
+          { val: pendingCount, label: 'Pending', color: 'text-[#f59e0b]' },
+          { val: acceptedCount, label: 'Accepted', color: 'text-[#1a7f5e]' },
+          { val: applicants.length, label: 'Total' },
+        ]
+
     return (
-      <div className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-4">
-        <div onClick={() => toggleGroup(groupId)} className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-[#f9f8f6] transition">
+      <div key={shiftId} className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-4">
+        <div onClick={() => toggleGroup(shiftId)} className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-[#f9f8f6] transition">
           <div className="flex items-center gap-3">
             <span className="bg-[#e8f5f0] text-[#1a7f5e] text-xs font-bold px-2.5 py-1 rounded-full">{badge}</span>
             <div>
               <p className="text-sm font-extrabold text-[#1a1a1a]">{label}</p>
-              <div className="flex items-center gap-2 text-[13px] text-[#6b7280] mt-0.5">{meta}</div>
+              <div className="flex items-center gap-2 text-[13px] text-[#6b7280] mt-0.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {metaText}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-6">
@@ -144,14 +308,14 @@ export default function Applicants() {
                 </div>
               ))}
             </div>
-            <span className="text-[#9ca3af]">{openGroups[groupId] ? '∧' : '∨'}</span>
+            <span className="text-[#9ca3af]">{openGroups[shiftId] ? '∧' : '∨'}</span>
           </div>
         </div>
-        {openGroups[groupId] && (
+        {openGroups[shiftId] && (
           <div className="border-t border-[#e5e7eb]">
             <div className="flex gap-4 px-6 py-3 border-b border-[#e5e7eb]">
               {tabOptions.map(t => (
-                <button key={t} onClick={() => setSubTabs(prev => ({ ...prev, [groupId]: t }))} className={`text-sm font-semibold pb-1 border-b-2 transition ${subTabs[groupId] === t ? 'border-[#1a7f5e] text-[#1a7f5e]' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>{t}</button>
+                <button key={t} onClick={() => setSubTabs(prev => ({ ...prev, [shiftId]: t }))} className={`text-sm font-semibold pb-1 border-b-2 transition ${(subTabs[shiftId] || 'All') === t ? 'border-[#1a7f5e] text-[#1a7f5e]' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>{t}</button>
               ))}
             </div>
             {filtered.length === 0 ? (
@@ -162,7 +326,7 @@ export default function Applicants() {
                 action={null}
               />
             ) : (
-              filtered.map(ap => renderApplicant(ap, type))
+              filtered.map(app => renderApplicant(app, type))
             )}
           </div>
         )}
@@ -170,10 +334,26 @@ export default function Applicants() {
     )
   }
 
-  const hasAnyApplicants = (activeTopTab === 'all' || activeTopTab === 'temp' || activeTopTab === 'perm')
-  const tempGroups = activeTopTab === 'all' || activeTopTab === 'temp'
-  const permGroups = activeTopTab === 'all' || activeTopTab === 'perm'
-  const totalVisible = (tempGroups ? group1.length + group2.length : 0) + (permGroups ? group3.length : 0)
+  const grouped = groupByShift(applications)
+  const shiftEntries = Object.entries(grouped)
+  const tempShifts = shiftEntries.filter(([, apps]) => apps[0]?.shift)
+  const totalApplicants = applications.length
+
+  // Count by type (for now all treated as temp shifts since API doesn't distinguish)
+  const tempCount = totalApplicants
+  const permCount = 0
+
+  const visibleShifts = activeTopTab === 'all'
+    ? shiftEntries
+    : activeTopTab === 'temp'
+      ? tempShifts
+      : []
+
+  const topTabs = [
+    { id: 'all', label: 'All', count: totalApplicants },
+    { id: 'temp', label: 'Temp shifts', count: tempCount, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
+    { id: 'perm', label: 'Permanent jobs', count: permCount, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2"/></svg> },
+  ]
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
@@ -183,11 +363,7 @@ export default function Applicants() {
         <p className="text-[15px] text-[#6b7280] mb-6">Review professionals who have applied to your shifts and job postings.</p>
 
         <div className="flex gap-0 border-b border-[#e5e7eb] mb-6">
-          {[
-            { id: 'all', label: 'All', count: 9 },
-            { id: 'temp', label: 'Temp shifts', count: 6, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
-            { id: 'perm', label: 'Permanent jobs', count: 3, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2"/></svg> },
-          ].map(tab => (
+          {topTabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTopTab(tab.id)} className={`flex items-center gap-2 px-5 py-3 text-[15px] font-medium border-b-2 -mb-px transition ${activeTopTab === tab.id ? 'border-[#1a7f5e] text-[#1a7f5e] font-semibold' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>
               {tab.icon}
               {tab.label} <span className="text-[13px] bg-[#f3f4f6] text-[#6b7280] px-1.5 py-0.5 rounded-full font-semibold">{tab.count}</span>
@@ -195,37 +371,30 @@ export default function Applicants() {
           ))}
         </div>
 
-        {totalVisible === 0 ? (
+        {loading ? (
+          <>
+            <LoadingSkeleton />
+            <LoadingSkeleton />
+          </>
+        ) : applications.length === 0 ? (
           <div className="bg-white border border-[#e5e7eb] rounded-2xl">
             <EmptyState
               icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
               title="No applicants yet"
-              sub="Once professionals apply to your shifts or job postings they'll appear here."
-              action={
-                <div className="flex gap-3 justify-center">
-                  <button onClick={() => navigate('/post-shift')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition flex items-center gap-2">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Post a shift
-                  </button>
-                  <button onClick={() => navigate('/professionals')} className="border-[1.5px] border-[#1a7f5e] text-[#1a7f5e] font-bold px-6 py-2.5 rounded-full text-sm hover:bg-[#e8f5f0] transition">Browse professionals</button>
-                </div>
-              }
+              sub="Post a shift and applicants will appear here as professionals apply."
+              action={<button onClick={() => navigate('/post-shift')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-sm transition">Post a shift</button>}
             />
           </div>
         ) : (
           <>
-            {tempGroups && renderGroup(1, 'Dental Hygienist — Tue Mar 17', 'Temp shift',
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>7:30 AM – 5:00 PM · $54–$58/hr</>,
-              [{val:3,label:'Pending',color:'text-[#f59e0b]'},{val:1,label:'Accepted',color:'text-[#1a7f5e]'},{val:4,label:'Total'}],
-              group1,'temp',['All','Pending','Accepted','Declined'])}
-            {tempGroups && renderGroup(2, 'Dental Assistant — Fri Mar 21', 'Temp shift',
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>7:30 AM – 12:00 PM · $40–$44/hr</>,
-              [{val:2,label:'Pending',color:'text-[#f59e0b]'},{val:0,label:'Accepted'},{val:2,label:'Total'}],
-              group2,'temp',['All','Pending','Accepted','Declined'])}
-            {permGroups && renderGroup(3, 'Full-Time Dental Hygienist', 'Permanent',
-              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2"/></svg>Full-time · Mon–Fri · $70,000–$85,000/yr</>,
-              [{val:3,label:'Reviewing',color:'text-[#f59e0b]'},{val:0,label:'Shortlisted'},{val:3,label:'Total'}],
-              group3,'perm',['All','Reviewing','Shortlisted','Declined'])}
+            {visibleShifts.map(([shiftId, apps]) => {
+              const shift = apps[0]?.shift || {}
+              const type = 'temp' // adjust when API provides shift type
+              const tabOptions = type === 'perm'
+                ? ['All', 'Reviewing', 'Shortlisted', 'Declined']
+                : ['All', 'Pending', 'Accepted', 'Declined']
+              return renderGroup(shiftId, shift, apps, type, tabOptions)
+            })}
           </>
         )}
       </div>

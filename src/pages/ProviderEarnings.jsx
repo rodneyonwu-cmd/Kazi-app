@@ -1,16 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 
-const TRANSACTIONS = [
-  { id:1, office:'Evolve Dentistry',         date:'Mar 26, 2026', hrs:'9 hrs', amount:'+$468', status:'processing' },
-  { id:2, office:'Bright Smile Dental',      date:'Mar 20, 2026', hrs:'9 hrs', amount:'+$468', status:'deposited' },
-  { id:3, office:'Houston Family Dentistry', date:'Mar 17, 2026', hrs:'8 hrs', amount:'+$416', status:'deposited' },
-  { id:4, office:'Clear Lake Dental',        date:'Mar 14, 2026', hrs:'6 hrs', amount:'+$312', status:'deposited' },
-  { id:5, office:'Clear Lake Dental',        date:'Feb 28, 2026', hrs:'8 hrs', amount:'+$416', status:'deposited' },
-  { id:6, office:'Evolve Dentistry',         date:'Feb 20, 2026', hrs:'9 hrs', amount:'+$468', status:'deposited' },
-  { id:7, office:'Pearland Smiles',          date:'Feb 12, 2026', hrs:'7 hrs', amount:'+$336', status:'deposited' },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const STATUS = {
   deposited:  { label: 'Deposited',  bg: '#e8f5f0', color: '#1a7f5e' },
@@ -19,13 +12,30 @@ const STATUS = {
 
 export default function ProviderEarnings() {
   const navigate = useNavigate()
+  const { getToken } = useAuth()
   const [tab, setTab] = useState('history')
   const [bankModal, setBankModal] = useState(false)
   const [w9Modal, setW9Modal] = useState(false)
   const [ssnModal, setSsnModal] = useState(false)
   const [toast, setToast] = useState(null)
+  const [transactions, setTransactions] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
+
+  useEffect(() => {
+    const fetchEarnings = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/bookings?status=COMPLETED`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) setTransactions(await res.json())
+      } catch {}
+      setLoading(false)
+    }
+    fetchEarnings()
+  }, [getToken])
 
   const TABS = [
     { key: 'history', label: 'Transaction History' },
@@ -54,7 +64,7 @@ export default function ProviderEarnings() {
             <div className="text-[15px] font-black text-[#1a1a1a] mb-0.5">Add bank account</div>
             <div className="text-[12px] text-[#9ca3af] mb-4">Securely connected via Stripe</div>
             {[
-              { label: 'Account holder name', placeholder: 'Sarah Rodriguez', type: 'text' },
+              { label: 'Account holder name', placeholder: 'Full name', type: 'text' },
               { label: 'Routing number', placeholder: '021000021', type: 'text' },
               { label: 'Account number', placeholder: '············', type: 'password' },
             ].map(f => (
@@ -72,7 +82,7 @@ export default function ProviderEarnings() {
             </div>
             <div className="flex gap-2">
               <button onClick={() => setBankModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => { setBankModal(false); showToast('Bank account added!') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save account</button>
+              <button onClick={() => { setBankModal(false); showToast('Bank account setup coming soon — Stripe integration pending') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save account</button>
             </div>
           </div>
         </div>
@@ -85,7 +95,7 @@ export default function ProviderEarnings() {
             <div className="text-[15px] font-black text-[#1a1a1a] mb-0.5">W-9 Information</div>
             <div className="text-[12px] text-[#9ca3af] mb-4">Required by the IRS for independent contractors</div>
             {[
-              { label: 'Legal name', placeholder: 'Sarah M. Rodriguez', type: 'text', val: 'Sarah M. Rodriguez' },
+              { label: 'Legal name', placeholder: 'Your legal name', type: 'text', val: '' },
               { label: 'Business name (optional)', placeholder: 'Leave blank if individual', type: 'text', val: '' },
             ].map(f => (
               <div key={f.label} className="mb-3">
@@ -108,7 +118,7 @@ export default function ProviderEarnings() {
             </div>
             <div className="flex gap-2">
               <button onClick={() => setW9Modal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => { setW9Modal(false); showToast('W-9 information saved!') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save W-9</button>
+              <button onClick={() => { setW9Modal(false); showToast('W-9 submission coming soon') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save W-9</button>
             </div>
           </div>
         </div>
@@ -128,7 +138,7 @@ export default function ProviderEarnings() {
             ))}
             <div className="flex gap-2 mt-4">
               <button onClick={() => setSsnModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => { setSsnModal(false); showToast('SSN updated securely!') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Update SSN</button>
+              <button onClick={() => { setSsnModal(false); showToast('SSN update coming soon') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Update SSN</button>
             </div>
           </div>
         </div>
@@ -155,36 +165,36 @@ export default function ProviderEarnings() {
         {tab === 'history' && (
           <div>
             <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-2">Deposit history</div>
-            {TRANSACTIONS.map(tx => (
-              <div key={tx.id} className="bg-white border border-[#e5e7eb] rounded-[9px] px-3 py-2.5 mb-1 flex items-center gap-2.5">
-                <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-bold text-[#1a1a1a] truncate">{tx.office}</div>
-                  <div className="text-[10px] text-[#9ca3af]">{tx.date} · {tx.hrs}</div>
+            {transactions.length === 0 ? (
+              <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-10 text-center">
+                <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <div className={`text-[12px] font-bold ${tx.status === 'deposited' ? 'text-[#1a7f5e]' : 'text-[#1a1a1a]'}`}>{tx.amount}</div>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: STATUS[tx.status].bg, color: STATUS[tx.status].color }}>{STATUS[tx.status].label}</span>
-                </div>
+                <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No earnings yet</p>
+                <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">Complete your first shift and your earnings will appear here. Payments are processed within 24 hours.</p>
               </div>
-            ))}
+            ) : (
+              transactions.map(tx => (
+                <div key={tx.id} className="bg-white border border-[#e5e7eb] rounded-[9px] px-3 py-2.5 mb-1 flex items-center gap-2.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold text-[#1a1a1a] truncate">{tx.office}</div>
+                    <div className="text-[10px] text-[#9ca3af]">{tx.date} · {tx.hrs}</div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className={`text-[12px] font-bold ${tx.status === 'deposited' ? 'text-[#1a7f5e]' : 'text-[#1a1a1a]'}`}>{tx.amount}</div>
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: STATUS[tx.status]?.bg, color: STATUS[tx.status]?.color }}>{STATUS[tx.status]?.label}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
         {/* Payout Accounts */}
         {tab === 'payout' && (
           <div>
-            <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-2">Connected account</div>
-            <div className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-3 mb-1.5 flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[8px] bg-[#e8f5f0] flex items-center justify-center flex-shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-bold text-[#1a1a1a]">Chase Bank ···4521</div>
-                <div className="text-[11px] text-[#9ca3af]">Checking · Connected via Stripe</div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#e8f5f0] text-[#1a7f5e] flex-shrink-0">Default</span>
-              <button onClick={() => showToast('Bank account removed')} className="text-[11px] font-bold text-[#ef4444] bg-none border-none cursor-pointer ml-1 flex-shrink-0" style={{ fontFamily: 'inherit' }}>Remove</button>
-            </div>
+            <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-2">Payout account</div>
+            <p className="text-[13px] text-[#9ca3af] mb-3">No payout account connected yet. Add a bank account to receive payments.</p>
 
             <div
               onClick={() => setBankModal(true)}
@@ -206,37 +216,12 @@ export default function ProviderEarnings() {
           <div>
             <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-2">Tax documents & info</div>
 
-            <div onClick={() => setW9Modal(true)} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-3 mb-1.5 flex items-center gap-2.5 cursor-pointer hover:border-[#1a7f5e] transition">
-              <div className="w-8 h-8 rounded-[8px] bg-[#e8f5f0] flex items-center justify-center flex-shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-10 text-center">
+              <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-bold text-[#1a1a1a]">W-9 Form</div>
-                <div className="text-[11px] text-[#9ca3af]">Required for payouts · Completed</div>
-              </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#e8f5f0] text-[#1a7f5e] flex-shrink-0">✓ On file</span>
-            </div>
-
-            <div onClick={() => showToast('Downloading 1099...')} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-3 mb-1.5 flex items-center gap-2.5 cursor-pointer hover:border-[#1a7f5e] transition">
-              <div className="w-8 h-8 rounded-[8px] bg-[#ede9fe] flex items-center justify-center flex-shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-7"/><path d="M9 15l3 3 3-3"/></svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-bold text-[#1a1a1a]">1099-NEC · 2025</div>
-                <div className="text-[11px] text-[#9ca3af]">You earned $18,460 in 2025</div>
-              </div>
-              <span className="text-[11px] font-bold text-[#1a7f5e] flex-shrink-0">Download →</span>
-            </div>
-
-            <div onClick={() => setSsnModal(true)} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-3 mb-1.5 flex items-center gap-2.5 cursor-pointer hover:border-[#1a7f5e] transition">
-              <div className="w-8 h-8 rounded-[8px] bg-[#f3f4f6] flex items-center justify-center flex-shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-bold text-[#1a1a1a]">SSN / EIN</div>
-                <div className="text-[11px] text-[#9ca3af]">···-··-4821 · Encrypted &amp; secure</div>
-              </div>
-              <span className="text-[11px] font-bold text-[#1a7f5e] flex-shrink-0">Update →</span>
+              <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No tax documents yet</p>
+              <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">Tax documents will be available after you complete shifts and earn income through Kazi.</p>
             </div>
           </div>
         )}
@@ -247,7 +232,7 @@ export default function ProviderEarnings() {
         <div className="flex">
           {[
             { label: 'Home',       path: '/provider-dashboard',   icon: <HomeIcon /> },
-            { label: 'Requests',   path: '/provider-requests',    icon: <ReqIcon />,  badge: 2 },
+            { label: 'Requests',   path: '/provider-requests',    icon: <ReqIcon /> },
             { label: 'Find Shifts',path: '/provider-find-shifts', icon: <SearchIcon /> },
             { label: 'Messages',   path: '/provider-messages',    icon: <MsgIcon /> },
             { label: 'Finance',    path: '/provider-earnings',    icon: <EarnIcon />, active: true },
