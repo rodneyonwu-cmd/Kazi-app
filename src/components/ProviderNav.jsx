@@ -32,12 +32,15 @@ export default function ProviderNav() {
     fetchProfile()
   }, [getToken])
 
-  const firstName = profile?.firstName || user?.firstName || ''
+  const rawFirst = profile?.firstName || user?.firstName || ''
   const lastName = profile?.lastName || user?.lastName || ''
+  const isDentist = profile?.role === 'dentist'
+  const firstName = isDentist ? `Dr. ${rawFirst}` : rawFirst
   const displayName = firstName ? `${firstName} ${lastName?.charAt(0) || ''}.` : 'My Account'
   const email = user?.primaryEmailAddress?.emailAddress || profile?.email || ''
+  const ROLE_LABELS = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Office', dentist: 'Dentist', specialist: 'Specialist' }
   const rawRole = profile?.role || null
-  const roleName = rawRole ? rawRole.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null
+  const roleName = rawRole ? (ROLE_LABELS[rawRole] || rawRole.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')) : null
   const loc = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : null
   const pendingCount = profile?.stats?.pendingRequests || 0
   const [unreadMsgCount, setUnreadMsgCount] = useState(0)

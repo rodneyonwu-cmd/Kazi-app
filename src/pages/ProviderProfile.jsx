@@ -8,6 +8,18 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
 
+const ROLE_LABELS = {
+  hygienist: 'Dental Hygienist',
+  assistant: 'Dental Assistant',
+  front: 'Front Office',
+  dentist: 'Dentist',
+  specialist: 'Specialist',
+}
+function displayRole(role) {
+  if (!role) return ''
+  return ROLE_LABELS[role] || role
+}
+
 const CheckIcon = () => (
   <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
 )
@@ -37,6 +49,20 @@ export default function ProviderProfile() {
   const [about, setAbout] = useState('')
   const [rate, setRate] = useState('')
   const fileInputRef = useRef(null)
+  const credInputRef = useRef(null)
+
+  // Software & Skills modal state
+  const [showSoftwareModal, setShowSoftwareModal] = useState(false)
+  const [showSkillsModal, setShowSkillsModal] = useState(false)
+  const [editSoftware, setEditSoftware] = useState([])
+  const [editSkills, setEditSkills] = useState([])
+
+  // Credential upload state
+  const [credUploadType, setCredUploadType] = useState(null)
+
+  // Withdraw modal state
+  const SOFTWARE_OPTIONS = ['Eaglesoft', 'Dentrix', 'Open Dental', 'Curve Dental', 'Dexis', 'Carestream', 'Dolphin', 'Other']
+  const SKILLS_OPTIONS = ['Prophylaxis', 'Scaling & Root Planing', 'Sealants', 'Fluoride Treatment', 'X-Rays', 'Periodontal Charting', 'Coronal Polishing', 'Nitrous Oxide Administration', 'Local Anesthesia', 'Impressions', 'Temporary Crowns', 'Patient Education', 'Infection Control', 'Sterilization', 'Front Desk', 'Bilingual - Spanish']
 
   useEffect(() => {
     async function fetchData() {
@@ -66,7 +92,6 @@ export default function ProviderProfile() {
           ])
           setReviews(Array.isArray(revData) ? revData : [])
           setCreds(Array.isArray(credData) ? credData : [])
-          console.log('[DEBUG] availData from API:', availData)
           setAvailability(Array.isArray(availData) ? availData : [])
         }
       } catch (err) {
@@ -81,45 +106,107 @@ export default function ProviderProfile() {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
   const saveProfile = async () => {
-    if (!profile?.id) return
     try {
       const token = await getToken()
-      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      await fetch(`${API_URL}/api/providers/${profile.id}`, {
-        method: 'PATCH', headers,
+      const res = await fetch(`${API_URL}/api/providers/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ bio: about, hourlyRate: rate ? parseFloat(rate) : null }),
       })
+      if (res.ok) {
+        const updated = await res.json()
+        setProfile(prev => ({ ...prev, bio: updated.bio, hourlyRate: updated.hourlyRate }))
+      }
       setShowEditModal(false)
       showToast('Profile updated!')
     } catch { showToast('Failed to update profile') }
   }
 
   const saveRate = async () => {
-    if (!profile?.id || !rate) return
+    if (!rate) return
     try {
       const token = await getToken()
-      await fetch(`${API_URL}/api/providers/${profile.id}`, {
+      const res = await fetch(`${API_URL}/api/providers/me`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ hourlyRate: parseFloat(rate) }),
       })
-      setEditingRate(false)
-      showToast('Rate updated!')
+      if (res.ok) {
+        const updated = await res.json()
+        setProfile(prev => ({ ...prev, hourlyRate: updated.hourlyRate }))
+        setEditingRate(false)
+        showToast('Rate updated!')
+      } else { showToast('Failed to update rate') }
     } catch { showToast('Failed to update rate') }
   }
 
   const saveAbout = async () => {
-    if (!profile?.id) return
     try {
       const token = await getToken()
-      await fetch(`${API_URL}/api/providers/${profile.id}`, {
+      const res = await fetch(`${API_URL}/api/providers/me`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ bio: about }),
       })
+      if (res.ok) {
+        const updated = await res.json()
+        setProfile(prev => ({ ...prev, bio: updated.bio }))
+      }
       setEditingAbout(false)
       showToast('About updated!')
     } catch { showToast('Failed to update about') }
+  }
+
+  const saveSoftware = async () => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/providers/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ software: editSoftware }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setProfile(prev => ({ ...prev, software: updated.software }))
+        setShowSoftwareModal(false)
+        showToast('Software updated!')
+      } else { showToast('Failed to update') }
+    } catch { showToast('Failed to update') }
+  }
+
+  const saveSkills = async () => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/providers/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ skills: editSkills }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setProfile(prev => ({ ...prev, skills: updated.skills }))
+        setShowSkillsModal(false)
+        showToast('Skills updated!')
+      } else { showToast('Failed to update') }
+    } catch { showToast('Failed to update') }
+  }
+
+  const uploadCredential = async (type, file) => {
+    try {
+      const token = await getToken()
+      const providerId = profile?.id
+      if (!providerId) return
+      const res = await fetch(`${API_URL}/api/providers/${providerId}/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type, fileUrl: file.name, verified: false }),
+      })
+      if (res.ok) {
+        const cred = await res.json()
+        setCreds(prev => [...prev, cred])
+        showToast(`${type} uploaded!`)
+      } else { showToast('Failed to upload credential') }
+    } catch { showToast('Failed to upload credential') }
   }
 
   const changeMonth = (delta) => {
@@ -137,10 +224,12 @@ export default function ProviderProfile() {
   const trailing    = total % 7 === 0 ? 0 : 7 - (total % 7)
 
   // Derive display values from profile
-  const firstName   = profile?.firstName || user?.firstName || ''
+  const rawFirst    = profile?.firstName || user?.firstName || ''
   const lastName    = profile?.lastName || user?.lastName || ''
+  const isDentist   = profile?.role === 'dentist'
+  const firstName   = isDentist ? `Dr. ${rawFirst}` : rawFirst
   const displayName = firstName ? `${firstName} ${lastName ? lastName.charAt(0) + '.' : ''}`.trim() : ''
-  const roleName    = profile?.role || ''
+  const roleName    = displayRole(profile?.role)
   const locationStr = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : ''
   const softwareList = profile?.software || []
   const skillsList   = profile?.skills || []
@@ -149,19 +238,15 @@ export default function ProviderProfile() {
   // Compute availability days for the calendar
   const bookedDays = []
   const availDays  = []
-  console.log('[DEBUG] availability state:', availability, 'monthIdx:', monthIdx, 'year:', year)
   availability.forEach(slot => {
-    // Skip exception/blocked slots — they represent unavailable dates
     if (slot.isException) return
     if (slot.date) {
-      // Date-specific slot
       const d = new Date(slot.date)
       if (d.getMonth() === monthIdx && d.getFullYear() === year) {
         const day = d.getDate()
         if (!availDays.includes(day) && !bookedDays.includes(day)) availDays.push(day)
       }
     } else if (slot.dayOfWeek != null) {
-      // Recurring weekly slot — expand to all matching dates in this month
       for (let d = 1; d <= daysInMonth; d++) {
         if (new Date(year, monthIdx, d).getDay() === slot.dayOfWeek) {
           if (!availDays.includes(d) && !bookedDays.includes(d)) availDays.push(d)
@@ -265,6 +350,60 @@ export default function ProviderProfile() {
                 <button onClick={() => setShowEditModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
                 <button onClick={saveProfile} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save changes</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SOFTWARE MODAL */}
+      {showSoftwareModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+          <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Practice Software</h2>
+              <button onClick={() => setShowSoftwareModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
+            </div>
+            <div style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {SOFTWARE_OPTIONS.map(sw => {
+                const selected = editSoftware.includes(sw)
+                return (
+                  <button key={sw} onClick={() => setEditSoftware(prev => selected ? prev.filter(s => s !== sw) : [...prev, sw])}
+                    style={{ padding: '7px 16px', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: selected ? '1.5px solid #1a7f5e' : '1.5px solid #e5e7eb', background: selected ? '#e8f5f0' : 'white', color: selected ? '#1a7f5e' : '#374151' }}>
+                    {selected ? '✓ ' : ''}{sw}
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ padding: '16px 24px', display: 'flex', gap: 12 }}>
+              <button onClick={() => setShowSoftwareModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={saveSoftware} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SKILLS MODAL */}
+      {showSkillsModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+          <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Skills & Experience</h2>
+              <button onClick={() => setShowSkillsModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
+            </div>
+            <div style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {SKILLS_OPTIONS.map(skill => {
+                const selected = editSkills.includes(skill)
+                return (
+                  <button key={skill} onClick={() => setEditSkills(prev => selected ? prev.filter(s => s !== skill) : [...prev, skill])}
+                    style={{ padding: '7px 16px', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: selected ? '1.5px solid #1a7f5e' : '1.5px solid #e5e7eb', background: selected ? '#e8f5f0' : 'white', color: selected ? '#1a7f5e' : '#374151' }}>
+                    {selected ? '✓ ' : ''}{skill}
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ padding: '16px 24px', display: 'flex', gap: 12 }}>
+              <button onClick={() => setShowSkillsModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={saveSkills} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save</button>
             </div>
           </div>
         </div>
@@ -375,9 +514,9 @@ export default function ProviderProfile() {
               </div>
               {/* Legend */}
               <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
-                {[['#e8f5f0','#1a7f5e','Available'],['#fef3c7','#f59e0b','Booked'],['#f3f4f6','#d1d5db','Unavailable']].map(([bg,bd,lbl]) => (
+                {[['#e8f5f0','1.5px solid #1a7f5e','Available'],['#fef3c7','1.5px solid #f59e0b','Booked'],['#f3f4f6','1.5px solid #d1d5db','Unavailable']].map(([bg,border,lbl]) => (
                   <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
-                    <div style={{ width: 9, height: 9, borderRadius: '50%', background: bd }}/>
+                    <div style={{ width: 9, height: 9, borderRadius: '50%', background: bg, border, boxSizing: 'border-box' }}/>
                     {lbl}
                   </div>
                 ))}
@@ -417,7 +556,26 @@ export default function ProviderProfile() {
             </div>
 
             {/* RESUME */}
-            <input type="file" ref={fileInputRef} accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) showToast('Resume upload coming soon') }} />
+            <input type="file" ref={fileInputRef} accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={async e => {
+              const file = e.target.files[0]
+              if (!file) return
+              try {
+                const token = await getToken()
+                const formData = new FormData()
+                formData.append('file', file)
+                const res = await fetch(`${API_URL}/api/providers/resume`, {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}` },
+                  body: formData,
+                })
+                if (res.ok) {
+                  const data = await res.json()
+                  setProfile(prev => ({ ...prev, resumeUrl: data.resumeUrl, resumeName: data.resumeName }))
+                  showToast('Resume uploaded!')
+                } else { showToast('Failed to upload resume') }
+              } catch { showToast('Failed to upload resume') }
+              e.target.value = ''
+            }} />
             <div style={s.card}>
               <span style={s.sectionLabel}>Resume</span>
               {profile?.resumeUrl ? (
@@ -426,14 +584,11 @@ export default function ProviderProfile() {
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{firstName ? `${firstName}_Resume.pdf` : 'Resume.pdf'}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{profile.resumeName || (firstName ? `${firstName}_Resume.pdf` : 'Resume.pdf')}</div>
                     <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Uploaded</div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {!readOnly && <button style={{ fontSize: 12, fontWeight: 700, color: '#374151', border: '1.5px solid #e5e7eb', padding: '6px 12px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Replace</button>}
-                    <button onClick={() => showToast('Resume downloaded!')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}>
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </button>
+                    {!readOnly && <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 12, fontWeight: 700, color: '#374151', border: '1.5px solid #e5e7eb', padding: '6px 12px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Replace</button>}
                   </div>
                 </div>
               ) : (
@@ -450,7 +605,7 @@ export default function ProviderProfile() {
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Practice Software</span>
-                {!readOnly && <button onClick={() => showToast('Coming soon')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
+                {!readOnly && <button onClick={() => { setEditSoftware([...softwareList]); setShowSoftwareModal(true) }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
               </div>
               {softwareList.length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -467,7 +622,7 @@ export default function ProviderProfile() {
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Skills & Experience</span>
-                {!readOnly && <button onClick={() => showToast('Coming soon')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
+                {!readOnly && <button onClick={() => { setEditSkills([...skillsList]); setShowSkillsModal(true) }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
               </div>
               {skillsList.length > 0 ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -481,20 +636,39 @@ export default function ProviderProfile() {
             </div>
 
             {/* CREDENTIALS */}
+            <input type="file" ref={credInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={async e => {
+              const file = e.target.files[0]
+              if (!file || !credUploadType) return
+              await uploadCredential(credUploadType, file)
+              setCredUploadType(null)
+              e.target.value = ''
+            }} />
             <div style={s.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Credentials</span>
                 {!readOnly && <button onClick={() => navigate('/provider-documents')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Manage {'\u2192'}</button>}
               </div>
-              {credentials.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {credentials.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                   {credentials.map(c => (
                     <span key={c.id || c.label || c.name} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: (c.verified || c.ok) ? '#f3f4f6' : '#fef9c3', color: (c.verified || c.ok) ? '#374151' : '#92400e' }}>
                       {(c.verified || c.ok) ? '\u2713' : '\u26a0'} {c.label || c.name || c.type}
                     </span>
                   ))}
                 </div>
-              ) : (
+              )}
+              {!readOnly && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {['License', 'CPR/BLS', 'Local Anesthesia', 'Nitrous Oxide'].filter(t => !credentials.some(c => c.type === t)).map(type => (
+                    <button key={type} onClick={() => { setCredUploadType(type); credInputRef.current?.click() }}
+                      style={{ fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 100, border: '1.5px dashed #d1d5db', background: 'white', color: '#6b7280', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {credentials.length === 0 && readOnly && (
                 <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No credentials uploaded yet</div>
               )}
             </div>

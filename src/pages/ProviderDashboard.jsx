@@ -14,6 +14,18 @@ const LOGO_COLORS = [
   { bg: 'bg-[#dbeafe]', text: 'text-[#1e40af]' },
 ]
 
+const ROLE_LABELS = {
+  hygienist: 'Dental Hygienist',
+  assistant: 'Dental Assistant',
+  front: 'Front Office',
+  dentist: 'Dentist',
+  specialist: 'Specialist',
+}
+function displayRole(role) {
+  if (!role) return ''
+  return ROLE_LABELS[role] || role
+}
+
 function getGreeting() {
   const h = new Date().getHours()
   if (h < 12) return 'Good morning'
@@ -127,8 +139,10 @@ export default function ProviderDashboard() {
     fetchData()
   }, [getToken])
 
-  const firstName = profile?.firstName || user?.firstName || 'there'
-  const roleName = profile?.role || 'Dental Professional'
+  const rawFirst = profile?.firstName || user?.firstName || 'there'
+  const isDentist = profile?.role === 'dentist'
+  const firstName = isDentist ? `Dr. ${rawFirst}` : rawFirst
+  const roleName = displayRole(profile?.role)
   const location = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : null
   const avatarUrl = profile?.avatarUrl
 

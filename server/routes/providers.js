@@ -1,5 +1,11 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import prisma from '../lib/prisma.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const upload = multer({ dest: path.join(__dirname, '..', '..', 'uploads') });
 
 const router = Router();
 
@@ -151,6 +157,31 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PATCH /api/providers/me – update current user's provider profile
+router.patch('/me', authGuard, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { provider: true },
+    });
+    if (!user?.provider) return res.status(404).json({ error: 'Provider not found' });
+
+    const allowed = ['role', 'bio', 'hourlyRate', 'travelRadius', 'city', 'state', 'zip', 'software', 'skills', 'resumeUrl', 'resumeName'];
+    const data = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) data[key] = req.body[key];
+    }
+
+    const provider = await prisma.provider.update({
+      where: { id: user.provider.id },
+      data,
+    });
+    res.json(provider);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/providers/:id
 router.patch('/:id', authGuard, async (req, res) => {
   try {
@@ -159,6 +190,31 @@ router.patch('/:id', authGuard, async (req, res) => {
       data: req.body,
     });
     res.json(provider);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/providers/resume – upload resume
+router.post('/resume', authGuard, upload.single('file'), async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { provider: true },
+    });
+    if (!user?.provider) return res.status(404).json({ error: 'Provider not found' });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const provider = await prisma.provider.update({
+      where: { id: user.provider.id },
+      data: {
+        resumeUrl: `/uploads/${file.filename}`,
+        resumeName: file.originalname,
+      },
+    });
+    res.json({ resumeUrl: provider.resumeUrl, resumeName: provider.resumeName });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
