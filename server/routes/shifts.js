@@ -6,10 +6,11 @@ const router = Router();
 // GET /api/shifts – list shifts (with filters)
 router.get('/', async (req, res) => {
   try {
-    const { role, status, city, state, minRate, date } = req.query;
+    const { role, status, city, state, minRate, date, officeId } = req.query;
     const where = {};
     if (status) where.status = status;
     if (role) where.role = role;
+    if (officeId) where.officeId = officeId;
     if (minRate) where.hourlyRate = { gte: parseFloat(minRate) };
     if (date) where.date = new Date(date);
     if (city || state) {
@@ -75,11 +76,12 @@ router.post('/', async (req, res) => {
 
     if (!user?.office) return res.status(403).json({ error: 'Only offices can create shifts. Please complete onboarding first.' });
 
-    const { role, date, startTime, endTime, hourlyRate, description, software, isRapidFill } = req.body;
+    const { role, jobType, date, startTime, endTime, hourlyRate, description, software, isRapidFill } = req.body;
     const shift = await prisma.shift.create({
       data: {
         officeId: user.office.id,
         role: role || 'Dental Hygienist',
+        jobType: jobType || 'TEMPORARY',
         date: new Date(date),
         startTime: startTime || '8:00 AM',
         endTime: endTime || '5:00 PM',

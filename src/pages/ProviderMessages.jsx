@@ -12,8 +12,19 @@ export default function ProviderMessages() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeId, setActiveId] = useState(null)
-  const [extraMessages, setExtraMessages] = useState({})
+  const [threadMessages, setThreadMessages] = useState([])
+  const [threadLoading, setThreadLoading] = useState(false)
   const [input, setInput] = useState('')
+
+  const fmtTime = (d) => {
+    if (!d) return ''
+    const dt = new Date(d)
+    const now = new Date()
+    const diff = now - dt
+    if (diff < 86400000) return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    if (diff < 172800000) return 'Yesterday'
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -22,34 +33,73 @@ export default function ProviderMessages() {
         const res = await fetch(`${API_URL}/api/messages/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        if (res.ok) setConversations(await res.json())
-      } catch {}
+        if (!res.ok) { setLoading(false); return }
+        const data = await res.json()
+        const convos = data.map(msg => {
+          const officeName = msg.office?.name || `${msg.office?.user?.firstName || ''} ${msg.office?.user?.lastName || ''}`.trim() || 'Office'
+          const initials = officeName.split(' ').map(w => w[0]).filter(Boolean).join('').toUpperCase().slice(0, 2)
+          return {
+            id: `${msg.officeId}-${msg.providerId}`,
+            officeId: msg.officeId,
+            providerId: msg.providerId,
+            name: officeName,
+            initials,
+            lastMsg: msg.body,
+            time: fmtTime(msg.createdAt),
+            unread: msg.unreadCount || 0,
+          }
+        })
+        setConversations(convos)
+      } catch (err) { console.error('Fetch conversations error:', err) }
       setLoading(false)
     }
     fetchConversations()
   }, [getToken])
 
+  // Fetch thread when a conversation is selected
+  useEffect(() => {
+    if (!activeId) return
+    const conv = conversations.find(c => c.id === activeId)
+    if (!conv) return
+    setThreadLoading(true)
+    const fetchThread = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/messages/${conv.officeId}/${conv.providerId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) setThreadMessages(await res.json())
+        // Mark as read
+        await fetch(`${API_URL}/api/messages/read-all/${conv.officeId}/${conv.providerId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setConversations(prev => prev.map(c => c.id === activeId ? { ...c, unread: 0 } : c))
+      } catch {}
+      setThreadLoading(false)
+    }
+    fetchThread()
+  }, [activeId])
+
   const filtered = conversations.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
   const activeConv = conversations.find(c => c.id === activeId)
-  const activeMessages = activeConv ? [...activeConv.messages, ...(extraMessages[activeId] || [])] : []
 
   const sendMessage = async () => {
-    if (!input.trim() || !activeId) return
-    const now = new Date()
-    const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    if (!input.trim() || !activeConv) return
     const text = input.trim()
-    setExtraMessages(prev => ({ ...prev, [activeId]: [...(prev[activeId] || []), { from: 'me', text, time }] }))
+    // Optimistic add
+    const optimistic = { id: Date.now().toString(), body: text, fromRole: 'PROVIDER', createdAt: new Date().toISOString() }
+    setThreadMessages(prev => [...prev, optimistic])
     setInput('')
     try {
       const token = await getToken()
-      const activeConv = conversations.find(c => c.id === activeId)
-      if (activeConv?.officeId && activeConv?.providerId) {
-        await fetch(`${API_URL}/api/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ officeId: activeConv.officeId, providerId: activeConv.providerId, body: text, fromRole: 'PROVIDER' }),
-        })
-      }
+      await fetch(`${API_URL}/api/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ officeId: activeConv.officeId, providerId: activeConv.providerId, body: text }),
+      })
+      // Update last message in sidebar
+      setConversations(prev => prev.map(c => c.id === activeId ? { ...c, lastMsg: text, time: 'Now' } : c))
     } catch {}
   }
 
@@ -122,17 +172,14 @@ export default function ProviderMessages() {
               ) : (
                 filtered.map(conv => (
                   <div key={conv.id} onClick={() => setActiveId(conv.id)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#f3f4f6] transition ${activeId === conv.id ? 'bg-[#f0faf5] border-l-2 border-l-[#1a7f5e]' : 'hover:bg-[#f9f8f6]'}`}>
-                    <div className="relative flex-shrink-0">
-                      <div className={`w-10 h-10 rounded-[11px] ${conv.logoBg} flex items-center justify-center text-[11px] font-black ${conv.logoColor}`}>{conv.initials}</div>
-                      {conv.online && <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#1a7f5e] border-2 border-white" />}
-                    </div>
+                    <div className="w-10 h-10 rounded-[11px] bg-[#e8f5f0] flex items-center justify-center text-[11px] font-black text-[#1a7f5e] flex-shrink-0">{conv.initials}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <p className={`text-[13px] ${conv.unread > 0 ? 'font-black' : 'font-semibold'} text-[#1a1a1a] truncate`}>{conv.name}</p>
                         <p className="text-[11px] text-[#9ca3af] flex-shrink-0 ml-1">{conv.time}</p>
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className={`text-[12px] truncate ${conv.unread > 0 ? 'font-semibold text-[#374151]' : 'text-[#9ca3af]'}`}>{conv.preview}</p>
+                        <p className={`text-[12px] truncate ${conv.unread > 0 ? 'font-semibold text-[#374151]' : 'text-[#9ca3af]'}`}>{conv.lastMsg}</p>
                         {conv.unread > 0 && <span className="ml-1 bg-[#1a7f5e] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0">{conv.unread}</span>}
                       </div>
                     </div>
@@ -150,28 +197,33 @@ export default function ProviderMessages() {
           ) : (
             <div className="flex-1 flex flex-col bg-[#f9f8f6] overflow-hidden">
               <div className="bg-white border-b border-[#e5e7eb] px-6 py-3.5 flex items-center gap-3 flex-shrink-0">
-                <div className="relative">
-                  <div className={`w-10 h-10 rounded-[11px] ${activeConv.logoBg} flex items-center justify-center text-[11px] font-black ${activeConv.logoColor}`}>{activeConv.initials}</div>
-                  {activeConv.online && <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#1a7f5e] border-2 border-white" />}
-                </div>
+                <div className="w-10 h-10 rounded-[11px] bg-[#e8f5f0] flex items-center justify-center text-[11px] font-black text-[#1a7f5e] flex-shrink-0">{activeConv.initials}</div>
                 <div>
                   <p className="text-[15px] font-black text-[#1a1a1a]">{activeConv.name}</p>
-                  <p className={`text-[12px] font-semibold ${activeConv.online ? 'text-[#1a7f5e]' : 'text-[#9ca3af]'}`}>{activeConv.online ? 'Online now' : 'Offline'}</p>
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
-                {activeMessages.map((msg, i) => {
-                  const isMe = msg.from === 'me'
-                  return (
-                    <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} gap-1`}>
-                      <div className={`max-w-[65%] px-4 py-2.5 text-[14px] leading-relaxed ${isMe ? 'bg-[#1a7f5e] text-white rounded-[18px_18px_4px_18px]' : 'bg-white text-[#1a1a1a] rounded-[18px_18px_18px_4px] border border-[#e5e7eb]'}`}>
-                        {msg.text}
+                {threadLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <svg className="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                  </div>
+                ) : threadMessages.length === 0 ? (
+                  <div className="text-center py-10 text-[#9ca3af] text-[13px]">No messages yet. Say hello!</div>
+                ) : (
+                  threadMessages.map((msg, i) => {
+                    const isMe = msg.fromRole === 'PROVIDER'
+                    const time = fmtTime(msg.createdAt)
+                    return (
+                      <div key={msg.id || i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} gap-1`}>
+                        <div className={`max-w-[65%] px-4 py-2.5 text-[14px] leading-relaxed ${isMe ? 'bg-[#1a7f5e] text-white rounded-[18px_18px_4px_18px]' : 'bg-white text-[#1a1a1a] rounded-[18px_18px_18px_4px] border border-[#e5e7eb]'}`}>
+                          {msg.body}
+                        </div>
+                        <p className="text-[11px] text-[#9ca3af] px-1">{time}</p>
                       </div>
-                      <p className="text-[11px] text-[#9ca3af] px-1">{msg.time}</p>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                )}
               </div>
 
               <div className="bg-white border-t border-[#e5e7eb] px-6 py-3 flex gap-3 items-end flex-shrink-0">

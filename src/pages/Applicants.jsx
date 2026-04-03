@@ -60,21 +60,43 @@ export default function Applicants() {
   const [shortlisted, setShortlisted] = useState({})
   const [subTabs, setSubTabs] = useState({})
   const [applications, setApplications] = useState([])
+  const [shifts, setShifts] = useState([])
+  const [shiftGroups, setShiftGroups] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchApplications = async () => {
+    const fetchData = async () => {
       try {
         const token = await getToken()
-        const res = await fetch(`${API_URL}/api/applications`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const headers = { Authorization: `Bearer ${token}` }
+
+        // Fetch office profile to get officeId
+        const officeRes = await fetch(`${API_URL}/api/offices/me`, { headers })
+        if (!officeRes.ok) { setLoading(false); return }
+        const office = await officeRes.json()
+
+        // Fetch shifts AND applications in parallel
+        const [shiftsRes, appsRes] = await Promise.all([
+          fetch(`${API_URL}/api/shifts?officeId=${office.id}`, { headers }),
+          fetch(`${API_URL}/api/applications`, { headers }),
+        ])
+
+        const shiftsData = shiftsRes.ok ? await shiftsRes.json() : []
+        const apps = appsRes.ok ? await appsRes.json() : []
+
+        setShifts(shiftsData)
+        setApplications(apps)
+
+        // Build groups: each shift is a group, with its applications
+        const grouped = {}
+        shiftsData.forEach(s => { grouped[s.id] = { shift: s, applications: [] } })
+        apps.forEach(a => {
+          if (grouped[a.shiftId]) grouped[a.shiftId].applications.push(a)
+          else grouped[a.shiftId] = { shift: a.shift, applications: [a] }
         })
-        if (!res.ok) throw new Error('Failed to fetch applications')
-        const data = await res.json()
-        setApplications(data)
+        setShiftGroups(grouped)
 
         // Initialize open groups and sub-tabs for each shift
-        const grouped = groupByShift(data)
         const initialOpen = {}
         const initialSubTabs = {}
         Object.keys(grouped).forEach(shiftId => {
@@ -84,12 +106,12 @@ export default function Applicants() {
         setOpenGroups(initialOpen)
         setSubTabs(initialSubTabs)
       } catch (err) {
-        console.error('Error fetching applications:', err)
+        console.error('Error fetching data:', err)
       } finally {
         setLoading(false)
       }
     }
-    fetchApplications()
+    fetchData()
   }, [getToken])
 
   const groupByShift = (apps) => {
@@ -318,7 +340,14 @@ export default function Applicants() {
                 <button key={t} onClick={() => setSubTabs(prev => ({ ...prev, [shiftId]: t }))} className={`text-sm font-semibold pb-1 border-b-2 transition ${(subTabs[shiftId] || 'All') === t ? 'border-[#1a7f5e] text-[#1a7f5e]' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>{t}</button>
               ))}
             </div>
-            {filtered.length === 0 ? (
+            {applicants.length === 0 ? (
+              <EmptyState
+                icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+                title="Awaiting applicants..."
+                sub="No one has applied to this shift yet. Applications will appear here."
+                action={null}
+              />
+            ) : filtered.length === 0 ? (
               <EmptyState
                 icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
                 title="No applicants in this category"
@@ -334,23 +363,22 @@ export default function Applicants() {
     )
   }
 
-  const grouped = groupByShift(applications)
-  const shiftEntries = Object.entries(grouped)
-  const tempShifts = shiftEntries.filter(([, apps]) => apps[0]?.shift)
+  const shiftEntries = Object.entries(shiftGroups)
+  const totalShifts = shiftEntries.length
   const totalApplicants = applications.length
 
   // Count by type (for now all treated as temp shifts since API doesn't distinguish)
-  const tempCount = totalApplicants
+  const tempCount = totalShifts
   const permCount = 0
 
   const visibleShifts = activeTopTab === 'all'
     ? shiftEntries
     : activeTopTab === 'temp'
-      ? tempShifts
+      ? shiftEntries
       : []
 
   const topTabs = [
-    { id: 'all', label: 'All', count: totalApplicants },
+    { id: 'all', label: 'All', count: totalShifts },
     { id: 'temp', label: 'Temp shifts', count: tempCount, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
     { id: 'perm', label: 'Permanent jobs', count: permCount, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2"/></svg> },
   ]
@@ -376,19 +404,20 @@ export default function Applicants() {
             <LoadingSkeleton />
             <LoadingSkeleton />
           </>
-        ) : applications.length === 0 ? (
+        ) : totalShifts === 0 ? (
           <div className="bg-white border border-[#e5e7eb] rounded-2xl">
             <EmptyState
               icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
-              title="No applicants yet"
-              sub="Post a shift and applicants will appear here as professionals apply."
+              title="No shifts posted yet"
+              sub="Post a shift to start receiving applications."
               action={<button onClick={() => navigate('/post-shift')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-sm transition">Post a shift</button>}
             />
           </div>
         ) : (
           <>
-            {visibleShifts.map(([shiftId, apps]) => {
-              const shift = apps[0]?.shift || {}
+            {visibleShifts.map(([shiftId, group]) => {
+              const shift = group.shift || {}
+              const apps = group.applications || []
               const type = 'temp' // adjust when API provides shift type
               const tabOptions = type === 'perm'
                 ? ['All', 'Reviewing', 'Shortlisted', 'Declined']

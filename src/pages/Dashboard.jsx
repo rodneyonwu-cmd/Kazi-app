@@ -46,19 +46,31 @@ export default function Dashboard() {
         const token = await getToken()
         const headers = { Authorization: `Bearer ${token}` }
 
-        const [officeRes, shiftsRes] = await Promise.all([
-          fetch(`${API_URL}/api/offices/me`, { headers }),
-          fetch(`${API_URL}/api/shifts?status=OPEN`, { headers }),
-        ])
-
+        const officeRes = await fetch(`${API_URL}/api/offices/me`, { headers })
         if (officeRes.ok) {
           const officeData = await officeRes.json()
           setOffice(officeData)
-        }
 
-        if (shiftsRes.ok) {
-          const shiftsData = await shiftsRes.json()
-          setShifts(Array.isArray(shiftsData) ? shiftsData : [])
+          // Fetch this office's shifts
+          const shiftsRes = await fetch(`${API_URL}/api/shifts?officeId=${officeData.id}`, { headers })
+          if (shiftsRes.ok) {
+            const raw = await shiftsRes.json()
+            const formatted = (Array.isArray(raw) ? raw : []).map(s => {
+              const d = s.date ? new Date(s.date) : null
+              return {
+                id: s.id,
+                name: s.role,
+                role: s.role,
+                date: d ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '',
+                time: `${s.startTime || ''} – ${s.endTime || ''}`,
+                rate: s.hourlyRate ? `$${s.hourlyRate}/hr` : '',
+                status: s.status,
+                confirmed: s.status === 'FILLED',
+                applicants: s._count?.applications || 0,
+              }
+            })
+            setShifts(formatted)
+          }
         }
       } catch (err) {
         console.error('Dashboard fetch error:', err)

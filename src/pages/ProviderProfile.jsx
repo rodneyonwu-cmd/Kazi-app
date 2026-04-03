@@ -66,6 +66,7 @@ export default function ProviderProfile() {
           ])
           setReviews(Array.isArray(revData) ? revData : [])
           setCreds(Array.isArray(credData) ? credData : [])
+          console.log('[DEBUG] availData from API:', availData)
           setAvailability(Array.isArray(availData) ? availData : [])
         }
       } catch (err) {
@@ -148,14 +149,23 @@ export default function ProviderProfile() {
   // Compute availability days for the calendar
   const bookedDays = []
   const availDays  = []
+  console.log('[DEBUG] availability state:', availability, 'monthIdx:', monthIdx, 'year:', year)
   availability.forEach(slot => {
-    const d = new Date(slot.date || slot.startTime)
-    if (d.getMonth() === monthIdx && d.getFullYear() === year) {
-      const day = d.getDate()
-      if (slot.status === 'booked') {
-        bookedDays.push(day)
-      } else {
-        availDays.push(day)
+    // Skip exception/blocked slots — they represent unavailable dates
+    if (slot.isException) return
+    if (slot.date) {
+      // Date-specific slot
+      const d = new Date(slot.date)
+      if (d.getMonth() === monthIdx && d.getFullYear() === year) {
+        const day = d.getDate()
+        if (!availDays.includes(day) && !bookedDays.includes(day)) availDays.push(day)
+      }
+    } else if (slot.dayOfWeek != null) {
+      // Recurring weekly slot — expand to all matching dates in this month
+      for (let d = 1; d <= daysInMonth; d++) {
+        if (new Date(year, monthIdx, d).getDay() === slot.dayOfWeek) {
+          if (!availDays.includes(d) && !bookedDays.includes(d)) availDays.push(d)
+        }
       }
     }
   })

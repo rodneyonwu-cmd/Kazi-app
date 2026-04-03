@@ -185,6 +185,14 @@ export default function ProviderAvailability() {
       const token = await getToken()
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
       const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 }
+      // Delete all existing dayOfWeek-based slots first to avoid duplicates
+      const existingWeeklySlots = availability.filter(s => s.dayOfWeek != null && !s.date)
+      for (const slot of existingWeeklySlots) {
+        await fetch(`${API_URL}/api/providers/${providerId}/availability/${slot.id}`, {
+          method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+        })
+      }
+      // Create new slots for toggled-on days
       for (const [day, val] of Object.entries(schedule)) {
         if (val.on) {
           await fetch(`${API_URL}/api/providers/${providerId}/availability`, {

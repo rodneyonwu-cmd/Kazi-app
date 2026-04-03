@@ -120,6 +120,7 @@ model Shift {
   officeId     String
   office       Office      @relation(fields: [officeId], references: [id])
   role         String
+  jobType      String      @default("TEMPORARY")
   date         DateTime
   startTime    String
   endTime      String

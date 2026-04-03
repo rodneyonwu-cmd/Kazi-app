@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Shift" ADD COLUMN     "jobType" TEXT NOT NULL DEFAULT 'TEMPORARY';

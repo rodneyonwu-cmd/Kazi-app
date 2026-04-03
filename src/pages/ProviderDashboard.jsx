@@ -91,6 +91,9 @@ export default function ProviderDashboard() {
   const [shifts, setShifts] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [shiftsLoading, setShiftsLoading] = useState(true)
+  const [selectedShift, setSelectedShift] = useState(null)
+  const [msgModal, setMsgModal] = useState(null)
+  const [msgText, setMsgText] = useState('')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -332,7 +335,7 @@ View your schedule
               return (
                 <div
                   key={shift.id}
-                  onClick={() => navigate(`/provider-find-shifts?shift=${shift.id}`)}
+                  onClick={() => setSelectedShift(shift)}
                   className="bg-white border border-[#e5e7eb] rounded-[16px] px-4 py-3.5 cursor-pointer hover:border-[#1a7f5e] transition"
                 >
                   <div className="flex items-center gap-3 mb-2.5">
@@ -363,7 +366,25 @@ View your schedule
                     )}
                     <span className="text-[12px] text-[#6b7280] font-medium">{shift.startTime} – {shift.endTime}</span>
                     <button
-                      onClick={e => { e.stopPropagation(); navigate(`/provider-find-shifts?shift=${shift.id}`) }}
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        try {
+                          const token = await getToken()
+                          const res = await fetch(`${API_URL}/api/applications`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ shiftId: shift.id }),
+                          })
+                          if (res.ok) {
+                            e.target.textContent = 'Applied!'
+                            e.target.disabled = true
+                            e.target.className = e.target.className.replace('bg-[#1a7f5e]', 'bg-[#9ca3af]')
+                          } else {
+                            const err = await res.json().catch(() => ({}))
+                            alert(err.error || 'Failed to apply')
+                          }
+                        } catch { alert('Failed to apply') }
+                      }}
                       className="ml-auto bg-[#1a7f5e] hover:bg-[#156649] text-white text-[12px] font-bold px-4 py-1.5 rounded-full transition"
                     >
                       Apply
@@ -380,6 +401,120 @@ View your schedule
           </div>
         )}
       </div>
+
+      {/* ── SHIFT DETAIL MODAL ── */}
+      {selectedShift && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setSelectedShift(null)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] w-full max-w-[440px] z-50 shadow-2xl max-h-[85vh] overflow-y-auto">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-[#f3f4f6] flex items-center justify-between">
+              <div>
+                <p className="text-[18px] font-black text-[#1a1a1a]">{selectedShift.office?.name || 'Office'}</p>
+                <p className="text-[13px] text-[#9ca3af]">{selectedShift.office?.city}, {selectedShift.office?.state}</p>
+              </div>
+              <button onClick={() => setSelectedShift(null)} className="w-8 h-8 rounded-full border border-[#e5e7eb] flex items-center justify-center text-[#9ca3af] hover:text-[#1a1a1a]">✕</button>
+            </div>
+            {/* Details */}
+            <div className="px-5 py-4">
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-[#f9f8f6] rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Role</p>
+                  <p className="text-[14px] font-bold text-[#1a1a1a]">{selectedShift.role}</p>
+                </div>
+                <div className="bg-[#e8f5f0] rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-[#6b9e8a] uppercase mb-1">Rate</p>
+                  <p className="text-[18px] font-black text-[#0f4d38]">${selectedShift.hourlyRate}/hr</p>
+                </div>
+                <div className="bg-[#f9f8f6] rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Date</p>
+                  <p className="text-[14px] font-bold text-[#1a1a1a]">{formatShiftDate(selectedShift.date)}</p>
+                </div>
+                <div className="bg-[#f9f8f6] rounded-xl p-3">
+                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Hours</p>
+                  <p className="text-[14px] font-bold text-[#1a1a1a]">{selectedShift.startTime} – {selectedShift.endTime}</p>
+                </div>
+              </div>
+              {selectedShift.description && (
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Description</p>
+                  <p className="text-[13px] text-[#374151] leading-relaxed">{selectedShift.description}</p>
+                </div>
+              )}
+              {selectedShift.software?.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-2">Software</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedShift.software.map(s => (
+                      <span key={s} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#f3f4f6] text-[#374151]">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2 mt-5">
+                <button
+                  onClick={async () => {
+                    try {
+                      const token = await getToken()
+                      const res = await fetch(`${API_URL}/api/applications`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ shiftId: selectedShift.id }),
+                      })
+                      if (res.ok) {
+                        setSelectedShift(null)
+                        alert('Application submitted!')
+                      } else {
+                        const err = await res.json().catch(() => ({}))
+                        alert(err.error || 'Failed to apply')
+                      }
+                    } catch { alert('Failed to apply') }
+                  }}
+                  className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 rounded-full text-[14px] transition"
+                >
+                  Apply now
+                </button>
+                <button
+                  onClick={() => { setMsgModal({ officeName: selectedShift.office?.name, officeId: selectedShift.officeId }); setSelectedShift(null) }}
+                  className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-3 rounded-full text-[14px] hover:border-[#1a7f5e] transition"
+                >
+                  Message
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── MESSAGE MODAL ── */}
+      {msgModal && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setMsgModal(null)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-50 shadow-2xl max-w-[500px] mx-auto">
+            <div className="px-5 py-4 border-b border-[#f3f4f6]">
+              <p className="text-[15px] font-bold text-[#1a1a1a]">Message {msgModal.officeName}</p>
+            </div>
+            <div className="px-5 py-4">
+              <textarea value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="Type your message..." className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] resize-none h-24" />
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => setMsgModal(null)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px]">Cancel</button>
+                <button onClick={async () => {
+                  if (!msgText.trim()) return
+                  try {
+                    const token = await getToken()
+                    await fetch(`${API_URL}/api/messages`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ officeId: msgModal?.officeId || null, providerId: profile?.id || null, body: msgText.trim() }),
+                    })
+                  } catch {}
+                  setMsgModal(null); setMsgText('')
+                }} className="flex-1 bg-[#1a7f5e] text-white font-bold py-2.5 rounded-full text-[13px]">Send</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ── MOBILE BOTTOM TOOLBAR ── */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">

@@ -40,6 +40,26 @@ export default function ProviderNav() {
   const roleName = rawRole ? rawRole.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null
   const loc = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : null
   const pendingCount = profile?.stats?.pendingRequests || 0
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0)
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const token = await getToken()
+        if (!token) return
+        const res = await fetch(`${API_URL}/api/messages/unread-count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setUnreadMsgCount(data.count || 0)
+        }
+      } catch {}
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30000)
+    return () => clearInterval(interval)
+  }, [getToken])
 
   const path = location.pathname
 
@@ -47,7 +67,7 @@ export default function ProviderNav() {
     { label: 'Dashboard',   path: '/provider-dashboard' },
     { label: 'Requests',    path: '/provider-requests', badge: pendingCount > 0 ? pendingCount : null },
     { label: 'Find Shifts', path: '/provider-find-shifts' },
-    { label: 'Messages',    path: '/provider-messages' },
+    { label: 'Messages',    path: '/provider-messages', badge: unreadMsgCount > 0 ? unreadMsgCount : null },
   ]
 
   const accountLinks = [

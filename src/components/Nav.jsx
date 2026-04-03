@@ -86,6 +86,26 @@ export default function Nav() {
   const isActive = (path) => location.pathname === path
 
   const unreadCount = notifications.filter(n => !n.read).length
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0)
+
+  useEffect(() => {
+    const fetchUnreadMsgs = async () => {
+      try {
+        const token = await getToken()
+        if (!token) return
+        const res = await fetch(`${API_URL}/api/messages/unread-count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setUnreadMsgCount(data.count || 0)
+        }
+      } catch {}
+    }
+    fetchUnreadMsgs()
+    const interval = setInterval(fetchUnreadMsgs, 30000)
+    return () => clearInterval(interval)
+  }, [getToken])
 
   const markAllRead = (e) => {
     e.stopPropagation()
@@ -109,7 +129,7 @@ export default function Nav() {
     { label: 'Applicants',    path: '/applicants' },
     { label: 'Professionals', path: '/professionals' },
     { label: 'Bookings',      path: '/bookings' },
-    { label: 'Messages',      path: '/messages' },
+    { label: 'Messages',      path: '/messages', badge: unreadMsgCount > 0 ? unreadMsgCount : null },
   ]
 
   // ── Dropdown sections ──────────────────────────────
@@ -174,9 +194,12 @@ export default function Nav() {
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map(link => (
-              <span key={link.path} onClick={() => navigate(link.path)} className={`text-sm cursor-pointer transition ${isActive(link.path) ? 'font-semibold text-[#1a7f5e]' : 'text-[#6b7280] hover:text-[#1a1a1a]'}`}>
-                {link.label}
-              </span>
+              <div key={link.path} onClick={() => navigate(link.path)} className="relative cursor-pointer">
+                <span className={`text-sm transition ${isActive(link.path) ? 'font-semibold text-[#1a7f5e]' : 'text-[#6b7280] hover:text-[#1a1a1a]'}`}>
+                  {link.label}
+                </span>
+                {link.badge && <span className="absolute -top-2 -right-4 bg-[#ef4444] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{link.badge}</span>}
+              </div>
             ))}
           </div>
 

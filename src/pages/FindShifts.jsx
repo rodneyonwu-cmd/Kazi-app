@@ -21,20 +21,34 @@ function transformShift(s, index) {
   const dateStr = dateObj
     ? dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
     : ''
-  const fmtTime = (t) => {
-    if (!t) return ''
-    const [h, m] = t.split(':').map(Number)
+  const rawDate = dateObj ? dateObj.toISOString().split('T')[0] : ''
+
+  // Parse time that could be "14:30" (24h) or "2:30 PM" (12h) format
+  const parseTo24h = (t) => {
+    if (!t) return [0, 0]
+    // Already 24h format like "14:30"
+    if (!t.includes('AM') && !t.includes('PM')) return t.split(':').map(Number)
+    // 12h format like "2:30 PM"
+    const match = t.match(/(\d+):(\d+)\s*(AM|PM)/i)
+    if (!match) return [0, 0]
+    let h = parseInt(match[1]), m = parseInt(match[2])
+    if (match[3].toUpperCase() === 'PM' && h < 12) h += 12
+    if (match[3].toUpperCase() === 'AM' && h === 12) h = 0
+    return [h, m]
+  }
+  const fmtTime12h = (t) => {
+    const [h, m] = parseTo24h(t)
     const ampm = h >= 12 ? 'PM' : 'AM'
     const h12 = h % 12 || 12
-    return m === 0 ? `${h12}:00` : `${h12}:${String(m).padStart(2, '0')}`
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
   }
-  const startFmt = fmtTime(s.startTime)
-  const endFmt = fmtTime(s.endTime)
-  const timeStr = startFmt && endFmt ? `${startFmt}–${endFmt} ${s.endTime && parseInt(s.endTime) >= 12 ? 'PM' : 'AM'}` : ''
+  const startFmt = s.startTime ? fmtTime12h(s.startTime) : ''
+  const endFmt = s.endTime ? fmtTime12h(s.endTime) : ''
+  const timeStr = startFmt && endFmt ? `${startFmt} – ${endFmt}` : ''
 
   // Estimate hours and pay
-  const startParts = (s.startTime || '0:0').split(':').map(Number)
-  const endParts = (s.endTime || '0:0').split(':').map(Number)
+  const startParts = parseTo24h(s.startTime)
+  const endParts = parseTo24h(s.endTime)
   const hours = (endParts[0] + endParts[1] / 60) - (startParts[0] + startParts[1] / 60)
   const estPay = hours > 0 && s.hourlyRate ? `$${Math.round(hours * s.hourlyRate)}` : ''
   const rate = s.hourlyRate ? `$${s.hourlyRate}/hr` : ''
@@ -56,6 +70,7 @@ function transformShift(s, index) {
     stars: '–',
     reviews: 0,
     date: dateStr,
+    rawDate,
     time: timeStr,
     role: s.role || '',
     parking: 'Contact office',
@@ -66,6 +81,8 @@ function transformShift(s, index) {
     tags,
     perks: [],
     description: s.description || '',
+    jobType: s.jobType || 'TEMPORARY',
+    officeId: s.office?.id || s.officeId || null,
   }
 }
 
@@ -152,7 +169,7 @@ function PermCard({ job, applied, onApply, onDetails }) {
 }
 
 
-function PermDetailDrawer({ job, applied, onApply, onClose }) {
+function PermDetailDrawer({ job, applied, onApply, onClose, onMessage }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose}/>
@@ -303,7 +320,7 @@ function PermDetailDrawer({ job, applied, onApply, onClose }) {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-[#f3f4f6] flex gap-2 flex-shrink-0 bg-white">
-          <button onClick={onClose} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+          <button onClick={() => onMessage && onMessage({ officeName: job.name, officeId: job.officeId })} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Message
           </button>
@@ -334,17 +351,29 @@ export default function FindShifts() {
   const [toast, setToast] = useState(null)
   const [shifts, setShifts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [msgModal, setMsgModal] = useState(null)
+  const [myProviderId, setMyProviderId] = useState(null)
+  const [msgText, setMsgText] = useState('')
 
   useEffect(() => {
     const fetchShifts = async () => {
       try {
         const token = await getToken()
-        const res = await fetch(`${API_URL}/api/shifts?status=OPEN`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
+        const headers = { Authorization: `Bearer ${token}` }
+        const [shiftsRes, meRes] = await Promise.all([
+          fetch(`${API_URL}/api/shifts?status=OPEN`, { headers }),
+          fetch(`${API_URL}/api/providers/me`, { headers }).catch(() => null),
+        ])
+        if (shiftsRes.ok) {
+          const data = await shiftsRes.json()
           setShifts(data.map((s, i) => transformShift(s, i)))
+        }
+        if (meRes?.ok) {
+          const me = await meRes.json()
+          setMyProviderId(me.id)
+          console.log('[FindShifts] Provider ID:', me.id)
+        } else {
+          console.log('[FindShifts] Provider /me failed:', meRes?.status)
         }
       } catch {}
       setLoading(false)
@@ -362,11 +391,12 @@ export default function FindShifts() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ shiftId: id }),
       })
-      if (!res.ok) {
-        setApplied(prev => prev.filter(x => x !== id))
-        showToast('Failed to apply')
-      } else {
+      if (res.ok) {
         showToast('Application submitted!')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setApplied(prev => prev.filter(x => x !== id))
+        showToast(err.error || 'Failed to apply')
       }
     } catch {
       setApplied(prev => prev.filter(x => x !== id))
@@ -375,13 +405,9 @@ export default function FindShifts() {
   }
 
   const filteredShifts = shifts.filter(s => {
-    if (filterDate) {
-      const shiftDateStr = s.date // e.g. "Mon, Mar 31"
-      // Compare against filterDate (YYYY-MM-DD)
-      const filterDateObj = new Date(filterDate + 'T00:00:00')
-      const filterFormatted = filterDateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-      if (shiftDateStr && shiftDateStr !== filterFormatted) return false
-    }
+    if (shiftType === 'temp' && s.jobType === 'PERMANENT') return false
+    if (shiftType === 'perm' && s.jobType !== 'PERMANENT') return false
+    if (filterDate && s.rawDate && s.rawDate !== filterDate) return false
     if (filterMinPay) {
       const payNum = parseFloat((s.rate || '').replace(/[^0-9.]/g, ''))
       if (!payNum || payNum < parseFloat(filterMinPay)) return false
@@ -499,7 +525,7 @@ export default function FindShifts() {
           )}
         </div>
         <div className="px-5 py-4 border-t border-[#f3f4f6] flex gap-2 flex-shrink-0 bg-white">
-          <button onClick={() => navigate('/provider-messages')} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+          <button onClick={() => setMsgModal({ officeName: item.name, officeId: item.officeId })} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
           </button>
           <button onClick={() => { handleApply(item.id); onClose() }} className={`flex-1 font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer ${applied.includes(item.id) ? 'bg-[#0f4d38] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white'}`} style={{ fontFamily: 'inherit' }}>
@@ -522,7 +548,7 @@ export default function FindShifts() {
       )}
 
       {selectedShift && <DetailDrawer item={selectedShift} isPerm={false} onClose={() => setSelectedShift(null)} />}
-      {selectedPerm && <PermDetailDrawer job={selectedPerm} applied={applied} onApply={handleApply} onClose={() => setSelectedPerm(null)} />}
+      {selectedPerm && <PermDetailDrawer job={selectedPerm} applied={applied} onApply={handleApply} onClose={() => setSelectedPerm(null)} onMessage={setMsgModal} />}
 
       <div className="max-w-[960px] mx-auto px-4 py-6">
         <h1 className="text-[22px] font-black text-[#1a1a1a]">Find Shifts</h1>
@@ -555,7 +581,7 @@ export default function FindShifts() {
 
           <div className="flex-1 min-w-0">
             <div className="bg-white border border-[#e5e7eb] rounded-[14px] px-4 py-3 flex items-center justify-between mb-4">
-              <span className="text-[13px] text-[#9ca3af] font-semibold">{shiftType === 'temp' ? `${filteredShifts.length} shift${filteredShifts.length !== 1 ? 's' : ''} near you` : '0 positions near you'}</span>
+              <span className="text-[13px] text-[#9ca3af] font-semibold">{shiftType === 'temp' ? `${filteredShifts.length} shift${filteredShifts.length !== 1 ? 's' : ''} near you` : `${filteredShifts.length} position${filteredShifts.length !== 1 ? 's' : ''} near you`}</span>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-transparent border-none text-[13px] text-[#6b7280] outline-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
                 <option>Sort: Newest</option><option>Sort: Top pay</option><option>Sort: Nearest</option><option>Sort: Highest rated</option>
               </select>
@@ -593,13 +619,31 @@ export default function FindShifts() {
             )}
             {shiftType === 'perm' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-                <div className="col-span-full bg-white border border-[#e5e7eb] rounded-[18px] p-10 text-center">
-                  <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 animate-pulse">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-[68px] h-[68px] rounded-[16px] bg-[#f3f4f6]" />
+                        <div className="flex-1">
+                          <div className="h-4 bg-[#f3f4f6] rounded w-3/4 mb-2" />
+                          <div className="h-3 bg-[#f3f4f6] rounded w-1/2" />
+                        </div>
+                      </div>
+                      <div className="h-3 bg-[#f3f4f6] rounded w-full mb-2" />
+                      <div className="h-8 bg-[#f3f4f6] rounded-full w-full mt-3" />
+                    </div>
+                  ))
+                ) : filteredShifts.length === 0 ? (
+                  <div className="col-span-full bg-white border border-[#e5e7eb] rounded-[18px] p-10 text-center">
+                    <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </div>
+                    <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No permanent positions available yet</p>
+                    <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">We're growing! Check back soon as offices join Kazi and post positions near you.</p>
                   </div>
-                  <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No shifts available in your area yet</p>
-                  <p className="text-[13px] text-[#9ca3af] max-w-[280px] mx-auto">We're growing! Check back soon as offices join Kazi and post shifts near you.</p>
-                </div>
+                ) : (
+                  filteredShifts.map(s => <ShiftCard key={s.id} shift={s} applied={applied.includes(s.id)} onApply={handleApply} onDetails={setSelectedShift} showToast={showToast} />)
+                )}
               </div>
             )}
           </div>
@@ -625,6 +669,39 @@ export default function FindShifts() {
           ))}
         </div>
       </div>
+
+      {msgModal && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setMsgModal(null)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-[60] shadow-2xl max-w-[500px] mx-auto">
+            <div className="w-9 h-1 bg-[#e5e7eb] rounded-full mx-auto mt-3" />
+            <div className="px-5 py-3 border-b border-[#f3f4f6]">
+              <p className="text-[15px] font-bold text-[#1a1a1a]">Message {msgModal.officeName}</p>
+              <p className="text-[12px] text-[#9ca3af]">Send a message about this shift</p>
+            </div>
+            <div className="px-5 py-4">
+              <textarea value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="Type your message..." className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] resize-none h-24" />
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => setMsgModal(null)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px]">Cancel</button>
+                <button onClick={async () => {
+                  if (!msgText.trim()) { showToast('Please type a message'); return }
+                  try {
+                    const token = await getToken()
+                    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+                    const res = await fetch(`${API_URL}/api/messages`, {
+                      method: 'POST', headers,
+                      body: JSON.stringify({ officeId: msgModal.officeId || null, providerId: myProviderId || null, body: msgText.trim() }),
+                    })
+                    if (res.ok) showToast('Message sent!')
+                    else { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to send') }
+                  } catch { showToast('Failed to send message') }
+                  setMsgModal(null); setMsgText('')
+                }} className="flex-1 bg-[#1a7f5e] text-white font-bold py-2.5 rounded-full text-[13px]">Send message</button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

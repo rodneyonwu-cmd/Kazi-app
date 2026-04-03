@@ -82,6 +82,7 @@ export default function PostShift() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           role,
+          jobType: shiftType === 'PERMANENT' ? 'PERMANENT' : 'TEMPORARY',
           date: new Date(date + 'T00:00:00').toISOString(),
           startTime: formatTime(startTime),
           endTime: formatTime(endTime),

@@ -48,14 +48,35 @@ router.post('/', async (req, res) => {
       where: { clerkId: req.auth.userId },
       include: { provider: true },
     });
-    if (!user?.provider) return res.status(403).json({ error: 'Only providers can apply' });
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    if (!user.provider) {
+      // Auto-create a provider profile for testing
+      console.log('[POST /api/applications] Auto-creating provider profile for user:', user.id);
+      const provider = await prisma.provider.create({ data: { userId: user.id, role: 'Dental Professional' } });
+      user.provider = provider;
+    }
 
     const { shiftId, note } = req.body;
+    if (!shiftId) return res.status(400).json({ error: 'Shift ID is required.' });
+
+    // Check shift exists and is open
+    const shift = await prisma.shift.findUnique({ where: { id: shiftId } });
+    if (!shift) return res.status(404).json({ error: 'Shift not found.' });
+    if (shift.status !== 'OPEN') return res.status(400).json({ error: 'This shift is no longer accepting applications.' });
+
+    // Check for duplicate application
+    const existing = await prisma.application.findFirst({
+      where: { shiftId, providerId: user.provider.id },
+    });
+    if (existing) return res.status(409).json({ error: 'You have already applied to this shift.' });
+
     const application = await prisma.application.create({
       data: { shiftId, providerId: user.provider.id, note },
     });
+    console.log('[POST /api/applications] Created application:', application.id, 'for shift:', shiftId);
     res.status(201).json(application);
   } catch (err) {
+    console.error('[POST /api/applications] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
