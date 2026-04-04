@@ -20,6 +20,7 @@ export default function ProviderDocuments() {
   const [docType, setDocType] = useState('License')
   const [toast, setToast] = useState(null)
   const [credentials, setCredentials] = useState([])
+  const [providerId, setProviderId] = useState(null)
   const [loading, setLoading] = useState(true)
   const fileInputRef = useRef(null)
 
@@ -32,6 +33,7 @@ export default function ProviderDocuments() {
         })
         if (!profileRes.ok) throw new Error('Failed to fetch profile')
         const profile = await profileRes.json()
+        setProviderId(profile.id)
 
         const credsRes = await fetch(`${API_URL}/api/providers/${profile.id}/credentials`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -50,14 +52,27 @@ export default function ProviderDocuments() {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
-  const handleUpload = () => {
-    setModal(false)
-    showToast(`${docType} uploaded successfully!`)
+  const uploadCredential = async (file) => {
+    if (!providerId || !file) return
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/providers/${providerId}/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type: docType, fileUrl: file.name, verified: false }),
+      })
+      if (res.ok) {
+        const cred = await res.json()
+        setCredentials(prev => [...prev, cred])
+        setModal(false)
+        showToast(`${docType} uploaded!`)
+      } else { showToast('Failed to upload') }
+    } catch { showToast('Failed to upload') }
   }
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
-      <input type="file" ref={fileInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) { setModal(false); showToast(`${e.target.files[0].name} selected — upload coming soon`) } }} />
+      <input type="file" ref={fileInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) { uploadCredential(e.target.files[0]); e.target.value = '' } }} />
       <ProviderNav />
 
       {/* Toast */}
@@ -134,22 +149,18 @@ export default function ProviderDocuments() {
           </div>
         ) : (
           credentials.map(c => (
-            <div key={c.id} className={`bg-white border rounded-[10px] px-3 py-2.5 mb-1.5 flex items-center gap-2.5 transition hover:border-[#1a7f5e] ${c.warn ? 'border-[#fde68a]' : 'border-[#e5e7eb]'}`}>
-              <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 ${c.warn ? 'bg-[#fef9c3]' : 'bg-[#e8f5f0]'}`}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.warn ? '#92400e' : '#1a7f5e'} strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div key={c.id} className={`bg-white border rounded-[10px] px-3 py-2.5 mb-1.5 flex items-center gap-2.5 transition hover:border-[#1a7f5e] border-[#e5e7eb]`}>
+              <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 ${c.verified ? 'bg-[#e8f5f0]' : 'bg-[#fef9c3]'}`}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={c.verified ? '#1a7f5e' : '#92400e'} strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-bold text-[#1a1a1a] truncate">{c.name}</div>
-                <div className="text-[10px] text-[#9ca3af]">{c.detail}</div>
+                <div className="text-[12px] font-bold text-[#1a1a1a] truncate">{c.type}</div>
+                <div className="text-[10px] text-[#9ca3af]">{c.fileUrl || 'Uploaded'} · {new Date(c.createdAt).toLocaleDateString()}</div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.warn ? 'bg-[#fef9c3] text-[#92400e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>
-                  {c.warn ? 'Expiring' : 'Verified'}
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.verified ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#fef9c3] text-[#92400e]'}`}>
+                  {c.verified ? 'Verified' : 'Pending'}
                 </span>
-                {c.warn
-                  ? <button onClick={() => { setDocType('CPR / BLS'); setModal(true) }} className="text-[11px] font-bold text-[#92400e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Renew</button>
-                  : <button onClick={() => showToast('Opening document...')} className="text-[11px] font-bold text-[#1a7f5e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>View</button>
-                }
               </div>
             </div>
           ))

@@ -283,8 +283,9 @@ export default function Applicants() {
 
   const renderGroup = (shiftId, shift, applicants, type, tabOptions) => {
     const filtered = filterApplicants(applicants, shiftId)
-    const label = `${shift.role} — ${formatDate(shift.date)}`
-    const badge = type === 'perm' ? 'Permanent' : 'Temp shift'
+    const isPerm = shift.jobType === 'PERMANENT'
+    const label = isPerm ? `${shift.role} — Permanent` : `${shift.role} — ${formatDate(shift.date)}`
+    const badge = isPerm ? 'Permanent' : 'Temp shift'
     const timeRange = `${formatTime(shift.startTime)} – ${formatTime(shift.endTime)}`
     const rateDisplay = shift.hourlyRate ? `$${shift.hourlyRate}/hr` : ''
     const metaText = [timeRange, rateDisplay].filter(Boolean).join(' · ')
@@ -312,7 +313,7 @@ export default function Applicants() {
       <div key={shiftId} className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-4">
         <div onClick={() => toggleGroup(shiftId)} className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-[#f9f8f6] transition">
           <div className="flex items-center gap-3">
-            <span className="bg-[#e8f5f0] text-[#1a7f5e] text-xs font-bold px-2.5 py-1 rounded-full">{badge}</span>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isPerm ? 'bg-[#ede9fe] text-[#5b21b6]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{badge}</span>
             <div>
               <p className="text-sm font-extrabold text-[#1a1a1a]">{label}</p>
               <div className="flex items-center gap-2 text-[13px] text-[#6b7280] mt-0.5">
@@ -367,15 +368,14 @@ export default function Applicants() {
   const totalShifts = shiftEntries.length
   const totalApplicants = applications.length
 
-  // Count by type (for now all treated as temp shifts since API doesn't distinguish)
-  const tempCount = totalShifts
-  const permCount = 0
+  const tempCount = shiftEntries.filter(([, g]) => g.shift?.jobType !== 'PERMANENT').length
+  const permCount = shiftEntries.filter(([, g]) => g.shift?.jobType === 'PERMANENT').length
 
   const visibleShifts = activeTopTab === 'all'
     ? shiftEntries
     : activeTopTab === 'temp'
-      ? shiftEntries
-      : []
+      ? shiftEntries.filter(([, g]) => g.shift?.jobType !== 'PERMANENT')
+      : shiftEntries.filter(([, g]) => g.shift?.jobType === 'PERMANENT')
 
   const topTabs = [
     { id: 'all', label: 'All', count: totalShifts },
@@ -392,7 +392,7 @@ export default function Applicants() {
 
         <div className="flex gap-0 border-b border-[#e5e7eb] mb-6">
           {topTabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTopTab(tab.id)} className={`flex items-center gap-2 px-5 py-3 text-[15px] font-medium border-b-2 -mb-px transition ${activeTopTab === tab.id ? 'border-[#1a7f5e] text-[#1a7f5e] font-semibold' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>
+            <button key={tab.id} onClick={() => setActiveTopTab(tab.id)} className={`flex items-center gap-2 px-5 py-3 text-[15px] font-medium border-b-2 -mb-px transition ${activeTopTab === tab.id ? (tab.id === 'perm' ? 'border-[#5b21b6] text-[#5b21b6] font-semibold' : 'border-[#1a7f5e] text-[#1a7f5e] font-semibold') : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>
               {tab.icon}
               {tab.label} <span className="text-[13px] bg-[#f3f4f6] text-[#6b7280] px-1.5 py-0.5 rounded-full font-semibold">{tab.count}</span>
             </button>

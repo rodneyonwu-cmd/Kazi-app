@@ -6,6 +6,14 @@ import InitialsAvatar from '../components/InitialsAvatar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
+function ProAvatar({ src, name, size }) {
+  if (src) {
+    const url = src.startsWith('http') ? src : `${API_URL}${src}`
+    return <img src={url} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+  }
+  return <InitialsAvatar name={name} size={size} />
+}
+
 const CAL_DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa']
 
 function relDisplay(r) {
@@ -44,7 +52,7 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
           {isSelected && <CheckIcon />}
         </div>
         {/* Avatar */}
-        <InitialsAvatar name={pro.name} size={52} />
+        <ProAvatar src={pro.avatarUrl} name={pro.name} size={52} />
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
@@ -94,46 +102,102 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
 }
 
 // ─── CALENDAR MODAL ──────────────────────────────────────────
-function CalModal({ pro, onClose, onChoose }) {
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function CalModal({ pro, onClose, onChoose, getToken }) {
+  const today = new Date()
+  const [monthIdx, setMonthIdx] = useState(today.getMonth())
+  const [year, setYear] = useState(today.getFullYear())
+  const [availability, setAvailability] = useState([])
+  const [loadingAvail, setLoadingAvail] = useState(true)
+
+  useEffect(() => {
+    if (!pro) return
+    const fetchAvail = async () => {
+      setLoadingAvail(true)
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/providers/${pro.id}/availability`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) setAvailability(await res.json())
+      } catch {}
+      setLoadingAvail(false)
+    }
+    fetchAvail()
+  }, [pro?.id, getToken])
+
   if (!pro) return null
-  const firstDay = new Date(2026, 2, 1).getDay()
-  const calDays = [...Array(firstDay).fill(null), ...Array.from({ length: 31 }, (_, i) => i + 1)]
-  const calendar = pro.calendar || {}
+
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
+  const firstDay = new Date(year, monthIdx, 1).getDay()
+
+  // Build available days from availability data
+  const availDays = new Set()
+  availability.forEach(slot => {
+    if (slot.isException) return
+    if (slot.date) {
+      const d = new Date(slot.date)
+      if (d.getMonth() === monthIdx && d.getFullYear() === year) availDays.add(d.getDate())
+    } else if (slot.dayOfWeek != null) {
+      for (let d = 1; d <= daysInMonth; d++) {
+        if (new Date(year, monthIdx, d).getDay() === slot.dayOfWeek) availDays.add(d)
+      }
+    }
+  })
+
+  const changeMonth = (delta) => {
+    let m = monthIdx + delta, y = year
+    if (m > 11) { m = 0; y++ }
+    if (m < 0) { m = 11; y-- }
+    setMonthIdx(m); setYear(y)
+  }
+
   return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 480, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
       <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <InitialsAvatar name={pro.name} size={46} />
+        <ProAvatar src={pro.avatarUrl} name={pro.name} size={46} />
         <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div></div>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
       </div>
       <div style={{ padding: '16px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>March 2026</div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {[['#e8f5f0','#1a7f5e','Available'],['#fef3c7','#f59e0b','Booked']].map(([bg,bd,lbl]) => (
-              <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
-                <div style={{ width: 9, height: 9, borderRadius: 2, background: bg, border: `1px solid ${bd}` }}/>
-                {lbl}
-              </div>
-            ))}
-          </div>
+          <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', fontSize: 18, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u2039'}</button>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>{MONTH_NAMES[monthIdx]} {year}</div>
+          <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', fontSize: 18, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u203a'}</button>
+        </div>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 10, justifyContent: 'center' }}>
+          {[['#e8f5f0','#1a7f5e','Available'],['#f3f4f6','#d1d5db','Unavailable']].map(([bg,bd,lbl]) => (
+            <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
+              <div style={{ width: 9, height: 9, borderRadius: 2, background: bg, border: `1px solid ${bd}` }}/>
+              {lbl}
+            </div>
+          ))}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 5 }}>
           {CAL_DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#9ca3af', padding: 2 }}>{d}</div>)}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 10 }}>
-          {calDays.map((day, i) => {
-            if (!day) return <div key={`e${i}`} style={{ padding: '10px 4px' }} />
-            const st = calendar[day]
-            return (
-              <div key={day} onClick={() => st === 'avail' && onChoose(`March ${day}`)}
-                style={{ textAlign: 'center', fontSize: 13, fontWeight: st === 'avail' ? 700 : 600, padding: '10px 4px', borderRadius: 7, background: st === 'avail' ? '#e8f5f0' : st === 'booked' ? '#fef3c7' : 'transparent', color: st === 'avail' ? '#1a7f5e' : st === 'booked' ? '#92400e' : '#d1d5db', cursor: st === 'avail' ? 'pointer' : 'default' }}>
-                {day}
-              </div>
-            )
-          })}
+        {loadingAvail ? (
+          <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af', fontSize: 13 }}>Loading availability...</div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 10 }}>
+            {Array.from({ length: firstDay }, (_, i) => <div key={`e${i}`} style={{ padding: '10px 4px' }} />)}
+            {Array.from({ length: daysInMonth }, (_, i) => {
+              const day = i + 1
+              const isAvail = availDays.has(day)
+              const isToday = today.getFullYear() === year && today.getMonth() === monthIdx && today.getDate() === day
+              return (
+                <div key={day} onClick={() => isAvail && onChoose(`${MONTH_NAMES[monthIdx]} ${day}`)}
+                  style={{ textAlign: 'center', fontSize: 13, fontWeight: isAvail ? 700 : 600, padding: '10px 4px', borderRadius: 7, background: isToday ? '#1a7f5e' : isAvail ? '#e8f5f0' : 'transparent', color: isToday ? 'white' : isAvail ? '#1a7f5e' : '#d1d5db', cursor: isAvail ? 'pointer' : 'default' }}>
+                  {day}
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>
+          {availDays.size > 0 ? 'Tap an available date to book' : 'No availability set for this month'}
         </div>
-        <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>Tap an available date to book or use Rapid Fill</div>
       </div>
     </div>
   )
@@ -145,7 +209,7 @@ function ChoiceModal({ pro, date, onClose, onDirect, onRapidFill }) {
   return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 400, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
       <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <InitialsAvatar name={pro.name} size={50} />
+        <ProAvatar src={pro.avatarUrl} name={pro.name} size={50} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 16, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: '#1a7f5e', marginTop: 2 }}>{date}, 2026</div>
@@ -169,9 +233,49 @@ function ChoiceModal({ pro, date, onClose, onDirect, onRapidFill }) {
 }
 
 // ─── DIRECT BOOKING MODAL ────────────────────────────────────
-function BookingModal({ pro, date, onClose, onSubmit }) {
+function BookingModal({ pro, date, onClose, onSubmit, getToken }) {
   const [agreed, setAgreed] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [startTime, setStartTime] = useState('8:00 AM')
+  const [endTime, setEndTime] = useState('5:00 PM')
+  const [note, setNote] = useState('')
+
+  const handleSend = async () => {
+    if (!agreed || sending) return
+    setSending(true)
+    try {
+      const token = await getToken()
+      // Parse the date string (e.g. "April 15") into a real date
+      const currentYear = new Date().getFullYear()
+      const parsedDate = new Date(`${date}, ${currentYear}`)
+      if (parsedDate < new Date()) parsedDate.setFullYear(currentYear + 1)
+
+      const res = await fetch(`${API_URL}/api/applications/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          providerId: pro.id,
+          date: parsedDate.toISOString(),
+          startTime,
+          endTime,
+          hourlyRate: pro.rate || 0,
+          role: pro.role || 'Dental Professional',
+          note: note || null,
+        }),
+      })
+      if (res.ok) {
+        setSubmitted(true)
+      } else {
+        const err = await res.json().catch(() => ({}))
+        alert(err.error || 'Failed to send booking request')
+      }
+    } catch {
+      alert('Failed to send booking request')
+    }
+    setSending(false)
+  }
+
   if (!pro) return null
   if (submitted) return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 360, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', padding: '40px 24px', textAlign: 'center' }}>
@@ -179,18 +283,19 @@ function BookingModal({ pro, date, onClose, onSubmit }) {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
       <div style={{ fontSize: 17, fontWeight: 900, color: '#1a7f5e', marginBottom: 6 }}>Booking request sent!</div>
-      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>{pro.name.split(' ')[0]} will respond within {pro.responseTime || '24 hrs'}</div>
-      <button onClick={onClose} style={{ background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px 28px', borderRadius: 100, fontSize: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Done</button>
+      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>{pro.name.split(' ')[0]} will be notified and can accept or decline.</div>
+      <button onClick={() => { onSubmit(); onClose() }} style={{ background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px 28px', borderRadius: 100, fontSize: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Done</button>
     </div>
   )
+  const times = ['6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','5:30 PM','6:00 PM']
   return (
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 400, zIndex: 500, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
       <div style={{ background: '#f9f8f6', borderBottom: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <InitialsAvatar name={pro.name} size={46} />
+        <ProAvatar src={pro.avatarUrl} name={pro.name} size={46} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>{pro.name}</div>
           <div style={{ fontSize: 12, color: '#6b7280' }}>{pro.role} · ${pro.rate}/hr</div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#1a7f5e' }}>{date}, 2026</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1a7f5e' }}>{date}</div>
         </div>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
       </div>
@@ -198,13 +303,17 @@ function BookingModal({ pro, date, onClose, onSubmit }) {
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Shift times</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', color: '#374151' }}><option>8:00 AM</option><option>7:30 AM</option><option>9:00 AM</option></select>
-            <select style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', color: '#374151' }}><option>5:00 PM</option><option>4:00 PM</option><option>3:00 PM</option></select>
+            <select value={startTime} onChange={e => setStartTime(e.target.value)} style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', color: '#374151' }}>
+              {times.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select value={endTime} onChange={e => setEndTime(e.target.value)} style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', background: 'white', color: '#374151' }}>
+              {times.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
           </div>
         </div>
         <div style={{ marginBottom: 12 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Note (optional)</div>
-          <textarea style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', resize: 'none', height: 40, background: 'white', boxSizing: 'border-box' }} placeholder="e.g. Please arrive 10 minutes early..."/>
+          <textarea value={note} onChange={e => setNote(e.target.value)} style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', outline: 'none', resize: 'none', height: 40, background: 'white', boxSizing: 'border-box' }} placeholder="e.g. Please arrive 10 minutes early..."/>
         </div>
         <div onClick={() => setAgreed(!agreed)} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
           <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${agreed ? '#1a7f5e' : '#d1d5db'}`, background: agreed ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -214,7 +323,7 @@ function BookingModal({ pro, date, onClose, onSubmit }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={onClose} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: 10, borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', background: 'white' }}>Cancel</button>
-          <button onClick={() => agreed && setSubmitted(true)} style={{ flex: 1, background: agreed ? '#1a7f5e' : '#e5e7eb', color: agreed ? 'white' : '#9ca3af', border: 'none', fontWeight: 800, padding: 10, borderRadius: 100, fontSize: 13, cursor: agreed ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>Send request</button>
+          <button onClick={handleSend} style={{ flex: 1, background: agreed ? '#1a7f5e' : '#e5e7eb', color: agreed ? 'white' : '#9ca3af', border: 'none', fontWeight: 800, padding: 10, borderRadius: 100, fontSize: 13, cursor: agreed ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>{sending ? 'Sending...' : 'Send request'}</button>
         </div>
       </div>
     </div>
@@ -240,7 +349,7 @@ function RFModal({ selected, allPros, date, onClose, onSend }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
           {selPros.map(p => (
             <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 100, padding: '4px 10px 4px 4px' }}>
-              <InitialsAvatar name={p.name} size={22} />
+              <ProAvatar src={p.avatarUrl} name={p.name} size={22} />
               <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{p.name.split(' ')[0]}</span>
             </div>
           ))}
@@ -293,7 +402,7 @@ function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
       <div style={{ flex: 1 }}>
         <div style={{ padding: 22 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-            <InitialsAvatar name={pro.name} size={84} />
+            <ProAvatar src={pro.avatarUrl} name={pro.name} size={84} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', marginBottom: 3 }}>{pro.name}</div>
               <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi away` : ''}</div>
@@ -440,10 +549,14 @@ export default function Professionals() {
           // Calculate completed shifts from bookings
           const completedShifts = provider.bookings?.filter(b => b.status === 'COMPLETED').length || 0
 
+          const isDentist = provider.role === 'dentist'
+          const displayName = isDentist ? `Dr. ${name}` : name
+
           return {
             id: provider.id,
-            name,
-            role: provider.role || 'Professional',
+            name: displayName,
+            avatarUrl: provider.user?.avatarUrl || null,
+            role: { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Office', dentist: 'Dentist', specialist: 'Specialist' }[provider.role] || provider.role || 'Professional',
             rate: provider.hourlyRate || 0,
             rating: Number(avgRating) || 0,
             reviews: reviewCount,
@@ -577,9 +690,9 @@ export default function Professionals() {
       )}
 
       {/* MODALS */}
-      {modal === 'cal' && activeProObj && <CalModal pro={activeProObj} onClose={closeAll} onChoose={handleCalChoose} />}
+      {modal === 'cal' && activeProObj && <CalModal pro={activeProObj} onClose={closeAll} onChoose={handleCalChoose} getToken={getToken} />}
       {modal === 'choice' && activeProObj && <ChoiceModal pro={activeProObj} date={activeDate} onClose={closeAll} onDirect={handleDirect} onRapidFill={handleRapidFillChoice} />}
-      {modal === 'booking' && activeProObj && <BookingModal pro={activeProObj} date={activeDate} onClose={closeAll} onSubmit={() => { closeAll(); showToast(`Booking request sent to ${activeProObj.name.split(' ')[0]}!`) }} />}
+      {modal === 'booking' && activeProObj && <BookingModal pro={activeProObj} date={activeDate} onClose={closeAll} onSubmit={() => showToast(`Booking request sent to ${activeProObj.name.split(' ')[0]}!`)} getToken={getToken} />}
       {modal === 'rf' && <RFModal selected={rapidSelected} allPros={professionals} date={rfDate} onClose={closeAll} onSend={() => { closeAll(); setRapidSelected([]); showToast('Rapid Fill requests sent!') }} />}
       {modal === 'profile' && activeProObj && (
         <>
@@ -744,7 +857,7 @@ export default function Professionals() {
           <div style={{ display: 'flex' }}>
             {professionals.filter(p => rapidSelected.includes(p.id)).slice(0, 3).map((p, i) => (
               <div key={p.id} style={{ marginLeft: i > 0 ? -6 : 0 }}>
-                <InitialsAvatar name={p.name} size={26} />
+                <ProAvatar src={p.avatarUrl} name={p.name} size={26} />
               </div>
             ))}
           </div>

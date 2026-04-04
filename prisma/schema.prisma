@@ -45,6 +45,7 @@ model Office {
   bio             String?
   plan            String?
   hiringRoles     String[]
+  logoUrl         String?
   verified        Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -128,6 +129,11 @@ model Shift {
   hourlyRate   Float
   description  String?
   software     String[]
+  schedule     String?
+  benefits     String[]
+  experienceYr Int?
+  salaryMin    Float?
+  salaryMax    Float?
   status       ShiftStatus @default(OPEN)
   isRapidFill  Boolean     @default(false)
   createdAt    DateTime    @default(now())

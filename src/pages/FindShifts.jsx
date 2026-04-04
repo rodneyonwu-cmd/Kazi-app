@@ -59,11 +59,14 @@ function transformShift(s, index) {
     s.software.forEach(sw => tags.push({ label: sw, bg: '#f3f4f6', color: '#374151' }))
   }
 
+  const isPerm = s.jobType === 'PERMANENT'
+  const salaryDisplay = s.salaryMin ? `$${Number(s.salaryMin).toLocaleString()}${s.salaryMax ? ` – $${Number(s.salaryMax).toLocaleString()}` : ''}/yr` : ''
+
   return {
     id: s.id,
     initials,
-    bg: BG_COLORS[colorIdx],
-    color: FG_COLORS[colorIdx],
+    bg: isPerm ? '#ede9fe' : BG_COLORS[colorIdx],
+    color: isPerm ? '#5b21b6' : FG_COLORS[colorIdx],
     name: s.office?.name || 'Unknown Office',
     type: 'Dental Office',
     distance: s.office?.city ? `${s.office.city}, ${s.office.state}` : '',
@@ -78,17 +81,23 @@ function transformShift(s, index) {
     estPay,
     rate,
     applicants: s._count?.applications || 0,
-    tags,
+    tags: isPerm ? [{ label: 'Permanent', bg: '#ede9fe', color: '#5b21b6' }, ...tags] : tags,
     perks: [],
     description: s.description || '',
     jobType: s.jobType || 'TEMPORARY',
+    isPerm,
     officeId: s.office?.id || s.officeId || null,
+    // Permanent-specific fields
+    schedule: s.schedule || '',
+    benefits: s.benefits || [],
+    experienceYr: s.experienceYr,
+    salaryDisplay,
   }
 }
 
 function ShiftCard({ shift, applied, onApply, onDetails, showToast }) {
   return (
-    <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 hover:border-[#1a7f5e] transition cursor-pointer flex flex-col" onClick={() => onDetails(shift)}>
+    <div className={`bg-white border border-[#e5e7eb] rounded-[18px] p-4 transition cursor-pointer flex flex-col ${shift.isPerm ? 'hover:border-[#5b21b6]' : 'hover:border-[#1a7f5e]'}`} onClick={() => onDetails(shift)}>
       <div className="flex items-center gap-3 mb-3">
         <div className="w-[68px] h-[68px] rounded-[16px] flex items-center justify-center text-[16px] font-black flex-shrink-0" style={{ background: shift.bg, color: shift.color }}>{shift.initials}</div>
         <div className="flex-1 min-w-0">
@@ -99,17 +108,20 @@ function ShiftCard({ shift, applied, onApply, onDetails, showToast }) {
             <span className="text-[14px] font-semibold text-[#6b7280]">· {shift.distance}</span>
           </div>
         </div>
-        <div className="text-right flex-shrink-0">
-          <div className="text-[18px] font-black text-[#1a7f5e]">{shift.estPay}</div>
-          <div className="text-[10px] text-[#9ca3af]">est. pay</div>
+        <div className="text-right flex-shrink-0" style={{ maxWidth: shift.isPerm ? 130 : 'none' }}>
+          <div className={`font-black ${shift.isPerm ? 'text-[13px] text-[#5b21b6]' : 'text-[18px] text-[#1a7f5e]'}`}>{shift.isPerm ? (shift.salaryDisplay || shift.rate) : shift.estPay}</div>
+          <div className="text-[10px] text-[#9ca3af]">{shift.isPerm ? (shift.rate ? shift.rate : 'salary') : 'est. pay'}</div>
         </div>
       </div>
       <div className="flex gap-1.5 flex-wrap mb-2.5">
         {shift.tags.map(t => <span key={t.label} className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: t.bg, color: t.color }}>{t.label}</span>)}
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1 mb-2.5">
-        {[{ icon: <CalIcon />, text: shift.date }, { icon: <ClockIcon />, text: shift.time }, { icon: <UserIcon />, text: shift.role }, { icon: <ParkIcon />, text: shift.parking }].map(({ icon, text }) => (
-          <div key={text} className="flex items-center gap-1.5 text-[11px] text-[#6b7280]">{icon}{text}</div>
+        {(shift.isPerm
+          ? [{ icon: <UserIcon />, text: shift.role }, { icon: <CalIcon />, text: shift.schedule?.split(' · ')[0] || 'Full-time' }, { icon: <ClockIcon />, text: shift.experienceYr ? `${shift.experienceYr}+ yrs exp` : 'Open' }, { icon: <ParkIcon />, text: shift.distance || '—' }]
+          : [{ icon: <CalIcon />, text: shift.date }, { icon: <ClockIcon />, text: shift.time }, { icon: <UserIcon />, text: shift.role }, { icon: <ParkIcon />, text: shift.parking }]
+        ).map(({ icon, text }, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-[11px] text-[#6b7280]">{icon}{text}</div>
         ))}
       </div>
       <div className="flex items-center gap-1 mb-3">
@@ -117,8 +129,8 @@ function ShiftCard({ shift, applied, onApply, onDetails, showToast }) {
         <span className="text-[11px] font-bold text-[#5b21b6]">{shift.applicants} applied</span>
       </div>
       <div className="flex gap-2 mt-auto" onClick={e => e.stopPropagation()}>
-        <button onClick={() => onDetails(shift)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2 rounded-full text-[12px] hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Details</button>
-        <button onClick={() => onApply(shift.id)} className={`flex-1 font-bold py-2 rounded-full text-[12px] transition border-none cursor-pointer ${applied ? 'bg-[#0f4d38] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white'}`} style={{ fontFamily: 'inherit' }}>{applied ? '✓ Applied' : 'Apply'}</button>
+        <button onClick={() => onDetails(shift)} className={`flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2 rounded-full text-[12px] transition bg-white cursor-pointer ${shift.isPerm ? 'hover:border-[#5b21b6]' : 'hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>Details</button>
+        <button onClick={() => onApply(shift.id)} className={`flex-1 font-bold py-2 rounded-full text-[12px] transition border-none cursor-pointer ${applied ? (shift.isPerm ? 'bg-[#3b0f7a] text-white' : 'bg-[#0f4d38] text-white') : (shift.isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white')}`} style={{ fontFamily: 'inherit' }}>{applied ? '✓ Applied' : (shift.isPerm ? 'Apply Now' : 'Apply')}</button>
         <button onClick={(e) => { e.stopPropagation(); showToast('Favorites coming soon') }} className="w-8 h-8 border border-[#e5e7eb] rounded-full flex items-center justify-center hover:border-[#ef4444] transition flex-shrink-0 bg-white cursor-pointer">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
@@ -484,53 +496,93 @@ export default function FindShifts() {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <div className="bg-[#e8f5f0] rounded-[14px] px-4 py-3 mb-5">
-            <p className="text-[11px] font-semibold text-[#6b9e8a] uppercase tracking-wider mb-0.5">{isPerm ? 'Compensation' : 'Estimated pay'}</p>
-            <p className="text-[22px] font-black text-[#0f4d38]">{isPerm ? item.pay : item.estPay}{isPerm ? <span className="text-[13px] font-medium text-[#6b9e8a]">/hr</span> : ''}</p>
+          {/* Compensation banner */}
+          <div className={`rounded-[14px] px-4 py-3 mb-5 ${item.isPerm ? 'bg-[#ede9fe]' : 'bg-[#e8f5f0]'}`}>
+            <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${item.isPerm ? 'text-[#7c3aed]' : 'text-[#6b9e8a]'}`}>{item.isPerm ? 'Compensation' : 'Estimated pay'}</p>
+            <p className={`font-black ${item.isPerm ? 'text-[17px] text-[#5b21b6]' : 'text-[22px] text-[#0f4d38]'}`}>
+              {item.isPerm ? (item.salaryDisplay || item.rate || '—') : item.estPay}
+            </p>
+            {item.isPerm && item.rate && item.salaryDisplay && <p className="text-[12px] text-[#7c3aed] mt-0.5">{item.rate}</p>}
           </div>
-          <p className="text-[16px] font-semibold text-[#374151] mb-3">{isPerm ? 'Job details' : 'Shift details'}</p>
-          <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
-            {(isPerm
-              ? [['Schedule', item.schedule], ['Job type', item.type], ['Posted', item.posted], ['Applicants', `${item.applicants} applied`]]
-              : [['Date', item.date], ['Time', item.time], ['Hourly Rate', item.rate], ['Role', item.role], ['Software', item.software], ['Parking', item.parking]]
-            ).map(([label, value], i, arr) => (
-              <div key={label} className={`flex justify-between px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f0efed]' : ''}`}>
-                <span className="text-[14px] text-[#9ca3af]">{label}</span>
-                <span className={`text-[14px] font-medium ${label === 'Applicants' ? 'text-[#5b21b6]' : 'text-[#1a1a1a]'}`}>{value}</span>
-              </div>
-            ))}
-          </div>
-          {isPerm ? (
+
+          {item.isPerm ? (
             <>
-              <p className="text-[15px] font-semibold text-[#374151] mb-3">Benefits</p>
-              <div className="flex flex-wrap gap-2">
-                {item.benefits.map(b => (
-                  <span key={b} className="flex items-center gap-1.5 bg-[#f9f8f6] rounded-full px-3 py-1.5 text-[12px] font-semibold text-[#374151]">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>{b}
-                  </span>
+              {/* Permanent job details */}
+              <p className="text-[16px] font-semibold text-[#374151] mb-3">Job details</p>
+              <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
+                {[
+                  ['Role', item.role],
+                  ['Employment', item.schedule?.split(' · ')[0] || 'Full-time'],
+                  ['Schedule', item.schedule?.split(' · ').slice(1).join(', ') || 'Standard'],
+                  ['Experience', item.experienceYr ? `${item.experienceYr}+ years` : 'No minimum'],
+                  ['Applicants', `${item.applicants} applied`],
+                  ['Location', item.distance || '—'],
+                ].map(([label, value], i, arr) => (
+                  <div key={label} className={`flex justify-between gap-4 px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f0efed]' : ''}`}>
+                    <span className="text-[13px] text-[#9ca3af] flex-shrink-0">{label}</span>
+                    <span className={`text-[13px] font-medium text-right ${label === 'Applicants' ? 'text-[#5b21b6]' : 'text-[#1a1a1a]'}`}>{value}</span>
+                  </div>
                 ))}
               </div>
+
+              {/* Benefits */}
+              {item.benefits.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-[15px] font-semibold text-[#374151] mb-3">Benefits</p>
+                  <div className="flex flex-wrap gap-2">
+                    {item.benefits.map(b => (
+                      <span key={b} className="flex items-center gap-1.5 bg-[#f5f3ff] border border-[#e5e7eb] rounded-full px-3 py-1.5 text-[12px] font-semibold text-[#374151]">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>{b}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {item.description && (
+                <div className="mb-5">
+                  <p className="text-[15px] font-semibold text-[#374151] mb-2">About this position</p>
+                  <div className="bg-[#f9f8f6] rounded-[14px] p-4 text-[13px] text-[#374151] leading-relaxed whitespace-pre-line">{item.description}</div>
+                </div>
+              )}
             </>
           ) : (
             <>
-              <p className="text-[15px] font-semibold text-[#374151] mb-2">Perks</p>
-              <div className="flex flex-wrap gap-2">
-                {item.perks.map(p => (
-                  <span key={p.label} className={`flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-full ${p.yes ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#fee2e2] text-[#991b1b] line-through opacity-60'}`}>
-                    {p.yes ? '✓' : '✕'} {p.label}
-                  </span>
+              {/* Temp shift details */}
+              <p className="text-[16px] font-semibold text-[#374151] mb-3">Shift details</p>
+              <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
+                {[['Date', item.date], ['Time', item.time], ['Hourly Rate', item.rate], ['Role', item.role], ['Software', item.software], ['Parking', item.parking]].map(([label, value], i, arr) => (
+                  <div key={label} className={`flex justify-between px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f0efed]' : ''}`}>
+                    <span className="text-[14px] text-[#9ca3af]">{label}</span>
+                    <span className="text-[14px] font-medium text-[#1a1a1a]">{value}</span>
+                  </div>
                 ))}
               </div>
+              {item.description && (
+                <div className="mb-5">
+                  <p className="text-[15px] font-semibold text-[#374151] mb-2">Notes</p>
+                  <div className="bg-[#f9f8f6] rounded-[14px] p-4 text-[13px] text-[#374151] leading-relaxed">{item.description}</div>
+                </div>
+              )}
             </>
           )}
         </div>
-        <div className="px-5 py-4 border-t border-[#f3f4f6] flex gap-2 flex-shrink-0 bg-white">
-          <button onClick={() => setMsgModal({ officeName: item.name, officeId: item.officeId })} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
-          </button>
-          <button onClick={() => { handleApply(item.id); onClose() }} className={`flex-1 font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer ${applied.includes(item.id) ? 'bg-[#0f4d38] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white'}`} style={{ fontFamily: 'inherit' }}>
-            {applied.includes(item.id) ? '✓ Applied' : (isPerm ? 'Apply Now' : 'Apply')}
-          </button>
+        <div className="px-5 py-4 border-t border-[#f3f4f6] flex flex-col gap-2 flex-shrink-0 bg-white">
+          {item.officeId && (
+            <button onClick={() => { onClose(); navigate(`/office-profile/${item.officeId}`) }} className={`w-full flex items-center justify-center gap-2 border border-[#e5e7eb] font-bold py-2.5 rounded-full text-[13px] transition bg-white cursor-pointer ${item.isPerm ? 'text-[#5b21b6] hover:border-[#5b21b6] hover:bg-[#f5f3ff]' : 'text-[#1a7f5e] hover:border-[#1a7f5e] hover:bg-[#f0faf5]'}`} style={{ fontFamily: 'inherit' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              View office profile
+            </button>
+          )}
+          <div className="flex gap-2">
+            <button onClick={() => setMsgModal({ officeName: item.name, officeId: item.officeId })} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
+            </button>
+            <button onClick={() => { handleApply(item.id); onClose() }} className={`flex-1 font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer ${applied.includes(item.id) ? (item.isPerm ? 'bg-[#3b0f7a] text-white' : 'bg-[#0f4d38] text-white') : (item.isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white')}`} style={{ fontFamily: 'inherit' }}>
+              {applied.includes(item.id) ? '✓ Applied' : (item.isPerm ? 'Apply Now' : 'Apply')}
+            </button>
+          </div>
         </div>
       </div>
     </>

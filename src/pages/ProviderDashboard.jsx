@@ -146,6 +146,17 @@ export default function ProviderDashboard() {
   const location = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : null
   const avatarUrl = profile?.avatarUrl
 
+  // Profile strength
+  const hasPhoto = !!(user?.imageUrl || profile?.avatarUrl)
+  const hasAbout = !!(profile?.bio)
+  const hasRate = !!(profile?.hourlyRate)
+  const hasCreds = (profile?.credentials?.length || 0) > 0
+  const hasResume = !!(profile?.resumeUrl)
+  const hasAvail = (profile?.availability?.length || 0) > 0
+  const strengthCount = [hasPhoto, hasAbout, hasRate, hasCreds, hasResume, hasAvail].filter(Boolean).length
+  const strengthPct = Math.round((strengthCount / 6) * 100)
+  const profileComplete = strengthPct === 100
+
   const handleSearch = () => {
     const distNum = distance.replace(/\D/g, '') || '25'
     const params = new URLSearchParams({ zip, distance: distNum })
@@ -169,15 +180,15 @@ export default function ProviderDashboard() {
               <div className="relative flex-shrink-0">
                 {avatarUrl ? (
                   <img
-                    src={avatarUrl}
+                    src={avatarUrl.startsWith('http') ? avatarUrl : `${API_URL}${avatarUrl}`}
                     alt={firstName}
                     className="w-20 h-20 rounded-full object-cover border-[3px] border-[#e5e7eb]"
                   />
                 ) : (
                   <InitialsAvatar name={firstName} size={80} className="border-[3px] border-[#e5e7eb]" />
                 )}
-                {profile?.verified && (
-                  <div className="absolute bottom-0.5 right-0.5 w-7 h-7 rounded-full bg-[#5b21b6] border-[2.5px] border-white flex items-center justify-center">
+                {profileComplete && (
+                  <div className="absolute bottom-0.5 right-0.5 w-7 h-7 rounded-full bg-[#7c3aed] border-[2.5px] border-white flex items-center justify-center">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round">
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
@@ -212,7 +223,7 @@ export default function ProviderDashboard() {
                 { value: profile?.stats?.rating ? `★ ${profile.stats.rating}` : '—', label: 'Rating', color: profile?.stats?.rating ? 'text-[#F97316]' : 'text-[#9ca3af]' },
                 { value: profile?.stats?.completedShifts > 0 ? `${Math.round(profile.stats.reliability)}%` : '\u2014', label: 'Reliability', color: profile?.stats?.completedShifts > 0 ? 'text-[#1a1a1a]' : 'text-[#9ca3af]' },
                 { value: String(profile?.stats?.completedShifts ?? 0), label: 'Total shifts', color: 'text-[#1a1a1a]' },
-                { value: profile?.stats?.completedShifts > 0 ? (profile?.verified ? '100%' : 'Incomplete') : '\u2014', label: 'Profile strength', color: profile?.stats?.completedShifts > 0 ? (profile?.verified ? 'text-[#1a7f5e]' : 'text-[#F97316]') : 'text-[#9ca3af]' },
+                { value: `${strengthPct}%`, label: 'Profile score', color: profileComplete ? 'text-[#7c3aed]' : 'text-[#F97316]' },
               ].map(({ value, label, color }, i, arr) => (
                 <div
                   key={label}
@@ -326,90 +337,80 @@ View your schedule
           </div>
         </div>
 
-        {/* Shifts near me */}
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[15px] font-black text-[#1a1a1a]">Shifts near me</p>
-          <button
-            onClick={() => navigate('/provider-find-shifts')}
-            className="text-[13px] font-bold text-[#1a7f5e] hover:underline"
-          >
-            See all
-          </button>
-        </div>
-
-        {shiftsLoading ? <ShiftsSkeleton /> : shifts && shifts.length > 0 ? (
-          <div className="flex flex-col gap-2.5">
-            {shifts.map((shift, idx) => {
-              const officeName = shift.office?.name || 'Dental Office'
-              const initials = getInitials(officeName)
-              const colors = LOGO_COLORS[idx % LOGO_COLORS.length]
-              const isToday = new Date(shift.date).toDateString() === new Date().toDateString()
-              const isTomorrow = new Date(shift.date).toDateString() === new Date(Date.now() + 86400000).toDateString()
-
-              return (
-                <div
-                  key={shift.id}
-                  onClick={() => setSelectedShift(shift)}
-                  className="bg-white border border-[#e5e7eb] rounded-[16px] px-4 py-3.5 cursor-pointer hover:border-[#1a7f5e] transition"
-                >
-                  <div className="flex items-center gap-3 mb-2.5">
-                    <div className={`w-10 h-10 rounded-[11px] ${colors.bg} flex items-center justify-center text-[11px] font-black ${colors.text} flex-shrink-0`}>
-                      {initials}
-                    </div>
+        {/* Shifts & Jobs near me */}
+        {shiftsLoading ? <ShiftsSkeleton /> : shifts && shifts.length > 0 ? (<>
+          {/* Temp Shifts */}
+          {shifts.filter(s => s.jobType !== 'PERMANENT').length > 0 && (<>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[15px] font-black text-[#1a1a1a]">Shifts near me</p>
+              <button onClick={() => navigate('/provider-find-shifts')} className="text-[13px] font-bold text-[#1a7f5e] hover:underline">See all</button>
+            </div>
+            <div className="space-y-3 mb-6">
+              {shifts.filter(s => s.jobType !== 'PERMANENT').map((shift, idx) => {
+                const officeName = shift.office?.name || 'Dental Office'
+                const initials = getInitials(officeName)
+                const colors = LOGO_COLORS[idx % LOGO_COLORS.length]
+                const isToday = new Date(shift.date).toDateString() === new Date().toDateString()
+                const isTomorrow = new Date(shift.date).toDateString() === new Date(Date.now() + 86400000).toDateString()
+                return (
+                  <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#1a7f5e] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
+                    <div className={`w-11 h-11 rounded-[12px] ${colors.bg} flex items-center justify-center text-[11px] font-black ${colors.text} flex-shrink-0`}>{initials}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-bold text-[#1a1a1a] mb-0.5">{officeName}</p>
-                      <p className="text-[12px] text-[#9ca3af]">
-                        {formatShiftDate(shift.date)}
-                        {shift.office?.city && ` · ${shift.office.city}, ${shift.office.state}`}
-                      </p>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{officeName}</p>
+                        {isToday && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fee2e2] text-[#991b1b] flex-shrink-0">Today</span>}
+                        {isTomorrow && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fef9c3] text-[#92400e] flex-shrink-0">Tomorrow</span>}
+                        {shift.isRapidFill && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fef9c3] text-[#92400e] flex-shrink-0">Rapid Fill</span>}
+                      </div>
+                      <p className="text-[12px] text-[#6b7280]">{shift.role}</p>
+                      <p className="text-[12px] text-[#9ca3af]">{formatShiftDate(shift.date)} · {shift.startTime} – {shift.endTime}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <span className="text-[17px] font-black text-[#1a1a1a]">${shift.hourlyRate}</span>
-                      <span className="text-[12px] text-[#9ca3af]">/hr</span>
+                      <p className="text-[15px] font-black text-[#1a7f5e]">${shift.hourlyRate}/hr</p>
+                      {shift.office?.city && <p className="text-[11px] text-[#9ca3af]">{shift.office.city}, {shift.office.state}</p>}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {isToday && (
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#fee2e2] text-[#991b1b]">Today only</span>
-                    )}
-                    {isTomorrow && (
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#fef9c3] text-[#92400e]">Tomorrow</span>
-                    )}
-                    {shift.isRapidFill && (
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#fef9c3] text-[#92400e]">Rapid Fill</span>
-                    )}
-                    <span className="text-[12px] text-[#6b7280] font-medium">{shift.startTime} – {shift.endTime}</span>
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation()
-                        try {
-                          const token = await getToken()
-                          const res = await fetch(`${API_URL}/api/applications`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                            body: JSON.stringify({ shiftId: shift.id }),
-                          })
-                          if (res.ok) {
-                            e.target.textContent = 'Applied!'
-                            e.target.disabled = true
-                            e.target.className = e.target.className.replace('bg-[#1a7f5e]', 'bg-[#9ca3af]')
-                          } else {
-                            const err = await res.json().catch(() => ({}))
-                            alert(err.error || 'Failed to apply')
-                          }
-                        } catch { alert('Failed to apply') }
-                      }}
-                      className="ml-auto bg-[#1a7f5e] hover:bg-[#156649] text-white text-[12px] font-bold px-4 py-1.5 rounded-full transition"
-                    >
-                      Apply
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="bg-white border border-[#e5e7eb] rounded-[16px] px-4 py-8 text-center">
+                  </button>
+                )
+              })}
+            </div>
+          </>)}
+
+          {/* Permanent Jobs */}
+          {shifts.filter(s => s.jobType === 'PERMANENT').length > 0 && (<>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[15px] font-black text-[#1a1a1a] flex items-center gap-2">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                Permanent jobs
+              </p>
+              <button onClick={() => navigate('/provider-find-shifts')} className="text-[13px] font-bold text-[#5b21b6] hover:underline">See all</button>
+            </div>
+            <div className="space-y-3 mb-6">
+              {shifts.filter(s => s.jobType === 'PERMANENT').map((shift) => {
+                const officeName = shift.office?.name || 'Dental Office'
+                const initials = getInitials(officeName)
+                const salaryDisplay = shift.salaryMin ? `$${Number(shift.salaryMin).toLocaleString()}${shift.salaryMax ? ` – $${Number(shift.salaryMax).toLocaleString()}` : ''}/yr` : ''
+                return (
+                  <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#5b21b6] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
+                    <div className="w-11 h-11 rounded-[12px] bg-[#ede9fe] flex items-center justify-center text-[11px] font-black text-[#5b21b6] flex-shrink-0">{initials}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{officeName}</p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ede9fe] text-[#5b21b6] flex-shrink-0">Permanent</span>
+                      </div>
+                      <p className="text-[12px] text-[#6b7280]">{shift.role}</p>
+                      <p className="text-[12px] text-[#9ca3af]">{shift.schedule?.split(' · ')[0] || 'Full-time'}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0" style={{ maxWidth: 120 }}>
+                      <p className="text-[13px] font-black text-[#5b21b6]">{salaryDisplay || `$${shift.hourlyRate}/hr`}</p>
+                      {salaryDisplay && shift.hourlyRate > 0 && <p className="text-[11px] text-[#9ca3af]">${shift.hourlyRate}/hr</p>}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </>)}
+        </>) : (
+          <div className="bg-white border border-[#e5e7eb] rounded-[18px] px-4 py-8 text-center">
             <p className="text-[15px] font-bold text-[#1a1a1a] mb-1">No open shifts right now</p>
             <p className="text-[13px] text-[#9ca3af]">Check back soon or adjust your search filters</p>
           </div>
@@ -417,88 +418,151 @@ View your schedule
       </div>
 
       {/* ── SHIFT DETAIL MODAL ── */}
-      {selectedShift && (
+      {selectedShift && (() => {
+        const s = selectedShift
+        const isPerm = s.jobType === 'PERMANENT'
+        const officeName = s.office?.name || 'Office'
+        const initials = officeName.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+        const location = s.office?.city ? `${s.office.city}, ${s.office.state}` : ''
+        const dateStr = formatShiftDate(s.date)
+        const timeStr = `${s.startTime} – ${s.endTime}`
+        const rate = s.hourlyRate ? `$${s.hourlyRate}/hr` : '—'
+        const parse = (t) => { if (!t) return 0; const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return 0; let h = +m[1], mi = +m[2]; if (m[3].toUpperCase() === 'PM' && h < 12) h += 12; if (m[3].toUpperCase() === 'AM' && h === 12) h = 0; return h + mi / 60 }
+        const hours = parse(s.endTime) - parse(s.startTime)
+        const estPay = hours > 0 && s.hourlyRate ? `$${Math.round(hours * s.hourlyRate)}` : '—'
+        const software = (s.software || []).join(', ') || 'N/A'
+        const salaryDisplay = s.salaryMin ? `$${Number(s.salaryMin).toLocaleString()}${s.salaryMax ? ` – $${Number(s.salaryMax).toLocaleString()}` : ''}/yr` : ''
+        const benefits = s.benefits || []
+        const accent = isPerm ? '#5b21b6' : '#1a7f5e'
+        const accentBg = isPerm ? 'bg-[#ede9fe]' : 'bg-[#e8f5f0]'
+        const accentText = isPerm ? 'text-[#5b21b6]' : 'text-[#1a7f5e]'
+        const accentDark = isPerm ? 'text-[#5b21b6]' : 'text-[#0f4d38]'
+        const accentBtn = isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95]' : 'bg-[#1a7f5e] hover:bg-[#156649]'
+        const accentHover = isPerm ? 'hover:border-[#5b21b6] hover:bg-[#f5f3ff]' : 'hover:border-[#1a7f5e] hover:bg-[#f0faf5]'
+        return (
         <>
-          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setSelectedShift(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] w-full max-w-[440px] z-50 shadow-2xl max-h-[85vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSelectedShift(null)} />
+          <div className="fixed top-0 right-0 bottom-0 w-full max-w-[440px] bg-white z-50 flex flex-col shadow-2xl">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-[#f3f4f6] flex items-center justify-between">
-              <div>
-                <p className="text-[18px] font-black text-[#1a1a1a]">{selectedShift.office?.name || 'Office'}</p>
-                <p className="text-[13px] text-[#9ca3af]">{selectedShift.office?.city}, {selectedShift.office?.state}</p>
+            <div className="px-5 pt-6 pb-4 border-b border-[#f3f4f6] flex-shrink-0">
+              <button onClick={() => setSelectedShift(null)} className="flex items-center gap-1.5 text-[13px] font-bold text-[#6b7280] mb-4 bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+              </button>
+              <div className="flex items-start gap-3">
+                <div className={`w-14 h-14 rounded-[14px] ${accentBg} flex items-center justify-center text-[14px] font-black ${accentText} flex-shrink-0`}>{initials}</div>
+                <div className="flex-1">
+                  <p className="text-[20px] font-black text-[#1a1a1a]">{officeName}</p>
+                  <p className="text-[13px] text-[#6b7280]">{location}</p>
+                </div>
               </div>
-              <button onClick={() => setSelectedShift(null)} className="w-8 h-8 rounded-full border border-[#e5e7eb] flex items-center justify-center text-[#9ca3af] hover:text-[#1a1a1a]">✕</button>
             </div>
-            {/* Details */}
-            <div className="px-5 py-4">
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-[#f9f8f6] rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Role</p>
-                  <p className="text-[14px] font-bold text-[#1a1a1a]">{selectedShift.role}</p>
-                </div>
-                <div className="bg-[#e8f5f0] rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-[#6b9e8a] uppercase mb-1">Rate</p>
-                  <p className="text-[18px] font-black text-[#0f4d38]">${selectedShift.hourlyRate}/hr</p>
-                </div>
-                <div className="bg-[#f9f8f6] rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Date</p>
-                  <p className="text-[14px] font-bold text-[#1a1a1a]">{formatShiftDate(selectedShift.date)}</p>
-                </div>
-                <div className="bg-[#f9f8f6] rounded-xl p-3">
-                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Hours</p>
-                  <p className="text-[14px] font-bold text-[#1a1a1a]">{selectedShift.startTime} – {selectedShift.endTime}</p>
-                </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {/* Compensation banner */}
+              <div className={`rounded-[14px] px-4 py-3 mb-5 ${accentBg}`}>
+                <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${isPerm ? 'text-[#7c3aed]' : 'text-[#6b9e8a]'}`}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
+                <p className={`font-black ${isPerm ? 'text-[17px]' : 'text-[22px]'} ${accentDark}`}>{isPerm ? (salaryDisplay || rate) : estPay}</p>
+                {isPerm && rate && salaryDisplay && <p className="text-[12px] text-[#7c3aed] mt-0.5">{rate}</p>}
               </div>
-              {selectedShift.description && (
-                <div className="mb-4">
-                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-1">Description</p>
-                  <p className="text-[13px] text-[#374151] leading-relaxed">{selectedShift.description}</p>
+
+              {isPerm ? (<>
+                {/* Permanent job details */}
+                <p className="text-[16px] font-semibold text-[#374151] mb-3">Job details</p>
+                <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
+                  {[
+                    ['Role', s.role || '—'],
+                    ['Employment', s.schedule?.split(' · ')[0] || 'Full-time'],
+                    ['Schedule', s.schedule?.split(' · ').slice(1).join(', ') || 'Standard'],
+                    ['Experience', s.experienceYr ? `${s.experienceYr}+ years` : 'No minimum'],
+                    ['Location', location || '—'],
+                  ].map(([label, value], i, arr) => (
+                    <div key={label} className={`flex justify-between gap-4 px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f0efed]' : ''}`}>
+                      <span className="text-[13px] text-[#9ca3af] flex-shrink-0">{label}</span>
+                      <span className="text-[13px] font-medium text-[#1a1a1a] text-right">{value}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
-              {selectedShift.software?.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-[10px] font-bold text-[#9ca3af] uppercase mb-2">Software</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedShift.software.map(s => (
-                      <span key={s} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#f3f4f6] text-[#374151]">{s}</span>
-                    ))}
+
+                {/* Benefits */}
+                {benefits.length > 0 && (
+                  <div className="mb-5">
+                    <p className="text-[15px] font-semibold text-[#374151] mb-3">Benefits</p>
+                    <div className="flex flex-wrap gap-2">
+                      {benefits.map(b => (
+                        <span key={b} className="flex items-center gap-1.5 bg-[#f5f3ff] border border-[#e5e7eb] rounded-full px-3 py-1.5 text-[12px] font-semibold text-[#374151]">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>{b}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Description */}
+                {s.description && (
+                  <div className="mb-5">
+                    <p className="text-[15px] font-semibold text-[#374151] mb-2">About this position</p>
+                    <div className="bg-[#f9f8f6] rounded-[14px] p-4 text-[13px] text-[#374151] leading-relaxed whitespace-pre-line">{s.description}</div>
+                  </div>
+                )}
+              </>) : (<>
+                {/* Temp shift details */}
+                <p className="text-[16px] font-semibold text-[#374151] mb-3">Shift details</p>
+                <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
+                  {[['Date', dateStr], ['Time', timeStr], ['Hourly Rate', rate], ['Role', s.role || '—'], ['Software', software]].map(([label, value], i, arr) => (
+                    <div key={label} className={`flex justify-between px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f0efed]' : ''}`}>
+                      <span className="text-[13px] text-[#9ca3af]">{label}</span>
+                      <span className="text-[13px] font-medium text-[#1a1a1a]">{value}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
-              <div className="flex gap-2 mt-5">
-                <button
-                  onClick={async () => {
-                    try {
-                      const token = await getToken()
-                      const res = await fetch(`${API_URL}/api/applications`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify({ shiftId: selectedShift.id }),
-                      })
-                      if (res.ok) {
-                        setSelectedShift(null)
-                        alert('Application submitted!')
-                      } else {
-                        const err = await res.json().catch(() => ({}))
-                        alert(err.error || 'Failed to apply')
-                      }
-                    } catch { alert('Failed to apply') }
-                  }}
-                  className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 rounded-full text-[14px] transition"
-                >
-                  Apply now
-                </button>
-                <button
-                  onClick={() => { setMsgModal({ officeName: selectedShift.office?.name, officeId: selectedShift.officeId }); setSelectedShift(null) }}
-                  className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-3 rounded-full text-[14px] hover:border-[#1a7f5e] transition"
-                >
-                  Message
-                </button>
-              </div>
+                {s.description && (
+                  <div className="mb-5">
+                    <p className="text-[15px] font-semibold text-[#374151] mb-2">Notes</p>
+                    <div className="bg-[#f9f8f6] rounded-[14px] p-4 text-[13px] text-[#374151] leading-relaxed">{s.description}</div>
+                  </div>
+                )}
+              </>)}
+
+              {/* View office profile */}
+              <button
+                onClick={() => { setSelectedShift(null); navigate(`/office-profile/${s.officeId}`) }}
+                className={`w-full flex items-center justify-center gap-2 border border-[#e5e7eb] ${accentText} font-bold py-2.5 rounded-full text-[13px] ${accentHover} transition bg-white cursor-pointer mb-2`}
+                style={{ fontFamily: 'inherit' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                View office profile
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-[#f3f4f6] flex gap-2 flex-shrink-0 bg-white">
+              <button onClick={() => { setMsgModal({ officeName, officeId: s.officeId }); setSelectedShift(null) }} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const token = await getToken()
+                    const res = await fetch(`${API_URL}/api/applications`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify({ shiftId: s.id }),
+                    })
+                    if (res.ok) { setSelectedShift(null); showToast('Application submitted!') }
+                    else { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to apply') }
+                  } catch { showToast('Failed to apply') }
+                }}
+                className={`flex-1 ${accentBtn} text-white font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer`} style={{ fontFamily: 'inherit' }}
+              >
+                {isPerm ? 'Apply Now' : 'Apply'}
+              </button>
             </div>
           </div>
         </>
-      )}
+        )
+      })()}
 
       {/* ── MESSAGE MODAL ── */}
       {msgModal && (

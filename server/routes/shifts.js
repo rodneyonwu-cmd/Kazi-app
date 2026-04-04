@@ -47,7 +47,12 @@ router.get('/:id', async (req, res) => {
         applications: {
           include: {
             provider: {
-              include: { user: { select: { firstName: true, lastName: true, avatarUrl: true } } },
+              include: {
+                user: { select: { firstName: true, lastName: true, avatarUrl: true } },
+                reviews: true,
+                credentials: true,
+                availability: true,
+              },
             },
           },
         },
@@ -76,7 +81,7 @@ router.post('/', async (req, res) => {
 
     if (!user?.office) return res.status(403).json({ error: 'Only offices can create shifts. Please complete onboarding first.' });
 
-    const { role, jobType, date, startTime, endTime, hourlyRate, description, software, isRapidFill } = req.body;
+    const { role, jobType, date, startTime, endTime, hourlyRate, description, software, isRapidFill, schedule, benefits, experienceYr, salaryMin, salaryMax } = req.body;
     const shift = await prisma.shift.create({
       data: {
         officeId: user.office.id,
@@ -89,6 +94,11 @@ router.post('/', async (req, res) => {
         description: description || null,
         software: software || [],
         isRapidFill: isRapidFill || false,
+        schedule: schedule || null,
+        benefits: benefits || [],
+        experienceYr: experienceYr != null ? parseInt(experienceYr) : null,
+        salaryMin: salaryMin != null ? parseFloat(salaryMin) : null,
+        salaryMax: salaryMax != null ? parseFloat(salaryMax) : null,
       },
     });
     res.status(201).json(shift);

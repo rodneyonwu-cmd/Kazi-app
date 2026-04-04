@@ -77,7 +77,9 @@ function App() {
       <Route path="/provider-help" element={<ProviderHelpCenter />} />
       <Route path="/provider-settings" element={<ProviderSettings />} />
       <Route path="/provider-profile" element={<ProviderProfile />} />
+      <Route path="/provider-profile/:id" element={<ProviderProfile />} />
       <Route path="/provider-availability" element={<ProviderAvailability />} />
+      <Route path="/office-profile/:id" element={<OfficeProfile />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

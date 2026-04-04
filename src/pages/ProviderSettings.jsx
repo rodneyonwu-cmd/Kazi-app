@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUser } from '@clerk/clerk-react'
+import { useUser, useClerk } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 
 export default function ProviderSettings() {
   const navigate = useNavigate()
   const { user } = useUser()
+  const { openUserProfile } = useClerk()
   const userEmail = user?.primaryEmailAddress?.emailAddress || ''
 
   const [notifs, setNotifs] = useState({
@@ -106,9 +107,9 @@ export default function ProviderSettings() {
         <div className="bg-white border border-[#e5e7eb] rounded-[18px] overflow-hidden mb-4">
           <p className="text-[15px] font-black text-[#1a1a1a] px-5 py-4 border-b border-[#f3f4f6]">Account</p>
           {[
-            { label: 'Change email', sub: userEmail, onClick: () => showToast('Email changes are managed through Clerk') },
-            { label: 'Change password', sub: 'Manage via account settings', onClick: () => showToast('Password changes are managed through Clerk') },
-            { label: 'Linked accounts', sub: 'Google', onClick: () => showToast('Linked accounts are managed through Clerk') },
+            { label: 'Change email', sub: userEmail, onClick: () => openUserProfile() },
+            { label: 'Change password', sub: 'Update your password', onClick: () => openUserProfile() },
+            { label: 'Linked accounts', sub: 'Google', onClick: () => openUserProfile() },
           ].map(({ label, sub, onClick }, i, arr) => (
             <div key={label} onClick={onClick} className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#f9f8f6] transition ${i < arr.length - 1 ? 'border-b border-[#f3f4f6]' : ''}`}>
               <div>

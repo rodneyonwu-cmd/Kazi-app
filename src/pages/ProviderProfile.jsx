@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import Nav from '../components/Nav'
 import InitialsAvatar from '../components/InitialsAvatar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -27,7 +28,9 @@ const CheckIcon = () => (
 export default function ProviderProfile() {
   const navigate = useNavigate()
   const location = useLocation()
-  const readOnly = location.state?.readOnly === true
+  const { id: providerIdParam } = useParams()
+  const isExternalView = !!providerIdParam
+  const readOnly = isExternalView || location.state?.readOnly === true
   const { user } = useUser()
   const { getToken } = useAuth()
 
@@ -50,6 +53,7 @@ export default function ProviderProfile() {
   const [rate, setRate] = useState('')
   const fileInputRef = useRef(null)
   const credInputRef = useRef(null)
+  const avatarInputRef = useRef(null)
 
   // Software & Skills modal state
   const [showSoftwareModal, setShowSoftwareModal] = useState(false)
@@ -60,9 +64,42 @@ export default function ProviderProfile() {
   // Credential upload state
   const [credUploadType, setCredUploadType] = useState(null)
 
-  // Withdraw modal state
   const SOFTWARE_OPTIONS = ['Eaglesoft', 'Dentrix', 'Open Dental', 'Curve Dental', 'Dexis', 'Carestream', 'Dolphin', 'Other']
-  const SKILLS_OPTIONS = ['Prophylaxis', 'Scaling & Root Planing', 'Sealants', 'Fluoride Treatment', 'X-Rays', 'Periodontal Charting', 'Coronal Polishing', 'Nitrous Oxide Administration', 'Local Anesthesia', 'Impressions', 'Temporary Crowns', 'Patient Education', 'Infection Control', 'Sterilization', 'Front Desk', 'Bilingual - Spanish']
+
+  const SKILLS_BY_ROLE = {
+    dentist: [
+      'Oral Surgery', 'Molar Root Canal', 'Wisdom Teeth Extractions', 'Veneers', 'Invisalign',
+      'Dental Implants', 'Crowns & Bridges', 'Dentures', 'Teeth Whitening', 'Composite Fillings',
+      'Porcelain Restorations', 'Pediatric Dentistry', 'Endodontics', 'Periodontal Surgery',
+      'Bone Grafting', 'Sinus Lift', 'TMJ Treatment', 'Sleep Apnea Treatment', 'Sedation Dentistry',
+      'Emergency Dental Care', 'Cosmetic Dentistry', 'Full Mouth Reconstruction', 'Digital Smile Design',
+      'Laser Dentistry', 'All-on-4 Implants', 'Occlusal Adjustment', 'Bilingual - Spanish',
+    ],
+    hygienist: [
+      'Prophylaxis', 'Scaling & Root Planing', 'Sealants', 'Fluoride Treatment', 'X-Rays',
+      'Periodontal Charting', 'Coronal Polishing', 'Nitrous Oxide Administration', 'Local Anesthesia',
+      'Impressions', 'Patient Education', 'Infection Control', 'Laser Therapy',
+      'Whitening Treatments', 'Oral Cancer Screening', 'Arestin Placement', 'Desensitizing Treatments',
+      'Temporary Restorations', 'Bilingual - Spanish',
+    ],
+    assistant: [
+      'Chairside Assisting', 'Impressions', 'Temporary Crowns', 'X-Rays', 'Sterilization',
+      'Infection Control', 'Sealants', 'Coronal Polishing', 'Fluoride Treatment', 'Patient Education',
+      'Lab Work', 'Pouring Models', 'Fabricating Trays', 'Suture Removal', 'Four-Handed Dentistry',
+      'Orthodontic Assisting', 'Surgical Assisting', 'EFDA Procedures', 'Bilingual - Spanish',
+    ],
+    front: [
+      'Scheduling', 'Insurance Verification', 'Billing & Coding', 'Patient Check-In/Out',
+      'Treatment Coordination', 'Accounts Receivable', 'Collections', 'Patient Communication',
+      'HIPAA Compliance', 'Office Management', 'Multi-Line Phones', 'Dental Terminology',
+      'Prior Authorizations', 'Recall Management', 'New Patient Intake', 'Bilingual - Spanish',
+    ],
+  }
+
+  const providerRole = profile?.role || ''
+  const SKILLS_OPTIONS = SKILLS_BY_ROLE[providerRole] || [
+    ...new Set(Object.values(SKILLS_BY_ROLE).flat())
+  ].sort()
 
   useEffect(() => {
     async function fetchData() {
@@ -70,8 +107,11 @@ export default function ProviderProfile() {
         const token = await getToken()
         const headers = { Authorization: `Bearer ${token}` }
 
-        // Fetch profile first to get provider ID
-        const profileRes = await fetch(`${API_URL}/api/providers/me`, { headers })
+        // Fetch profile — by ID if external, or /me for own profile
+        const profileUrl = isExternalView
+          ? `${API_URL}/api/providers/${providerIdParam}`
+          : `${API_URL}/api/providers/me`
+        const profileRes = await fetch(profileUrl, { headers })
         const profileData = await profileRes.json()
         setProfile(profileData)
         setAbout(profileData?.bio || '')
@@ -101,7 +141,7 @@ export default function ProviderProfile() {
       }
     }
     fetchData()
-  }, [getToken])
+  }, [getToken, providerIdParam])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
@@ -294,7 +334,7 @@ export default function ProviderProfile() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
-        <ProviderNav />
+        {isExternalView ? <Nav /> : <ProviderNav />}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 120 }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#1a7f5e', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
@@ -325,10 +365,33 @@ export default function ProviderProfile() {
               <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Edit profile</h2>
               <button onClick={() => setShowEditModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
             </div>
+            <input type="file" ref={avatarInputRef} accept="image/*" style={{ display: 'none' }} onChange={async e => {
+              const file = e.target.files[0]
+              if (!file) return
+              try {
+                const token = await getToken()
+                const formData = new FormData()
+                formData.append('file', file)
+                const res = await fetch(`${API_URL}/api/providers/avatar`, {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}` },
+                  body: formData,
+                })
+                if (res.ok) {
+                  const data = await res.json()
+                  setProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }))
+                  showToast('Photo updated!')
+                } else { showToast('Failed to upload photo') }
+              } catch { showToast('Failed to upload photo') }
+              e.target.value = ''
+            }} />
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <InitialsAvatar name={firstName} size={64} />
-                <button style={{ border: '1px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Change photo</button>
+                {profile?.avatarUrl
+                  ? <img src={profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`} alt="Profile" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
+                  : <InitialsAvatar name={firstName} size={64} />
+                }
+                <button onClick={() => avatarInputRef.current?.click()} style={{ border: '1px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Change photo</button>
               </div>
               {[
                 ['Full name', displayName || '', 'text'],
@@ -413,9 +476,9 @@ export default function ProviderProfile() {
 
       {/* BACK */}
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '16px 32px' }}>
-        <button onClick={() => navigate('/provider-dashboard')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#1a7f5e', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}>
+        <button onClick={() => isExternalView ? navigate(-1) : navigate('/provider-dashboard')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#1a7f5e', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back to dashboard
+          {isExternalView ? 'Back' : 'Back to dashboard'}
         </button>
       </div>
 
@@ -441,7 +504,17 @@ export default function ProviderProfile() {
               )}
               {/* Photo + Info row */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-                <InitialsAvatar name={firstName} size={84} />
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  {profile?.avatarUrl
+                    ? <img src={profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`} alt="Profile" style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover' }} />
+                    : <InitialsAvatar name={firstName} size={84} />
+                  }
+                  {strengthPct === 100 && (
+                    <div style={{ position: 'absolute', bottom: 2, right: 2, width: 26, height: 26, borderRadius: '50%', background: '#7c3aed', border: '2.5px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                  )}
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {/* Name */}
                   <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2, marginBottom: 3 }}>
@@ -477,7 +550,7 @@ export default function ProviderProfile() {
                   ['SHIFTS', String(completedShifts), '#1a1a1a'],
                   ['RESPONSE', '\u2014', '#1a1a1a'],
                   ['RELIABILITY', completedShifts === 0 ? 'New' : Math.round(profile?.stats?.reliability || 0) + '%', completedShifts === 0 ? '#9ca3af' : '#166534'],
-                  ['SCORE', '\u2014', '#1a7f5e'],
+                  ['SCORE', strengthPct + '%', strengthPct === 100 ? '#7c3aed' : '#1a7f5e'],
                 ].map(([label,val,color]) => (
                   <div key={label} style={{ background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
                     <div style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{label}</div>
@@ -741,14 +814,6 @@ export default function ProviderProfile() {
           {/* -- RIGHT SIDEBAR -- */}
           {readOnly ? (
             <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
-              <div style={s.sideCard}>
-                <button onClick={() => showToast(`Invite sent to ${displayName || 'provider'}!`)} style={{ width: '100%', background: 'white', border: '1.5px solid #1a7f5e', color: '#1a7f5e', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Send invite</button>
-                <button onClick={() => showToast(`Booking ${firstName || 'provider'}...`)} style={{ width: '100%', background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 800, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Book {firstName || 'Provider'}</button>
-                <button onClick={() => showToast('Opening messages...')} style={{ width: '100%', background: 'white', border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  Message
-                </button>
-              </div>
               <div style={s.sideCard}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Badges</div>
                 {completedShifts > 0 ? (

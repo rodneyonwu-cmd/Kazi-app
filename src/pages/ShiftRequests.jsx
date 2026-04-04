@@ -72,7 +72,7 @@ function DetailPanel({ shift, onAccept, onDecline, onWithdraw }) {
           ['Hours', shift.time],
           ['Hourly Rate', shift.rate],
           ['Total Est. Pay', shift.pay],
-          ['Role', shift.role],
+          ['Lunch', shift.lunch || 'Not specified'],
           ['Software', shift.software],
         ].map(([label, val]) => (
           <div key={label} className="bg-[#f9f8f6] rounded-[8px] px-2.5 py-2">
@@ -127,7 +127,7 @@ function ShiftCard({ shift, onAccept, onDecline, onWithdraw, showStatus }) {
           </div>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[14px] font-black text-[#1a7f5e]">{shift.rate}</span>
+          <span className="text-[14px] font-black text-[#1a7f5e]">{shift.pay}</span>
           {showStatus && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#e8f5f0] text-[#1a7f5e]">Accepted</span>}
           <div className={`w-[20px] h-[20px] rounded-full bg-[#f3f4f6] flex items-center justify-center flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>

@@ -1,6 +1,12 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import prisma from '../lib/prisma.js';
 import { requireAuth } from '../middleware/auth.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const upload = multer({ dest: path.join(__dirname, '..', '..', 'uploads') });
 
 const router = Router();
 
@@ -154,6 +160,54 @@ router.post('/', async (req, res) => {
       prisma.user.update({ where: { id: user.id }, data: { role: 'OFFICE' } }),
     ]);
     res.status(201).json(office);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/offices/me – update current user's office
+router.patch('/me', authGuard, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { office: true },
+    });
+    if (!user?.office) return res.status(404).json({ error: 'Office not found' });
+
+    const allowed = ['name', 'phone', 'address', 'city', 'state', 'zip', 'specialty', 'software', 'bio', 'plan', 'hiringRoles'];
+    const data = {};
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) data[key] = req.body[key];
+    }
+
+    const office = await prisma.office.update({
+      where: { id: user.office.id },
+      data,
+    });
+    res.json(office);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/offices/logo – upload office logo
+router.post('/logo', authGuard, upload.single('file'), async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { office: true },
+    });
+    if (!user?.office) return res.status(404).json({ error: 'Office not found' });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const logoUrl = `/uploads/${file.filename}`;
+    await prisma.office.update({
+      where: { id: user.office.id },
+      data: { logoUrl },
+    });
+    res.json({ logoUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
@@ -14,7 +14,9 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [officeId, setOfficeId] = useState(null)
+  const [logoUrl, setLogoUrl] = useState(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const logoInputRef = useRef(null)
 
   // Office Profile state
   const [officeName, setOfficeName] = useState('')
@@ -79,6 +81,7 @@ export default function Settings() {
           setOfficeWebsite(data.website || '')
           setOfficeSpecialty(data.specialty || 'General Dentistry')
           setOfficeBio(data.bio || '')
+          setLogoUrl(data.logoUrl || null)
         }
       } catch (err) {
         console.error('Failed to fetch office profile:', err)
@@ -216,14 +219,39 @@ export default function Settings() {
                   <p className="text-sm text-[#9ca3af] py-8 text-center">Loading...</p>
                 ) : (
                   <>
+                    <input type="file" ref={logoInputRef} accept="image/*" style={{ display: 'none' }} onChange={async e => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      try {
+                        const token = await getToken()
+                        const formData = new FormData()
+                        formData.append('file', file)
+                        const res = await fetch(`${API_URL}/api/offices/logo`, {
+
+                          method: 'POST',
+                          headers: { Authorization: `Bearer ${token}` },
+                          body: formData,
+                        })
+                        if (res.ok) {
+                          const data = await res.json()
+                          setLogoUrl(data.logoUrl)
+                          showToast('Logo uploaded!')
+                        } else { showToast('Failed to upload logo') }
+                      } catch { showToast('Failed to upload logo') }
+                      e.target.value = ''
+                    }} />
                     <div className="flex items-center gap-4 mb-5 pb-5 border-b border-[#e5e7eb]">
-                      <div className="w-16 h-16 rounded-2xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-extrabold text-xl">{officeName ? officeName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'}</span>
-                      </div>
+                      {logoUrl ? (
+                        <img src={logoUrl.startsWith('http') ? logoUrl : `${API_URL}${logoUrl}`} alt="Logo" className="w-16 h-16 rounded-2xl object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-2xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-extrabold text-xl">{officeName ? officeName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'}</span>
+                        </div>
+                      )}
                       <div>
                         <p className="text-sm font-bold text-[#1a1a1a] mb-1">Office Logo</p>
                         <p className="text-xs text-[#6b7280] mb-2">PNG or JPG, max 2MB</p>
-                        <button className="text-xs font-bold text-[#1a7f5e] border border-[#1a7f5e] px-3 py-1.5 rounded-full hover:bg-[#e8f5f0] transition">Upload logo</button>
+                        <button onClick={() => logoInputRef.current?.click()} className="text-xs font-bold text-[#1a7f5e] border border-[#1a7f5e] px-3 py-1.5 rounded-full hover:bg-[#e8f5f0] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Upload logo</button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

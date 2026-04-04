@@ -81,6 +81,47 @@ router.post('/', async (req, res) => {
   }
 });
 
+// POST /api/applications/book – office sends booking request to a provider
+router.post('/book', async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { office: true },
+    });
+    if (!user?.office) return res.status(403).json({ error: 'Only offices can send booking requests.' });
+
+    const { providerId, date, startTime, endTime, hourlyRate, role, note } = req.body;
+    if (!providerId || !date) return res.status(400).json({ error: 'Provider ID and date are required.' });
+
+    // Create shift and application in one transaction
+    const [shift] = await prisma.$transaction(async (tx) => {
+      const shift = await tx.shift.create({
+        data: {
+          officeId: user.office.id,
+          role: role || 'Dental Professional',
+          date: new Date(date),
+          startTime: startTime || '8:00 AM',
+          endTime: endTime || '5:00 PM',
+          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
+        },
+      });
+      const application = await tx.application.create({
+        data: {
+          shiftId: shift.id,
+          providerId,
+          note: note || null,
+          status: 'PENDING',
+        },
+      });
+      return [shift, application];
+    });
+
+    res.status(201).json({ shiftId: shift.id, message: 'Booking request sent' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/applications/:id – accept/decline/withdraw
 router.patch('/:id', async (req, res) => {
   try {

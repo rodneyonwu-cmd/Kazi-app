@@ -25,6 +25,8 @@ router.get('/me', authGuard, async (req, res) => {
             bookings: { where: { status: 'COMPLETED' } },
             reviews: true,
             applications: { where: { status: 'PENDING' } },
+            credentials: true,
+            availability: true,
           },
         },
       },
@@ -190,6 +192,29 @@ router.patch('/:id', authGuard, async (req, res) => {
       data: req.body,
     });
     res.json(provider);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/providers/avatar – upload profile photo
+router.post('/avatar', authGuard, upload.single('file'), async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { provider: true },
+    });
+    if (!user?.provider) return res.status(404).json({ error: 'Provider not found' });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const avatarUrl = `/uploads/${file.filename}`;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { avatarUrl },
+    });
+    res.json({ avatarUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
