@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import { useToast } from './ToastContext'
 import { BADGE } from './adminStyles'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 function StatCard({ icon, iconBg, value, label, delta, deltaType }) {
   const color = deltaType === 'up' ? 'text-[#1a7f5e]' : deltaType === 'warn' ? 'text-[#f59e0b]' : 'text-[#ef4444]'
@@ -16,33 +20,56 @@ function StatCard({ icon, iconBg, value, label, delta, deltaType }) {
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const showToast = useToast()
+  const { getToken } = useAuth()
+  const [stats, setStats] = useState(null)
+  const [users, setUsers] = useState([])
+  const [audit, setAudit] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const users = [
-    { name: 'Sarah R.', email: 'sarah@email.com', img: 'https://randomuser.me/api/portraits/women/44.jpg', type: 'Professional', status: 'Active', joined: 'Mar 25', statusColor: 'green' },
-    { name: 'Evolve Dentistry', email: 'evolve@dental.com', initials: 'ED', bg: '#e8f5f0', color: '#1a7f5e', type: 'Office', status: 'Active', joined: 'Mar 24', statusColor: 'green' },
-    { name: 'Marcus J.', email: 'marcus@email.com', img: 'https://randomuser.me/api/portraits/men/32.jpg', type: 'Professional', status: 'Pending', joined: 'Mar 22', statusColor: 'yellow' },
-    { name: 'Bright Smile Dental', email: 'bright@dental.com', initials: 'BS', bg: '#fef9c3', color: '#92400e', type: 'Office', status: 'Suspended', joined: 'Mar 20', statusColor: 'red' },
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await getToken()
+        const h = { Authorization: `Bearer ${token}` }
+        const [sRes, uRes, aRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/stats`, { headers: h }),
+          fetch(`${API_URL}/api/admin/users?limit=4`, { headers: h }),
+          fetch(`${API_URL}/api/admin/audit?limit=7`, { headers: h }),
+        ])
+        if (sRes.ok) setStats(await sRes.json())
+        if (uRes.ok) setUsers(await uRes.json())
+        if (aRes.ok) setAudit(await aRes.json())
+      } catch (err) { console.error('[AdminDashboard] fetch failed:', err) }
+      setLoading(false)
+    }
+    fetchData()
+  }, [getToken])
 
-  const activity = [
-    { dot: '#1a7f5e', text: <><strong>Sarah R.</strong> Texas RDH License approved</>, time: '2m ago' },
-    { dot: '#f59e0b', text: <><strong>Ticket #1042</strong> billing dispute opened</>, time: '14m ago' },
-    { dot: '#1a7f5e', text: <><strong>Clear Lake Dental</strong> posted new shift</>, time: '31m ago' },
-    { dot: '#ef4444', text: <><strong>Bright Smile Dental</strong> account suspended</>, time: '1h ago' },
-    { dot: '#5b21b6', text: <><strong>Nina P.</strong> submitted CPR/BLS cert</>, time: '2h ago' },
-    { dot: '#1a7f5e', text: <><strong>Marcus J.</strong> created new account</>, time: '3h ago' },
-    { dot: '#f59e0b', text: <><strong>Ticket #1041</strong> cancellation dispute resolved</>, time: '5h ago' },
-  ]
+  const formatTime = (t) => {
+    const diff = Date.now() - new Date(t).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    return `${Math.floor(hrs / 24)}d ago`
+  }
+
+  const actionDot = (a) => ({
+    APPROVE_CREDENTIAL: '#1a7f5e', REJECT_CREDENTIAL: '#ef4444',
+    SUSPEND_USER: '#ef4444', REINSTATE_USER: '#1a7f5e',
+    DELETE_USER: '#ef4444', CANCEL_SHIFT: '#f59e0b',
+    DELETE_REVIEW: '#ef4444',
+  }[a] || '#6b7280')
 
   return (
     <div>
       {/* Stats */}
       <div className="grid grid-cols-4 gap-3.5 mb-6">
-        <StatCard icon={<UsersIco/>} iconBg="#e8f5f0" value="1,284" label="Total Users" delta="↑ 24 this week" deltaType="up"/>
-        <StatCard icon={<CalIco/>} iconBg="#e8f5f0" value="342" label="Active Shifts" delta="↑ 18 today" deltaType="up"/>
-        <StatCard icon={<DolIco/>} iconBg="#e8f5f0" value="$48.2k" label="MRR" delta="↑ 12% vs last month" deltaType="up"/>
-        <StatCard icon={<ShieldIco/>} iconBg="#fef9c3" value="4" label="Pending Verifications" delta="Needs review" deltaType="warn"/>
+        <StatCard icon={<UsersIco/>} iconBg="#e8f5f0" value={loading ? '—' : (stats?.totalUsers ?? 0).toLocaleString()} label="Total Users" delta={`${stats?.totalOffices ?? 0} offices · ${stats?.totalProviders ?? 0} providers`} deltaType="up"/>
+        <StatCard icon={<CalIco/>} iconBg="#e8f5f0" value={loading ? '—' : (stats?.openShifts ?? 0).toLocaleString()} label="Open Shifts" delta={`${stats?.totalShifts ?? 0} total posted`} deltaType="up"/>
+        <StatCard icon={<DolIco/>} iconBg="#e8f5f0" value={loading ? '—' : `$${((stats?.totalRevenue ?? 0) / 1000).toFixed(1)}k`} label="Total Revenue" delta={`${stats?.totalBookings ?? 0} bookings`} deltaType="up"/>
+        <StatCard icon={<ShieldIco/>} iconBg="#fef9c3" value={loading ? '—' : (stats?.pendingVerifications ?? 0)} label="Pending Verifications" delta={stats?.pendingVerifications > 0 ? 'Needs review' : 'All caught up'} deltaType="warn"/>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -61,19 +88,31 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u, i) => (
-                <tr key={i} className="hover:bg-[#fafffe] cursor-pointer" onClick={() => navigate('/admin/users')}>
-                  <td className="px-4 py-3 text-[12px] border-b border-[#f9f8f6] last:border-0">
-                    <div className="flex items-center gap-2">
-                      {u.img ? <img src={u.img} className="w-[30px] h-[30px] rounded-full object-cover flex-shrink-0"/> : <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0" style={{ background: u.bg, color: u.color }}>{u.initials}</div>}
-                      <div><div className="text-[12px] font-bold text-[#1a1a1a]">{u.name}</div><div className="text-[10px] text-[#9ca3af]">{u.email}</div></div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 border-b border-[#f9f8f6]"><span className={BADGE[u.type === 'Professional' ? 'purple' : 'blue']}>{u.type}</span></td>
-                  <td className="px-4 py-3 border-b border-[#f9f8f6]"><span className={BADGE[u.statusColor]}>{u.status}</span></td>
-                  <td className="px-4 py-3 text-[12px] text-[#374151] border-b border-[#f9f8f6]">{u.joined}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan="4" className="px-4 py-8 text-center text-[12px] text-[#9ca3af]">Loading...</td></tr>
+              ) : users.length === 0 ? (
+                <tr><td colSpan="4" className="px-4 py-8 text-center text-[12px] text-[#9ca3af]">No users yet</td></tr>
+              ) : users.map((u) => {
+                const name = u.office?.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email
+                const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+                const type = u.role === 'OFFICE' ? 'Office' : u.role === 'PROVIDER' ? 'Provider' : 'Admin'
+                const status = u.suspended ? 'Suspended' : 'Active'
+                const statusColor = u.suspended ? 'red' : 'green'
+                const joined = new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                return (
+                  <tr key={u.id} className="hover:bg-[#fafffe] cursor-pointer" onClick={() => navigate('/admin/users')}>
+                    <td className="px-4 py-3 text-[12px] border-b border-[#f9f8f6] last:border-0">
+                      <div className="flex items-center gap-2">
+                        {u.avatarUrl ? <img src={u.avatarUrl.startsWith('http') ? u.avatarUrl : `${API_URL}${u.avatarUrl}`} className="w-[30px] h-[30px] rounded-full object-cover flex-shrink-0"/> : <div className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0 bg-[#e8f5f0] text-[#1a7f5e]">{initials}</div>}
+                        <div><div className="text-[12px] font-bold text-[#1a1a1a]">{name}</div><div className="text-[10px] text-[#9ca3af]">{u.email}</div></div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 border-b border-[#f9f8f6]"><span className={BADGE[type === 'Provider' ? 'purple' : 'blue']}>{type}</span></td>
+                    <td className="px-4 py-3 border-b border-[#f9f8f6]"><span className={BADGE[statusColor]}>{status}</span></td>
+                    <td className="px-4 py-3 text-[12px] text-[#374151] border-b border-[#f9f8f6]">{joined}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -83,13 +122,21 @@ export default function AdminDashboard() {
           <div className="px-[18px] py-3.5 border-b border-[#f3f4f6]">
             <span className="text-[13px] font-extrabold text-[#1a1a1a]">Recent Activity</span>
           </div>
-          {activity.map((a, i) => (
-            <div key={i} className="flex items-start gap-2.5 px-4 py-3 border-b border-[#f9f8f6] last:border-0">
-              <div className="w-[7px] h-[7px] rounded-full flex-shrink-0 mt-1" style={{ background: a.dot }}/>
-              <div className="text-[12px] text-[#374151] flex-1 leading-snug [&_strong]:text-[#1a1a1a] [&_strong]:font-bold">{a.text}</div>
-              <div className="text-[10px] text-[#9ca3af] flex-shrink-0">{a.time}</div>
-            </div>
-          ))}
+          {loading ? (
+            <div className="px-4 py-8 text-center text-[12px] text-[#9ca3af]">Loading...</div>
+          ) : audit.length === 0 ? (
+            <div className="px-4 py-8 text-center text-[12px] text-[#9ca3af]">No activity yet</div>
+          ) : audit.map((a) => {
+            const adminName = `${a.admin?.firstName || ''} ${a.admin?.lastName || ''}`.trim() || a.admin?.email || 'Admin'
+            const actionText = a.action.replace(/_/g, ' ').toLowerCase()
+            return (
+              <div key={a.id} className="flex items-start gap-2.5 px-4 py-3 border-b border-[#f9f8f6] last:border-0">
+                <div className="w-[7px] h-[7px] rounded-full flex-shrink-0 mt-1" style={{ background: actionDot(a.action) }}/>
+                <div className="text-[12px] text-[#374151] flex-1 leading-snug"><strong className="text-[#1a1a1a] font-bold">{adminName}</strong> {actionText}{a.details ? ` · ${a.details}` : ''}</div>
+                <div className="text-[10px] text-[#9ca3af] flex-shrink-0">{formatTime(a.createdAt)}</div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

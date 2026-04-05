@@ -567,9 +567,12 @@ export default function Dashboard() {
           {/* Temp Shifts */}
           {shifts.filter(s => !s.isPerm).length > 0 && (
             <>
-              <p className="text-[15px] font-extrabold text-[#1a1a1a] mb-3">Upcoming shifts</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[15px] font-extrabold text-[#1a1a1a]">Upcoming shifts</p>
+                {shifts.filter(s => !s.isPerm).length > 4 && <button onClick={() => navigate('/applicants')} className="text-[13px] font-bold text-[#1a7f5e] hover:underline bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>See all →</button>}
+              </div>
               <div className="space-y-3 mb-8">
-                {shifts.filter(s => !s.isPerm).map((shift) => (
+                {shifts.filter(s => !s.isPerm).slice(0, 4).map((shift) => (
                   <button key={shift.id} onClick={() => openShiftDrawer(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#1a7f5e] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
                     <InitialsAvatar name={shift.name} size={44} className="border-2 border-white shadow" />
                     <div className="flex-1 min-w-0">
@@ -592,12 +595,15 @@ export default function Dashboard() {
           {/* Permanent Jobs */}
           {shifts.filter(s => s.isPerm).length > 0 && (
             <>
-              <p className="text-[15px] font-extrabold text-[#1a1a1a] mb-3 flex items-center gap-2">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                Permanent jobs
-              </p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[15px] font-extrabold text-[#1a1a1a] flex items-center gap-2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                  Permanent jobs
+                </p>
+                {shifts.filter(s => s.isPerm).length > 4 && <button onClick={() => navigate('/applicants')} className="text-[13px] font-bold text-[#5b21b6] hover:underline bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>See all →</button>}
+              </div>
               <div className="space-y-3 mb-8">
-                {shifts.filter(s => s.isPerm).map((shift) => (
+                {shifts.filter(s => s.isPerm).slice(0, 4).map((shift) => (
                   <button key={shift.id} onClick={() => openShiftDrawer(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#5b21b6] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
                     <div className="w-11 h-11 rounded-[11px] bg-[#ede9fe] flex items-center justify-center flex-shrink-0">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>

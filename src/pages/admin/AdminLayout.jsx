@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Outlet } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import { ToastProvider } from './ToastContext'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const NAV = [
   { section: 'Overview', items: [
@@ -45,8 +48,51 @@ const TITLES = {
 export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { getToken, isLoaded, isSignedIn } = useAuth()
+  const [checking, setChecking] = useState(true)
+  const [denied, setDenied] = useState(false)
+
+  useEffect(() => {
+    if (!isLoaded) return
+    if (!isSignedIn) { navigate('/login'); return }
+    const check = async () => {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/admin/check`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          if (!data.isAdmin) { setDenied(true); setChecking(false); return }
+        } else { setDenied(true); setChecking(false); return }
+      } catch { setDenied(true); setChecking(false); return }
+      setChecking(false)
+    }
+    check()
+  }, [isLoaded, isSignedIn, getToken, navigate])
 
   const title = TITLES[location.pathname] || 'Admin'
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f0ee' }}>
+        <p className="text-sm text-[#6b7280]">Checking admin access...</p>
+      </div>
+    )
+  }
+
+  if (denied) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#f0f0ee' }}>
+        <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 text-center max-w-md w-full">
+          <div className="w-14 h-14 rounded-full bg-[#fee2e2] flex items-center justify-center mx-auto mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <p className="text-[18px] font-black text-[#1a1a1a] mb-1">Access denied</p>
+          <p className="text-[13px] text-[#6b7280] mb-5">This page is restricted to administrators only.</p>
+          <button onClick={() => navigate('/dashboard')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-[13px] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Back to dashboard</button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <ToastProvider>

@@ -76,8 +76,8 @@ router.post('/', async (req, res) => {
       include: { office: true },
     });
 
-    // If user has an office but role isn't set, fix it
-    if (user?.office && user.role !== 'OFFICE') {
+    // If user has an office but role isn't set, fix it (don't override ADMIN)
+    if (user?.office && user.role !== 'OFFICE' && user.role !== 'ADMIN') {
       await prisma.user.update({ where: { id: user.id }, data: { role: 'OFFICE' } });
     }
 
