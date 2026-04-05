@@ -161,6 +161,17 @@ export default function ProviderDocuments() {
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.verified ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#fef9c3] text-[#92400e]'}`}>
                   {c.verified ? 'Verified' : 'Pending'}
                 </span>
+                <button onClick={async () => {
+                  if (!confirm('Delete this credential?')) return
+                  try {
+                    const token = await getToken()
+                    const res = await fetch(`${API_URL}/api/providers/${providerId}/credentials/${c.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+                    if (res.ok) { setCredentials(prev => prev.filter(x => x.id !== c.id)); showToast('Credential deleted') }
+                    else showToast('Failed to delete')
+                  } catch { showToast('Failed to delete') }
+                }} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#fef2f2] text-[#9ca3af] hover:text-[#ef4444] transition bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
               </div>
             </div>
           ))

@@ -472,7 +472,7 @@ export default function ProviderProfile() {
         </div>
       )}
 
-      <ProviderNav />
+      {isExternalView ? <Nav /> : <ProviderNav />}
 
       {/* BACK */}
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '16px 32px' }}>

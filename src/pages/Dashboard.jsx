@@ -279,7 +279,9 @@ export default function Dashboard() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-[18px] font-black text-[#1a1a1a]">{s.role}</p>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPerm ? 'bg-[#ede9fe] text-[#5b21b6]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{isPerm ? 'Permanent' : 'Temp'}</span>
+                    {(() => { const empType = s.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return (
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPerm ? (isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#ede9fe] text-[#5b21b6]') : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{isPerm ? empType : 'Temp'}</span>
+                    ) })()}
                     <span className={'text-[10px] font-bold px-2 py-0.5 rounded-full ' + getStatusStyle(s)}>{getStatusText(s)}</span>
                   </div>
                   <p className="text-[13px] text-[#6b7280]">{isPerm ? (s.schedule || 'Full-time') : `${s.date} · ${s.time}`}</p>
@@ -603,7 +605,9 @@ export default function Dashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{shift.role}</p>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 bg-[#ede9fe] text-[#5b21b6]">Permanent</span>
+                        {(() => { const empType = shift.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#ede9fe] text-[#5b21b6]'}`}>{empType}</span>
+                        ) })()}
                         <span className={'text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ' + getStatusStyle(shift)}>{getStatusText(shift)}</span>
                       </div>
                       <p className="text-[12px] text-[#6b7280]">{shift.schedule?.split(' · ')[0] || 'Full-time'}</p>

@@ -37,6 +37,7 @@ router.get('/', async (req, res) => {
     });
     res.json(applications);
   } catch (err) {
+    console.error('[applications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -77,6 +78,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(application);
   } catch (err) {
     console.error('[POST /api/applications] Error:', err.message);
+    console.error('[applications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -118,6 +120,7 @@ router.post('/book', async (req, res) => {
 
     res.status(201).json({ shiftId: shift.id, message: 'Booking request sent' });
   } catch (err) {
+    console.error('[applications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -164,6 +167,7 @@ router.patch('/:id', async (req, res) => {
 
     res.json(application);
   } catch (err) {
+    console.error('[applications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

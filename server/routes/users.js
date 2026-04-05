@@ -13,6 +13,7 @@ router.get('/me', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (err) {
+    console.error('[users.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -27,6 +28,7 @@ router.patch('/me', async (req, res) => {
     });
     res.json(user);
   } catch (err) {
+    console.error('[users.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -41,6 +43,7 @@ router.get('/:id', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (err) {
+    console.error('[users.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

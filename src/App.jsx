@@ -1,5 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react'
+import { AuthenticateWithRedirectCallback, useAuth } from '@clerk/clerk-react'
+
+function RequireAuth({ children }) {
+  const { isLoaded, isSignedIn } = useAuth()
+  if (!isLoaded) return null
+  if (!isSignedIn) return <Navigate to="/login" replace />
+  return children
+}
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Onboarding from './pages/Onboarding'
@@ -54,32 +61,32 @@ function App() {
       <Route path="/otp-verification" element={<OTPVerification />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/post-shift" element={<PostShift />} />
-      <Route path="/professionals" element={<Professionals />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/messages" element={<Messages />} />
-      <Route path="/applicants" element={<Applicants />} />
-      <Route path="/bookings" element={<Bookings />} />
-      <Route path="/help" element={<Help />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/office-profile" element={<OfficeProfile />} />
-      <Route path="/saved-professionals" element={<SavedProfessionals />} />
-      <Route path="/provider-dashboard" element={<ProviderDashboard />} />
-      <Route path="/provider-find-shifts" element={<FindShifts />} />
-      <Route path="/provider-requests" element={<ShiftRequests />} />
-      <Route path="/provider-messages" element={<ProviderMessages />} />
-      <Route path="/provider-earnings" element={<ProviderEarnings />} />
-      <Route path="/provider-schedule" element={<ProviderSchedule />} />
-      <Route path="/provider-documents" element={<ProviderDocuments />} />
-      <Route path="/provider-tax" element={<TaxInformation />} />
-      <Route path="/provider-favorites" element={<FavoriteOffices />} />
-      <Route path="/provider-help" element={<ProviderHelpCenter />} />
-      <Route path="/provider-settings" element={<ProviderSettings />} />
-      <Route path="/provider-profile" element={<ProviderProfile />} />
-      <Route path="/provider-profile/:id" element={<ProviderProfile />} />
-      <Route path="/provider-availability" element={<ProviderAvailability />} />
-      <Route path="/office-profile/:id" element={<OfficeProfile />} />
+      <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+      <Route path="/post-shift" element={<RequireAuth><PostShift /></RequireAuth>} />
+      <Route path="/professionals" element={<RequireAuth><Professionals /></RequireAuth>} />
+      <Route path="/profile" element={<Navigate to="/office-profile" replace />} />
+      <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
+      <Route path="/applicants" element={<RequireAuth><Applicants /></RequireAuth>} />
+      <Route path="/bookings" element={<RequireAuth><Bookings /></RequireAuth>} />
+      <Route path="/help" element={<RequireAuth><Help /></RequireAuth>} />
+      <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+      <Route path="/office-profile" element={<RequireAuth><OfficeProfile /></RequireAuth>} />
+      <Route path="/saved-professionals" element={<RequireAuth><SavedProfessionals /></RequireAuth>} />
+      <Route path="/provider-dashboard" element={<RequireAuth><ProviderDashboard /></RequireAuth>} />
+      <Route path="/provider-find-shifts" element={<RequireAuth><FindShifts /></RequireAuth>} />
+      <Route path="/provider-requests" element={<RequireAuth><ShiftRequests /></RequireAuth>} />
+      <Route path="/provider-messages" element={<RequireAuth><ProviderMessages /></RequireAuth>} />
+      <Route path="/provider-earnings" element={<RequireAuth><ProviderEarnings /></RequireAuth>} />
+      <Route path="/provider-schedule" element={<RequireAuth><ProviderSchedule /></RequireAuth>} />
+      <Route path="/provider-documents" element={<RequireAuth><ProviderDocuments /></RequireAuth>} />
+      <Route path="/provider-tax" element={<RequireAuth><TaxInformation /></RequireAuth>} />
+      <Route path="/provider-favorites" element={<RequireAuth><FavoriteOffices /></RequireAuth>} />
+      <Route path="/provider-help" element={<RequireAuth><ProviderHelpCenter /></RequireAuth>} />
+      <Route path="/provider-settings" element={<RequireAuth><ProviderSettings /></RequireAuth>} />
+      <Route path="/provider-profile" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
+      <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
+      <Route path="/provider-availability" element={<RequireAuth><ProviderAvailability /></RequireAuth>} />
+      <Route path="/office-profile/:id" element={<RequireAuth><OfficeProfile /></RequireAuth>} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

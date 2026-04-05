@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
     });
     res.json(reviews);
   } catch (err) {
+    console.error('[reviews.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -53,6 +54,7 @@ router.post('/', async (req, res) => {
     });
     res.status(201).json(review);
   } catch (err) {
+    console.error('[reviews.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

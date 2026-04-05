@@ -5,6 +5,14 @@ import ProviderNav from '../components/ProviderNav'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
+function OfficeLogo({ logoUrl, initials, bg, color, size, radius }) {
+  if (logoUrl) {
+    const url = logoUrl.startsWith('http') ? logoUrl : `${API_URL}${logoUrl}`
+    return <img src={url} alt="" style={{ width: size, height: size, borderRadius: radius, objectFit: 'cover', flexShrink: 0 }} />
+  }
+  return <div className="flex items-center justify-center font-black flex-shrink-0" style={{ width: size, height: size, borderRadius: radius, background: bg, color, fontSize: size >= 56 ? 16 : size >= 48 ? 14 : 11 }}>{initials}</div>
+}
+
 const BG_COLORS = ['#e8f5f0', '#fef9c3', '#ede9fe', '#fce7f3', '#fee2e2']
 const FG_COLORS = ['#1a7f5e', '#92400e', '#5b21b6', '#9d174d', '#991b1b']
 
@@ -65,6 +73,7 @@ function transformShift(s, index) {
   return {
     id: s.id,
     initials,
+    logoUrl: s.office?.logoUrl || null,
     bg: isPerm ? '#ede9fe' : BG_COLORS[colorIdx],
     color: isPerm ? '#5b21b6' : FG_COLORS[colorIdx],
     name: s.office?.name || 'Unknown Office',
@@ -81,7 +90,7 @@ function transformShift(s, index) {
     estPay,
     rate,
     applicants: s._count?.applications || 0,
-    tags: isPerm ? [{ label: 'Permanent', bg: '#ede9fe', color: '#5b21b6' }, ...tags] : tags,
+    tags: isPerm ? [(() => { const empType = s.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return { label: empType, bg: isPart ? '#fef3c7' : '#ede9fe', color: isPart ? '#92400e' : '#5b21b6' } })(), ...tags] : tags,
     perks: [],
     description: s.description || '',
     jobType: s.jobType || 'TEMPORARY',
@@ -99,7 +108,7 @@ function ShiftCard({ shift, applied, onApply, onDetails, showToast }) {
   return (
     <div className={`bg-white border border-[#e5e7eb] rounded-[18px] p-4 transition cursor-pointer flex flex-col ${shift.isPerm ? 'hover:border-[#5b21b6]' : 'hover:border-[#1a7f5e]'}`} onClick={() => onDetails(shift)}>
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-[68px] h-[68px] rounded-[16px] flex items-center justify-center text-[16px] font-black flex-shrink-0" style={{ background: shift.bg, color: shift.color }}>{shift.initials}</div>
+        <OfficeLogo logoUrl={shift.logoUrl} initials={shift.initials} bg={shift.bg} color={shift.color} size={68} radius={16} />
         <div className="flex-1 min-w-0">
           <div className="text-[15px] text-[#1a1a1a] mb-1" style={{ fontWeight: 400 }}>{shift.name}</div>
           <div className="flex items-center gap-1 flex-wrap">
@@ -372,9 +381,10 @@ export default function FindShifts() {
       try {
         const token = await getToken()
         const headers = { Authorization: `Bearer ${token}` }
-        const [shiftsRes, meRes] = await Promise.all([
+        const [shiftsRes, meRes, appsRes] = await Promise.all([
           fetch(`${API_URL}/api/shifts?status=OPEN`, { headers }),
           fetch(`${API_URL}/api/providers/me`, { headers }).catch(() => null),
+          fetch(`${API_URL}/api/applications`, { headers }).catch(() => null),
         ])
         if (shiftsRes.ok) {
           const data = await shiftsRes.json()
@@ -383,11 +393,12 @@ export default function FindShifts() {
         if (meRes?.ok) {
           const me = await meRes.json()
           setMyProviderId(me.id)
-          console.log('[FindShifts] Provider ID:', me.id)
-        } else {
-          console.log('[FindShifts] Provider /me failed:', meRes?.status)
         }
-      } catch {}
+        if (appsRes?.ok) {
+          const apps = await appsRes.json()
+          setApplied(apps.filter(a => a.status !== 'WITHDRAWN' && a.status !== 'DECLINED').map(a => a.shiftId))
+        }
+      } catch (err) { console.error('[FindShifts] fetch error:', err) }
       setLoading(false)
     }
     fetchShifts()
@@ -483,7 +494,7 @@ export default function FindShifts() {
             {isPerm ? 'Back to jobs' : 'Back to shifts'}
           </button>
           <div className="flex items-start gap-3">
-            <div className="w-14 h-14 rounded-[14px] flex items-center justify-center text-[14px] font-black flex-shrink-0" style={{ background: item.bg, color: item.color }}>{item.initials}</div>
+            <OfficeLogo logoUrl={item.logoUrl} initials={item.initials} bg={item.bg} color={item.color} size={56} radius={14} />
             <div className="flex-1">
               <p className="text-[20px] font-black text-[#1a1a1a]">{isPerm ? item.name : item.name}</p>
               {isPerm && <p className="text-[13px] font-semibold text-[#1a7f5e] mb-1">{item.title}</p>}

@@ -16,6 +16,7 @@ router.get('/', async (req, res) => {
     });
     res.json(notifications);
   } catch (err) {
+    console.error('[notifications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -29,6 +30,7 @@ router.patch('/:id/read', async (req, res) => {
     });
     res.json(notification);
   } catch (err) {
+    console.error('[notifications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -43,6 +45,7 @@ router.patch('/read-all', async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
+    console.error('[notifications.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

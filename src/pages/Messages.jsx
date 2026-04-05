@@ -15,7 +15,6 @@ export default function Messages() {
   const [threadMessages, setThreadMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [threadLoading, setThreadLoading] = useState(false)
-  const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [toast, setToast] = useState(null)
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
@@ -273,30 +272,11 @@ export default function Messages() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 relative">
-                  <button onClick={() => showToast(`Calling ${active.name}...`)} className="w-9 h-9 rounded-full border border-[#e5e7eb] flex items-center justify-center hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.23h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.08 6.08l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  </button>
-                  <button onClick={() => setShowMoreMenu(!showMoreMenu)} className="w-9 h-9 rounded-full border border-[#e5e7eb] flex items-center justify-center hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-                  </button>
-                  {showMoreMenu && (
-                    <>
-                      <div className="fixed inset-0 z-10" onClick={() => setShowMoreMenu(false)}></div>
-                      <div className="absolute right-0 top-11 bg-white border border-[#e5e7eb] rounded-xl shadow-lg w-44 z-20 overflow-hidden">
-                        <div onClick={() => { navigate('/profile'); setShowMoreMenu(false) }} className="px-4 py-3 text-sm text-[#1a1a1a] hover:bg-[#f9f8f6] cursor-pointer flex items-center gap-2">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          View profile
-                        </div>
-                        <div onClick={() => { showToast('Conversation archived'); setShowMoreMenu(false) }} className="px-4 py-3 text-sm text-[#1a1a1a] hover:bg-[#f9f8f6] cursor-pointer flex items-center gap-2">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-                          Archive
-                        </div>
-                        <div onClick={() => { showToast(`${active.name} blocked`); setShowMoreMenu(false) }} className="px-4 py-3 text-sm text-red-500 hover:bg-[#f9f8f6] cursor-pointer flex items-center gap-2">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                          Block
-                        </div>
-                      </div>
-                    </>
+                  {active.providerId && (
+                    <button onClick={() => navigate(`/provider-profile/${active.providerId}`)} className="flex items-center gap-1.5 px-3 h-9 rounded-full border border-[#e5e7eb] text-[12px] font-bold text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition" style={{ fontFamily: 'inherit' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      View profile
+                    </button>
                   )}
                 </div>
               </div>

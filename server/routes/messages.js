@@ -54,6 +54,7 @@ router.get('/conversations', async (req, res) => {
 
     res.json(convos);
   } catch (err) {
+    console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -70,6 +71,7 @@ router.get('/:officeId/:providerId', async (req, res) => {
     });
     res.json(messages);
   } catch (err) {
+    console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -96,6 +98,7 @@ router.get('/unread-count', async (req, res) => {
     const count = await prisma.message.count({ where });
     res.json({ count });
   } catch (err) {
+    console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -160,6 +163,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(message);
   } catch (err) {
     console.error('[POST /api/messages] Error:', err.message);
+    console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -173,6 +177,7 @@ router.patch('/:id/read', async (req, res) => {
     });
     res.json(message);
   } catch (err) {
+    console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -195,6 +200,7 @@ router.patch('/read-all/:officeId/:providerId', async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
+    console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

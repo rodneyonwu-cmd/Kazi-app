@@ -54,6 +54,7 @@ router.get('/me', authGuard, async (req, res) => {
       },
     });
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -75,6 +76,7 @@ router.get('/', authGuard, async (req, res) => {
     });
     res.json(providers);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -94,6 +96,7 @@ router.get('/:id', authGuard, async (req, res) => {
     if (!provider) return res.status(404).json({ error: 'Provider not found' });
     res.json(provider);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -155,6 +158,7 @@ router.post('/', async (req, res) => {
     ]);
     res.status(201).json(provider);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -180,6 +184,7 @@ router.patch('/me', authGuard, async (req, res) => {
     });
     res.json(provider);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -193,6 +198,7 @@ router.patch('/:id', authGuard, async (req, res) => {
     });
     res.json(provider);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -216,6 +222,7 @@ router.post('/avatar', authGuard, upload.single('file'), async (req, res) => {
     });
     res.json({ avatarUrl });
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -241,6 +248,7 @@ router.post('/resume', authGuard, upload.single('file'), async (req, res) => {
     });
     res.json({ resumeUrl: provider.resumeUrl, resumeName: provider.resumeName });
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -255,6 +263,7 @@ router.get('/:id/availability', authGuard, async (req, res) => {
     });
     res.json(slots);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -267,6 +276,7 @@ router.post('/:id/availability', authGuard, async (req, res) => {
     });
     res.status(201).json(slot);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -277,6 +287,7 @@ router.delete('/:id/availability/:slotId', authGuard, async (req, res) => {
     await prisma.availability.delete({ where: { id: req.params.slotId } });
     res.status(204).end();
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -290,6 +301,7 @@ router.get('/:id/credentials', authGuard, async (req, res) => {
     });
     res.json(credentials);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -302,6 +314,18 @@ router.post('/:id/credentials', authGuard, async (req, res) => {
     });
     res.status(201).json(credential);
   } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/providers/:id/credentials/:credId
+router.delete('/:id/credentials/:credId', authGuard, async (req, res) => {
+  try {
+    await prisma.credential.delete({ where: { id: req.params.credId } });
+    res.status(204).end();
+  } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -317,6 +341,7 @@ router.post('/:id/save-office', authGuard, async (req, res) => {
     res.status(201).json(saved);
   } catch (err) {
     if (err.code === 'P2002') return res.status(409).json({ error: 'Already saved' });
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -334,6 +359,7 @@ router.delete('/:id/save-office/:officeId', authGuard, async (req, res) => {
     });
     res.status(204).end();
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -351,6 +377,7 @@ router.get('/:id/saved-offices', authGuard, async (req, res) => {
     });
     res.json(saved);
   } catch (err) {
+    console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

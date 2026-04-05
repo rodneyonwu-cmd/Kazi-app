@@ -34,7 +34,7 @@ const CalIcon = ({ size = 15, color = '#1a7f5e' }) => (
 )
 
 // ─── PRO CARD ────────────────────────────────────────────────
-function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, hasDate }) {
+function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, onOpenMsg, hasDate }) {
   const isSelected = rapidSelected.includes(pro.id)
   const rel = relDisplay(pro.reliability)
   return (
@@ -76,14 +76,10 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
           </div>
         </div>
       </div>
-      {/* Description box */}
-      <div style={{ background: '#f9f8f6', borderRadius: 8, padding: '8px 12px', margin: '0 12px' }}>
-        <div style={{ fontSize: 11, color: '#6b7280', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{pro.about}</div>
-      </div>
       {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '8px 12px 12px', marginTop: 4 }}>
         <button
-          onClick={e => { e.stopPropagation() }}
+          onClick={e => { e.stopPropagation(); onOpenMsg(pro.id) }}
           style={{ border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '7px 12px', borderRadius: 100, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
         >
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -503,8 +499,10 @@ export default function Professionals() {
   const [page, setPage] = useState(1)
 
   // modal state
-  const [modal, setModal] = useState(null) // 'cal'|'choice'|'booking'|'rf'|'profile'
+  const [modal, setModal] = useState(null) // 'cal'|'choice'|'booking'|'rf'|'profile'|'msg'
   const [activePro, setActivePro] = useState(null)
+  const [msgText, setMsgText] = useState('')
+  const [sendingMsg, setSendingMsg] = useState(false)
   const [activeDate, setActiveDate] = useState('')
 
   const PER_PAGE = 8
@@ -527,9 +525,7 @@ export default function Professionals() {
         // Transform API response to match what ProCard expects
         const transformed = data.map(provider => {
           const firstName = provider.user?.firstName || ''
-          const lastName = provider.user?.lastName || ''
-          const lastInitial = lastName ? `${lastName.charAt(0)}.` : ''
-          const name = `${firstName} ${lastInitial}`.trim() || 'Unknown'
+          const name = firstName.trim() || 'Unknown'
 
           // Calculate average rating from reviews if available
           const reviews = provider.reviews || []
@@ -626,6 +622,26 @@ export default function Professionals() {
   }
 
   const openCal = (id) => { setActivePro(id); setModal('cal') }
+  const openMsg = (id) => { setActivePro(id); setMsgText(''); setModal('msg') }
+
+  const sendMessage = async () => {
+    if (!msgText.trim() || !activePro || sendingMsg) return
+    setSendingMsg(true)
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ providerId: activePro, body: msgText.trim() }),
+      })
+      if (res.ok) {
+        setModal(null)
+        setMsgText('')
+        showToast('Message sent!')
+      } else { showToast('Failed to send message') }
+    } catch { showToast('Failed to send message') }
+    setSendingMsg(false)
+  }
   const openProfile = (id) => { setActivePro(id); setModal('profile') }
   const closeAll = () => setModal(null)
 
@@ -691,6 +707,32 @@ export default function Professionals() {
 
       {/* MODALS */}
       {modal === 'cal' && activeProObj && <CalModal pro={activeProObj} onClose={closeAll} onChoose={handleCalChoose} getToken={getToken} />}
+      {modal === 'msg' && activeProObj && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 500 }} onClick={closeAll} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', background: 'white', borderRadius: 20, width: 'calc(100% - 40px)', maxWidth: 420, zIndex: 501, boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <ProAvatar src={activeProObj.avatarUrl} name={activeProObj.name} size={42} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>Message {activeProObj.name}</div>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>{activeProObj.role}</div>
+              </div>
+              <button onClick={closeAll} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 20, cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ padding: '16px 20px' }}>
+              <textarea value={msgText} onChange={e => setMsgText(e.target.value)} placeholder={`Hi ${activeProObj.name}, ...`}
+                style={{ width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '12px 14px', fontSize: 14, fontFamily: 'inherit', outline: 'none', resize: 'none', height: 120, boxSizing: 'border-box' }} />
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button onClick={closeAll} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+                <button onClick={sendMessage} disabled={!msgText.trim() || sendingMsg}
+                  style={{ flex: 1, background: msgText.trim() ? '#1a7f5e' : '#e5e7eb', color: msgText.trim() ? 'white' : '#9ca3af', border: 'none', fontWeight: 800, padding: '10px', borderRadius: 100, fontSize: 13, cursor: msgText.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
+                  {sendingMsg ? 'Sending...' : 'Send message'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
       {modal === 'choice' && activeProObj && <ChoiceModal pro={activeProObj} date={activeDate} onClose={closeAll} onDirect={handleDirect} onRapidFill={handleRapidFillChoice} />}
       {modal === 'booking' && activeProObj && <BookingModal pro={activeProObj} date={activeDate} onClose={closeAll} onSubmit={() => showToast(`Booking request sent to ${activeProObj.name.split(' ')[0]}!`)} getToken={getToken} />}
       {modal === 'rf' && <RFModal selected={rapidSelected} allPros={professionals} date={rfDate} onClose={closeAll} onSend={() => { closeAll(); setRapidSelected([]); showToast('Rapid Fill requests sent!') }} />}
@@ -725,7 +767,7 @@ export default function Professionals() {
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Role */}
                 {[
-                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dental Hygienist','Dental Assistant','Front Desk','Treatment Coordinator'], display: ['All roles','Dental Hygienist','Dental Assistant','Front Desk','Treatment Coordinator'] },
+                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['All roles','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
                   { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
                   { label: 'Language', val: lang, set: setLang, opts: ['','Spanish','Mandarin','Vietnamese','Portuguese'], display: ['Any language','Spanish','Mandarin','Vietnamese','Portuguese'] },
                 ].map(f => (
@@ -828,7 +870,7 @@ export default function Professionals() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'start' }}>
                 {paginated.map(pro => (
-                  <ProCard key={pro.id} pro={pro} rapidSelected={rapidSelected} onToggleRapid={toggleRapid} onOpenCal={openCal} onOpenProfile={openProfile} hasDate={!!dateVal} />
+                  <ProCard key={pro.id} pro={pro} rapidSelected={rapidSelected} onToggleRapid={toggleRapid} onOpenCal={openCal} onOpenProfile={openProfile} onOpenMsg={openMsg} hasDate={!!dateVal} />
                 ))}
               </div>
             )}

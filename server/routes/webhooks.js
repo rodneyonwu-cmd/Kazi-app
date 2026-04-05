@@ -57,6 +57,7 @@ router.post('/clerk', verifyWebhook, async (req, res) => {
     res.json({ received: true });
   } catch (err) {
     console.error(`Webhook error (${type}):`, err.message);
+    console.error('[webhooks.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

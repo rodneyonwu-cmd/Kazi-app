@@ -34,6 +34,7 @@ router.get('/', async (req, res) => {
     });
     res.json(bookings);
   } catch (err) {
+    console.error('[bookings.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -57,6 +58,7 @@ router.get('/:id', async (req, res) => {
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
     res.json(booking);
   } catch (err) {
+    console.error('[bookings.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -92,6 +94,7 @@ router.patch('/:id', async (req, res) => {
 
     res.json(booking);
   } catch (err) {
+    console.error('[bookings.js]' , err);
     res.status(500).json({ error: err.message });
   }
 });

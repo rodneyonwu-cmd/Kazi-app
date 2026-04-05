@@ -354,7 +354,11 @@ View your schedule
                 const isTomorrow = new Date(shift.date).toDateString() === new Date(Date.now() + 86400000).toDateString()
                 return (
                   <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#1a7f5e] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
-                    <div className={`w-11 h-11 rounded-[12px] ${colors.bg} flex items-center justify-center text-[11px] font-black ${colors.text} flex-shrink-0`}>{initials}</div>
+                    {shift.office?.logoUrl ? (
+                      <img src={shift.office.logoUrl.startsWith('http') ? shift.office.logoUrl : `${API_URL}${shift.office.logoUrl}`} alt="" className="w-11 h-11 rounded-[12px] object-cover flex-shrink-0" />
+                    ) : (
+                      <div className={`w-11 h-11 rounded-[12px] ${colors.bg} flex items-center justify-center text-[11px] font-black ${colors.text} flex-shrink-0`}>{initials}</div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{officeName}</p>
@@ -391,11 +395,17 @@ View your schedule
                 const salaryDisplay = shift.salaryMin ? `$${Number(shift.salaryMin).toLocaleString()}${shift.salaryMax ? ` – $${Number(shift.salaryMax).toLocaleString()}` : ''}/yr` : ''
                 return (
                   <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#5b21b6] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
-                    <div className="w-11 h-11 rounded-[12px] bg-[#ede9fe] flex items-center justify-center text-[11px] font-black text-[#5b21b6] flex-shrink-0">{initials}</div>
+                    {shift.office?.logoUrl ? (
+                      <img src={shift.office.logoUrl.startsWith('http') ? shift.office.logoUrl : `${API_URL}${shift.office.logoUrl}`} alt="" className="w-11 h-11 rounded-[12px] object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-11 h-11 rounded-[12px] bg-[#ede9fe] flex items-center justify-center text-[11px] font-black text-[#5b21b6] flex-shrink-0">{initials}</div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{officeName}</p>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ede9fe] text-[#5b21b6] flex-shrink-0">Permanent</span>
+                        {(() => { const empType = shift.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#ede9fe] text-[#5b21b6]'}`}>{empType}</span>
+                        ) })()}
                       </div>
                       <p className="text-[12px] text-[#6b7280]">{shift.role}</p>
                       <p className="text-[12px] text-[#9ca3af]">{shift.schedule?.split(' · ')[0] || 'Full-time'}</p>
@@ -450,7 +460,11 @@ View your schedule
                 Back
               </button>
               <div className="flex items-start gap-3">
-                <div className={`w-14 h-14 rounded-[14px] ${accentBg} flex items-center justify-center text-[14px] font-black ${accentText} flex-shrink-0`}>{initials}</div>
+                {s.office?.logoUrl ? (
+                  <img src={s.office.logoUrl.startsWith('http') ? s.office.logoUrl : `${API_URL}${s.office.logoUrl}`} alt="" className="w-14 h-14 rounded-[14px] object-cover flex-shrink-0" />
+                ) : (
+                  <div className={`w-14 h-14 rounded-[14px] ${accentBg} flex items-center justify-center text-[14px] font-black ${accentText} flex-shrink-0`}>{initials}</div>
+                )}
                 <div className="flex-1">
                   <p className="text-[20px] font-black text-[#1a1a1a]">{officeName}</p>
                   <p className="text-[13px] text-[#6b7280]">{location}</p>

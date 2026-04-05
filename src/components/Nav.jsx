@@ -5,6 +5,14 @@ import InitialsAvatar from './InitialsAvatar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
+function OfficeLogo({ logoUrl, name, size }) {
+  if (logoUrl) {
+    const url = logoUrl.startsWith('http') ? logoUrl : `${API_URL}${logoUrl}`
+    return <img src={url} alt={name} style={{ width: size, height: size, borderRadius: size >= 40 ? 12 : 10, objectFit: 'cover' }} />
+  }
+  return <InitialsAvatar name={name} size={size} />
+}
+
 // ── Icons ────────────────────────────────────────────
 const Icon = ({ d, d2, circle, rect, poly, line1, line2, box }) => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -87,6 +95,24 @@ export default function Nav() {
 
   const unreadCount = notifications.filter(n => !n.read).length
   const [unreadMsgCount, setUnreadMsgCount] = useState(0)
+  const [pendingAppCount, setPendingAppCount] = useState(0)
+
+  useEffect(() => {
+    const fetchPending = async () => {
+      try {
+        const token = await getToken()
+        if (!token) return
+        const res = await fetch(`${API_URL}/api/applications`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const apps = await res.json()
+          setPendingAppCount(apps.filter(a => a.status === 'PENDING').length)
+        }
+      } catch {}
+    }
+    fetchPending()
+    const interval = setInterval(fetchPending, 30000)
+    return () => clearInterval(interval)
+  }, [getToken])
 
   useEffect(() => {
     const fetchUnreadMsgs = async () => {
@@ -126,7 +152,7 @@ export default function Nav() {
 
   const navLinks = [
     { label: 'Dashboard',     path: '/dashboard' },
-    { label: 'Applicants',    path: '/applicants' },
+    { label: 'Applicants',    path: '/applicants', badge: (pendingAppCount > 0 && location.pathname !== '/applicants') ? pendingAppCount : null },
     { label: 'Professionals', path: '/professionals' },
     { label: 'Bookings',      path: '/bookings' },
     { label: 'Messages',      path: '/messages', badge: unreadMsgCount > 0 ? unreadMsgCount : null },
@@ -209,7 +235,7 @@ export default function Nav() {
               onClick={() => setShowDropdown(!showDropdown)}
               className="cursor-pointer relative"
             >
-              <InitialsAvatar name={firstName} size={40} />
+              <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={40} />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
                   {unreadCount}
@@ -225,7 +251,7 @@ export default function Nav() {
                   {/* Office header */}
                   <div className="px-4 py-4 border-b border-[#f3f4f6]">
                     <div className="flex items-center gap-3">
-                      <InitialsAvatar name={officeName} size={36} />
+                      <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={36} />
                       <div>
                         <p className="text-[15px] font-semibold text-[#1a1a1a]">{officeName}</p>
                         <p className="text-[12px] text-[#1a7f5e] font-medium">{office?.verified ? '✓ Verified' : 'Complete your profile'}</p>
@@ -340,7 +366,7 @@ export default function Nav() {
 
           {/* Mobile button */}
           <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden relative">
-            <InitialsAvatar name={firstName} size={40} />
+            <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={40} />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
                 {unreadCount}
@@ -358,7 +384,7 @@ export default function Nav() {
 
             {/* Office header */}
             <div className="flex items-center gap-3 px-6 py-4 border-b border-[#e5e7eb]">
-              <InitialsAvatar name={officeName} size={44} />
+              <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={44} />
               <div>
                 <p className="text-sm font-bold text-[#1a1a1a]">{officeName}</p>
                 <p className="text-xs text-[#1a7f5e] font-semibold">{office?.verified ? '✓ Verified' : 'Complete your profile'}</p>
