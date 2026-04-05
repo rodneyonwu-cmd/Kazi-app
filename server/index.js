@@ -19,18 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── Middleware ──────────────────────────────────────
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    // Allow any localhost port in development
-    if (origin.match(/^http:\/\/localhost:\d+$/)) return callback(null, true);
-    // Allow configured production URL
-    if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return callback(null, true);
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-}));
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
