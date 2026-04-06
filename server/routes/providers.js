@@ -62,16 +62,53 @@ router.get('/me', authGuard, async (req, res) => {
 // GET /api/providers – list providers (with filters)
 router.get('/', authGuard, async (req, res) => {
   try {
-    const { role, city, state, verified } = req.query;
+    const { role, city, state, verified, availableOn } = req.query;
     const where = {};
     if (role) where.role = role;
     if (city) where.city = city;
     if (state) where.state = state;
     if (verified !== undefined) where.verified = verified === 'true';
 
+    // Filter by availability on a specific date (YYYY-MM-DD)
+    if (availableOn) {
+      const startOfDay = new Date(`${availableOn}T00:00:00.000Z`);
+      const endOfDay = new Date(`${availableOn}T23:59:59.999Z`);
+      const dayOfWeek = startOfDay.getUTCDay();
+
+      // Providers who have weekly availability for this day of week, OR a specific
+      // date record for this date (availability records mark the day as available).
+      const availabilityRecords = await prisma.availability.findMany({
+        where: {
+          OR: [
+            { dayOfWeek },
+            { date: { gte: startOfDay, lte: endOfDay } },
+          ],
+        },
+        select: { providerId: true },
+      });
+      const availableIds = [...new Set(availabilityRecords.map(a => a.providerId))];
+
+      // Exclude providers already booked on this date
+      const bookings = await prisma.booking.findMany({
+        where: {
+          status: { in: ['CONFIRMED'] },
+          shift: { date: { gte: startOfDay, lte: endOfDay } },
+        },
+        select: { providerId: true },
+      });
+      const bookedIds = new Set(bookings.map(b => b.providerId));
+
+      where.id = { in: availableIds.filter(id => !bookedIds.has(id)) };
+    }
+
     const providers = await prisma.provider.findMany({
       where,
-      include: { user: { select: { firstName: true, lastName: true, avatarUrl: true } } },
+      include: {
+        user: { select: { firstName: true, lastName: true, avatarUrl: true } },
+        reviews: { orderBy: { createdAt: 'desc' }, take: 20 },
+        bookings: { where: { status: 'COMPLETED' }, select: { id: true, status: true } },
+        availability: true,
+      },
       orderBy: { reliabilityScore: 'desc' },
     });
     res.json(providers);
