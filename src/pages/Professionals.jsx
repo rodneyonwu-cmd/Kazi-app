@@ -52,45 +52,44 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
           {isSelected && <CheckIcon />}
         </div>
         {/* Avatar */}
-        <ProAvatar src={pro.avatarUrl} name={pro.name} size={52} />
+        <ProAvatar src={pro.avatarUrl} name={pro.name} size={68} />
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2 }}>{pro.name}</span>
+            <span style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2 }}>{pro.name}</span>
             <span style={{ fontSize: 14, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 }}>${pro.rate}<span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
           </div>
-          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 4 }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi away` : ''}</div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 4 }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi away` : ''}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
-            <span style={{ fontSize: 11, color: '#9ca3af' }}>({pro.reviews})</span>
+            <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>({pro.reviews})</span>
           </div>
           {/* Reliability */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            <span style={{ fontSize: 11, color: '#374151' }}>Reliability: <span style={{ color: rel.color, fontWeight: 700 }}>{pro.reliability}%</span><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: rel.bg, color: rel.color, marginLeft: 3 }}>{rel.label}</span></span>
+            <span style={{ fontSize: 13, color: '#374151' }}>Reliability: <span style={{ color: rel.color, fontWeight: 700 }}>{pro.reliability}%</span><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: rel.bg, color: rel.color, marginLeft: 3 }}>{rel.label}</span></span>
           </div>
           {/* Shifts */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-            <span style={{ fontSize: 11, color: '#374151' }}>{pro.shifts} shifts completed</span>
+            <span style={{ fontSize: 13, color: '#374151' }}>{pro.shifts} shifts completed</span>
           </div>
         </div>
       </div>
       {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, padding: '8px 12px 12px', marginTop: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 12px', marginTop: 4 }}>
         <button
           onClick={e => { e.stopPropagation(); onOpenMsg(pro.id) }}
-          style={{ border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '7px 12px', borderRadius: 100, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+          style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 42 }}
         >
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Message
         </button>
         <button
           onClick={e => { e.stopPropagation(); onOpenCal(pro.id); }}
-          style={{ background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '7px 12px', borderRadius: 100, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+          style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 42 }}
         >
           Book {pro.name.split(' ')[0]}
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </div>
     </div>
@@ -385,7 +384,7 @@ function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
   const rel = relDisplay(pro.reliability)
   const firstName = pro.name.split(' ')[0]
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 580, background: 'white', zIndex: 350, display: 'flex', flexDirection: 'column', boxShadow: '-6px 0 40px rgba(0,0,0,.12)', overflowY: 'auto' }}>
+    <div className="md:max-w-[580px]" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, width: '100%', background: 'white', zIndex: 350, display: 'flex', flexDirection: 'column', boxShadow: '-6px 0 40px rgba(0,0,0,.12)', overflowY: 'auto' }}>
       <div onClick={onClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', borderBottom: '1px solid #f3f4f6', fontSize: 14, fontWeight: 700, color: '#6b7280', cursor: 'pointer', position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -410,7 +409,7 @@ function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
               </div>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[['Shifts', pro.shifts, '#1a1a1a'], ['Response', pro.responseTime || 'N/A', '#1a1a1a'], ['Reliability', `${pro.reliability}%`, rel.color], ['Score', '94', '#1a7f5e']].map(([label, val, color]) => (
               <div key={label} style={{ background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4 }}>{label}</div>
@@ -474,6 +473,209 @@ function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
   )
 }
 
+// ─── PRO CALENDAR ───────────────────────────────────────────
+function ProCalendar({ professionals, calMonth, calYear, setCalMonth, setCalYear, calSelectedDate, setCalSelectedDate, calDatePros, calLoading, onOpenCal, onOpenProfile, onOpenMsg, rapidSelected, onToggleRapid, hasDate }) {
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  // Build availability counts per date from provider availability data
+  const countsByDate = {}
+  const firstDay = new Date(calYear, calMonth, 1).getDay()
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+  const monthName = new Date(calYear, calMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+  // For each day of the month, count providers available
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const dateObj = new Date(calYear, calMonth, d)
+    const dow = dateObj.getDay()
+    let count = 0
+    professionals.forEach(p => {
+      if (!p.availability) return
+      const hasAvail = p.availability.some(a => {
+        if (a.date) {
+          const aDate = new Date(a.date).toISOString().split('T')[0]
+          return aDate === dateStr && !a.isException
+        }
+        if (a.dayOfWeek != null) return a.dayOfWeek === dow && !a.isException
+        return false
+      })
+      if (hasAvail) count++
+    })
+    if (count > 0) countsByDate[dateStr] = count
+  }
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) }
+    else setCalMonth(calMonth - 1)
+    setCalSelectedDate(null)
+  }
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) }
+    else setCalMonth(calMonth + 1)
+    setCalSelectedDate(null)
+  }
+  const goToday = () => {
+    setCalMonth(today.getMonth())
+    setCalYear(today.getFullYear())
+    setCalSelectedDate(todayStr)
+  }
+
+  const cells = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
+  const selectedDateLabel = calSelectedDate ? new Date(calSelectedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''
+  const totalAvail = Object.values(countsByDate).reduce((s, c) => s + c, 0)
+
+  return (
+    <div>
+      {/* Calendar card */}
+      <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 20, overflow: 'hidden', marginBottom: 16 }}>
+        {/* Header */}
+        <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f3f4f6' }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a', margin: 0 }}>{monthName}</h2>
+            <p style={{ fontSize: 12, color: '#9ca3af', margin: '2px 0 0' }}>{Object.keys(countsByDate).length} day{Object.keys(countsByDate).length !== 1 ? 's' : ''} with available professionals</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={goToday} style={{ fontSize: 11, fontWeight: 700, color: '#1a7f5e', background: '#e8f5f0', padding: '6px 12px', borderRadius: 100, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Today</button>
+            <button onClick={prevMonth} style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', background: 'transparent' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button onClick={nextMonth} style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', background: 'transparent' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Day headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: '1px solid #f3f4f6' }}>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} style={{ textAlign: 'center', padding: '10px 0', fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d}</div>
+          ))}
+        </div>
+
+        {/* Date grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          {cells.map((day, i) => {
+            if (day === null) return <div key={`empty-${i}`} style={{ aspectRatio: '1', borderBottom: '1px solid #f8f7f5', borderRight: '1px solid #f8f7f5' }} />
+            const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+            const count = countsByDate[dateStr] || 0
+            const isToday = dateStr === todayStr
+            const isSelected = dateStr === calSelectedDate
+            const isPast = dateStr < todayStr
+
+            return (
+              <div
+                key={dateStr}
+                onClick={() => setCalSelectedDate(isSelected ? null : dateStr)}
+                style={{
+                  aspectRatio: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, cursor: 'pointer',
+                  borderBottom: '1px solid #f8f7f5', borderRight: '1px solid #f8f7f5',
+                  background: isSelected ? '#e8f5f0' : 'transparent',
+                  opacity: isPast && !isToday ? 0.4 : 1,
+                  transition: 'background .15s',
+                }}
+              >
+                <span style={{
+                  fontSize: 14, lineHeight: 1, fontWeight: isToday ? 700 : isSelected ? 700 : 500,
+                  color: isToday ? 'white' : isSelected ? '#1a7f5e' : '#374151',
+                  ...(isToday ? { width: 28, height: 28, borderRadius: '50%', background: '#1a7f5e', display: 'flex', alignItems: 'center', justifyContent: 'center' } : {}),
+                }}>
+                  {day}
+                </span>
+                {count > 0 && (
+                  <span style={{
+                    fontSize: 9, fontWeight: 800, lineHeight: 1, padding: '2px 6px', borderRadius: 100,
+                    background: isSelected ? '#1a7f5e' : '#e8f5f0', color: isSelected ? 'white' : '#1a7f5e',
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Selected date professionals */}
+      {calSelectedDate && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', margin: 0 }}>{selectedDateLabel}</h3>
+              <p style={{ fontSize: 12, color: '#9ca3af', margin: '2px 0 0' }}>
+                {calLoading ? 'Loading...' : `${calDatePros.length} professional${calDatePros.length !== 1 ? 's' : ''} available`}
+              </p>
+            </div>
+            <button onClick={() => setCalSelectedDate(null)} style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Clear</button>
+          </div>
+          {calLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+              {[1, 2].map(i => (
+                <div key={i} style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 14, padding: 14 }} className="animate-pulse">
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <div style={{ width: 68, height: 68, borderRadius: '50%', background: '#f3f4f6' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 16, background: '#f3f4f6', borderRadius: 6, width: '60%', marginBottom: 8 }} />
+                      <div style={{ height: 12, background: '#f3f4f6', borderRadius: 6, width: '40%', marginBottom: 8 }} />
+                      <div style={{ height: 12, background: '#f3f4f6', borderRadius: 6, width: '50%' }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : calDatePros.length === 0 ? (
+            <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 18, padding: '40px 24px', textAlign: 'center' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', marginBottom: 4 }}>No professionals available</p>
+              <p style={{ fontSize: 12, color: '#9ca3af' }}>Try selecting a different date</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+              {calDatePros.map(pro => (
+                <div key={pro.id} onClick={() => onOpenProfile(pro.id)} style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 14, padding: 14, cursor: 'pointer', transition: 'border-color .15s' }}>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <ProAvatar src={pro.avatarUrl} name={pro.name} size={56} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: '#1a1a1a' }}>{pro.name}</span>
+                        <span style={{ fontSize: 14, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap' }}>${pro.rate}<span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
+                      </div>
+                      <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 3 }}>{pro.role}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
+                        <span style={{ fontSize: 12, color: '#9ca3af' }}>({pro.reviews})</span>
+                        <span style={{ fontSize: 12, color: '#6b7280' }}>· {pro.shifts} shifts</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }} onClick={e => e.stopPropagation()}>
+                    <button onClick={() => onOpenMsg(pro.id)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 42 }}>Message</button>
+                    <button onClick={() => onOpenCal(pro.id)} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 42 }}>Book</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No date selected hint */}
+      {!calSelectedDate && (
+        <div style={{ background: 'white', border: '1.5px dashed #d1d5db', borderRadius: 14, padding: '20px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>
+            <span style={{ fontWeight: 600, color: '#374151' }}>Tap a date</span> to see available professionals
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── MAIN PAGE ───────────────────────────────────────────────
 export default function Professionals() {
   const location = useLocation()
@@ -497,6 +699,13 @@ export default function Professionals() {
   const [dateLabel, setDateLabel] = useState('Date needed')
   const [toast, setToast] = useState(null)
   const [page, setPage] = useState(1)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [viewMode, setViewMode] = useState('grid') // 'grid' or 'calendar'
+  const [calMonth, setCalMonth] = useState(new Date().getMonth())
+  const [calYear, setCalYear] = useState(new Date().getFullYear())
+  const [calSelectedDate, setCalSelectedDate] = useState(null)
+  const [calLoading, setCalLoading] = useState(false)
+  const [calDatePros, setCalDatePros] = useState([])
 
   // modal state
   const [modal, setModal] = useState(null) // 'cal'|'choice'|'booking'|'rf'|'profile'|'msg'
@@ -511,12 +720,16 @@ export default function Professionals() {
     if (location.state?.rapidFillPreselect) setRapidSelected([location.state.rapidFillPreselect])
   }, [])
 
-  // Fetch providers from API
+  // Fetch providers from API (filters by availability when a Rapid Fill date is chosen)
   useEffect(() => {
     const fetchProviders = async () => {
       try {
+        setLoading(true)
         const token = await getToken()
-        const res = await fetch(`${API_URL}/api/providers`, {
+        const url = dateVal
+          ? `${API_URL}/api/providers?availableOn=${dateVal}`
+          : `${API_URL}/api/providers`
+        const res = await fetch(url, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!res.ok) throw new Error('Failed to fetch providers')
@@ -525,14 +738,15 @@ export default function Professionals() {
         // Transform API response to match what ProCard expects
         const transformed = data.map(provider => {
           const firstName = provider.user?.firstName || ''
-          const name = firstName.trim() || 'Unknown'
+          const lastName = provider.user?.lastName || ''
+          const name = lastName ? `${firstName} ${lastName.charAt(0)}.` : (firstName.trim() || 'Unknown')
 
-          // Calculate average rating from reviews if available
+          // Use denormalized fields on provider, fall back to computing from relations
           const reviews = provider.reviews || []
-          const avgRating = reviews.length > 0
+          const avgRating = provider.avgRating || (reviews.length > 0
             ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-            : 0
-          const reviewCount = reviews.length
+            : 0)
+          const reviewCount = provider.reviewCount || reviews.length
 
           // Build review list for profile drawer
           const reviewsList = reviews.map(r => ({
@@ -542,8 +756,8 @@ export default function Professionals() {
             rating: r.rating,
           }))
 
-          // Calculate completed shifts from bookings
-          const completedShifts = provider.bookings?.filter(b => b.status === 'COMPLETED').length || 0
+          // Use denormalized field, fall back to computing from bookings
+          const completedShifts = provider.shiftsCompleted || provider.bookings?.filter(b => b.status === 'COMPLETED').length || 0
 
           const isDentist = provider.role === 'dentist'
           const displayName = isDentist ? `Dr. ${name}` : name
@@ -565,6 +779,8 @@ export default function Professionals() {
             certs: (provider.credentials || []).map(c => c.type),
             about: provider.bio || '',
             calendar: {},
+            rawRole: provider.role,
+            availability: provider.availability || [],
             reviewsList,
           }
         })
@@ -577,7 +793,48 @@ export default function Professionals() {
       }
     }
     fetchProviders()
-  }, [getToken])
+  }, [getToken, dateVal])
+
+  // Fetch providers available on a specific calendar date
+  useEffect(() => {
+    if (!calSelectedDate) { setCalDatePros([]); return }
+    const fetchDatePros = async () => {
+      setCalLoading(true)
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/providers?availableOn=${calSelectedDate}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const transformed = data.map(provider => {
+            const fn = provider.user?.firstName || ''
+            const ln = provider.user?.lastName || ''
+            const nm = ln ? `${fn} ${ln.charAt(0)}.` : (fn.trim() || 'Unknown')
+            const isDentist = provider.role === 'dentist'
+            const reviews = provider.reviews || []
+            const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : 0
+            const completedShifts = provider.bookings?.filter(b => b.status === 'COMPLETED').length || 0
+            return {
+              id: provider.id,
+              name: isDentist ? `Dr. ${nm}` : nm,
+              avatarUrl: provider.user?.avatarUrl || null,
+              role: { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Office', dentist: 'Dentist', specialist: 'Specialist' }[provider.role] || provider.role || 'Professional',
+              rate: provider.hourlyRate || 0,
+              rating: Number(avgRating) || 0,
+              reviews: reviews.length,
+              reliability: provider.reliabilityScore || 0,
+              shifts: completedShifts,
+              miles: null,
+            }
+          })
+          setCalDatePros(transformed)
+        }
+      } catch (err) { console.error('Error fetching date providers:', err) }
+      setCalLoading(false)
+    }
+    fetchDatePros()
+  }, [calSelectedDate, getToken])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
 
@@ -671,7 +928,7 @@ export default function Professionals() {
     return (
       <div className="min-h-screen bg-[#f9f8f6]">
         <Nav />
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 48px 80px' }}>
+        <div className="max-w-[900px] mx-auto px-4 md:px-12 pt-7 pb-24 md:pb-20">
           <div style={{ marginBottom: 20 }}>
             <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 4 }}>Find Professionals</h1>
             <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 400 }}>Browse verified dental professionals available in your area</p>
@@ -744,18 +1001,82 @@ export default function Professionals() {
       )}
 
       {/* PAGE */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 48px 80px' }}>
+      <div className="max-w-[900px] mx-auto px-4 md:px-12 pt-7 pb-24 md:pb-20">
 
         {/* PAGE TITLE */}
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#1a1a1a', marginBottom: 4 }}>Find Professionals</h1>
-          <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 400 }}>Browse verified dental professionals available in your area</p>
+        <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h1 className="text-[22px] md:text-[26px]" style={{ fontWeight: 900, color: '#1a1a1a', marginBottom: 4 }}>Find Professionals</h1>
+            <p style={{ fontSize: 13, color: '#9ca3af', fontWeight: 400 }}>Browse verified dental professionals available in your area</p>
+          </div>
+          <div style={{ display: 'flex', background: '#f3f4f6', borderRadius: 100, padding: 4, gap: 2 }}>
+            <button onClick={() => setViewMode('grid')} style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', background: viewMode === 'grid' ? 'white' : 'transparent', boxShadow: viewMode === 'grid' ? '0 1px 3px rgba(0,0,0,.08)' : 'none', transition: 'all .15s' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={viewMode === 'grid' ? '#1a7f5e' : '#9ca3af'} strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <button onClick={() => setViewMode('calendar')} style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', background: viewMode === 'calendar' ? 'white' : 'transparent', boxShadow: viewMode === 'calendar' ? '0 1px 3px rgba(0,0,0,.08)' : 'none', transition: 'all .15s' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={viewMode === 'calendar' ? '#1a7f5e' : '#9ca3af'} strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+        <div className="flex flex-col md:flex-row gap-4 md:gap-[18px] items-start">
+
+          {/* Mobile filter button */}
+          <button onClick={() => setMobileFiltersOpen(true)} className="md:hidden w-full flex items-center justify-between bg-white border border-[#e5e7eb] rounded-xl px-4 py-3 mb-2 min-h-[44px]">
+            <span className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              Filters
+            </span>
+            {activeCount > 0 && <span className="text-[10px] font-bold bg-[#1a7f5e] text-white w-5 h-5 rounded-full flex items-center justify-center">{activeCount}</span>}
+          </button>
+
+          {/* Mobile filter drawer */}
+          {mobileFiltersOpen && (
+            <div className="md:hidden fixed inset-0 z-[400]">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)} />
+              <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[#f3f4f6] sticky top-0 bg-white">
+                  <span className="text-[15px] font-black text-[#1a1a1a]">Filters</span>
+                  <button onClick={() => setMobileFiltersOpen(false)} className="text-[#9ca3af] text-xl">✕</button>
+                </div>
+                <div className="p-4 flex flex-col gap-4">
+                  {[
+                    { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Any role','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
+                    { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1.5">{f.label}</label>
+                      <select value={f.val} onChange={e => f.set(e.target.value)} className="w-full min-h-[44px] border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm bg-[#f9f8f6] outline-none">
+                        {f.display.map((o, i) => <option key={o} value={f.opts[i]}>{o}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                  <div>
+                    <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1.5">Hourly Rate (${minRate}-${maxRate}/hr)</label>
+                    <div className="flex gap-2">
+                      <input type="number" value={minRate} onChange={e => setMinRate(Number(e.target.value))} className="flex-1 min-h-[44px] border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm bg-[#f9f8f6] outline-none" />
+                      <input type="number" value={maxRate} onChange={e => setMaxRate(Number(e.target.value))} className="flex-1 min-h-[44px] border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm bg-[#f9f8f6] outline-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1.5">Max Distance</label>
+                    <div className="flex flex-wrap gap-2">
+                      {[5,10,20,35,50].map(m => (
+                        <button key={m} onClick={() => setMaxMiles(m)} className={`px-3 py-2 min-h-[40px] rounded-full text-xs font-semibold border ${maxMiles === m ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'bg-white text-[#374151] border-[#e5e7eb]'}`}>{m} mi</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={() => { clearFilters(); }} className="flex-1 min-h-[44px] border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-sm">Clear all</button>
+                    <button onClick={() => setMobileFiltersOpen(false)} className="flex-1 min-h-[44px] bg-[#1a7f5e] text-white font-bold py-2.5 rounded-full text-sm">Apply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* SIDEBAR */}
-          <div style={{ width: 190, flexShrink: 0, position: 'sticky', top: 88 }} className="hidden md:block">
+          <div style={{ width: 190, flexShrink: 0, position: 'sticky', top: 88 }} className="hidden md:block self-start">
             <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, overflow: 'hidden' }}>
               <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -767,7 +1088,7 @@ export default function Professionals() {
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Role */}
                 {[
-                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['All roles','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
+                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Any role','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
                   { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
                   { label: 'Language', val: lang, set: setLang, opts: ['','Spanish','Mandarin','Vietnamese','Portuguese'], display: ['Any language','Spanish','Mandarin','Vietnamese','Portuguese'] },
                 ].map(f => (
@@ -833,61 +1154,90 @@ export default function Professionals() {
           </div>
 
           {/* RESULTS */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Date + Sort bar */}
-            <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center' }}>
-              <div onClick={() => dpRef.current?.showPicker?.() || dpRef.current?.focus()} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', position: 'relative' }}>
-                <CalIcon />
-                <span style={{ fontSize: 14, fontWeight: dateVal ? 700 : 600, color: dateVal ? '#1a1a1a' : '#9ca3af' }}>{dateLabel}</span>
-                <input ref={dpRef} type="date" onChange={handleDateChange} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
-              </div>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', fontFamily: 'inherit', background: '#f9f8f6', outline: 'none', whiteSpace: 'nowrap' }}>
-                {['Best match','Distance','Reliability','# of shifts','Rating'].map(o => <option key={o}>Sort: {o}</option>)}
-              </select>
-            </div>
-
-            {/* Meta row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <div style={{ fontSize: 15, color: '#6b7280' }}><strong style={{ color: '#1a1a1a', fontWeight: 800, fontSize: 16 }}>{filtered.length}</strong> professionals found</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#e8f5f0', padding: '7px 14px', borderRadius: 100, fontSize: 13, fontWeight: 600, color: '#0f4d38' }}>
-                <BoltIcon color="#1a7f5e" size={11} />Check boxes to use Rapid Fill
-              </div>
-            </div>
-
-            {/* Cards grid */}
-            {paginated.length === 0 ? (
-              <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: '56px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
-                  {professionals.length === 0 ? 'No professionals available yet' : 'No professionals found'}
+          <div className="w-full" style={{ flex: 1, minWidth: 0 }}>
+            {viewMode === 'grid' && (
+              <>
+                {/* Date + Sort bar */}
+                <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '10px 14px', display: 'flex', gap: 10, marginBottom: 14, alignItems: 'center' }}>
+                  <div onClick={() => dpRef.current?.showPicker?.() || dpRef.current?.focus()} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', cursor: 'pointer', position: 'relative' }}>
+                    <CalIcon />
+                    <span style={{ fontSize: 14, fontWeight: dateVal ? 700 : 600, color: dateVal ? '#1a1a1a' : '#9ca3af' }}>{dateLabel}</span>
+                    <input ref={dpRef} type="date" onChange={handleDateChange} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
+                  </div>
+                  <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer', fontFamily: 'inherit', background: '#f9f8f6', outline: 'none', whiteSpace: 'nowrap' }}>
+                    {['Best match','Distance','Reliability','# of shifts','Rating'].map(o => <option key={o}>Sort: {o}</option>)}
+                  </select>
                 </div>
-                <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>
-                  {professionals.length === 0 ? 'Check back as providers join Kazi.' : 'Try adjusting your filters.'}
+
+                {/* Meta row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <div style={{ fontSize: 15, color: '#6b7280' }}>
+                    {dateVal ? (
+                      <><strong style={{ color: '#1a1a1a', fontWeight: 800, fontSize: 16 }}>Showing {filtered.length}</strong> professional{filtered.length !== 1 ? 's' : ''} available on {dateLabel}</>
+                    ) : (
+                      <><strong style={{ color: '#1a1a1a', fontWeight: 800, fontSize: 16 }}>{filtered.length}</strong> professionals found</>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#e8f5f0', padding: '7px 14px', borderRadius: 100, fontSize: 13, fontWeight: 600, color: '#0f4d38' }}>
+                    <BoltIcon color="#1a7f5e" size={11} />Check boxes to use Rapid Fill
+                  </div>
                 </div>
-                {professionals.length > 0 && (
-                  <button onClick={clearFilters} style={{ border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 20px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Clear all filters</button>
+
+                {/* Cards grid */}
+                {paginated.length === 0 ? (
+                  <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: '56px 24px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a', marginBottom: 8 }}>
+                      {dateVal ? 'No professionals available on this date' : professionals.length === 0 ? 'No professionals available yet' : 'No professionals found'}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>
+                      {dateVal ? 'Try picking a different date.' : professionals.length === 0 ? 'Check back as providers join Kazi.' : 'Try adjusting your filters.'}
+                    </div>
+                    {professionals.length > 0 && (
+                      <button onClick={clearFilters} style={{ border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 20px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Clear all filters</button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px] items-start">
+                    {paginated.map(pro => (
+                      <ProCard key={pro.id} pro={pro} rapidSelected={rapidSelected} onToggleRapid={toggleRapid} onOpenCal={openCal} onOpenProfile={openProfile} onOpenMsg={openMsg} hasDate={!!dateVal} />
+                    ))}
+                  </div>
                 )}
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'start' }}>
-                {paginated.map(pro => (
-                  <ProCard key={pro.id} pro={pro} rapidSelected={rapidSelected} onToggleRapid={toggleRapid} onOpenCal={openCal} onOpenProfile={openProfile} onOpenMsg={openMsg} hasDate={!!dateVal} />
-                ))}
-              </div>
-            )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 20 }}>
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ width: 36, height: 36, borderRadius: 9, border: '1.5px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} onClick={() => setPage(p)} style={{ width: 36, height: 36, borderRadius: 9, border: `1.5px solid ${page === p ? '#1a7f5e' : '#e5e7eb'}`, background: page === p ? '#1a7f5e' : 'white', fontSize: 13, fontWeight: 700, color: page === p ? 'white' : '#374151', cursor: 'pointer', fontFamily: 'inherit' }}>{p}</button>
-                ))}
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} style={{ width: 36, height: 36, borderRadius: 9, border: '1.5px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-              </div>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 20 }}>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} style={{ width: 36, height: 36, borderRadius: 9, border: '1.5px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                      <button key={p} onClick={() => setPage(p)} style={{ width: 36, height: 36, borderRadius: 9, border: `1.5px solid ${page === p ? '#1a7f5e' : '#e5e7eb'}`, background: page === p ? '#1a7f5e' : 'white', fontSize: 13, fontWeight: 700, color: page === p ? 'white' : '#374151', cursor: 'pointer', fontFamily: 'inherit' }}>{p}</button>
+                    ))}
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} style={{ width: 36, height: 36, borderRadius: 9, border: '1.5px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+            {viewMode === 'calendar' && (
+              <ProCalendar
+                professionals={professionals}
+                calMonth={calMonth}
+                calYear={calYear}
+                setCalMonth={setCalMonth}
+                setCalYear={setCalYear}
+                calSelectedDate={calSelectedDate}
+                setCalSelectedDate={setCalSelectedDate}
+                calDatePros={calDatePros}
+                calLoading={calLoading}
+                onOpenCal={openCal}
+                onOpenProfile={openProfile}
+                onOpenMsg={openMsg}
+                rapidSelected={rapidSelected}
+                onToggleRapid={toggleRapid}
+                hasDate={!!dateVal}
+              />
             )}
           </div>
         </div>
