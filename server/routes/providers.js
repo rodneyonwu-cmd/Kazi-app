@@ -59,28 +59,6 @@ router.get('/me', authGuard, async (req, res) => {
   }
 });
 
-// DEBUG: temporary endpoint to verify data shape (remove later)
-router.get('/debug-check', async (req, res) => {
-  try {
-    const provider = await prisma.provider.findFirst({
-      include: {
-        user: { select: { firstName: true, lastName: true } },
-        reviews: { take: 2 },
-        bookings: { where: { status: 'COMPLETED' }, select: { id: true } },
-      },
-    });
-    res.json({
-      id: provider?.id,
-      name: provider?.user?.firstName,
-      reviewCount: provider?.reviews?.length || 0,
-      bookingCount: provider?.bookings?.length || 0,
-      reliabilityScore: provider?.reliabilityScore,
-      hasReviewsField: 'reviews' in (provider || {}),
-      hasBookingsField: 'bookings' in (provider || {}),
-    });
-  } catch (err) { res.json({ error: err.message }); }
-});
-
 // GET /api/providers – list providers (with filters)
 router.get('/', authGuard, async (req, res) => {
   try {
