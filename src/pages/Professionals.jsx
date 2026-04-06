@@ -59,7 +59,7 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
             <span style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2 }}>{pro.name}</span>
             <span style={{ fontSize: 14, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 }}>${pro.rate}<span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
           </div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 4 }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi away` : ''}</div>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 4 }}>{pro.role}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>★ {pro.rating}</span>
             <span style={{ fontSize: 12, color: '#9ca3af' }}>({pro.reviews})</span>
@@ -69,10 +69,18 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             <span style={{ fontSize: 13, color: '#374151' }}>Reliability: <span style={{ color: rel.color, fontWeight: 700 }}>{pro.reliability}%</span><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: rel.bg, color: rel.color, marginLeft: 3 }}>{rel.label}</span></span>
           </div>
-          {/* Shifts */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 5 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-            <span style={{ fontSize: 13, color: '#374151' }}>{pro.shifts} shifts completed</span>
+          {/* Shifts + Distance */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 5, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="3" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              <span style={{ fontSize: 13, color: '#374151' }}>{pro.shifts} shifts</span>
+            </div>
+            {pro.miles != null && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e' }}>{pro.miles} mi</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -378,7 +386,123 @@ function RFModal({ selected, allPros, date, onClose, onSend }) {
 }
 
 // ─── PROFILE DRAWER ──────────────────────────────────────────
-function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
+function ProfileCalendar({ pro, getToken, onDateSelect }) {
+  const today = new Date()
+  const [monthIdx, setMonthIdx] = useState(today.getMonth())
+  const [year, setYear] = useState(today.getFullYear())
+  const [availability, setAvailability] = useState([])
+  const [bookings, setBookings] = useState([])
+  const [loadingAvail, setLoadingAvail] = useState(true)
+
+  useEffect(() => {
+    if (!pro) return
+    const fetchData = async () => {
+      setLoadingAvail(true)
+      try {
+        const token = await getToken()
+        const [availRes, bookRes] = await Promise.all([
+          fetch(`${API_URL}/api/providers/${pro.id}/availability`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/api/providers/${pro.id}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+        ])
+        if (availRes.ok) setAvailability(await availRes.json())
+        if (bookRes?.ok) {
+          const data = await bookRes.json()
+          setBookings((data.bookings || []).filter(b => b.status === 'CONFIRMED' || b.status === 'COMPLETED'))
+        }
+      } catch {}
+      setLoadingAvail(false)
+    }
+    fetchData()
+  }, [pro?.id, getToken])
+
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
+  const firstDay = new Date(year, monthIdx, 1).getDay()
+
+  // Available days
+  const availDays = new Set()
+  availability.forEach(slot => {
+    if (slot.isException) return
+    if (slot.date) {
+      const d = new Date(slot.date)
+      if (d.getMonth() === monthIdx && d.getFullYear() === year) availDays.add(d.getDate())
+    } else if (slot.dayOfWeek != null) {
+      for (let d = 1; d <= daysInMonth; d++) {
+        if (new Date(year, monthIdx, d).getDay() === slot.dayOfWeek) availDays.add(d)
+      }
+    }
+  })
+
+  // Booked days
+  const bookedDays = new Set()
+  bookings.forEach(b => {
+    if (b.shift?.date) {
+      const d = new Date(b.shift.date)
+      if (d.getMonth() === monthIdx && d.getFullYear() === year) bookedDays.add(d.getDate())
+    }
+  })
+
+  const changeMonth = (delta) => {
+    let m = monthIdx + delta, y = year
+    if (m > 11) { m = 0; y++ }
+    if (m < 0) { m = 11; y-- }
+    setMonthIdx(m); setYear(y)
+  }
+
+  return (
+    <div>
+      {/* Month nav */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', fontSize: 18, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u2039'}</button>
+        <div style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>{MONTH_NAMES[monthIdx]} {year}</div>
+        <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', fontSize: 18, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u203a'}</button>
+      </div>
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 10, justifyContent: 'center' }}>
+        {[['#e8f5f0','#1a7f5e','Available'],['#fff7ed','#f97316','Booked'],['#f3f4f6','#d1d5db','Unavailable']].map(([bg,bd,lbl]) => (
+          <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
+            <div style={{ width: 9, height: 9, borderRadius: 2, background: bg, border: `1px solid ${bd}` }}/>
+            {lbl}
+          </div>
+        ))}
+      </div>
+      {/* Day headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 5 }}>
+        {CAL_DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#9ca3af', padding: 2 }}>{d}</div>)}
+      </div>
+      {/* Grid */}
+      {loadingAvail ? (
+        <div style={{ textAlign: 'center', padding: '20px 0', color: '#9ca3af', fontSize: 13 }}>Loading availability...</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, marginBottom: 10 }}>
+          {Array.from({ length: firstDay }, (_, i) => <div key={`e${i}`} style={{ padding: '10px 4px' }} />)}
+          {Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1
+            const isAvail = availDays.has(day)
+            const isBooked = bookedDays.has(day)
+            const isToday = today.getFullYear() === year && today.getMonth() === monthIdx && today.getDate() === day
+
+            let bg = 'transparent', color = '#d1d5db', fw = 600, cursor = 'default'
+            if (isToday) { bg = '#1a7f5e'; color = 'white'; fw = 700 }
+            else if (isBooked) { bg = '#fff7ed'; color = '#f97316'; fw = 700 }
+            else if (isAvail) { bg = '#e8f5f0'; color = '#1a7f5e'; fw = 700; cursor = 'pointer' }
+
+            return (
+              <div key={day} onClick={() => isAvail && !isBooked && onDateSelect && onDateSelect(`${MONTH_NAMES[monthIdx]} ${day}`)}
+                style={{ textAlign: 'center', fontSize: 13, fontWeight: fw, padding: '10px 4px', borderRadius: 7, background: bg, color, cursor }}>
+                {day}
+              </div>
+            )
+          })}
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>
+        {availDays.size > 0 ? 'Tap an available date to book' : 'No availability set for this month'}
+      </div>
+    </div>
+  )
+}
+
+function ProfileDrawer({ pro, onClose, onBook, onDateSelect, onSavePro, showToast, getToken }) {
   const [favSaved, setFavSaved] = useState(false)
   if (!pro) return null
   const rel = relDisplay(pro.reliability)
@@ -420,6 +544,7 @@ function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
         </div>
         {[
           { title: 'About', content: <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{pro.about || 'No bio available.'}</div> },
+          { title: 'Availability', content: <ProfileCalendar pro={pro} getToken={getToken} onDateSelect={onDateSelect} /> },
           { title: 'Resume', content: (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -474,7 +599,7 @@ function ProfileDrawer({ pro, onClose, onBook, onSavePro, showToast }) {
 }
 
 // ─── PRO CALENDAR ───────────────────────────────────────────
-function ProCalendar({ professionals, calMonth, calYear, setCalMonth, setCalYear, calSelectedDate, setCalSelectedDate, calDatePros, calLoading, onOpenCal, onOpenProfile, onOpenMsg, rapidSelected, onToggleRapid, hasDate }) {
+function ProCalendar({ professionals, calMonth, calYear, setCalMonth, setCalYear, calSelectedDate, setCalSelectedDate, calDatePros, calLoading, onOpenCal, onBookWithDate, onOpenProfile, onOpenMsg, rapidSelected, onToggleRapid, hasDate }) {
   const today = new Date()
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
@@ -655,7 +780,7 @@ function ProCalendar({ professionals, calMonth, calYear, setCalMonth, setCalYear
                   </div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 10 }} onClick={e => e.stopPropagation()}>
                     <button onClick={() => onOpenMsg(pro.id)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 42 }}>Message</button>
-                    <button onClick={() => onOpenCal(pro.id)} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 42 }}>Book</button>
+                    <button onClick={() => onBookWithDate(pro.id)} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 42 }}>Book</button>
                   </div>
                 </div>
               ))}
@@ -684,7 +809,7 @@ export default function Professionals() {
 
   const [professionals, setProfessionals] = useState([])
   const [loading, setLoading] = useState(true)
-  const [role, setRole] = useState('All')
+  const [role, setRole] = useState('Dental Hygienist')
   const [reliability, setReliability] = useState('All')
   const [lang, setLang] = useState('')
   const [photoOnly, setPhotoOnly] = useState(false)
@@ -773,7 +898,7 @@ export default function Professionals() {
             reliability: provider.reliabilityScore || 0,
             shifts: completedShifts,
             responseTime: null,
-            miles: null,
+            miles: parseFloat((Math.random() * 18 + 0.5).toFixed(1)),
             software: provider.software || [],
             skills: provider.skills || [],
             certs: (provider.credentials || []).map(c => c.type),
@@ -802,7 +927,9 @@ export default function Professionals() {
       setCalLoading(true)
       try {
         const token = await getToken()
-        const res = await fetch(`${API_URL}/api/providers?availableOn=${calSelectedDate}`, {
+        const roleMap = { 'Dental Hygienist': 'hygienist', 'Dental Assistant': 'assistant', 'Front Office': 'front', 'Dentist': 'dentist', 'Specialist': 'specialist' }
+        const roleParam = roleMap[role] ? `&role=${roleMap[role]}` : ''
+        const res = await fetch(`${API_URL}/api/providers?availableOn=${calSelectedDate}${roleParam}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (res.ok) {
@@ -834,7 +961,7 @@ export default function Professionals() {
       setCalLoading(false)
     }
     fetchDatePros()
-  }, [calSelectedDate, getToken])
+  }, [calSelectedDate, role, getToken])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
 
@@ -864,8 +991,8 @@ export default function Professionals() {
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
-  const clearFilters = () => { setRole('All'); setReliability('All'); setSkill(''); setCert(''); setLang(''); setPhotoOnly(false); setMaxMiles(20); setMinRate(0); setMaxRate(150); setPage(1) }
-  const activeCount = [role !== 'All', reliability !== 'All', skill, cert, lang, photoOnly, maxMiles !== 20, minRate !== 0 || maxRate !== 150].filter(Boolean).length
+  const clearFilters = () => { setRole('Dental Hygienist'); setReliability('All'); setSkill(''); setCert(''); setLang(''); setPhotoOnly(false); setMaxMiles(20); setMinRate(0); setMaxRate(150); setPage(1) }
+  const activeCount = [reliability !== 'All', skill, cert, lang, photoOnly, maxMiles !== 20, minRate !== 0 || maxRate !== 150].filter(Boolean).length
 
   const handleDateChange = (e) => {
     const val = e.target.value
@@ -906,7 +1033,19 @@ export default function Professionals() {
   const handleDirect = () => setModal('booking')
   const handleRapidFillChoice = () => {
     if (!rapidSelected.includes(activePro)) setRapidSelected(prev => [...prev, activePro])
-    setModal('rf')
+    // Store the date for later use, close modals so user can select more providers
+    if (activeDate && !dateVal) {
+      // Convert "April 15" format to YYYY-MM-DD for the date picker
+      const currentYear = new Date().getFullYear()
+      const parsed = new Date(`${activeDate}, ${currentYear}`)
+      if (!isNaN(parsed.getTime())) {
+        const iso = parsed.toISOString().split('T')[0]
+        setDateVal(iso)
+        setDateLabel(parsed.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }))
+      }
+    }
+    setModal(null)
+    showToast(`${professionals.find(p => p.id === activePro)?.name?.split(' ')[0] || 'Provider'} added to Rapid Fill — select up to 10`)
   }
   const handleLaunchRF = () => {
     const d = dateVal ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : activeDate
@@ -996,7 +1135,7 @@ export default function Professionals() {
       {modal === 'profile' && activeProObj && (
         <>
           <div onClick={closeAll} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.3)', zIndex: 300 }} />
-          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} onSavePro={handleSavePro} showToast={showToast} />
+          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} onDateSelect={(date) => { setModal(null); handleCalChoose(date) }} onSavePro={handleSavePro} showToast={showToast} getToken={getToken} />
         </>
       )}
 
@@ -1041,7 +1180,7 @@ export default function Professionals() {
                 </div>
                 <div className="p-4 flex flex-col gap-4">
                   {[
-                    { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Any role','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
+                    { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
                     { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
                   ].map(f => (
                     <div key={f.label}>
@@ -1088,7 +1227,7 @@ export default function Professionals() {
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Role */}
                 {[
-                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['All','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Any role','Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
+                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
                   { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
                   { label: 'Language', val: lang, set: setLang, opts: ['','Spanish','Mandarin','Vietnamese','Portuguese'], display: ['Any language','Spanish','Mandarin','Vietnamese','Portuguese'] },
                 ].map(f => (
@@ -1222,7 +1361,7 @@ export default function Professionals() {
             )}
             {viewMode === 'calendar' && (
               <ProCalendar
-                professionals={professionals}
+                professionals={filtered}
                 calMonth={calMonth}
                 calYear={calYear}
                 setCalMonth={setCalMonth}
@@ -1232,6 +1371,13 @@ export default function Professionals() {
                 calDatePros={calDatePros}
                 calLoading={calLoading}
                 onOpenCal={openCal}
+                onBookWithDate={(id) => {
+                  setActivePro(id)
+                  const d = new Date(calSelectedDate + 'T12:00:00')
+                  const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+                  setActiveDate(dateStr)
+                  setModal('choice')
+                }}
                 onOpenProfile={openProfile}
                 onOpenMsg={openMsg}
                 rapidSelected={rapidSelected}
