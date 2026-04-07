@@ -3,6 +3,61 @@ import prisma from '../lib/prisma.js';
 
 const router = Router();
 
+// TEMP DEBUG - remove later
+router.get('/debug-apps', async (req, res) => {
+  try {
+    // Hardcode Rodney's clerkId to test
+    const user = await prisma.user.findUnique({
+      where: { clerkId: 'user_2xDXQOa8IhSNeYdQ8Y4HY0ZLU7v' },
+      include: { provider: true, office: true },
+    });
+    if (!user) {
+      // Try partial match
+      const allUsers = await prisma.user.findMany({ include: { provider: true, office: true } });
+      const admin = allUsers.find(u => u.role === 'ADMIN');
+      if (!admin) return res.json({ error: 'No admin user found', users: allUsers.map(u => ({ id: u.id, role: u.role, clerkId: u.clerkId?.slice(-8) })) });
+
+      let where = {};
+      if (admin.role === 'PROVIDER' && admin.provider) {
+        where.providerId = admin.provider.id;
+      } else if (admin.office) {
+        where.shift = { officeId: admin.office.id };
+      }
+
+      const apps = await prisma.application.findMany({ where, include: { shift: true, provider: { include: { user: { select: { firstName: true } } } } } });
+      return res.json({
+        userRole: admin.role,
+        hasProvider: !!admin.provider,
+        hasOffice: !!admin.office,
+        officeId: admin.office?.id,
+        whereUsed: where,
+        appCount: apps.length,
+        apps: apps.map(a => ({ id: a.id.slice(-8), status: a.status, shiftId: a.shiftId.slice(-8), provider: a.provider?.user?.firstName }))
+      });
+    }
+
+    let where = {};
+    if (user.role === 'PROVIDER' && user.provider) {
+      where.providerId = user.provider.id;
+    } else if (user.office) {
+      where.shift = { officeId: user.office.id };
+    } else if (user.provider) {
+      where.providerId = user.provider.id;
+    }
+
+    const apps = await prisma.application.findMany({ where, include: { shift: true, provider: { include: { user: { select: { firstName: true } } } } } });
+    res.json({
+      userRole: user.role,
+      hasProvider: !!user.provider,
+      hasOffice: !!user.office,
+      officeId: user.office?.id,
+      whereUsed: where,
+      appCount: apps.length,
+      apps: apps.map(a => ({ id: a.id.slice(-8), status: a.status, shiftId: a.shiftId.slice(-8), shiftStatus: a.shift?.status, provider: a.provider?.user?.firstName }))
+    });
+  } catch (err) { res.json({ error: err.message }); }
+});
+
 // GET /api/applications – list applications for current user
 router.get('/', async (req, res) => {
   try {
