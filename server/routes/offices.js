@@ -273,7 +273,9 @@ router.get('/:id/saved-providers', authGuard, async (req, res) => {
       where: { officeId: req.params.id },
       include: {
         provider: {
-          include: { user: { select: { firstName: true, lastName: true, avatarUrl: true } } },
+          include: {
+            user: { select: { firstName: true, lastName: true, avatarUrl: true } },
+          },
         },
       },
     });

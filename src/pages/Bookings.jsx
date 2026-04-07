@@ -41,17 +41,25 @@ export default function Bookings() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  // ── Fetch bookings from API ──
+  const [pendingApps, setPendingApps] = useState([])
+
+  // ── Fetch bookings + pending applications from API ──
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         const token = await getToken()
-        const res = await fetch(`${API_URL}/api/bookings`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        if (res.ok) {
-          const data = await res.json()
+        const headers = { Authorization: `Bearer ${token}` }
+        const [bookingsRes, appsRes] = await Promise.all([
+          fetch(`${API_URL}/api/bookings`, { headers }),
+          fetch(`${API_URL}/api/applications`, { headers }),
+        ])
+        if (bookingsRes.ok) {
+          const data = await bookingsRes.json()
           setBookings(data)
+        }
+        if (appsRes?.ok) {
+          const apps = await appsRes.json()
+          setPendingApps(apps.filter(a => a.status === 'PENDING'))
         }
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
@@ -111,12 +119,65 @@ export default function Bookings() {
     }
   }
 
-  // ── Derive lists from bookings ──
+  // ── Format pending applications into same shape ──
+  const formatApp = (a) => {
+    const shift = a.shift || {}
+    const d = shift.date ? new Date(shift.date) : new Date()
+    const day = d.getDate()
+    const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+    const prov = a.provider || {}
+    const u = prov.user || {}
+    const firstName = u.firstName || ''
+    const lastName = u.lastName || ''
+    const name = `${firstName} ${lastName}`.trim() || 'Unknown'
+    const time = shift.startTime && shift.endTime ? `${shift.startTime} – ${shift.endTime}` : ''
+    const rate = shift.hourlyRate ? `$${shift.hourlyRate}/hr` : ''
+
+    return {
+      id: a.id,
+      day,
+      month,
+      fullDate: d,
+      role: shift.role || '',
+      time,
+      rate,
+      name,
+      firstName,
+      lastName,
+      type: 'pending',
+      status: '',
+      statusColor: '',
+      hasReview: false,
+      providerId: a.providerId,
+      shiftId: a.shiftId,
+      isApplication: true,
+    }
+  }
+
+  // ── Derive lists from bookings + applications ──
   const allFormatted = bookings.map(formatBooking)
   const upcoming = allFormatted.filter(s => s.type === 'confirmed')
-  const pending = allFormatted.filter(s => s.type === 'pending')
+  const pendingFromBookings = allFormatted.filter(s => s.type === 'pending')
+  const pendingFromApps = pendingApps.map(formatApp)
+  const pending = [...pendingFromBookings, ...pendingFromApps]
   const past = allFormatted.filter(s => s.type === 'past')
   const allShifts = [...upcoming, ...pending, ...past]
+
+  const withdrawApp = async (shift) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${API_URL}/api/applications/${shift.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'WITHDRAWN' }),
+      })
+      if (res.ok) {
+        setWithdrawn(prev => ({ ...prev, [shift.id]: true }))
+        setPendingApps(prev => prev.filter(a => a.id !== shift.id))
+        showToast(`Invite to ${shift.name} withdrawn`)
+      } else { showToast('Failed to withdraw invite') }
+    } catch { showToast('Failed to withdraw invite') }
+  }
 
   const getShiftsForDay = (day) => allShifts.filter(s => s.day === day)
 
@@ -230,11 +291,11 @@ export default function Bookings() {
     return (
       <div className="min-h-screen bg-[#f9f8f6]">
         <Nav />
-        <div className="max-w-[720px] mx-auto px-6 py-8">
+        <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex items-start justify-between mb-5">
             <div>
-              <h1 className="text-[28px] font-extrabold text-[#1a1a1a] mb-1">Bookings</h1>
-              <p className="text-[15px] text-[#6b7280]">All your shifts and job placements in one place.</p>
+              <h1 className="text-[22px] sm:text-[28px] font-extrabold text-[#1a1a1a] mb-1">Bookings</h1>
+              <p className="text-[13px] sm:text-[15px] text-[#6b7280]">All your shifts and job placements in one place.</p>
             </div>
           </div>
           <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-10 text-center">
@@ -256,8 +317,8 @@ export default function Bookings() {
 
       {/* Shift Detail Modal */}
       {showShiftModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4" onClick={() => setShowShiftModal(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:px-4" onClick={() => setShowShiftModal(null)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="bg-[#f9f8f6] px-6 pt-6 pb-4 text-center border-b border-[#e5e7eb]">
               <InitialsAvatar name={showShiftModal.name} size={56} className="mx-auto mb-3 border-4 border-white shadow" />
               <h2 className="text-base font-extrabold text-[#1a1a1a]">{showShiftModal.name}</h2>
@@ -303,7 +364,7 @@ export default function Bookings() {
               {showShiftModal.type === 'pending' && !withdrawn[showShiftModal.id] && (
                 <div className="flex flex-col gap-2">
                   <button onClick={() => { navigate('/profile'); setShowShiftModal(null) }} className="w-full bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-2.5 rounded-full text-sm transition">View profile</button>
-                  <button onClick={() => { setWithdrawn(prev => ({ ...prev, [showShiftModal.id]: true })); setShowShiftModal(null); showToast(`Invite to ${showShiftModal.name} withdrawn`) }} className="w-full border border-[#e5e7eb] text-[#92400e] font-bold py-2.5 rounded-full text-sm hover:border-[#f59e0b] transition">Withdraw invite</button>
+                  <button onClick={() => { withdrawApp(showShiftModal); setShowShiftModal(null) }} className="w-full border border-[#e5e7eb] text-[#92400e] font-bold py-2.5 rounded-full text-sm hover:border-[#f59e0b] transition">Withdraw invite</button>
                   <button onClick={() => setShowShiftModal(null)} className="w-full border border-[#e5e7eb] text-[#6b7280] font-bold py-2.5 rounded-full text-sm hover:border-[#1a7f5e] transition">Close</button>
                 </div>
               )}
@@ -332,8 +393,8 @@ export default function Bookings() {
 
       {/* Review Modal */}
       {showReviewModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-y-auto max-h-[85vh]">
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center sm:px-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md overflow-y-auto max-h-[90vh]">
             <div className="bg-[#f9f8f6] px-6 pt-6 pb-4 text-center border-b border-[#e5e7eb]">
               <InitialsAvatar name={showReviewModal.name} size={64} className="mx-auto mb-3 border-4 border-white shadow" />
               <h2 className="text-lg font-extrabold text-[#1a1a1a]">{showReviewModal.name}</h2>
@@ -367,7 +428,7 @@ export default function Bookings() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <p className="text-xs text-[#9ca3af] leading-relaxed">Your review will be visible to other dental offices on kazi. and will contribute to {showReviewModal.name.split(' ')[0]}'s overall rating.</p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button onClick={() => { setShowReviewModal(null); setReviewText(''); setReviewRating(5); setSelectedTags([]) }} className="flex-1 border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#1a7f5e] transition">Cancel</button>
                 <button onClick={() => handleSubmitReview(showReviewModal)} className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 rounded-full text-sm transition">Submit review</button>
               </div>
@@ -376,19 +437,19 @@ export default function Bookings() {
         </div>
       )}
 
-      <div className="max-w-[720px] mx-auto px-6 py-8">
+      <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-        <div className="flex items-start justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
           <div>
-            <h1 className="text-[28px] font-extrabold text-[#1a1a1a] mb-1">Bookings</h1>
-            <p className="text-[15px] text-[#6b7280]">All your shifts and job placements in one place.</p>
+            <h1 className="text-[22px] sm:text-[28px] font-extrabold text-[#1a1a1a] mb-1">Bookings</h1>
+            <p className="text-[13px] sm:text-[15px] text-[#6b7280]">All your shifts and job placements in one place.</p>
           </div>
-          <div className="flex border border-[#e5e7eb] rounded-lg overflow-hidden bg-white">
-            <button onClick={() => setView('list')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${view === 'list' ? 'bg-[#1a7f5e] text-white' : 'bg-white text-[#6b7280] hover:bg-[#f9f8f6]'}`}>
+          <div className="flex border border-[#e5e7eb] rounded-lg overflow-hidden bg-white w-full sm:w-auto">
+            <button onClick={() => setView('list')} className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${view === 'list' ? 'bg-[#1a7f5e] text-white' : 'bg-white text-[#6b7280] hover:bg-[#f9f8f6]'}`}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
               List
             </button>
-            <button onClick={() => setView('calendar')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${view === 'calendar' ? 'bg-[#1a7f5e] text-white' : 'bg-white text-[#6b7280] hover:bg-[#f9f8f6]'}`}>
+            <button onClick={() => setView('calendar')} className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold transition ${view === 'calendar' ? 'bg-[#1a7f5e] text-white' : 'bg-white text-[#6b7280] hover:bg-[#f9f8f6]'}`}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               Calendar
             </button>
@@ -400,7 +461,7 @@ export default function Bookings() {
         ) : (
           <>
             {view === 'calendar' && (
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 mb-6 max-w-[600px] mx-auto">
+              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 sm:p-6 mb-6 max-w-[600px] mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <button className="text-xl text-[#6b7280] px-2 hover:text-[#1a1a1a]">‹</button>
                   <p className="text-base font-extrabold text-[#1a1a1a]">March 2026</p>
@@ -437,13 +498,13 @@ export default function Bookings() {
 
             {view === 'list' && (
               <>
-                <div className="flex border-b border-[#e5e7eb] mb-7 mt-5">
+                <div className="flex border-b border-[#e5e7eb] mb-7 mt-5 overflow-x-auto whitespace-nowrap -mx-4 px-4 sm:mx-0 sm:px-0">
                   {[
                     { id: 'upcoming', label: 'Upcoming', count: activeUpcoming.length },
                     { id: 'pending', label: 'Pending', count: activePending.length },
                     { id: 'past', label: 'Past shifts', count: past.length },
                   ].map(tab => (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-5 py-3 text-[15px] font-medium border-b-2 transition -mb-px ${activeTab === tab.id ? 'border-[#1a7f5e] text-[#1a7f5e] font-semibold' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`px-4 sm:px-5 py-3 text-[14px] sm:text-[15px] font-medium border-b-2 transition -mb-px flex-shrink-0 ${activeTab === tab.id ? 'border-[#1a7f5e] text-[#1a7f5e] font-semibold' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>
                       {tab.label} <span className="text-[13px]">{tab.count}</span>
                     </button>
                   ))}
@@ -468,12 +529,13 @@ export default function Bookings() {
                       </div>
                     ) : (
                       upcoming.map(shift => (
-                        <div key={shift.id} className={`bg-white border border-[#e5e7eb] rounded-2xl p-5 flex items-center gap-5 mb-3 transition ${cancelled[shift.id] ? 'opacity-50' : ''}`}>
+                        <div key={shift.id} className={`bg-white border border-[#e5e7eb] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-3 transition ${cancelled[shift.id] ? 'opacity-50' : ''}`}>
+                          <div className="flex items-start gap-4 sm:contents">
                           <div className="w-14 h-[60px] rounded-xl bg-[#e8f5f0] text-[#1a7f5e] flex flex-col items-center justify-center flex-shrink-0">
                             <span className="text-[22px] font-extrabold leading-none">{shift.day}</span>
                             <span className="text-[11px] font-bold tracking-wider uppercase mt-0.5">{shift.month}</span>
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1.5">
                               <span className="text-base font-bold text-[#1a1a1a]">{shift.role}</span>
                               {cancelled[shift.id] ? (
@@ -497,10 +559,11 @@ export default function Bookings() {
                               <span className="text-[14px] font-semibold text-[#1a1a1a]">{shift.name}</span>
                             </div>
                           </div>
+                          </div>
                           {!cancelled[shift.id] ? (
-                            <button onClick={() => handleCancelBooking(shift)} className="border-[1.5px] border-[#e5e7eb] text-[#1a1a1a] text-[13px] font-medium px-4 py-2 rounded-full hover:border-red-500 hover:text-red-500 transition whitespace-nowrap flex-shrink-0">Cancel</button>
+                            <button onClick={() => handleCancelBooking(shift)} className="border-[1.5px] border-[#e5e7eb] text-[#1a1a1a] text-[13px] font-medium px-4 py-3 sm:py-2 rounded-full hover:border-red-500 hover:text-red-500 transition whitespace-nowrap w-full sm:w-auto sm:flex-shrink-0">Cancel</button>
                           ) : (
-                            <div className="w-[80px] flex-shrink-0"></div>
+                            <div className="hidden sm:block sm:w-[80px] sm:flex-shrink-0"></div>
                           )}
                         </div>
                       ))
@@ -527,12 +590,13 @@ export default function Bookings() {
                       </div>
                     ) : (
                       pending.map(shift => (
-                        <div key={shift.id} className={`bg-white border border-[#e5e7eb] rounded-2xl p-5 flex items-center gap-5 mb-3 transition ${withdrawn[shift.id] ? 'opacity-50' : ''}`}>
+                        <div key={shift.id} className={`bg-white border border-[#e5e7eb] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-3 transition ${withdrawn[shift.id] ? 'opacity-50' : ''}`}>
+                          <div className="flex items-start gap-4 sm:contents">
                           <div className="w-14 h-[60px] rounded-xl bg-[#fef3c7] text-[#92400e] flex flex-col items-center justify-center flex-shrink-0">
                             <span className="text-[22px] font-extrabold leading-none">{shift.day}</span>
                             <span className="text-[11px] font-bold tracking-wider uppercase mt-0.5">{shift.month}</span>
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1.5">
                               <span className="text-base font-bold text-[#1a1a1a]">{shift.role}</span>
                               {withdrawn[shift.id] ? (
@@ -556,10 +620,11 @@ export default function Bookings() {
                               <span className="text-[14px] font-semibold text-[#1a1a1a]">{shift.name}</span>
                             </div>
                           </div>
+                          </div>
                           {!withdrawn[shift.id] ? (
-                            <button onClick={() => { setWithdrawn(prev => ({ ...prev, [shift.id]: true })); showToast(`Invite to ${shift.name} withdrawn`) }} className="border-[1.5px] border-[#e5e7eb] text-[#1a1a1a] text-[13px] font-medium px-4 py-2 rounded-full hover:border-[#f59e0b] hover:text-[#92400e] transition whitespace-nowrap flex-shrink-0">Withdraw invite</button>
+                            <button onClick={() => { withdrawApp(shift) }} className="border-[1.5px] border-[#e5e7eb] text-[#1a1a1a] text-[13px] font-medium px-4 py-3 sm:py-2 rounded-full hover:border-[#f59e0b] hover:text-[#92400e] transition whitespace-nowrap w-full sm:w-auto sm:flex-shrink-0">Withdraw invite</button>
                           ) : (
-                            <div className="w-[120px] flex-shrink-0"></div>
+                            <div className="hidden sm:block sm:w-[120px] sm:flex-shrink-0"></div>
                           )}
                         </div>
                       ))
@@ -570,23 +635,25 @@ export default function Bookings() {
                 {/* ── PAST TAB ── */}
                 {activeTab === 'past' && (
                   <div>
-                    <div className="flex items-center gap-3 mb-5 flex-wrap">
-                      <div className="relative flex-1 min-w-[200px]">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5 sm:flex-wrap">
+                      <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9ca3af]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)} className="w-full border border-[#e5e7eb] rounded-lg pl-9 pr-4 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
+                        <input type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)} className="w-full border border-[#e5e7eb] rounded-lg pl-9 pr-4 py-3 sm:py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white" />
                       </div>
-                      <select className="border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-white outline-none focus:border-[#1a7f5e] min-w-[130px]">
+                      <div className="flex gap-2 w-full sm:w-auto">
+                      <select className="flex-1 sm:flex-initial border border-[#e5e7eb] rounded-lg px-3 py-3 sm:py-2.5 text-sm bg-white outline-none focus:border-[#1a7f5e] sm:min-w-[130px]">
                         <option>All roles</option>
                         <option>Dental Hygienist</option>
                         <option>Dental Assistant</option>
                         <option>Front Desk / Admin</option>
                       </select>
-                      <select className="border border-[#e5e7eb] rounded-lg px-3 py-2.5 text-sm bg-white outline-none focus:border-[#1a7f5e] min-w-[100px]">
+                      <select className="flex-1 sm:flex-initial border border-[#e5e7eb] rounded-lg px-3 py-3 sm:py-2.5 text-sm bg-white outline-none focus:border-[#1a7f5e] sm:min-w-[100px]">
                         <option>All</option>
                         <option>Completed</option>
                         <option>Cancelled</option>
                       </select>
-                      <button onClick={() => setSearch('')} className="border border-[#e5e7eb] rounded-lg px-4 py-2.5 text-sm bg-white text-[#6b7280] hover:border-[#1a7f5e] transition">Clear</button>
+                      <button onClick={() => setSearch('')} className="border border-[#e5e7eb] rounded-lg px-4 py-3 sm:py-2.5 text-sm bg-white text-[#6b7280] hover:border-[#1a7f5e] transition">Clear</button>
+                      </div>
                     </div>
 
                     {sortedPast.length === 0 ? (
@@ -623,12 +690,13 @@ export default function Bookings() {
                           </div>
                         </div>
                         {sortedPast.map(shift => (
-                          <div key={shift.id} className="bg-white border border-[#e5e7eb] rounded-2xl p-5 flex items-center gap-5 mb-3">
+                          <div key={shift.id} className="bg-white border border-[#e5e7eb] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-3">
+                            <div className="flex items-start gap-4 sm:contents">
                             <div className={`w-14 h-[60px] rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${shift.status === 'Cancelled' ? 'bg-[#fef2f2] text-[#dc2626]' : 'bg-[#f3f4f6] text-[#6b7280]'}`}>
                               <span className="text-[22px] font-extrabold leading-none">{shift.day}</span>
                               <span className="text-[11px] font-bold tracking-wider uppercase mt-0.5">{shift.month}</span>
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1.5">
                                 <span className="text-base font-bold text-[#1a1a1a]">{shift.role}</span>
                                 <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${shift.statusColor}`}>{shift.status}</span>
@@ -649,14 +717,15 @@ export default function Bookings() {
                                 {shift.status === 'Cancelled' && <span className="text-[13px] text-[#9ca3af]">-- cancelled</span>}
                               </div>
                             </div>
+                            </div>
                             {shift.status === 'Completed' && (
                               (reviewed[shift.id] || shift.hasReview) ? (
-                                <span className="text-xs font-bold text-[#1a7f5e] bg-[#e8f5f0] px-3 py-2 rounded-full whitespace-nowrap flex-shrink-0">✓ Reviewed</span>
+                                <span className="text-xs font-bold text-[#1a7f5e] bg-[#e8f5f0] px-3 py-2 rounded-full whitespace-nowrap text-center w-full sm:w-auto sm:flex-shrink-0">✓ Reviewed</span>
                               ) : (
-                                <button onClick={() => setShowReviewModal(shift)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white text-[13px] font-semibold px-4 py-2 rounded-full transition whitespace-nowrap flex-shrink-0">Leave review</button>
+                                <button onClick={() => setShowReviewModal(shift)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white text-[13px] font-semibold px-4 py-3 sm:py-2 rounded-full transition whitespace-nowrap w-full sm:w-auto sm:flex-shrink-0">Leave review</button>
                               )
                             )}
-                            {shift.status === 'Cancelled' && <div className="w-[120px] flex-shrink-0"></div>}
+                            {shift.status === 'Cancelled' && <div className="hidden sm:block sm:w-[120px] sm:flex-shrink-0"></div>}
                           </div>
                         ))}
                       </>

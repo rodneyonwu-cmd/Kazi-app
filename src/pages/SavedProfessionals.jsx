@@ -42,7 +42,32 @@ export default function SavedProfessionals() {
         const savedRes = await fetch(`${API_URL}/api/offices/${meData.id}/saved-providers`, { headers })
         if (savedRes.ok) {
           const savedData = await savedRes.json()
-          setSaved(savedData)
+          const ROLE_MAP = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Office', dentist: 'Dentist', specialist: 'Specialist' }
+          const transformed = savedData.map(s => {
+            const p = s.provider || {}
+            const u = p.user || {}
+            const firstName = u.firstName || ''
+            const lastName = u.lastName || ''
+            const isDentist = p.role === 'dentist'
+            const displayName = lastName ? `${firstName} ${lastName.charAt(0)}.` : (firstName.trim() || 'Unknown')
+            return {
+              id: p.id || s.providerId,
+              savedId: s.id,
+              name: isDentist ? `Dr. ${displayName}` : displayName,
+              role: ROLE_MAP[p.role] || p.role || 'Professional',
+              rate: p.hourlyRate || null,
+              rating: p.avgRating || null,
+              reviews: p.reviewCount || null,
+              reliability: p.reliabilityScore || null,
+              shifts: p.shiftsCompleted || 0,
+              software: p.software || [],
+              avatarUrl: u.avatarUrl || null,
+              verified: p.verified || false,
+              available: true,
+              miles: null,
+            }
+          })
+          setSaved(transformed)
         }
       } catch (err) {
         console.error('Failed to fetch saved professionals:', err)
@@ -91,27 +116,27 @@ export default function SavedProfessionals() {
     <div className="min-h-screen bg-[#f9f8f6]">
       <Nav />
 
-      <div className="max-w-[700px] mx-auto px-6 py-8">
+      <div className="max-w-[700px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-[24px] font-extrabold text-[#1a1a1a] mb-1">Saved Professionals</h1>
-            <p className="text-[14px] text-[#9ca3af]">{filtered.length} professional{filtered.length !== 1 ? 's' : ''} saved</p>
+            <h1 className="text-[22px] sm:text-[24px] font-extrabold text-[#1a1a1a] mb-1">Saved Professionals</h1>
+            <p className="text-[13px] sm:text-[14px] text-[#9ca3af]">{filtered.length} professional{filtered.length !== 1 ? 's' : ''} saved</p>
           </div>
-          <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-sm transition flex items-center gap-2">
+          <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-3 sm:py-2.5 rounded-full text-sm transition flex items-center justify-center gap-2 w-full sm:w-auto">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             Browse professionals
           </button>
         </div>
 
         {/* Role filter */}
-        <div className="flex gap-2 flex-wrap mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto whitespace-nowrap -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           {roles.map(role => (
             <button
               key={role}
               onClick={() => setSelectedRole(role)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold border-[1.5px] transition ${selectedRole === role ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white font-bold' : 'border-[#e5e7eb] text-[#374151] bg-white hover:border-[#1a7f5e]'}`}
+              className={`px-4 py-2 rounded-full text-[13px] sm:text-sm font-semibold border-[1.5px] transition flex-shrink-0 ${selectedRole === role ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white font-bold' : 'border-[#e5e7eb] text-[#374151] bg-white hover:border-[#1a7f5e]'}`}
             >
               {role}
             </button>
@@ -122,7 +147,7 @@ export default function SavedProfessionals() {
         {filtered.length === 0 ? (
           <div className="bg-white border border-[#e5e7eb] rounded-2xl flex flex-col items-center justify-center py-16 px-6 text-center">
             <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-4">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             </div>
             <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">
               {selectedRole !== 'All' ? `No saved ${selectedRole}s` : 'No saved professionals'}
@@ -145,9 +170,10 @@ export default function SavedProfessionals() {
             {filtered.map(pro => {
               const rel = reliabilityDisplay(pro.reliability || 0)
               return (
-                <div key={pro.id} className="bg-white border border-[#e5e7eb] rounded-2xl p-4 flex items-center gap-4 hover:border-[#d1d5db] transition">
+                <div key={pro.id} className="bg-white border border-[#e5e7eb] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:border-[#d1d5db] transition w-full">
 
-                  {/* Avatar */}
+                  {/* Avatar - wrapper to group avatar + info on mobile */}
+                  <div className="flex items-start gap-4 sm:contents">
                   <div className="relative flex-shrink-0">
                     <InitialsAvatar name={pro.name} size={56} />
                     {pro.verified && (
@@ -179,27 +205,28 @@ export default function SavedProfessionals() {
                       ))}
                     </div>
                   </div>
+                  </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                     <button
                       onClick={() => navigate('/profile')}
-                      className="border-[1.5px] border-[#e5e7eb] text-[#374151] font-semibold px-4 py-2 rounded-full text-[13px] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition"
+                      className="flex-1 sm:flex-initial border-[1.5px] border-[#e5e7eb] text-[#374151] font-semibold px-4 py-2.5 sm:py-2 rounded-full text-[13px] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition"
                     >
                       View
                     </button>
                     <button
                       onClick={() => navigate('/professionals')}
-                      className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2 rounded-full text-[13px] transition"
+                      className="flex-1 sm:flex-initial bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2.5 sm:py-2 rounded-full text-[13px] transition"
                     >
                       Invite
                     </button>
                     <button
                       onClick={() => handleRemove(pro)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full text-[#9ca3af] hover:text-[#dc2626] hover:bg-[#fee2e2] transition"
+                      className="w-10 h-10 sm:w-8 sm:h-8 flex-shrink-0 flex items-center justify-center rounded-full text-[#9ca3af] hover:text-[#dc2626] hover:bg-[#fee2e2] transition"
                       title="Remove from saved"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor" stroke="none"/></svg>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#1a7f5e" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                     </button>
                   </div>
 

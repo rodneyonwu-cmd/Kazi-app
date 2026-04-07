@@ -2,13 +2,18 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser, useAuth, useClerk } from '@clerk/clerk-react'
 import InitialsAvatar from './InitialsAvatar'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-function OfficeLogo({ logoUrl, name, size }) {
-  if (logoUrl) {
+function OfficeLogo({ logoUrl, userImageUrl, name, size }) {
+  const [failed, setFailed] = useState(false)
+  if (userImageUrl && !failed) {
+    return <img src={userImageUrl} alt={name} onError={() => setFailed(true)} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }} />
+  }
+  if (logoUrl && !failed) {
     const url = logoUrl.startsWith('http') ? logoUrl : `${API_URL}${logoUrl}`
-    return <img src={url} alt={name} style={{ width: size, height: size, borderRadius: size >= 40 ? 12 : 10, objectFit: 'cover' }} />
+    return <img src={url} alt={name} onError={() => setFailed(true)} style={{ width: size, height: size, borderRadius: size >= 40 ? 12 : 10, objectFit: 'cover' }} />
   }
   return <InitialsAvatar name={name} size={size} />
 }
@@ -94,7 +99,7 @@ export default function Nav() {
   const isActive = (path) => location.pathname === path
 
   const unreadCount = notifications.filter(n => !n.read).length
-  const [unreadMsgCount, setUnreadMsgCount] = useState(0)
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [pendingAppCount, setPendingAppCount] = useState(0)
 
   useEffect(() => {
@@ -111,25 +116,6 @@ export default function Nav() {
     }
     fetchPending()
     const interval = setInterval(fetchPending, 30000)
-    return () => clearInterval(interval)
-  }, [getToken])
-
-  useEffect(() => {
-    const fetchUnreadMsgs = async () => {
-      try {
-        const token = await getToken()
-        if (!token) return
-        const res = await fetch(`${API_URL}/api/messages/unread-count`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          setUnreadMsgCount(data.count || 0)
-        }
-      } catch {}
-    }
-    fetchUnreadMsgs()
-    const interval = setInterval(fetchUnreadMsgs, 30000)
     return () => clearInterval(interval)
   }, [getToken])
 
@@ -206,7 +192,7 @@ export default function Nav() {
   return (
     <>
       <nav className="bg-white border-b border-[#e5e7eb] h-16 sticky top-0 z-50">
-        <div className="max-w-[1100px] mx-auto px-6 h-full flex items-center justify-between">
+        <div className="max-w-[1100px] mx-auto px-4 md:px-6 h-full flex items-center justify-between">
 
           {/* Logo */}
           <span
@@ -229,19 +215,23 @@ export default function Nav() {
             ))}
           </div>
 
-          {/* Avatar + dropdown */}
+          {/* Hamburger + dropdown */}
           <div className="relative hidden md:block">
-            <div
+            <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="cursor-pointer relative"
+              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f3f4f6] transition cursor-pointer relative border-none bg-transparent"
             >
-              <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={40} />
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.2" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
                   {unreadCount}
                 </span>
               )}
-            </div>
+            </button>
 
             {showDropdown && (
               <>
@@ -251,7 +241,7 @@ export default function Nav() {
                   {/* Office header */}
                   <div className="px-4 py-4 border-b border-[#f3f4f6]">
                     <div className="flex items-center gap-3">
-                      <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={36} />
+                      <OfficeLogo logoUrl={office?.logoUrl} userImageUrl={user?.imageUrl} name={officeName} size={36} />
                       <div>
                         <p className="text-[15px] font-semibold text-[#1a1a1a]">{officeName}</p>
                         <p className="text-[12px] text-[#1a7f5e] font-medium">{office?.verified ? '✓ Verified' : 'Complete your profile'}</p>
@@ -365,10 +355,14 @@ export default function Nav() {
           </div>
 
           {/* Mobile button */}
-          <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden relative">
-            <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={40} />
+          <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="md:hidden relative flex items-center justify-center min-w-[44px] min-h-[44px]" aria-label="Menu">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute top-0 right-0 w-4 h-4 bg-[#dc2626] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border-2 border-white">
                 {unreadCount}
               </span>
             )}
@@ -384,7 +378,7 @@ export default function Nav() {
 
             {/* Office header */}
             <div className="flex items-center gap-3 px-6 py-4 border-b border-[#e5e7eb]">
-              <OfficeLogo logoUrl={office?.logoUrl} name={officeName} size={44} />
+              <OfficeLogo logoUrl={office?.logoUrl} userImageUrl={user?.imageUrl} name={officeName} size={44} />
               <div>
                 <p className="text-sm font-bold text-[#1a1a1a]">{officeName}</p>
                 <p className="text-xs text-[#1a7f5e] font-semibold">{office?.verified ? '✓ Verified' : 'Complete your profile'}</p>

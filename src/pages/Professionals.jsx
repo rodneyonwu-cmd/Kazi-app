@@ -57,7 +57,7 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
             <span style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2 }}>{pro.name}</span>
-            <span style={{ fontSize: 14, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 }}>${pro.rate}<span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
+            <span style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a', whiteSpace: 'nowrap', flexShrink: 0 }}>${pro.rate}<span style={{ fontSize: 11, fontWeight: 400, color: '#9ca3af' }}>/hr</span></span>
           </div>
           <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 4 }}>{pro.role}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -88,13 +88,13 @@ function ProCard({ pro, rapidSelected, onToggleRapid, onOpenCal, onOpenProfile, 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 12px', marginTop: 4 }}>
         <button
           onClick={e => { e.stopPropagation(); onOpenMsg(pro.id) }}
-          style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 42 }}
+          style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', background: 'white', fontWeight: 700, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44 }}
         >
           Message
         </button>
         <button
           onClick={e => { e.stopPropagation(); onOpenCal(pro.id); }}
-          style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 42 }}
+          style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 700, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44 }}
         >
           Book {pro.name.split(' ')[0]}
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -502,8 +502,8 @@ function ProfileCalendar({ pro, getToken, onDateSelect }) {
   )
 }
 
-function ProfileDrawer({ pro, onClose, onBook, onDateSelect, onSavePro, showToast, getToken }) {
-  const [favSaved, setFavSaved] = useState(false)
+function ProfileDrawer({ pro, onClose, onBook, onDateSelect, onSavePro, isSaved, showToast, getToken }) {
+  const [favSaved, setFavSaved] = useState(isSaved)
   if (!pro) return null
   const rel = relDisplay(pro.reliability)
   const firstName = pro.name.split(' ')[0]
@@ -515,7 +515,7 @@ function ProfileDrawer({ pro, onClose, onBook, onDateSelect, onSavePro, showToas
           Back to professionals
         </div>
         <button onClick={e => { e.stopPropagation(); setFavSaved(!favSaved); onSavePro(pro.id, !favSaved) }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill={favSaved ? '#ef4444' : 'none'} stroke={favSaved ? '#ef4444' : '#9ca3af'} strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill={favSaved ? '#1a7f5e' : 'none'} stroke={favSaved ? '#1a7f5e' : '#9ca3af'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         </button>
       </div>
       <div style={{ flex: 1 }}>
@@ -818,6 +818,9 @@ export default function Professionals() {
   const [maxRate, setMaxRate] = useState(150)
   const [skill, setSkill] = useState('')
   const [cert, setCert] = useState('')
+  const [software, setSoftware] = useState('')
+  const [crossTrained, setCrossTrained] = useState(false)
+  const [availableNow, setAvailableNow] = useState(false)
   const [sortBy, setSortBy] = useState('Best match')
   const [rapidSelected, setRapidSelected] = useState([])
   const [dateVal, setDateVal] = useState('')
@@ -831,6 +834,9 @@ export default function Professionals() {
   const [calSelectedDate, setCalSelectedDate] = useState(null)
   const [calLoading, setCalLoading] = useState(false)
   const [calDatePros, setCalDatePros] = useState([])
+
+  const [officeId, setOfficeId] = useState(null)
+  const [savedProIds, setSavedProIds] = useState([])
 
   // modal state
   const [modal, setModal] = useState(null) // 'cal'|'choice'|'booking'|'rf'|'profile'|'msg'
@@ -963,6 +969,26 @@ export default function Professionals() {
     fetchDatePros()
   }, [calSelectedDate, role, getToken])
 
+  // Fetch office ID and saved providers
+  useEffect(() => {
+    const fetchOfficeAndSaved = async () => {
+      try {
+        const token = await getToken()
+        const headers = { Authorization: `Bearer ${token}` }
+        const meRes = await fetch(`${API_URL}/api/offices/me`, { headers })
+        if (!meRes.ok) return
+        const meData = await meRes.json()
+        setOfficeId(meData.id)
+        const savedRes = await fetch(`${API_URL}/api/offices/${meData.id}/saved-providers`, { headers })
+        if (savedRes.ok) {
+          const savedData = await savedRes.json()
+          setSavedProIds(savedData.map(s => s.providerId))
+        }
+      } catch {}
+    }
+    fetchOfficeAndSaved()
+  }, [getToken])
+
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
 
   const toggleRapid = (id) => {
@@ -978,7 +1004,9 @@ export default function Professionals() {
     if (p.rate < minRate || p.rate > maxRate) return false
     if (p.miles != null && p.miles > maxMiles) return false
     if (cert && !p.certs.includes(cert)) return false
-    if (skill && !p.software.includes(skill)) return false
+    if (skill && !p.skills.includes(skill)) return false
+    if (software && !p.software.includes(software)) return false
+    if (crossTrained && (!p.skills || p.skills.length < 2)) return false
     return true
   }).sort((a, b) => {
     if (sortBy === 'Rating') return b.rating - a.rating
@@ -991,8 +1019,8 @@ export default function Professionals() {
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
-  const clearFilters = () => { setRole('Dental Hygienist'); setReliability('All'); setSkill(''); setCert(''); setLang(''); setPhotoOnly(false); setMaxMiles(20); setMinRate(0); setMaxRate(150); setPage(1) }
-  const activeCount = [reliability !== 'All', skill, cert, lang, photoOnly, maxMiles !== 20, minRate !== 0 || maxRate !== 150].filter(Boolean).length
+  const clearFilters = () => { setRole('Dental Hygienist'); setReliability('All'); setSkill(''); setCert(''); setLang(''); setSoftware(''); setPhotoOnly(false); setCrossTrained(false); setAvailableNow(false); setMaxMiles(20); setMinRate(0); setMaxRate(150); setPage(1) }
+  const activeCount = [reliability !== 'All', skill, cert, lang, software, photoOnly, crossTrained, availableNow, maxMiles !== 20, minRate !== 0 || maxRate !== 150].filter(Boolean).length
 
   const handleDateChange = (e) => {
     const val = e.target.value
@@ -1053,8 +1081,27 @@ export default function Professionals() {
     setModal('rf')
   }
 
-  const handleSavePro = (proId, saving) => {
-    showToast(saving ? 'Professional saved - Coming soon!' : 'Professional unsaved')
+  const handleSavePro = async (proId, saving) => {
+    if (!officeId) { showToast('Unable to save — office not found'); return }
+    try {
+      const token = await getToken()
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      if (saving) {
+        const res = await fetch(`${API_URL}/api/offices/${officeId}/save-provider`, {
+          method: 'POST', headers, body: JSON.stringify({ providerId: proId }),
+        })
+        if (res.ok || res.status === 409) {
+          setSavedProIds(prev => [...prev, proId])
+          showToast('Professional saved!')
+        } else { showToast('Failed to save') }
+      } else {
+        await fetch(`${API_URL}/api/offices/${officeId}/save-provider/${proId}`, {
+          method: 'DELETE', headers,
+        })
+        setSavedProIds(prev => prev.filter(id => id !== proId))
+        showToast('Professional removed from saved')
+      }
+    } catch { showToast('Failed to save') }
   }
 
   const rfDate = dateVal
@@ -1135,7 +1182,7 @@ export default function Professionals() {
       {modal === 'profile' && activeProObj && (
         <>
           <div onClick={closeAll} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.3)', zIndex: 300 }} />
-          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} onDateSelect={(date) => { setModal(null); handleCalChoose(date) }} onSavePro={handleSavePro} showToast={showToast} getToken={getToken} />
+          <ProfileDrawer pro={activeProObj} onClose={closeAll} onBook={() => openCal(activePro)} onDateSelect={(date) => { setModal(null); handleCalChoose(date) }} onSavePro={handleSavePro} isSaved={savedProIds.includes(activePro)} showToast={showToast} getToken={getToken} />
         </>
       )}
 
@@ -1169,55 +1216,131 @@ export default function Professionals() {
             {activeCount > 0 && <span className="text-[10px] font-bold bg-[#1a7f5e] text-white w-5 h-5 rounded-full flex items-center justify-center">{activeCount}</span>}
           </button>
 
-          {/* Mobile filter drawer */}
+          {/* Mobile filter drawer — near full screen */}
           {mobileFiltersOpen && (
             <div className="md:hidden fixed inset-0 z-[400]">
-              <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)} />
-              <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#f3f4f6] sticky top-0 bg-white">
-                  <span className="text-[15px] font-black text-[#1a1a1a]">Filters</span>
-                  <button onClick={() => setMobileFiltersOpen(false)} className="text-[#9ca3af] text-xl">✕</button>
+              <div className="absolute inset-0 bg-black/50" onClick={() => setMobileFiltersOpen(false)} />
+              <div className="absolute top-3 left-3 right-3 bottom-3 bg-white rounded-[20px] shadow-2xl flex flex-col overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#f3f4f6] flex-shrink-0">
+                  <div>
+                    <span className="text-[17px] font-black text-[#1a1a1a]">Filters</span>
+                    {activeCount > 0 && <span className="ml-2 text-[11px] font-bold bg-[#1a7f5e] text-white px-2 py-0.5 rounded-full">{activeCount} active</span>}
+                  </div>
+                  <button onClick={() => setMobileFiltersOpen(false)} className="w-8 h-8 rounded-full bg-[#f3f4f6] flex items-center justify-center border-none cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
                 </div>
-                <div className="p-4 flex flex-col gap-4">
-                  {[
-                    { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
-                    { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
-                  ].map(f => (
-                    <div key={f.label}>
-                      <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1.5">{f.label}</label>
-                      <select value={f.val} onChange={e => f.set(e.target.value)} className="w-full min-h-[44px] border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm bg-[#f9f8f6] outline-none">
-                        {f.display.map((o, i) => <option key={o} value={f.opts[i]}>{o}</option>)}
+                {/* Scrollable filters */}
+                <div className="flex-1 overflow-y-auto px-5 py-4">
+                  <div className="flex flex-col gap-5">
+                    {/* Role */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Role</label>
+                      <div className="flex flex-wrap gap-2">
+                        {['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'].map(r => (
+                          <button key={r} onClick={() => { setRole(r); setPage(1) }} className={`px-4 py-2.5 rounded-full text-[13px] font-semibold border transition ${role === r ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'bg-white text-[#374151] border-[#e5e7eb]'}`} style={{ fontFamily: 'inherit' }}>{r}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Reliability */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Reliability</label>
+                      <select value={reliability} onChange={e => { setReliability(e.target.value); setPage(1) }} className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }}>
+                        {['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'].map((o, i) => <option key={o} value={['All','excellent','verygood','good'][i]}>{o}</option>)}
                       </select>
                     </div>
-                  ))}
-                  <div>
-                    <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1.5">Hourly Rate (${minRate}-${maxRate}/hr)</label>
-                    <div className="flex gap-2">
-                      <input type="number" value={minRate} onChange={e => setMinRate(Number(e.target.value))} className="flex-1 min-h-[44px] border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm bg-[#f9f8f6] outline-none" />
-                      <input type="number" value={maxRate} onChange={e => setMaxRate(Number(e.target.value))} className="flex-1 min-h-[44px] border border-[#e5e7eb] rounded-xl px-3 py-2 text-sm bg-[#f9f8f6] outline-none" />
+                    {/* Language */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Language</label>
+                      <select value={lang} onChange={e => setLang(e.target.value)} className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }}>
+                        {['Any language','English','Spanish','Mandarin','Vietnamese','Portuguese','Korean','Arabic','French'].map((o, i) => <option key={o} value={i === 0 ? '' : o}>{o}</option>)}
+                      </select>
+                    </div>
+                    {/* Credentials */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Credentials</label>
+                      <select value={cert} onChange={e => setCert(e.target.value)} className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }}>
+                        {['Any credential','TX RDH License','CPR/BLS','Local Anesthesia','Nitrous Oxide','X-Ray Certification','Reg. DA','Coronal Polishing','Sealants'].map((o, i) => <option key={o} value={i === 0 ? '' : o}>{o}</option>)}
+                      </select>
+                    </div>
+                    {/* Skills */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Skills</label>
+                      <select value={skill} onChange={e => setSkill(e.target.value)} className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }}>
+                        {['Any skill','Scaling & Root Planing','Periodontal Charting','Digital X-rays','Four-Handed Dentistry','Insurance Verification','Teeth Whitening','Implant Maintenance','Pediatric Care'].map((o, i) => <option key={o} value={i === 0 ? '' : o}>{o}</option>)}
+                      </select>
+                    </div>
+                    {/* Dental Software */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Dental Software</label>
+                      <select value={software} onChange={e => setSoftware(e.target.value)} className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }}>
+                        {['Any software','Dentrix','Eaglesoft','Open Dental','Curve Dental','Denticon','SoftDent','Practice-Web','tab32'].map((o, i) => <option key={o} value={i === 0 ? '' : o}>{o}</option>)}
+                      </select>
+                    </div>
+                    {/* Hourly Rate */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider">Hourly Rate</label>
+                        <span className="text-[12px] font-semibold text-[#1a7f5e]">${minRate} – ${maxRate}/hr</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-[#9ca3af]">$</span>
+                          <input type="number" value={minRate} onChange={e => setMinRate(Number(e.target.value))} placeholder="Min" className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl pl-7 pr-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }} />
+                        </div>
+                        <span className="flex items-center text-[#9ca3af] font-bold">–</span>
+                        <div className="flex-1 relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-[#9ca3af]">$</span>
+                          <input type="number" value={maxRate} onChange={e => setMaxRate(Number(e.target.value))} placeholder="Max" className="w-full min-h-[46px] border border-[#e5e7eb] rounded-xl pl-7 pr-3 py-2.5 text-[14px] bg-[#f9f8f6] outline-none" style={{ fontFamily: 'inherit' }} />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Max Distance */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-2">Max Distance</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[5,10,20,35,50].map(m => (
+                          <button key={m} onClick={() => setMaxMiles(m)} className={`px-4 py-2.5 rounded-full text-[13px] font-semibold border transition ${maxMiles === m ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'bg-white text-[#374151] border-[#e5e7eb]'}`} style={{ fontFamily: 'inherit' }}>{m} mi</button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Toggles */}
+                    <div>
+                      <label className="block text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-3">Preferences</label>
+                      <div className="flex flex-col gap-3">
+                        {[
+                          { label: 'Has profile photo', desc: 'Only show professionals with a photo', val: photoOnly, set: setPhotoOnly },
+                          { label: 'Cross-trained', desc: 'Can perform multiple roles', val: crossTrained, set: setCrossTrained },
+                          { label: 'Available this week', desc: 'Has availability in the next 7 days', val: availableNow, set: setAvailableNow },
+                        ].map(t => (
+                          <div key={t.label} onClick={() => t.set(!t.val)} className="flex items-center gap-3 bg-[#f9f8f6] border border-[#e5e7eb] rounded-xl px-4 py-3.5 cursor-pointer transition" style={{ borderColor: t.val ? '#1a7f5e' : '#e5e7eb', background: t.val ? '#f0faf5' : '#f9f8f6' }}>
+                            <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${t.val ? '#1a7f5e' : '#d1d5db'}`, background: t.val ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              {t.val && <CheckIcon />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[14px] font-bold text-[#1a1a1a]">{t.label}</div>
+                              <div className="text-[12px] text-[#9ca3af]">{t.desc}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1.5">Max Distance</label>
-                    <div className="flex flex-wrap gap-2">
-                      {[5,10,20,35,50].map(m => (
-                        <button key={m} onClick={() => setMaxMiles(m)} className={`px-3 py-2 min-h-[40px] rounded-full text-xs font-semibold border ${maxMiles === m ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'bg-white text-[#374151] border-[#e5e7eb]'}`}>{m} mi</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <button onClick={() => { clearFilters(); }} className="flex-1 min-h-[44px] border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-sm">Clear all</button>
-                    <button onClick={() => setMobileFiltersOpen(false)} className="flex-1 min-h-[44px] bg-[#1a7f5e] text-white font-bold py-2.5 rounded-full text-sm">Apply</button>
-                  </div>
+                </div>
+                {/* Footer */}
+                <div className="flex gap-3 px-5 py-4 border-t border-[#f3f4f6] flex-shrink-0 bg-white">
+                  <button onClick={() => { clearFilters() }} className="flex-1 min-h-[48px] border border-[#e5e7eb] text-[#374151] font-bold py-3 rounded-full text-[14px] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Clear all</button>
+                  <button onClick={() => setMobileFiltersOpen(false)} className="flex-1 min-h-[48px] bg-[#1a7f5e] text-white font-bold py-3 rounded-full text-[14px] border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Show results</button>
                 </div>
               </div>
             </div>
           )}
 
           {/* SIDEBAR */}
-          <div style={{ width: 190, flexShrink: 0, position: 'sticky', top: 88 }} className="hidden md:block self-start">
-            <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ width: 210, flexShrink: 0, position: 'sticky', top: 88 }} className="hidden md:block self-start">
+            <div style={{ background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, overflow: 'hidden', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: 'white', zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 15, fontWeight: 900, color: '#1a1a1a' }}>Filters</span>
                   {activeCount > 0 && <span style={{ fontSize: 10, fontWeight: 800, background: '#1a7f5e', color: 'white', width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{activeCount}</span>}
@@ -1226,10 +1349,19 @@ export default function Professionals() {
               </div>
               <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Role */}
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, display: 'block' }}>Role</label>
+                  <select value={role} onChange={e => { setRole(e.target.value); setPage(1) }} style={{ width: '100%', background: '#f0faf5', border: '1.5px solid #1a7f5e', borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#374151', cursor: 'pointer' }}>
+                    {['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'].map(o => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
+                {/* Dropdowns */}
                 {[
-                  { label: 'Role', val: role, set: v => { setRole(v); setPage(1) }, opts: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'], display: ['Dentist','Dental Hygienist','Dental Assistant','Front Office','Specialist'] },
                   { label: 'Reliability', val: reliability, set: v => { setReliability(v); setPage(1) }, opts: ['All','excellent','verygood','good'], display: ['Any reliability','Excellent — 95%+','Very Good — 85–94%','Good — 70–84%'] },
-                  { label: 'Language', val: lang, set: setLang, opts: ['','Spanish','Mandarin','Vietnamese','Portuguese'], display: ['Any language','Spanish','Mandarin','Vietnamese','Portuguese'] },
+                  { label: 'Language', val: lang, set: setLang, opts: ['','English','Spanish','Mandarin','Vietnamese','Portuguese','Korean','Arabic','French'], display: ['Any language','English','Spanish','Mandarin','Vietnamese','Portuguese','Korean','Arabic','French'] },
+                  { label: 'Credentials', val: cert, set: setCert, opts: ['','TX RDH License','CPR/BLS','Local Anesthesia','Nitrous Oxide','X-Ray Certification','Reg. DA','Coronal Polishing','Sealants'], display: ['Any credential','TX RDH License','CPR/BLS','Local Anesthesia','Nitrous Oxide','X-Ray Certification','Reg. DA','Coronal Polishing','Sealants'] },
+                  { label: 'Skills', val: skill, set: setSkill, opts: ['','Scaling & Root Planing','Periodontal Charting','Digital X-rays','Four-Handed Dentistry','Insurance Verification','Teeth Whitening','Implant Maintenance','Pediatric Care'], display: ['Any skill','Scaling & Root Planing','Periodontal Charting','Digital X-rays','Four-Handed Dentistry','Insurance Verification','Teeth Whitening','Implant Maintenance','Pediatric Care'] },
+                  { label: 'Dental Software', val: software, set: setSoftware, opts: ['','Dentrix','Eaglesoft','Open Dental','Curve Dental','Denticon','SoftDent','Practice-Web','tab32'], display: ['Any software','Dentrix','Eaglesoft','Open Dental','Curve Dental','Denticon','SoftDent','Practice-Web','tab32'] },
                 ].map(f => (
                   <div key={f.label}>
                     <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, display: 'block' }}>{f.label}</label>
@@ -1239,16 +1371,22 @@ export default function Professionals() {
                   </div>
                 ))}
                 <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
-                {/* Profile photo */}
-                <div onClick={() => setPhotoOnly(!photoOnly)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${photoOnly ? '#1a7f5e' : '#d1d5db'}`, background: photoOnly ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                    {photoOnly && <CheckIcon />}
+                {/* Toggles */}
+                {[
+                  { label: 'Profile photo', desc: 'Only pros with a photo', val: photoOnly, set: setPhotoOnly },
+                  { label: 'Cross-trained', desc: 'Can perform multiple roles', val: crossTrained, set: setCrossTrained },
+                  { label: 'Available this week', desc: 'Has upcoming availability', val: availableNow, set: setAvailableNow },
+                ].map(t => (
+                  <div key={t.label} onClick={() => t.set(!t.val)} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${t.val ? '#1a7f5e' : '#d1d5db'}`, background: t.val ? '#1a7f5e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                      {t.val && <CheckIcon />}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 1 }}>{t.label}</div>
+                      <span style={{ fontSize: 11, color: '#9ca3af' }}>{t.desc}</span>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a', marginBottom: 2 }}>Profile photo</div>
-                    <span style={{ fontSize: 11, color: '#9ca3af' }}>Only show pros with a photo</span>
-                  </div>
-                </div>
+                ))}
                 <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
                 {/* Rate */}
                 <div>
@@ -1275,19 +1413,6 @@ export default function Professionals() {
                     ))}
                   </div>
                 </div>
-                <div style={{ height: 1, background: '#f3f4f6', margin: '0 -16px' }} />
-                {/* Skill + Cert */}
-                {[
-                  { label: 'Skill', val: skill, set: setSkill, opts: ['','Scaling & Root Planing','Periodontal Charting','Digital X-rays','Four-Handed Dentistry','Insurance Verification'] },
-                  { label: 'Certification', val: cert, set: setCert, opts: ['','TX RDH License','CPR/BLS','Local Anesthesia','X-Ray','Reg. DA'] },
-                ].map(f => (
-                  <div key={f.label}>
-                    <label style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6, display: 'block' }}>{f.label}</label>
-                    <select value={f.val} onChange={e => f.set(e.target.value)} style={{ width: '100%', background: f.val ? '#f0faf5' : '#f9f8f6', border: `1.5px solid ${f.val ? '#1a7f5e' : '#e5e7eb'}`, borderRadius: 10, padding: '8px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none', color: '#374151', cursor: 'pointer' }}>
-                      {f.opts.map((o, i) => <option key={o} value={o}>{i === 0 ? `Any ${f.label.toLowerCase()}` : o}</option>)}
-                    </select>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
