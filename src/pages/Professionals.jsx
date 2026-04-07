@@ -1178,7 +1178,38 @@ export default function Professionals() {
       )}
       {modal === 'choice' && activeProObj && <ChoiceModal pro={activeProObj} date={activeDate} onClose={closeAll} onDirect={handleDirect} onRapidFill={handleRapidFillChoice} />}
       {modal === 'booking' && activeProObj && <BookingModal pro={activeProObj} date={activeDate} onClose={closeAll} onSubmit={() => showToast(`Booking request sent to ${activeProObj.name.split(' ')[0]}!`)} getToken={getToken} />}
-      {modal === 'rf' && <RFModal selected={rapidSelected} allPros={professionals} date={rfDate} onClose={closeAll} onSend={() => { closeAll(); setRapidSelected([]); showToast('Rapid Fill requests sent!') }} />}
+      {modal === 'rf' && <RFModal selected={rapidSelected} allPros={professionals} date={rfDate} onClose={closeAll} onSend={async () => {
+        try {
+          const token = await getToken()
+          const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+          // Parse date string like "April 15, 2026" or "April 15"
+          const currentYear = new Date().getFullYear()
+          const parsedDate = new Date(rfDate.includes(',') ? rfDate : `${rfDate}, ${currentYear}`)
+          if (isNaN(parsedDate.getTime())) { showToast('Invalid date'); return }
+          if (parsedDate < new Date()) parsedDate.setFullYear(currentYear + 1)
+
+          const results = await Promise.allSettled(
+            rapidSelected.map(proId => {
+              const pro = professionals.find(p => p.id === proId)
+              return fetch(`${API_URL}/api/applications/book`, {
+                method: 'POST', headers,
+                body: JSON.stringify({
+                  providerId: proId,
+                  date: parsedDate.toISOString(),
+                  startTime: '8:00 AM',
+                  endTime: '5:00 PM',
+                  hourlyRate: pro?.rate || 0,
+                  role: pro?.role || 'Dental Professional',
+                  note: 'Rapid Fill request',
+                }),
+              })
+            })
+          )
+          const sent = results.filter(r => r.status === 'fulfilled' && r.value.ok).length
+          closeAll(); setRapidSelected([])
+          showToast(`Rapid Fill sent to ${sent} professional${sent !== 1 ? 's' : ''}!`)
+        } catch { showToast('Failed to send Rapid Fill requests') }
+      }} />}
       {modal === 'profile' && activeProObj && (
         <>
           <div onClick={closeAll} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.3)', zIndex: 300 }} />
