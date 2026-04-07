@@ -1182,32 +1182,30 @@ export default function Professionals() {
         try {
           const token = await getToken()
           const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-          // Parse date string like "April 15, 2026" or "April 15"
           const currentYear = new Date().getFullYear()
           const parsedDate = new Date(rfDate.includes(',') ? rfDate : `${rfDate}, ${currentYear}`)
           if (isNaN(parsedDate.getTime())) { showToast('Invalid date'); return }
           if (parsedDate < new Date()) parsedDate.setFullYear(currentYear + 1)
 
-          const results = await Promise.allSettled(
-            rapidSelected.map(proId => {
-              const pro = professionals.find(p => p.id === proId)
-              return fetch(`${API_URL}/api/applications/book`, {
-                method: 'POST', headers,
-                body: JSON.stringify({
-                  providerId: proId,
-                  date: parsedDate.toISOString(),
-                  startTime: '8:00 AM',
-                  endTime: '5:00 PM',
-                  hourlyRate: pro?.rate || 0,
-                  role: pro?.role || 'Dental Professional',
-                  note: 'Rapid Fill request',
-                }),
-              })
-            })
-          )
-          const sent = results.filter(r => r.status === 'fulfilled' && r.value.ok).length
-          closeAll(); setRapidSelected([])
-          showToast(`Rapid Fill sent to ${sent} professional${sent !== 1 ? 's' : ''}!`)
+          // Get role from first selected pro
+          const firstPro = professionals.find(p => rapidSelected.includes(p.id))
+          const res = await fetch(`${API_URL}/api/applications/rapid-fill`, {
+            method: 'POST', headers,
+            body: JSON.stringify({
+              providerIds: rapidSelected,
+              date: parsedDate.toISOString(),
+              startTime: '8:00 AM',
+              endTime: '5:00 PM',
+              hourlyRate: firstPro?.rate || 0,
+              role: firstPro?.role || 'Dental Professional',
+              note: 'Rapid Fill request',
+            }),
+          })
+          if (res.ok) {
+            const data = await res.json()
+            closeAll(); setRapidSelected([])
+            showToast(`Rapid Fill sent to ${data.applicationCount} professional${data.applicationCount !== 1 ? 's' : ''}!`)
+          } else { showToast('Failed to send Rapid Fill requests') }
         } catch { showToast('Failed to send Rapid Fill requests') }
       }} />}
       {modal === 'profile' && activeProObj && (

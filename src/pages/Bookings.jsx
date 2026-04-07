@@ -126,63 +126,70 @@ export default function Bookings() {
     }
   }
 
-  // ── Format pending applications into same shape ──
-  const formatApp = (a) => {
-    const shift = a.shift || {}
-    const d = shift.date ? new Date(shift.date) : new Date()
-    const day = d.getDate()
-    const month = d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
-    const prov = a.provider || {}
-    const u = prov.user || {}
-    const firstName = u.firstName || ''
-    const lastName = u.lastName || ''
-    const name = `${firstName} ${lastName}`.trim() || 'Unknown'
-    const time = shift.startTime && shift.endTime ? `${shift.startTime} – ${shift.endTime}` : ''
-    const rate = shift.hourlyRate ? `$${shift.hourlyRate}/hr` : ''
-
-    return {
-      id: a.id,
-      day,
-      month,
-      fullDate: d,
-      role: shift.role || '',
-      time,
-      rate,
-      name,
-      firstName,
-      lastName,
-      type: 'pending',
-      status: '',
-      statusColor: '',
-      hasReview: false,
-      providerId: a.providerId,
-      shiftId: a.shiftId,
-      isApplication: true,
-    }
+  // ── Group pending applications by shift (rapid fill = 1 shift, multiple providers) ──
+  const buildPendingGroups = () => {
+    const byShift = {}
+    pendingApps.forEach(a => {
+      const shift = a.shift || {}
+      const key = a.shiftId
+      if (!byShift[key]) {
+        const d = shift.date ? new Date(shift.date) : new Date()
+        byShift[key] = {
+          id: key,
+          day: d.getDate(),
+          month: d.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+          fullDate: d,
+          role: shift.role || '',
+          time: shift.startTime && shift.endTime ? `${shift.startTime} – ${shift.endTime}` : '',
+          rate: shift.hourlyRate ? `$${shift.hourlyRate}/hr` : '',
+          type: 'pending',
+          isRapidFill: shift.isRapidFill || false,
+          providers: [],
+          appIds: [],
+        }
+      }
+      const prov = a.provider || {}
+      const u = prov.user || {}
+      const firstName = u.firstName || ''
+      const lastName = u.lastName || ''
+      byShift[key].providers.push({
+        id: a.providerId,
+        appId: a.id,
+        name: `${firstName} ${lastName}`.trim() || 'Unknown',
+        firstName,
+      })
+      byShift[key].appIds.push(a.id)
+    })
+    return Object.values(byShift)
   }
 
   // ── Derive lists from bookings + applications ──
   const allFormatted = bookings.map(formatBooking)
   const upcoming = allFormatted.filter(s => s.type === 'confirmed')
   const pendingFromBookings = allFormatted.filter(s => s.type === 'pending')
-  const pendingFromApps = pendingApps.map(formatApp)
-  const pending = [...pendingFromBookings, ...pendingFromApps]
+  const pendingGroups = buildPendingGroups()
+  const pending = [...pendingFromBookings, ...pendingGroups]
   const past = allFormatted.filter(s => s.type === 'past')
   const allShifts = [...upcoming, ...pending, ...past]
 
   const withdrawApp = async (shift) => {
     try {
       const token = await getToken()
-      const res = await fetch(`${API_URL}/api/applications/${shift.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status: 'WITHDRAWN' }),
-      })
-      if (res.ok) {
-        setWithdrawn(prev => ({ ...prev, [shift.id]: true }))
-        setPendingApps(prev => prev.filter(a => a.id !== shift.id))
-        showToast(`Invite to ${shift.name} withdrawn`)
-      } else { showToast('Failed to withdraw invite') }
+      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      // If this is a grouped pending (rapid fill or single), withdraw all applications for this shift
+      const appIds = shift.appIds || [shift.id]
+      await Promise.all(
+        appIds.map(appId =>
+          fetch(`${API_URL}/api/applications/${appId}`, {
+            method: 'PATCH', headers,
+            body: JSON.stringify({ status: 'WITHDRAWN' }),
+          })
+        )
+      )
+      setWithdrawn(prev => ({ ...prev, [shift.id]: true }))
+      setPendingApps(prev => prev.filter(a => !appIds.includes(a.id)))
+      const provCount = shift.providers?.length || 1
+      showToast(provCount > 1 ? `Rapid Fill withdrawn (${provCount} providers)` : `Invite withdrawn`)
     } catch { showToast('Failed to withdraw invite') }
   }
 
@@ -597,41 +604,66 @@ export default function Bookings() {
                       </div>
                     ) : (
                       pending.map(shift => (
-                        <div key={shift.id} className={`bg-white border border-[#e5e7eb] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 mb-3 transition ${withdrawn[shift.id] ? 'opacity-50' : ''}`}>
-                          <div className="flex items-start gap-4 sm:contents">
-                          <div className="w-14 h-[60px] rounded-xl bg-[#fef3c7] text-[#92400e] flex flex-col items-center justify-center flex-shrink-0">
-                            <span className="text-[22px] font-extrabold leading-none">{shift.day}</span>
-                            <span className="text-[11px] font-bold tracking-wider uppercase mt-0.5">{shift.month}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="text-base font-bold text-[#1a1a1a]">{shift.role}</span>
-                              {withdrawn[shift.id] ? (
-                                <span className="bg-[#f3f4f6] text-[#6b7280] text-xs font-semibold px-2.5 py-0.5 rounded-full">Withdrawn</span>
+                        <div key={shift.id} className={`bg-white border border-[#e5e7eb] rounded-2xl p-4 sm:p-5 mb-3 transition ${withdrawn[shift.id] ? 'opacity-50' : ''}`}>
+                          <div className="flex items-start gap-4">
+                            <div className="w-14 h-[60px] rounded-xl bg-[#fef3c7] text-[#92400e] flex flex-col items-center justify-center flex-shrink-0">
+                              <span className="text-[22px] font-extrabold leading-none">{shift.day}</span>
+                              <span className="text-[11px] font-bold tracking-wider uppercase mt-0.5">{shift.month}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <span className="text-base font-bold text-[#1a1a1a]">{shift.role}</span>
+                                {withdrawn[shift.id] ? (
+                                  <span className="bg-[#f3f4f6] text-[#6b7280] text-xs font-semibold px-2.5 py-0.5 rounded-full">Withdrawn</span>
+                                ) : (
+                                  <span className="bg-[#fef3c7] text-[#92400e] text-xs font-semibold px-2.5 py-0.5 rounded-full">⏱ Awaiting response</span>
+                                )}
+                                {shift.isRapidFill && (
+                                  <span className="bg-[#e8f5f0] text-[#1a7f5e] text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                    Rapid Fill
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex gap-4 mb-2.5">
+                                <span className="text-[13px] text-[#6b7280] flex items-center gap-1">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                  {shift.time}
+                                </span>
+                                <span className="text-[13px] text-[#6b7280] flex items-center gap-1">
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                  {shift.rate}
+                                </span>
+                              </div>
+                              {/* Provider(s) */}
+                              {shift.providers ? (
+                                <div>
+                                  <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-wider mb-2">
+                                    Sent to {shift.providers.length} professional{shift.providers.length !== 1 ? 's' : ''} — first to accept gets the shift
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {shift.providers.map(p => (
+                                      <div key={p.id} className="flex items-center gap-2 bg-[#f9f8f6] border border-[#e5e7eb] rounded-full px-2.5 py-1.5">
+                                        <InitialsAvatar name={p.name} size={24} />
+                                        <span className="text-[13px] font-semibold text-[#1a1a1a]">{p.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               ) : (
-                                <span className="bg-[#fef3c7] text-[#92400e] text-xs font-semibold px-2.5 py-0.5 rounded-full">⏱ Awaiting response</span>
+                                <div className="flex items-center gap-2">
+                                  <InitialsAvatar name={shift.name} size={28} />
+                                  <span className="text-[14px] font-semibold text-[#1a1a1a]">{shift.name}</span>
+                                </div>
                               )}
                             </div>
-                            <div className="flex gap-4 mb-2">
-                              <span className="text-[13px] text-[#6b7280] flex items-center gap-1">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                {shift.time}
-                              </span>
-                              <span className="text-[13px] text-[#6b7280] flex items-center gap-1">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                                {shift.rate}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <InitialsAvatar name={shift.name} size={28} />
-                              <span className="text-[14px] font-semibold text-[#1a1a1a]">{shift.name}</span>
-                            </div>
                           </div>
-                          </div>
-                          {!withdrawn[shift.id] ? (
-                            <button onClick={() => { withdrawApp(shift) }} className="border-[1.5px] border-[#e5e7eb] text-[#1a1a1a] text-[13px] font-medium px-4 py-3 sm:py-2 rounded-full hover:border-[#f59e0b] hover:text-[#92400e] transition whitespace-nowrap w-full sm:w-auto sm:flex-shrink-0">Withdraw invite</button>
-                          ) : (
-                            <div className="hidden sm:block sm:w-[120px] sm:flex-shrink-0"></div>
+                          {!withdrawn[shift.id] && (
+                            <div className="mt-3 pt-3 border-t border-[#f3f4f6] flex justify-end">
+                              <button onClick={() => { withdrawApp(shift) }} className="border-[1.5px] border-[#e5e7eb] text-[#1a1a1a] text-[13px] font-medium px-4 py-2.5 rounded-full hover:border-[#f59e0b] hover:text-[#92400e] transition whitespace-nowrap">
+                                {shift.providers?.length > 1 ? 'Cancel Rapid Fill' : 'Withdraw invite'}
+                              </button>
+                            </div>
                           )}
                         </div>
                       ))

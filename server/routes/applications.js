@@ -126,6 +126,61 @@ router.post('/book', async (req, res) => {
   }
 });
 
+// POST /api/applications/rapid-fill – office sends one shift to multiple providers
+router.post('/rapid-fill', async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { office: true },
+    });
+    if (!user?.office) return res.status(403).json({ error: 'Only offices can send rapid fill requests.' });
+
+    const { providerIds, date, startTime, endTime, hourlyRate, role, note } = req.body;
+    if (!providerIds || !Array.isArray(providerIds) || providerIds.length === 0) {
+      return res.status(400).json({ error: 'At least one provider ID is required.' });
+    }
+    if (!date) return res.status(400).json({ error: 'Date is required.' });
+
+    // Create ONE shift and multiple applications in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const shift = await tx.shift.create({
+        data: {
+          officeId: user.office.id,
+          role: role || 'Dental Professional',
+          date: new Date(date),
+          startTime: startTime || '8:00 AM',
+          endTime: endTime || '5:00 PM',
+          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
+          status: 'PENDING',
+          isRapidFill: true,
+        },
+      });
+      const applications = await Promise.all(
+        providerIds.map(providerId =>
+          tx.application.create({
+            data: {
+              shiftId: shift.id,
+              providerId,
+              note: note || 'Rapid Fill request',
+              status: 'PENDING',
+            },
+          })
+        )
+      );
+      return { shift, applications };
+    });
+
+    res.status(201).json({
+      shiftId: result.shift.id,
+      applicationCount: result.applications.length,
+      message: `Rapid Fill sent to ${result.applications.length} professionals`,
+    });
+  } catch (err) {
+    console.error('[applications.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/applications/:id – accept/decline/withdraw
 router.patch('/:id', async (req, res) => {
   try {
