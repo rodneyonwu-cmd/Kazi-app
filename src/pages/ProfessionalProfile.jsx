@@ -1,63 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
 import Nav from '../components/Nav';
 
-// ============================================================
-// Kazi - Professional Profile (uses Calendar + BookingSheet)
-// Location: src/pages/ProfessionalProfile.jsx
-// Route: /professionals/:id
-// ============================================================
-
-// Mock pro - replace with API fetch by id (useParams)
-const PRO = {
-  id: 'alexandra',
-  name: 'Alexandra A.',
-  firstName: 'Alexandra',
-  initials: 'AA',
-  role: 'Dental Assistant',
-  location: 'Houston, TX',
-  creds: ['RDA', 'EFDA'],
-  rating: 5.0,
-  reviews: 47,
-  distance: '12 mi',
-  activity: 'Active 42 min ago',
-  rate: 28,
-  bookings: 130,
-  reliability: 96,
-  badges: ['Background Verified', 'Top 2%', 'Bilingual ES/EN'],
-  about:
-    'Energetic Dental Assistant from Colombia, enthusiastic about dental health. Licensed since 2020 with experience in general practice. I genuinely enjoy my work and building lasting patient relationships.',
-  credentialsList: ['RDA', 'EFDA', 'BLS CPR', 'CDA', 'Radiology'],
-  software: ['Dentrix', 'Eaglesoft', 'Open Dental'],
-  experience: ['General Dentistry', 'Endodontics', 'Oral Surgery', 'Orthodontics', 'Pediatric'],
-  languages: [
-    { name: 'Spanish', level: 'Native', native: true },
-    { name: 'English', level: 'Conversational', native: false },
-  ],
-  availableDays: [8, 9, 11, 14, 15, 16, 18, 22, 23, 25, 28, 29, 30],
-  reviewsList: [
-    {
-      office: 'Sugar Land Family Dental',
-      date: 'Mar 28, 2026',
-      stars: 5,
-      text: 'Alexandra was fantastic. Showed up 15 minutes early, knew our workflow immediately, and patients loved her. Will absolutely book again.',
-    },
-    {
-      office: 'Westchase Smile Studio',
-      date: 'Mar 14, 2026',
-      stars: 5,
-      text: 'Professional, kind, and efficient. Her bilingual skills helped us with several Spanish-speaking patients that day.',
-    },
-    {
-      office: 'Memorial Dental Group',
-      date: 'Feb 22, 2026',
-      stars: 5,
-      text: "One of the best temps we've had. Picked up Dentrix in minutes and was a pleasure to work with all day.",
-    },
-  ],
-};
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const ROLE_MAP = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Desk', dentist: 'Dentist', specialist: 'Specialist' };
 
 // ---------- Inline icons ----------
 const IconBack = () => (
@@ -127,20 +76,95 @@ function Section({ title, children }) {
 // ---------- Main component ----------
 export default function ProfessionalProfile() {
   const navigate = useNavigate();
-  // const { id } = useParams(); // Use this to fetch the correct pro when API is ready
+  const { id } = useParams();
+  const { getToken } = useAuth();
 
+  const [pro, setPro] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Backups from sessionStorage (set by the Rapid Fill flow in FindProfessionals)
   const [backups, setBackups] = useState(() => {
     try {
       const stored = sessionStorage.getItem('kazi_rapid_backups');
       return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   });
+
+  // Fetch provider data + availability
+  useEffect(() => {
+    const fetchPro = async () => {
+      try {
+        const token = await getToken();
+        const headers = { Authorization: `Bearer ${token}` };
+        const [proRes, availRes] = await Promise.all([
+          fetch(`${API_URL}/api/providers/${id}`, { headers }),
+          fetch(`${API_URL}/api/providers/${id}/availability`, { headers }),
+        ]);
+        if (proRes.ok) {
+          const data = await proRes.json();
+          const u = data.user || {};
+          const firstName = u.firstName || '';
+          const lastName = u.lastName || '';
+          const isDentist = data.role === 'dentist';
+          const displayName = lastName ? `${isDentist ? 'Dr. ' : ''}${firstName} ${lastName.charAt(0)}.` : (firstName || 'Unknown');
+          const initials = `${firstName.charAt(0) || ''}${lastName.charAt(0) || ''}`.toUpperCase() || '??';
+
+          // Build available days from availability data
+          const availability = availRes.ok ? await availRes.json() : [];
+          const today = new Date();
+          const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+          const availDaysSet = new Set();
+          availability.forEach(slot => {
+            if (slot.isException) return;
+            if (slot.date) {
+              const d = new Date(slot.date);
+              if (d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) availDaysSet.add(d.getDate());
+            } else if (slot.dayOfWeek != null) {
+              for (let d = 1; d <= daysInMonth; d++) {
+                if (new Date(today.getFullYear(), today.getMonth(), d).getDay() === slot.dayOfWeek) availDaysSet.add(d);
+              }
+            }
+          });
+
+          const reviews = data.reviews || [];
+          const avgRating = data.avgRating || (reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0);
+
+          setPro({
+            id: data.id,
+            name: displayName,
+            firstName,
+            initials,
+            role: ROLE_MAP[data.role] || data.role || 'Professional',
+            location: data.city && data.state ? `${data.city}, ${data.state}` : 'Houston, TX',
+            creds: (data.credentials || []).map(c => c.type).slice(0, 5),
+            rating: Number(avgRating) || 0,
+            reviews: data.reviewCount || reviews.length || 0,
+            distance: `${(Math.random() * 18 + 0.5).toFixed(0)} mi`,
+            activity: 'Active recently',
+            rate: data.hourlyRate || 0,
+            bookings: data.shiftsCompleted || 0,
+            reliability: data.reliabilityScore || 100,
+            badges: ['Background Verified', ...(data.skills || []).slice(0, 2)],
+            about: data.bio || 'No bio available.',
+            credentialsList: (data.credentials || []).map(c => c.type),
+            software: data.software || [],
+            experience: data.skills || [],
+            languages: [{ name: 'English', level: 'Native', native: true }],
+            availableDays: [...availDaysSet],
+            reviewsList: reviews.map(r => ({
+              office: 'Verified Practice',
+              date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              stars: r.rating,
+              text: r.comment || 'Great experience.',
+            })),
+          });
+        }
+      } catch (err) { console.error('Fetch error:', err); }
+      setLoading(false);
+    };
+    fetchPro();
+  }, [id, getToken]);
 
   // When returning from Rapid Fill, auto-reopen the sheet
   useEffect(() => {
@@ -160,51 +184,79 @@ export default function ProfessionalProfile() {
     } catch {}
   }, []);
 
-  // ===== Event handlers =====
-  const handleDayClick = (date) => {
-    setSelectedDate(date);
-    setSheetOpen(true);
-  };
-
-  const handleBookButtonClick = () => {
-    if (!selectedDate) setSelectedDate(new Date());
-    setSheetOpen(true);
-  };
+  const handleDayClick = (date) => { setSelectedDate(date); setSheetOpen(true); };
+  const handleBookButtonClick = () => { if (!selectedDate) setSelectedDate(new Date()); setSheetOpen(true); };
 
   const handleLaunchRapidFill = () => {
+    if (!pro) return;
     try {
-      sessionStorage.setItem(
-        'kazi_rapid_context',
-        JSON.stringify({
-          primary: PRO.name,
-          primaryInitials: PRO.initials,
-          date: selectedDate ? selectedDate.toISOString() : null,
-        })
-      );
+      sessionStorage.setItem('kazi_rapid_context', JSON.stringify({
+        primary: pro.name, primaryInitials: pro.initials,
+        date: selectedDate ? selectedDate.toISOString() : null,
+      }));
     } catch {}
     setSheetOpen(false);
     navigate('/professionals?rapidfill=1');
   };
 
-  const handleSend = (details) => {
-    console.log('Sending booking:', { pro: PRO.id, backups, ...details });
-    alert(
-      `Booking request sent to ${PRO.name}` +
-        (backups.length ? ` + ${backups.length} backup${backups.length > 1 ? 's' : ''}` : '')
-    );
-    setSheetOpen(false);
-    sessionStorage.removeItem('kazi_rapid_backups');
-    sessionStorage.removeItem('kazi_rapid_context');
-    setBackups([]);
+  const handleSend = async (details) => {
+    if (!pro) return;
+    try {
+      const token = await getToken();
+      const parsedDate = details.date || selectedDate || new Date();
+      const res = await fetch(`${API_URL}/api/applications/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          providerId: id,
+          date: parsedDate.toISOString(),
+          startTime: details.start || '8:00 AM',
+          endTime: details.end || '5:00 PM',
+          hourlyRate: pro.rate || 0,
+          role: pro.role || 'Dental Professional',
+          note: details.note || null,
+        }),
+      });
+      if (res.ok) {
+        setSheetOpen(false);
+        sessionStorage.removeItem('kazi_rapid_backups');
+        sessionStorage.removeItem('kazi_rapid_context');
+        setBackups([]);
+        alert(`Booking request sent to ${pro.name}!`);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Failed to send booking request');
+      }
+    } catch { alert('Failed to send booking request'); }
   };
 
-  // ===== Reliability tier colors =====
   const reliabilityTier = useMemo(() => {
-    if (PRO.reliability >= 95) return { bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' };
-    if (PRO.reliability >= 85) return { bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' };
-    if (PRO.reliability >= 70) return { bg: '#fef3e6', color: '#d97706', border: '#fce0bf' };
+    const r = pro?.reliability || 0;
+    if (r >= 95) return { bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' };
+    if (r >= 85) return { bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' };
+    if (r >= 70) return { bg: '#fef3e6', color: '#d97706', border: '#fce0bf' };
     return { bg: '#fdecec', color: '#dc2626', border: '#f9d4d4' };
-  }, []);
+  }, [pro?.reliability]);
+
+  if (loading) return (
+    <div className="bg-[#f9f8f6] min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <Nav />
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-[#8a8a8a]">Loading profile...</p>
+        </div>
+      </div>
+    </div>
+  );
+  if (!pro) return (
+    <div className="bg-[#f9f8f6] min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <Nav />
+      <div className="flex items-center justify-center py-20">
+        <p className="text-sm text-[#8a8a8a]">Professional not found.</p>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -245,7 +297,7 @@ export default function ProfessionalProfile() {
                 fontFamily: "'Outfit', sans-serif",
               }}
             >
-              {PRO.initials}
+              {pro.initials}
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-[30px] h-[30px] bg-[#1a7f5e] rounded-full flex items-center justify-center border-[3px] border-white text-white">
               <IconCheck className="w-3.5 h-3.5" />
@@ -255,13 +307,13 @@ export default function ProfessionalProfile() {
             className="text-[26px] font-extrabold leading-tight mb-1 text-[#1a1a1a]"
             style={{ fontFamily: "'Outfit', sans-serif" }}
           >
-            {PRO.name}
+            {pro.name}
           </div>
           <div className="text-sm text-[#5a5a5a] mb-2.5">
-            {PRO.role} · {PRO.location}
+            {pro.role} · {pro.location}
           </div>
           <div className="inline-flex gap-1.5 mb-3 flex-wrap justify-center">
-            {PRO.creds.map((c) => (
+            {pro.creds.map((c) => (
               <span
                 key={c}
                 className="bg-[#f1f9f5] text-[#1a7f5e] text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide"
@@ -273,23 +325,23 @@ export default function ProfessionalProfile() {
           <div className="text-sm">
             <span className="inline-flex items-center gap-1.5">
               <span className="text-[#f4b740] text-[18px] leading-none">★</span>
-              <span className="font-bold text-[15px] text-[#1a1a1a]">{PRO.rating.toFixed(1)}</span>
-              <span className="text-[#8a8a8a]">({PRO.reviews})</span>
+              <span className="font-bold text-[15px] text-[#1a1a1a]">{pro.rating.toFixed(1)}</span>
+              <span className="text-[#8a8a8a]">({pro.reviews})</span>
             </span>
             <span className="text-[#ececec] mx-1">·</span>
             <span className="inline-flex items-center gap-1 text-[#5a5a5a]">
               <span className="text-[#8a8a8a]">
                 <IconPin />
               </span>
-              {PRO.distance}
+              {pro.distance}
             </span>
           </div>
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a7f5e] mt-2.5">
             <div className="w-[7px] h-[7px] bg-[#1a7f5e] rounded-full animate-pulse" />
-            {PRO.activity}
+            {pro.activity}
           </div>
           <div className="flex flex-wrap gap-1.5 justify-center mt-3.5">
-            {PRO.badges.map((badge, idx) => {
+            {pro.badges.map((badge, idx) => {
               const isPurple = badge.toLowerCase().startsWith('top');
               return (
                 <span
@@ -319,13 +371,13 @@ export default function ProfessionalProfile() {
         <div className="bg-white rounded-2xl p-3.5 border border-[#f3f3f3] text-center">
           <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Rate</div>
           <div className="text-lg font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            ${PRO.rate}/hr
+            ${pro.rate}/hr
           </div>
         </div>
         <div className="bg-white rounded-2xl p-3.5 border border-[#f3f3f3] text-center">
           <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Bookings</div>
           <div className="text-lg font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            {PRO.bookings}
+            {pro.bookings}
           </div>
         </div>
         <div
@@ -336,25 +388,25 @@ export default function ProfessionalProfile() {
             Reliability
           </div>
           <div className="text-lg font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: reliabilityTier.color }}>
-            {PRO.reliability}%
+            {pro.reliability}%
           </div>
         </div>
       </div>
 
       {/* About */}
       <Section title="About">
-        <div className="text-sm leading-relaxed text-[#5a5a5a]">{PRO.about}</div>
+        <div className="text-sm leading-relaxed text-[#5a5a5a]">{pro.about}</div>
       </Section>
 
       {/* Availability calendar — tapping a green day opens the BookingSheet */}
       <div className="bg-white mx-4 mb-3 rounded-[20px] p-5 border border-[#f3f3f3]">
-        <Calendar availableDays={PRO.availableDays} onDayClick={handleDayClick} />
+        <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
       </div>
 
       {/* Credentials */}
       <Section title="Credentials">
         <div className="flex flex-wrap gap-2">
-          {PRO.credentialsList.map((c) => (
+          {pro.credentialsList.map((c) => (
             <span
               key={c}
               className="bg-[#f1f9f5] text-[#1a7f5e] border border-[#e8f3ee] px-3.5 py-2 rounded-full text-xs font-semibold"
@@ -368,7 +420,7 @@ export default function ProfessionalProfile() {
       {/* Practice Software */}
       <Section title="Practice Software">
         <div className="flex flex-wrap gap-2">
-          {PRO.software.map((s) => (
+          {pro.software.map((s) => (
             <span
               key={s}
               className="bg-[#f9f8f6] border border-[#f3f3f3] px-3.5 py-2 rounded-full text-xs font-semibold text-[#1a1a1a]"
@@ -382,7 +434,7 @@ export default function ProfessionalProfile() {
       {/* Experience */}
       <Section title="Experience Assisting">
         <div className="flex flex-wrap gap-2">
-          {PRO.experience.map((e) => (
+          {pro.experience.map((e) => (
             <span
               key={e}
               className="bg-[#f9f8f6] border border-[#f3f3f3] px-3.5 py-2 rounded-full text-xs font-semibold text-[#1a1a1a]"
@@ -395,11 +447,11 @@ export default function ProfessionalProfile() {
 
       {/* Languages */}
       <Section title="Languages">
-        {PRO.languages.map((l, i) => (
+        {pro.languages.map((l, i) => (
           <div
             key={l.name}
             className={`flex items-center justify-between py-3 ${
-              i !== PRO.languages.length - 1 ? 'border-b border-[#f3f3f3]' : ''
+              i !== pro.languages.length - 1 ? 'border-b border-[#f3f3f3]' : ''
             } ${i === 0 ? 'pt-0' : ''}`}
           >
             <span className="text-sm font-semibold text-[#1a1a1a]">{l.name}</span>
@@ -415,12 +467,12 @@ export default function ProfessionalProfile() {
       </Section>
 
       {/* Reviews */}
-      <Section title={`Reviews (${PRO.reviews})`}>
-        {PRO.reviewsList.map((r, i) => (
+      <Section title={`Reviews (${pro.reviews})`}>
+        {pro.reviewsList.map((r, i) => (
           <div
             key={i}
             className={`py-3.5 ${
-              i !== PRO.reviewsList.length - 1 ? 'border-b border-[#f3f3f3]' : ''
+              i !== pro.reviewsList.length - 1 ? 'border-b border-[#f3f3f3]' : ''
             } ${i === 0 ? 'pt-0' : ''}`}
           >
             <div className="flex justify-between mb-1.5">
@@ -432,7 +484,7 @@ export default function ProfessionalProfile() {
           </div>
         ))}
         <button className="block mx-auto mt-3.5 px-4 py-3 bg-[#f9f8f6] border border-[#f3f3f3] rounded-full text-[#1a7f5e] text-[13px] font-bold w-full text-center">
-          See all {PRO.reviews} reviews
+          See all {pro.reviews} reviews
         </button>
       </Section>
 
@@ -446,7 +498,7 @@ export default function ProfessionalProfile() {
           className="flex-1 bg-[#1a7f5e] text-white rounded-full font-bold text-[15px] flex items-center justify-center gap-2"
         >
           <IconCalendarSmall />
-          Book {PRO.firstName}
+          Book {pro.firstName}
         </button>
       </div>
 
@@ -454,7 +506,7 @@ export default function ProfessionalProfile() {
       <BookingSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        pro={PRO}
+        pro={pro}
         selectedDate={selectedDate}
         backups={backups}
         onLaunchRapidFill={handleLaunchRapidFill}
