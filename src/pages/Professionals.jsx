@@ -392,6 +392,37 @@ export default function FindProfessionals() {
   const [savedIds, setSavedIds] = useState([]);
   const [officeId, setOfficeId] = useState(null);
 
+  // Rapid Fill mode
+  const searchParams = new URLSearchParams(window.location.search);
+  const isRapidFill = searchParams.get('rapidfill') === '1';
+  const [rfBackups, setRfBackups] = useState([]);
+  const [rfContext, setRfContext] = useState(null);
+
+  useEffect(() => {
+    if (!isRapidFill) return;
+    try {
+      const ctx = sessionStorage.getItem('kazi_rapid_context');
+      if (ctx) setRfContext(JSON.parse(ctx));
+      const stored = sessionStorage.getItem('kazi_rapid_backups');
+      if (stored) setRfBackups(JSON.parse(stored));
+    } catch {}
+  }, [isRapidFill]);
+
+  const toggleRfBackup = (pro) => {
+    setRfBackups(prev => {
+      const exists = prev.find(b => b.id === pro.id);
+      if (exists) return prev.filter(b => b.id !== pro.id);
+      if (prev.length >= 9) return prev;
+      return [...prev, { id: pro.id, name: pro.name, initials: pro.initials }];
+    });
+  };
+
+  const handleRfDone = () => {
+    sessionStorage.setItem('kazi_rapid_backups', JSON.stringify(rfBackups));
+    sessionStorage.setItem('kazi_rapid_return', '1');
+    navigate(-1);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -478,6 +509,23 @@ export default function FindProfessionals() {
   return (
     <div className="bg-[#f9f8f6] min-h-screen pb-20" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <Nav />
+
+      {/* Rapid Fill banner */}
+      {isRapidFill && (
+        <div className="bg-[#1a7f5e] px-5 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white flex-shrink-0">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" className="w-5 h-5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-white text-sm font-bold">Rapid Fill Mode</div>
+            <div className="text-white/75 text-xs">
+              {rfContext?.primary ? `Backups for ${rfContext.primary} · ` : ''}Select up to 9 professionals
+            </div>
+          </div>
+          <button onClick={() => navigate(-1)} className="text-white/75 text-xs font-bold underline flex-shrink-0">Cancel</button>
+        </div>
+      )}
+
       {/* Top bar */}
       <div className="bg-white px-5 pt-4 pb-3 border-b border-[#f3f3f3] sticky top-0 z-50">
         <div className="flex items-center justify-between mb-3.5">
@@ -538,14 +586,34 @@ export default function FindProfessionals() {
       )}
 
       {/* Cards */}
-      {!loading && filtered.map((pro) => (
-        <ProCard
-          key={pro.id}
-          pro={{...pro, saved: savedIds.includes(pro.id)}}
-          onClick={() => navigate(`/professionals/${pro.id}`)}
-          onSave={handleSavePro}
-        />
-      ))}
+      {!loading && filtered.map((pro) => {
+        const isSelected = isRapidFill && rfBackups.some(b => b.id === pro.id);
+        const isPrimary = isRapidFill && rfContext?.primary && pro.name === rfContext.primary;
+        return (
+          <div key={pro.id} className="relative">
+            {isRapidFill && (
+              <div className={`absolute top-5 left-7 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                isPrimary ? 'bg-[#1a7f5e] border-[#1a7f5e]' : isSelected ? 'bg-[#1a7f5e] border-[#1a7f5e]' : 'bg-white border-[#d1d5db]'
+              }`}>
+                {(isSelected || isPrimary) && (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" className="w-3 h-3"><polyline points="20 6 9 17 4 12" /></svg>
+                )}
+              </div>
+            )}
+            <ProCard
+              pro={{...pro, saved: savedIds.includes(pro.id)}}
+              onClick={() => {
+                if (isRapidFill) {
+                  if (!isPrimary) toggleRfBackup(pro);
+                } else {
+                  navigate(`/professionals/${pro.id}`);
+                }
+              }}
+              onSave={isRapidFill ? undefined : handleSavePro}
+            />
+          </div>
+        );
+      })}
 
       {/* Empty state */}
       {!loading && filtered.length === 0 && (
@@ -556,6 +624,48 @@ export default function FindProfessionals() {
       )}
 
       <BookingCriteriaSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onApply={handleApplyCriteria} />
+
+      {/* Rapid Fill bottom bar */}
+      {isRapidFill && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white px-5 pt-3.5 pb-7 border-t border-[#f3f3f3] z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+          <div className="flex items-center gap-3 mb-3">
+            {rfBackups.length > 0 ? (
+              <>
+                <div className="flex items-center">
+                  {rfBackups.slice(0, 5).map((b, i) => (
+                    <div
+                      key={b.id}
+                      className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white text-[10px] font-bold border-2 border-white"
+                      style={{ background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', marginLeft: i === 0 ? 0 : -6, fontFamily: "'Outfit', sans-serif" }}
+                    >
+                      {b.initials}
+                    </div>
+                  ))}
+                  {rfBackups.length > 5 && (
+                    <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white text-[10px] font-bold border-2 border-white bg-[#1a7f5e]" style={{ marginLeft: -6 }}>
+                      +{rfBackups.length - 5}
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-[#1a1a1a]">{rfBackups.length} backup{rfBackups.length !== 1 ? 's' : ''} selected</span>
+              </>
+            ) : (
+              <span className="text-sm text-[#8a8a8a]">Tap professionals to add as backups</span>
+            )}
+          </div>
+          <button
+            onClick={handleRfDone}
+            disabled={rfBackups.length === 0}
+            className={`w-full py-4 rounded-full font-bold text-[15px] transition-colors ${
+              rfBackups.length > 0
+                ? 'bg-[#1a7f5e] text-white'
+                : 'bg-[#f3f3f3] text-[#8a8a8a] cursor-not-allowed'
+            }`}
+          >
+            {rfBackups.length > 0 ? `Done — ${rfBackups.length} backup${rfBackups.length !== 1 ? 's' : ''} added` : 'Select at least 1 backup'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
