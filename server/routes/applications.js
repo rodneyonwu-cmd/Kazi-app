@@ -13,10 +13,14 @@ router.get('/', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     let where = {};
-    if (user.provider) {
+    // Use user.role to determine context — an ADMIN or OFFICE user sees office applications,
+    // a PROVIDER user sees their own applications
+    if (user.role === 'PROVIDER' && user.provider) {
       where.providerId = user.provider.id;
     } else if (user.office) {
       where.shift = { officeId: user.office.id };
+    } else if (user.provider) {
+      where.providerId = user.provider.id;
     }
 
     const applications = await prisma.application.findMany({
