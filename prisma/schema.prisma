@@ -164,6 +164,7 @@ model Shift {
 
 enum ShiftStatus {
   OPEN
+  PENDING
   FILLED
   CANCELLED
   COMPLETED

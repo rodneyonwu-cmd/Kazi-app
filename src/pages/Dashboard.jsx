@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
 import InitialsAvatar from '../components/InitialsAvatar'
+import PermanentJobCard from '../components/PermanentJobCard'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -15,7 +16,6 @@ function getGreeting() {
 
 function formatDate() {
   return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -70,6 +70,10 @@ export default function Dashboard() {
       })
       if (res.ok) {
         setShiftApplicants(prev => prev.map(a => a.id === appId ? { ...a, status } : (status === 'ACCEPTED' && a.status === 'PENDING' ? { ...a, status: 'DECLINED' } : a)))
+        if (status === 'ACCEPTED' && shiftModal) {
+          setShifts(prev => prev.map(s => s.id === shiftModal.id ? { ...s, status: 'FILLED', confirmed: true } : s))
+          setShiftModal(prev => prev ? { ...prev, status: 'FILLED', confirmed: true } : prev)
+        }
         showToast(status === 'ACCEPTED' ? `${name} accepted!` : `${name} declined`)
       }
     } catch { showToast('Action failed') }
@@ -138,7 +142,7 @@ export default function Dashboard() {
           const shiftsRes = await fetch(`${API_URL}/api/shifts?officeId=${officeData.id}`, { headers })
           if (shiftsRes.ok) {
             const raw = await shiftsRes.json()
-            const formatted = (Array.isArray(raw) ? raw : []).map(s => {
+            const formatted = (Array.isArray(raw) ? raw : []).filter(s => s.status !== 'PENDING').map(s => {
               const d = s.date ? new Date(s.date) : null
               const isPerm = s.jobType === 'PERMANENT'
               return {
@@ -188,7 +192,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-[#f9f8f6]">
         <Nav />
-        <div className="max-w-[680px] mx-auto px-6 py-7 pb-24 md:pb-10">
+        <div className="max-w-[680px] mx-auto px-4 md:px-6 py-7 pb-24 md:pb-10">
           {/* Greeting skeleton */}
           <div className="h-7 w-64 bg-[#e5e7eb] rounded-lg mb-2 animate-pulse" />
           <div className="h-4 w-80 bg-[#e5e7eb] rounded-lg mb-6 animate-pulse" />
@@ -203,7 +207,7 @@ export default function Dashboard() {
           </div>
 
           {/* Stats skeleton */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
             <div className="h-24 bg-[#e5e7eb] rounded-2xl animate-pulse" />
             <div className="h-24 bg-[#e5e7eb] rounded-2xl animate-pulse" />
             <div className="h-24 bg-[#e5e7eb] rounded-2xl animate-pulse" />
@@ -269,7 +273,7 @@ export default function Dashboard() {
         return (
         <>
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setShiftModal(null)} />
-          <div className="fixed top-0 right-0 bottom-0 w-full max-w-[460px] bg-white z-50 flex flex-col shadow-2xl">
+          <div className="fixed top-0 right-0 bottom-0 left-0 md:left-auto w-full md:max-w-[460px] bg-white z-50 flex flex-col shadow-2xl">
             {/* Header */}
             <div className="px-5 pt-10 pb-4 border-b border-[#f3f4f6] flex-shrink-0">
               <button onClick={() => setShiftModal(null)} className="flex items-center gap-1.5 text-[13px] font-bold text-[#6b7280] mb-3 bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
@@ -280,14 +284,14 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-[18px] font-black text-[#1a1a1a]">{s.role}</p>
                     {(() => { const empType = s.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return (
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPerm ? (isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#ede9fe] text-[#5b21b6]') : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{isPerm ? empType : 'Temp'}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPerm ? (isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#e8f5f0] text-[#1a7f5e]') : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{isPerm ? empType : 'Temp'}</span>
                     ) })()}
                     <span className={'text-[10px] font-bold px-2 py-0.5 rounded-full ' + getStatusStyle(s)}>{getStatusText(s)}</span>
                   </div>
                   <p className="text-[13px] text-[#6b7280]">{isPerm ? (s.schedule || 'Full-time') : `${s.date} · ${s.time}`}</p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-[16px] font-black ${isPerm ? 'text-[#5b21b6]' : 'text-[#1a7f5e]'}`}>{isPerm ? (s.salary || s.rate) : s.rate}</p>
+                  <p className={`text-[16px] font-black ${isPerm ? 'text-[#1a7f5e]' : 'text-[#1a7f5e]'}`}>{isPerm ? (s.salary || s.rate) : s.rate}</p>
                 </div>
               </div>
             </div>
@@ -461,19 +465,21 @@ export default function Dashboard() {
       })()}
 
       {/* ── PAGE CONTENT ── */}
-      <div className="max-w-[680px] mx-auto px-6 py-7 pb-24 md:pb-10">
+      <div className="max-w-[680px] mx-auto px-4 md:px-6 py-7 pb-24 md:pb-10">
 
         {/* Greeting */}
         <div className="flex items-center gap-4 mb-6">
           {office?.logoUrl ? (
             <img src={office.logoUrl.startsWith('http') ? office.logoUrl : `${API_URL}${office.logoUrl}`} alt="Logo" className="w-14 h-14 rounded-2xl object-cover flex-shrink-0" />
+          ) : user?.imageUrl ? (
+            <img src={user.imageUrl} alt="Logo" className="w-14 h-14 rounded-2xl object-cover flex-shrink-0" />
           ) : (
             <div className="w-14 h-14 rounded-2xl bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
               <span className="text-white text-[16px] font-extrabold">{(office?.name || '').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?'}</span>
             </div>
           )}
           <div>
-            <p className="text-[22px] font-black text-[#1a1a1a] mb-0.5">{getGreeting()}, {firstName} 👋</p>
+            <p className="text-[26px] md:text-[32px] font-black text-[#1a1a1a] mb-1">{getGreeting()}, {firstName} 👋</p>
             <p className="text-[14px] text-[#9ca3af]">
               {formatDate()}
               {office?.name ? ` · ${office.name}` : ''}
@@ -483,7 +489,7 @@ export default function Dashboard() {
         </div>
 
         {/* CTA Card */}
-        <div className="bg-[#e8f5f0] border border-[#c6e8d9] rounded-[20px] p-6 mb-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="bg-[#e8f5f0] border border-[#c6e8d9] rounded-[20px] p-4 md:p-6 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-wrap">
           <div>
             <p className="text-[10px] font-extrabold text-[#1a7f5e] uppercase tracking-widest mb-1">
               {shifts.length > 0 ? 'You have shifts coming up' : 'Get started'}
@@ -538,7 +544,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
           <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 text-center">
             <p className="text-[22px] font-black text-[#1a7f5e]">{office?.stats?.openShifts || 0}</p>
             <p className="text-[11px] text-[#9ca3af] font-semibold mt-1">Open shifts</p>
@@ -597,32 +603,19 @@ export default function Dashboard() {
             <>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[15px] font-extrabold text-[#1a1a1a] flex items-center gap-2">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                   Permanent jobs
                 </p>
-                {shifts.filter(s => s.isPerm).length > 4 && <button onClick={() => navigate('/applicants')} className="text-[13px] font-bold text-[#5b21b6] hover:underline bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>See all →</button>}
+                {shifts.filter(s => s.isPerm).length > 4 && <button onClick={() => navigate('/applicants')} className="text-[13px] font-bold text-[#1a7f5e] hover:underline bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>See all →</button>}
               </div>
               <div className="space-y-3 mb-8">
                 {shifts.filter(s => s.isPerm).slice(0, 4).map((shift) => (
-                  <button key={shift.id} onClick={() => openShiftDrawer(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#5b21b6] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
-                    <div className="w-11 h-11 rounded-[11px] bg-[#ede9fe] flex items-center justify-center flex-shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{shift.role}</p>
-                        {(() => { const empType = shift.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#ede9fe] text-[#5b21b6]'}`}>{empType}</span>
-                        ) })()}
-                        <span className={'text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ' + getStatusStyle(shift)}>{getStatusText(shift)}</span>
-                      </div>
-                      <p className="text-[12px] text-[#6b7280]">{shift.schedule?.split(' · ')[0] || 'Full-time'}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-[13px] font-bold text-[#5b21b6]">{shift.salary || shift.rate}</p>
-                      {shift.applicants > 0 && <p className="text-[11px] text-[#6b7280]">{shift.applicants} applicant{shift.applicants !== 1 ? 's' : ''}</p>}
-                    </div>
-                  </button>
+                  <PermanentJobCard
+                    key={shift.id}
+                    job={shift}
+                    onClick={() => openShiftDrawer(shift)}
+                    statusBadge={<span className={'text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ' + getStatusStyle(shift)}>{getStatusText(shift)}</span>}
+                  />
                 ))}
               </div>
             </>

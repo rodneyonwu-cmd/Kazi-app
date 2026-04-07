@@ -105,6 +105,7 @@ router.post('/book', async (req, res) => {
           startTime: startTime || '8:00 AM',
           endTime: endTime || '5:00 PM',
           hourlyRate: hourlyRate ? parseFloat(hourlyRate) : 0,
+          status: 'PENDING',
         },
       });
       const application = await tx.application.create({

@@ -53,13 +53,20 @@ export default function Bookings() {
           fetch(`${API_URL}/api/bookings`, { headers }),
           fetch(`${API_URL}/api/applications`, { headers }),
         ])
+        let bookingData = []
         if (bookingsRes.ok) {
-          const data = await bookingsRes.json()
-          setBookings(data)
+          bookingData = await bookingsRes.json()
+          setBookings(bookingData)
         }
         if (appsRes?.ok) {
           const apps = await appsRes.json()
-          setPendingApps(apps.filter(a => a.status === 'PENDING'))
+          const pendingList = apps.filter(a => a.status === 'PENDING')
+          setPendingApps(pendingList)
+          // Auto-switch to pending tab if there are pending invites but no confirmed bookings
+          const confirmedCount = bookingData.filter(b => b.status === 'CONFIRMED' || b.status === 'ACCEPTED').length
+          if (pendingList.length > 0 && confirmedCount === 0) {
+            setActiveTab('pending')
+          }
         }
       } catch (err) {
         console.error('Failed to fetch bookings:', err)
