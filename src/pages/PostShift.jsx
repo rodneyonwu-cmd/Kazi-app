@@ -200,8 +200,8 @@ export default function PostShift() {
         </div>
       </div>
 
-      <div className="flex items-start justify-center px-4 pb-20">
-        <div className="bg-white border border-[#e5e7eb] rounded-2xl p-8 w-full max-w-lg">
+      <div className="flex items-start justify-center px-4 pb-24 md:pb-20">
+        <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5 md:p-8 w-full max-w-lg">
 
           {/* ═══ STEP 1: Role & Type ═══ */}
           {step === 1 && (<div>
@@ -210,9 +210,9 @@ export default function PostShift() {
             <p className="text-sm text-[#6b7280] mb-6">What position do you need filled?</p>
             <div className="mb-6">
               <label className="block text-sm font-semibold text-[#1a1a1a] mb-3">Role needed</label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {ROLES.map(r => (
-                  <button key={r} onClick={() => setRole(r)} className={`px-4 py-3 border-2 rounded-xl text-sm font-semibold transition text-left ${role === r ? 'border-[#1a7f5e] text-[#1a7f5e] bg-[#f0faf5]' : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#1a7f5e]'}`}>{r}</button>
+                  <button key={r} onClick={() => setRole(r)} className={`px-4 py-3 min-h-[44px] border-2 rounded-xl text-sm font-semibold transition text-left ${role === r ? 'border-[#1a7f5e] text-[#1a7f5e] bg-[#f0faf5]' : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#1a7f5e]'}`}>{r}</button>
                 ))}
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function PostShift() {
               </div>
             </div>
             {errors.role && <p className="text-xs text-[#dc2626] font-medium mb-3">{errors.role}</p>}
-            <button onClick={handleNext} disabled={!canStep1} className={`w-full font-bold py-3 rounded-full text-sm transition ${canStep1 ? (isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white') : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
+            <button onClick={handleNext} disabled={!canStep1} className={`w-full font-bold py-3 min-h-[44px] rounded-full text-sm transition ${canStep1 ? (isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95] text-white' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white') : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
           </div>)}
 
           {/* ═══ STEP 2 TEMP: Date & Time ═══ */}
@@ -241,7 +241,7 @@ export default function PostShift() {
               <input type="date" value={date} min={todayStr} onChange={e => setDate(e.target.value)} className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition ${errors.date ? 'border-[#dc2626]' : 'border-[#e5e7eb] focus:border-[#1a7f5e]'}`} />
               {errors.date && <p className="text-xs text-[#dc2626] mt-1">{errors.date}</p>}
             </div>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <div><label className="block text-sm font-semibold text-[#1a1a1a] mb-1.5">Start time</label><input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#1a7f5e]" /></div>
               <div><label className="block text-sm font-semibold text-[#1a1a1a] mb-1.5">End time</label><input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#1a7f5e]" /></div>
             </div>
@@ -252,8 +252,8 @@ export default function PostShift() {
               </select>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#1a7f5e] transition">← Back</button>
-              <button onClick={handleNext} disabled={!canTempStep2} className={`flex-1 font-bold py-3 rounded-full text-sm transition ${canTempStep2 ? 'bg-[#1a7f5e] hover:bg-[#156649] text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
+              <button onClick={() => setStep(1)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm hover:border-[#1a7f5e] transition">← Back</button>
+              <button onClick={handleNext} disabled={!canTempStep2} className={`flex-1 font-bold py-3 min-h-[44px] rounded-full text-sm transition ${canTempStep2 ? 'bg-[#1a7f5e] hover:bg-[#156649] text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
             </div>
           </div>)}
 
@@ -295,7 +295,7 @@ export default function PostShift() {
             {payType === 'Salary' ? (
               <div className="mb-5">
                 <label className="block text-sm font-semibold text-[#1a1a1a] mb-1.5">Annual salary range</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280] text-sm">$</span><input type="number" value={salaryMin} onChange={e => setSalaryMin(e.target.value)} placeholder="80,000" className="w-full border border-[#e5e7eb] rounded-xl pl-7 py-3 text-sm outline-none focus:border-[#5b21b6]" /></div>
                   <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280] text-sm">$</span><input type="number" value={salaryMax} onChange={e => setSalaryMax(e.target.value)} placeholder="120,000" className="w-full border border-[#e5e7eb] rounded-xl pl-7 py-3 text-sm outline-none focus:border-[#5b21b6]" /></div>
                 </div>
@@ -320,8 +320,8 @@ export default function PostShift() {
 
             {errors.pay && <p className="text-xs text-[#dc2626] font-medium mb-3">{errors.pay}</p>}
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#5b21b6] transition">← Back</button>
-              <button onClick={handleNext} disabled={!canPermStep2} className={`flex-1 font-bold py-3 rounded-full text-sm transition ${canPermStep2 ? 'bg-[#5b21b6] hover:bg-[#4c1d95] text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
+              <button onClick={() => setStep(1)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm hover:border-[#5b21b6] transition">← Back</button>
+              <button onClick={handleNext} disabled={!canPermStep2} className={`flex-1 font-bold py-3 min-h-[44px] rounded-full text-sm transition ${canPermStep2 ? 'bg-[#5b21b6] hover:bg-[#4c1d95] text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
             </div>
           </div>)}
 
@@ -345,8 +345,8 @@ export default function PostShift() {
             </div>
             {errors.hourlyRate && <p className="text-xs text-[#dc2626] font-medium mb-3">{errors.hourlyRate}</p>}
             <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#1a7f5e] transition">← Back</button>
-              <button onClick={handleNext} disabled={!canTempStep3} className={`flex-1 font-bold py-3 rounded-full text-sm transition ${canTempStep3 ? 'bg-[#1a7f5e] hover:bg-[#156649] text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
+              <button onClick={() => setStep(2)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm hover:border-[#1a7f5e] transition">← Back</button>
+              <button onClick={handleNext} disabled={!canTempStep3} className={`flex-1 font-bold py-3 min-h-[44px] rounded-full text-sm transition ${canTempStep3 ? 'bg-[#1a7f5e] hover:bg-[#156649] text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'}`}>Continue →</button>
             </div>
           </div>)}
 
@@ -393,8 +393,8 @@ export default function PostShift() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#5b21b6] transition">← Back</button>
-              <button onClick={handleNext} className="flex-1 bg-[#5b21b6] hover:bg-[#4c1d95] text-white font-bold py-3 rounded-full text-sm transition">Continue →</button>
+              <button onClick={() => setStep(2)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm hover:border-[#5b21b6] transition">← Back</button>
+              <button onClick={handleNext} className="flex-1 bg-[#5b21b6] hover:bg-[#4c1d95] text-white font-bold py-3 min-h-[44px] rounded-full text-sm transition">Continue →</button>
             </div>
           </div>)}
 
@@ -413,8 +413,8 @@ export default function PostShift() {
             </div>
             {description && <div className="bg-[#f9f8f6] rounded-xl p-4 mb-6"><p className="text-xs text-[#9ca3af] font-semibold uppercase mb-1">Notes</p><p className="text-sm text-[#374151]">{description}</p></div>}
             <div className="flex gap-3">
-              <button onClick={() => setStep(3)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm transition">← Back</button>
-              <button onClick={handlePost} disabled={submitting} className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 rounded-full text-sm transition disabled:opacity-50">{submitting ? 'Posting...' : 'Post shift 🚀'}</button>
+              <button onClick={() => setStep(3)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm transition">← Back</button>
+              <button onClick={handlePost} disabled={submitting} className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 min-h-[44px] rounded-full text-sm transition disabled:opacity-50">{submitting ? 'Posting...' : 'Post shift 🚀'}</button>
             </div>
           </div>)}
 
@@ -448,8 +448,8 @@ export default function PostShift() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(3)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm transition">← Back</button>
-              <button onClick={handlePost} disabled={submitting} className="flex-1 bg-[#5b21b6] hover:bg-[#4c1d95] text-white font-bold py-3 rounded-full text-sm transition disabled:opacity-50">{submitting ? 'Posting...' : 'Post job 💼'}</button>
+              <button onClick={() => setStep(3)} className="flex-1 bg-white border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm transition">← Back</button>
+              <button onClick={handlePost} disabled={submitting} className="flex-1 bg-[#5b21b6] hover:bg-[#4c1d95] text-white font-bold py-3 min-h-[44px] rounded-full text-sm transition disabled:opacity-50">{submitting ? 'Posting...' : 'Post job 💼'}</button>
             </div>
           </div>)}
 

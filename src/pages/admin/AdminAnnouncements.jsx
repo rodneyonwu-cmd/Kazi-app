@@ -33,7 +33,7 @@ export default function AdminAnnouncements() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {/* Compose */}
       <div>
         <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-5">
@@ -51,7 +51,7 @@ export default function AdminAnnouncements() {
 
           <div className="mb-3.5">
             <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-1.5">Send to</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {SEGMENTS.map(s => (
                 <button key={s} onClick={() => toggleSeg(s)} className={`px-2 py-2 rounded-[9px] border text-[11px] font-bold cursor-pointer transition text-center ${segments.includes(s) ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-white border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>{s}</button>
               ))}
@@ -60,7 +60,7 @@ export default function AdminAnnouncements() {
 
           <div className="mb-4">
             <label className="block text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-1.5">Delivery method</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {DELIVERY.map(d => (
                 <button key={d} onClick={() => toggleDel(d)} className={`flex-1 px-2 py-2 rounded-[9px] border text-[11px] font-bold cursor-pointer transition text-center ${delivery.includes(d) ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-white border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>{d}</button>
               ))}

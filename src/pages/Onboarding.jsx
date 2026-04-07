@@ -14,7 +14,7 @@ const logoStyle = {
 
 // ── Segmented progress bar ───────────────────────────────────────
 const ProgressBar = ({ step, total, label }) => (
-  <div className="px-6 pt-4 pb-1 max-w-[520px] mx-auto w-full">
+  <div className="px-4 md:px-6 pt-4 pb-1 max-w-[520px] mx-auto w-full">
     <div className="flex gap-[5px] mb-2">
       {Array.from({ length: total }, (_, i) => (
         <div key={i} className="flex-1 h-[3px] rounded-full transition-all duration-300"
@@ -40,14 +40,14 @@ const LoadingScreen = ({ message }) => (
 // ── Success screen ───────────────────────────────────────────────
 const SuccessScreen = ({ role, onContinue }) => (
   <div className="min-h-screen bg-[#f9f8f6] flex flex-col items-center justify-center px-4">
-    <div className="bg-white border border-[#e5e7eb] rounded-[24px] p-10 max-w-[460px] w-full text-center">
+    <div className="bg-white border border-[#e5e7eb] rounded-[24px] p-6 md:p-10 max-w-[460px] w-full text-center">
       <div className="w-20 h-20 bg-[#e8f5f0] rounded-full flex items-center justify-center mx-auto mb-6">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round">
           <path d="M20 6L9 17l-5-5"/>
         </svg>
       </div>
-      <h1 className="text-[28px] font-black text-[#1a1a1a] mb-2">Welcome to kazi.!</h1>
-      <p className="text-[15px] text-[#6b7280] mb-8">
+      <h1 className="text-[24px] md:text-[28px] font-black text-[#1a1a1a] mb-2">Welcome to kazi.!</h1>
+      <p className="text-[14px] md:text-[15px] text-[#6b7280] mb-8">
         {role === 'office'
           ? "Your office profile is ready. Start posting shifts and finding great dental professionals."
           : "Your provider profile is ready. Start finding shifts that match your schedule and skills."}
@@ -257,11 +257,11 @@ export default function Onboarding() {
 
   // Shared nav
   const Nav = () => (
-    <nav className="bg-white border-b border-[#e5e7eb] h-16 flex items-center px-6 justify-between flex-shrink-0 sticky top-0 z-50">
+    <nav className="bg-white border-b border-[#e5e7eb] h-16 flex items-center px-4 md:px-6 justify-between flex-shrink-0 sticky top-0 z-50">
       <span className="text-[#1a7f5e]" style={logoStyle}>kazi.</span>
       {!isSignedIn && (
-        <span className="text-[14px] text-[#6b7280]">
-          Already have an account?{' '}
+        <span className="text-[13px] md:text-[14px] text-[#6b7280]">
+          <span className="hidden sm:inline">Already have an account?{' '}</span>
           <span onClick={() => navigate('/login')} className="text-[#1a7f5e] font-bold cursor-pointer hover:underline">Sign in</span>
         </span>
       )}
@@ -270,16 +270,16 @@ export default function Onboarding() {
 
   // Shared bottom bar
   const BottomBar = ({ stepNum, total, onBack, onNext, nextLabel = 'Continue →', disabled = false }) => (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] px-6 py-3.5 flex items-center justify-between z-40">
-      <span className="text-[14px] text-[#9ca3af] font-semibold">{stepNum > 0 ? `Step ${stepNum} of ${total}` : ''}</span>
-      <div className="flex gap-2.5">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] px-4 md:px-6 py-3 md:py-3.5 flex items-center justify-between z-40 gap-2">
+      <span className="hidden sm:inline text-[13px] md:text-[14px] text-[#9ca3af] font-semibold">{stepNum > 0 ? `Step ${stepNum} of ${total}` : ''}</span>
+      <div className="flex gap-2 md:gap-2.5 w-full sm:w-auto">
         {onBack && (
-          <button onClick={onBack} className="border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] font-extrabold px-6 py-3 rounded-full text-[15px] hover:border-[#1a7f5e] transition">
+          <button onClick={onBack} className="flex-1 sm:flex-none border-[1.5px] border-[#e5e7eb] bg-white text-[#1a1a1a] font-extrabold px-4 md:px-6 py-3 rounded-full text-[14px] md:text-[15px] hover:border-[#1a7f5e] transition">
             ← Back
           </button>
         )}
         <button onClick={onNext} disabled={disabled}
-          className={`font-extrabold px-6 py-3 rounded-full text-[15px] transition ${disabled ? 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white'}`}>
+          className={`flex-1 sm:flex-none font-extrabold px-4 md:px-6 py-3 rounded-full text-[14px] md:text-[15px] transition ${disabled ? 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed' : 'bg-[#1a7f5e] hover:bg-[#156649] text-white'}`}>
           {nextLabel}
         </button>
       </div>
@@ -296,10 +296,10 @@ export default function Onboarding() {
       <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
         <Nav />
         <ProgressBar step={proStep} total={2} label={proLabels[proStep - 1]} />
-        <div className="flex-1 pb-[100px] max-w-[520px] mx-auto w-full px-4 pt-3">
+        <div className="flex-1 pb-24 md:pb-[100px] max-w-[520px] mx-auto w-full px-4 pt-3">
 
           {proStep === 1 && (
-            <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-7">
+            <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-5 md:p-7">
               <p className="text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-[.1em] mb-1.5">Your profession</p>
               <h2 className="text-[26px] font-black text-[#1a1a1a] mb-1.5 leading-tight">Tell us your role</h2>
               <p className="text-[15px] text-[#6b7280] mb-5">Select your primary profession and what type of work you're looking for</p>
@@ -353,7 +353,7 @@ export default function Onboarding() {
           )}
 
           {proStep === 2 && (
-            <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-7">
+            <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-5 md:p-7">
               <p className="text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-[.1em] mb-1.5">Credentials, skills & rate</p>
               <h2 className="text-[26px] font-black text-[#1a1a1a] mb-1.5 leading-tight">Almost there</h2>
               <p className="text-[15px] text-[#6b7280] mb-5">Just a few more details and you're ready to go</p>
@@ -445,11 +445,11 @@ export default function Onboarding() {
         <ProgressBar step={step} total={3} label={['Office Info','Details & Roles','Choose Plan'][step - 1]} />
       )}
 
-      <div className={`flex-1 pb-[100px] ${step === 3 ? 'max-w-[780px]' : 'max-w-[520px]'} mx-auto w-full px-4 pt-3`}>
+      <div className={`flex-1 pb-24 md:pb-[100px] ${step === 3 ? 'max-w-[780px]' : 'max-w-[520px]'} mx-auto w-full px-4 pt-3`}>
 
         {/* STEP 0: Role selection */}
         {step === 0 && (
-          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-7">
+          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-5 md:p-7">
             <p className="text-[11px] font-extrabold text-[#1a7f5e] uppercase tracking-[.1em] mb-1.5">Get started</p>
             <h1 className="text-[26px] font-black text-[#1a1a1a] mb-1.5 leading-tight">Welcome to kazi.</h1>
             <p className="text-[15px] text-[#6b7280] mb-6">Tell us who you are to get started</p>
@@ -478,7 +478,7 @@ export default function Onboarding() {
 
         {/* STEP 1: Office Info */}
         {step === 1 && (
-          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-7">
+          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-5 md:p-7">
             <p className="text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-[.1em] mb-1.5">Your office</p>
             <h2 className="text-[26px] font-black text-[#1a1a1a] mb-1.5 leading-tight">Tell us about your office</h2>
             <p className="text-[15px] text-[#6b7280] mb-5">This helps professionals find and recognize you</p>
@@ -502,7 +502,7 @@ export default function Onboarding() {
 
         {/* STEP 2: Details */}
         {step === 2 && (
-          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-7">
+          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-5 md:p-7">
             <p className="text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-[.1em] mb-1.5">Practice details</p>
             <h2 className="text-[26px] font-black text-[#1a1a1a] mb-1.5 leading-tight">A few more details</h2>
             <p className="text-[15px] text-[#6b7280] mb-5">Help professionals know what to expect</p>
@@ -535,11 +535,11 @@ export default function Onboarding() {
 
         {/* STEP 3: Plan */}
         {step === 3 && (
-          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-7">
+          <div className="bg-white border border-[#e5e7eb] rounded-[20px] p-5 md:p-7">
             <p className="text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-[.1em] mb-1.5">Your plan</p>
             <h2 className="text-[26px] font-black text-[#1a1a1a] mb-1.5 leading-tight">Choose your plan</h2>
             <p className="text-[15px] text-[#6b7280] mb-6">Simple pricing. No contracts. Cancel anytime.</p>
-            <div className="grid grid-cols-3 gap-3.5 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-4">
               {[
                 { id: 'free', name: 'Free', desc: 'Best for single-location practices', price: '$0', sub: '/mo', features: ['Post up to 10 shifts/month','Browse verified professionals','In-app messaging','Basic office profile','Email support'] },
                 { id: 'pps', name: 'Pay Per Shift', desc: 'Best for busy or growing practices', price: '15%', sub: ' fee', features: ['Unlimited shift postings','Rapid Fill — blast to 10 pros','Advanced search & filters','Saved professionals list','Priority matching','Ratings and reviews','Priority support'] },

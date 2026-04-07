@@ -57,18 +57,18 @@ export default function Help() {
         </div>
       )}
 
-      <div className="max-w-[520px] mx-auto px-3.5 py-5">
+      <div className="max-w-[520px] mx-auto px-4 md:px-3.5 py-5 pb-24">
         <h1 className="text-[20px] font-black text-[#1a1a1a] mb-0.5">Help & Support</h1>
         <p className="text-[13px] text-[#9ca3af] mb-4">Find answers or contact support</p>
 
         <div className="relative mb-5">
           <svg className="absolute left-3.5 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search for answers..." className="w-full pl-9 pr-4 py-2.5 border border-[#e5e7eb] rounded-full text-[13px] outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a] transition" style={{ fontFamily: 'inherit' }}/>
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search for answers..." className="w-full pl-9 pr-4 py-3 min-h-[44px] border border-[#e5e7eb] rounded-full text-[13px] outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a] transition" style={{ fontFamily: 'inherit' }}/>
         </div>
 
         {!search && (
           <>
-            <div className="grid grid-cols-2 gap-2 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
               {CATEGORIES.map(cat => (
                 <div key={cat.label} className="bg-white border border-[#e5e7eb] rounded-[12px] p-3.5 cursor-pointer hover:border-[#1a7f5e] transition text-center">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center mx-auto mb-2" style={{ background: cat.bg }}>{cat.icon}</div>

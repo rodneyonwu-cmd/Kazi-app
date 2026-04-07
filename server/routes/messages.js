@@ -30,6 +30,16 @@ router.get('/conversations', async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    console.log('[GET /api/messages/conversations] user role:', user.office ? 'OFFICE' : 'PROVIDER', 'messages:',
+      messages.map(m => ({
+        id: m.id,
+        officeId: m.officeId,
+        providerId: m.providerId,
+        fromRole: m.fromRole,
+        officeUser: m.office?.user ? `${m.office.user.firstName} ${m.office.user.lastName}` : null,
+        providerUser: m.provider?.user ? `${m.provider.user.firstName} ${m.provider.user.lastName}` : null,
+      })));
+
     // Group by conversation (office-provider pair) — keep latest message + unread count
     const conversationMap = new Map();
     const unreadCounts = {};
@@ -185,11 +195,16 @@ router.patch('/:id/read', async (req, res) => {
 // PATCH /api/messages/read-all – mark all messages in a thread as read
 router.patch('/read-all/:officeId/:providerId', async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { clerkId: req.auth.userId } });
-    // Mark messages as read where current user is the recipient
-    const oppositeRole = user.role === 'OFFICE' ? 'PROVIDER' : 'OFFICE';
+    const user = await prisma.user.findUnique({
+      where: { clerkId: req.auth.userId },
+      include: { office: true, provider: true },
+    });
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    await prisma.message.updateMany({
+    // Determine opposite role based on actual linked profile, not user.role field
+    const oppositeRole = user.office ? 'PROVIDER' : 'OFFICE';
+
+    const result = await prisma.message.updateMany({
       where: {
         officeId: req.params.officeId,
         providerId: req.params.providerId,
@@ -198,7 +213,8 @@ router.patch('/read-all/:officeId/:providerId', async (req, res) => {
       },
       data: { read: true },
     });
-    res.json({ success: true });
+    console.log(`[read-all] Marked ${result.count} messages as read for ${user.role} (oppositeRole=${oppositeRole}) officeId=${req.params.officeId} providerId=${req.params.providerId}`);
+    res.json({ success: true, marked: result.count });
   } catch (err) {
     console.error('[messages.js]' , err);
     res.status(500).json({ error: err.message });

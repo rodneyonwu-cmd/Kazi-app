@@ -51,6 +51,7 @@ export default function AdminLayout() {
   const { getToken, isLoaded, isSignedIn } = useAuth()
   const [checking, setChecking] = useState(true)
   const [denied, setDenied] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoaded) return
@@ -70,6 +71,9 @@ export default function AdminLayout() {
   }, [isLoaded, isSignedIn, getToken, navigate])
 
   const title = TITLES[location.pathname] || 'Admin'
+
+  // Close sidebar on navigation (mobile)
+  useEffect(() => { setSidebarOpen(false) }, [location.pathname])
 
   if (checking) {
     return (
@@ -96,10 +100,18 @@ export default function AdminLayout() {
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen" style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: '#f0f0ee' }}>
+      <div className="flex min-h-screen overflow-x-hidden" style={{ fontFamily: "'DM Sans', -apple-system, sans-serif", background: '#f0f0ee' }}>
+
+        {/* MOBILE OVERLAY */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
         {/* SIDEBAR */}
-        <aside className="w-[230px] flex-shrink-0 bg-[#111] flex flex-col fixed top-0 left-0 bottom-0 z-50 overflow-y-auto">
+        <aside className={`w-[230px] flex-shrink-0 bg-[#111] flex flex-col fixed top-0 left-0 bottom-0 z-50 overflow-y-auto transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
           {/* Logo */}
           <div className="px-[18px] py-[22px] border-b border-[#222]">
             <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 26, fontWeight: 900, color: '#1a7f5e', letterSpacing: '-1px' }}>kazi.</div>
@@ -148,18 +160,28 @@ export default function AdminLayout() {
         </aside>
 
         {/* MAIN */}
-        <div className="ml-[230px] flex-1 flex flex-col min-h-screen">
+        <div className="md:ml-[230px] flex-1 flex flex-col min-h-screen min-w-0 w-full">
           {/* Topbar */}
-          <div className="bg-white border-b border-[#e5e7eb] h-[54px] flex items-center justify-between px-6 sticky top-0 z-40">
-            <div className="text-[15px] font-extrabold text-[#1a1a1a]">{title}</div>
+          <div className="bg-white border-b border-[#e5e7eb] h-[54px] flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="md:hidden w-8 h-8 rounded-[8px] border border-[#e5e7eb] bg-white flex items-center justify-center text-[#374151] cursor-pointer flex-shrink-0"
+                aria-label="Open menu"
+                style={{ fontFamily: 'inherit' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+              <div className="text-[15px] font-extrabold text-[#1a1a1a] truncate">{title}</div>
+            </div>
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-2 bg-[#f9f8f6] border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px]">
+              <div className="hidden md:flex items-center gap-2 bg-[#f9f8f6] border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px]">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input placeholder="Search users, shifts, tickets..." className="bg-transparent border-none outline-none text-[13px] text-[#1a1a1a] w-[180px] placeholder-[#9ca3af]" style={{ fontFamily: 'inherit' }}/>
               </div>
               <button
                 onClick={() => alert('Exporting data...')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-bold border border-[#e5e7eb] bg-white text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition"
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-bold border border-[#e5e7eb] bg-white text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition"
                 style={{ fontFamily: 'inherit' }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -169,7 +191,7 @@ export default function AdminLayout() {
           </div>
 
           {/* Page content */}
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 md:p-6">
             <Outlet />
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -10,7 +11,7 @@ const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
 
 const COLORS = [
   { bg: '#e8f5f0', color: '#0f4d38' },
-  { bg: '#ede9fe', color: '#5b21b6' },
+  { bg: '#e8f5f0', color: '#1a7f5e' },
   { bg: '#dbeafe', color: '#1e40af' },
   { bg: '#fef3c7', color: '#92400e' },
   { bg: '#fee2e2', color: '#991b1b' },
@@ -93,13 +94,13 @@ function DetailPanel({ shift, onAccept, onDecline, onWithdraw }) {
       )}
 
       {shift.type === 'pending' ? (
-        <div className="flex gap-2">
-          <button onClick={onAccept} className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-extrabold py-2 rounded-full text-[12px] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Accept shift</button>
-          <button onClick={onDecline} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] font-bold py-2 rounded-full text-[12px] hover:border-[#ef4444] hover:text-[#ef4444] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Decline</button>
+        <div className="flex flex-col md:flex-row gap-2">
+          <button onClick={onAccept} className="w-full md:flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-extrabold py-3 md:py-2 min-h-[44px] md:min-h-0 rounded-full text-[13px] md:text-[12px] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Accept shift</button>
+          <button onClick={onDecline} className="w-full md:flex-1 bg-white text-[#374151] border border-[#e5e7eb] font-bold py-3 md:py-2 min-h-[44px] md:min-h-0 rounded-full text-[13px] md:text-[12px] hover:border-[#ef4444] hover:text-[#ef4444] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Decline</button>
         </div>
       ) : shift.type === 'accepted' ? (
         <div className="flex gap-2">
-          <button onClick={onWithdraw} className="flex-1 bg-white text-[#ef4444] border border-[#ef4444] font-bold py-2 rounded-full text-[12px] hover:bg-[#fef2f2] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Withdraw / Cancel</button>
+          <button onClick={onWithdraw} className="flex-1 bg-white text-[#ef4444] border border-[#ef4444] font-bold py-3 md:py-2 min-h-[44px] md:min-h-0 rounded-full text-[13px] md:text-[12px] hover:bg-[#fef2f2] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Withdraw / Cancel</button>
         </div>
       ) : null}
     </div>
@@ -264,6 +265,7 @@ function EmptyState({ title, subtitle }) {
 export default function ShiftRequests() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [tab, setTab] = useState('pending')
   const [view, setView] = useState('list')
   const [pending, setPending] = useState([])
@@ -384,7 +386,7 @@ export default function ShiftRequests() {
       {/* Withdraw Confirmation Modal */}
       {withdrawConfirm && (
         <div className="fixed inset-0 bg-black/45 z-[200] flex items-center justify-center px-4" onClick={() => setWithdrawConfirm(null)}>
-          <div className="bg-white rounded-[20px] w-full max-w-[380px] p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-[20px] w-full max-w-[380px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-5">
               <div className="w-12 h-12 rounded-full bg-[#fee2e2] flex items-center justify-center mx-auto mb-3">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -392,18 +394,18 @@ export default function ShiftRequests() {
               <h3 className="text-[16px] font-bold text-[#1a1a1a] mb-1">Cancel this shift?</h3>
               <p className="text-[13px] text-[#6b7280]">Are you sure you want to cancel this shift? This action cannot be undone.</p>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setWithdrawConfirm(null)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Keep shift</button>
-              <button onClick={() => handleWithdraw(withdrawConfirm)} className="flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>Yes, cancel</button>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <button onClick={() => setWithdrawConfirm(null)} className="w-full sm:flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Keep shift</button>
+              <button onClick={() => handleWithdraw(withdrawConfirm)} className="w-full sm:flex-1 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-full py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 text-[13px] font-extrabold border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>Yes, cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-[520px] mx-auto px-3.5 py-4 pb-24">
+      <div className="max-w-[520px] mx-auto px-4 md:px-3.5 py-4 pb-24">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-0.5">
+        <div className="flex items-center justify-between gap-2 mb-0.5">
           <h1 className="text-[20px] font-black text-[#1a1a1a]">Shift Requests</h1>
           <div className="flex bg-[#f3f4f6] rounded-[8px] p-[3px] gap-[2px]">
             <button onClick={() => setView('list')} className={`flex items-center gap-1 px-2.5 py-[5px] rounded-[6px] text-[11px] font-bold border-none cursor-pointer transition ${view === 'list' ? 'bg-white text-[#1a7f5e] shadow-sm' : 'bg-transparent text-[#6b7280]'}`} style={{ fontFamily: 'inherit' }}>
@@ -422,13 +424,13 @@ export default function ShiftRequests() {
         {/* List View */}
         {view === 'list' && (
           <>
-            <div className="flex gap-1.5 mb-4">
+            <div className="flex gap-1.5 mb-4 overflow-x-auto -mx-1 px-1">
               {[
                 { key: 'pending', label: 'Pending', count: pending.length },
                 { key: 'approved', label: 'Approved', count: approved.length },
                 { key: 'declined', label: 'Declined', count: declined.length },
               ].map(({ key, label, count }) => (
-                <button key={key} onClick={() => setTab(key)} className={`px-3 py-[5px] rounded-full border text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition ${tab === key ? 'border-[#1a7f5e] text-[#1a7f5e] bg-white' : 'border-[#e5e7eb] text-[#6b7280] bg-white'}`} style={{ fontFamily: 'inherit' }}>
+                <button key={key} onClick={() => setTab(key)} className={`px-3 py-2 rounded-full border text-[13px] md:text-[12px] font-bold flex items-center gap-1.5 cursor-pointer transition flex-shrink-0 ${tab === key ? 'border-[#1a7f5e] text-[#1a7f5e] bg-white' : 'border-[#e5e7eb] text-[#6b7280] bg-white'}`} style={{ fontFamily: 'inherit' }}>
                   {label}
                   <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${tab === key ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#f3f4f6] text-[#6b7280]'}`}>{count}</span>
                 </button>
@@ -476,7 +478,7 @@ export default function ShiftRequests() {
             { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon />, active: false },
             { label: 'Requests', path: '/provider-requests', icon: <ReqIcon />, active: true, badge: pending.length },
             { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon />, active: false },
-            { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, active: false },
+            { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, active: false, badge: unreadMsgCount },
             { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon />, active: false },
           ].map(({ label, path, icon, active, badge }) => (
             <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">

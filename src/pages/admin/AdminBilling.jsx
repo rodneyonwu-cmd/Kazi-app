@@ -44,7 +44,7 @@ export default function AdminBilling() {
   return (
     <div>
       {/* Plan tiers */}
-      <div className="grid grid-cols-3 gap-3.5 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 mb-5">
         <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-[18px]">
           <div className="text-[10px] font-extrabold text-[#9ca3af] uppercase tracking-wider mb-1">Total MRR</div>
           <div className="text-[26px] font-black text-[#1a1a1a] leading-none">${totalMrr.toLocaleString()}</div>
@@ -65,7 +65,7 @@ export default function AdminBilling() {
       {tiers.length > 0 && (
         <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-[18px] mb-4">
           <div className="text-[13px] font-extrabold text-[#1a1a1a] mb-3">Plan Distribution</div>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {tiers.map(t => (
               <div key={t.name} className="bg-[#f9f8f6] rounded-[10px] p-3">
                 <div className="text-[11px] font-bold text-[#6b7280]">{t.name}</div>
@@ -81,8 +81,9 @@ export default function AdminBilling() {
       <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
         <div className="px-4 py-3 border-b border-[#f3f4f6] flex items-center justify-between gap-2.5 flex-wrap">
           <div className="text-[13px] font-extrabold text-[#1a1a1a]">All Offices</div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px] text-[12px] outline-none bg-[#f9f8f6] text-[#1a1a1a] w-[200px] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px] text-[12px] outline-none bg-[#f9f8f6] text-[#1a1a1a] w-full md:w-[200px] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>{['Office','Plan','Shifts','Bookings','Joined','Est. Monthly'].map(h => <th key={h} className="text-left text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] px-4 py-2.5 border-b border-[#f3f4f6] bg-[#fafafa] whitespace-nowrap">{h}</th>)}</tr>
@@ -120,6 +121,7 @@ export default function AdminBilling() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

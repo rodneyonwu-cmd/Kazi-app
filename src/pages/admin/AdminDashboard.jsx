@@ -65,20 +65,21 @@ export default function AdminDashboard() {
   return (
     <div>
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3.5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
         <StatCard icon={<UsersIco/>} iconBg="#e8f5f0" value={loading ? '—' : (stats?.totalUsers ?? 0).toLocaleString()} label="Total Users" delta={`${stats?.totalOffices ?? 0} offices · ${stats?.totalProviders ?? 0} providers`} deltaType="up"/>
         <StatCard icon={<CalIco/>} iconBg="#e8f5f0" value={loading ? '—' : (stats?.openShifts ?? 0).toLocaleString()} label="Open Shifts" delta={`${stats?.totalShifts ?? 0} total posted`} deltaType="up"/>
         <StatCard icon={<DolIco/>} iconBg="#e8f5f0" value={loading ? '—' : `$${((stats?.totalRevenue ?? 0) / 1000).toFixed(1)}k`} label="Total Revenue" delta={`${stats?.totalBookings ?? 0} bookings`} deltaType="up"/>
         <StatCard icon={<ShieldIco/>} iconBg="#fef9c3" value={loading ? '—' : (stats?.pendingVerifications ?? 0)} label="Pending Verifications" delta={stats?.pendingVerifications > 0 ? 'Needs review' : 'All caught up'} deltaType="warn"/>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Recent Users */}
         <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
           <div className="px-[18px] py-3.5 border-b border-[#f3f4f6] flex items-center justify-between">
             <span className="text-[13px] font-extrabold text-[#1a1a1a]">Recent Users</span>
             <button onClick={() => navigate('/admin/users')} className="text-[12px] font-semibold text-[#1a7f5e] bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>View all →</button>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr>
@@ -115,6 +116,7 @@ export default function AdminDashboard() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Activity Feed */}

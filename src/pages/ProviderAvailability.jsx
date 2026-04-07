@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -33,6 +34,7 @@ function TypeOption({ icon, label, selected, color, onClick }) {
 export default function ProviderAvailability() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const today = new Date()
 
   const [monthIdx, setMonthIdx] = useState(today.getMonth())
@@ -353,6 +355,18 @@ export default function ProviderAvailability() {
 
   return (
     <div style={{ minHeight:'100vh',background:'#f9f8f6',fontFamily:"'DM Sans',-apple-system,sans-serif" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .pa-container { padding: 16px 16px 96px !important; max-width: 100% !important; }
+          .pa-header-row { flex-direction: column !important; align-items: stretch !important; gap: 12px; }
+          .pa-header-title { font-size: 22px !important; }
+          .pa-add-exc-btn { align-self: flex-start; }
+          .pa-grid { grid-template-columns: 1fr !important; }
+          .pa-modal { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; transform: none !important; width: 100% !important; max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; display: flex; flex-direction: column; }
+          .pa-modal-body { flex: 1; overflow-y: auto; }
+          .pa-modal-input { font-size: 16px !important; }
+        }
+      `}</style>
       <ProviderNav />
 
       {/* Toast */}
@@ -366,19 +380,19 @@ export default function ProviderAvailability() {
       {/* Overlay */}
       {modal && <div onClick={closeModal} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,.45)',zIndex:300 }}/>}
 
-      <div style={{ maxWidth:1000,margin:'0 auto',padding:'24px 32px 100px' }}>
+      <div className="pa-container" style={{ maxWidth:1000,margin:'0 auto',padding:'24px 32px 100px' }}>
 
         {/* Back + Header */}
         <button onClick={() => navigate('/provider-profile')} style={{ display:'inline-flex',alignItems:'center',gap:5,fontSize:13,fontWeight:600,color:'#1a7f5e',cursor:'pointer',background:'none',border:'none',fontFamily:'inherit',marginBottom:6 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           Back to profile
         </button>
-        <div style={{ display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:18 }}>
+        <div className="pa-header-row" style={{ display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:18 }}>
           <div>
-            <div style={{ fontSize:24,fontWeight:900,color:'#1a1a1a',marginBottom:3 }}>Availability</div>
+            <div className="pa-header-title" style={{ fontSize:24,fontWeight:900,color:'#1a1a1a',marginBottom:3 }}>Availability</div>
             <div style={{ fontSize:13,color:'#9ca3af' }}>Manage your schedule and set exceptions for specific dates</div>
           </div>
-          <button onClick={() => { setExcDate(''); setExcNote(''); setExcType('custom'); setModal('add-exc') }} style={{ background:'#1a7f5e',color:'white',border:'none',fontWeight:700,padding:'8px 14px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5 }}>
+          <button className="pa-add-exc-btn" onClick={() => { setExcDate(''); setExcNote(''); setExcType('custom'); setModal('add-exc') }} style={{ background:'#1a7f5e',color:'white',border:'none',fontWeight:700,padding:'10px 14px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,minHeight:44 }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add exception
           </button>
@@ -397,7 +411,7 @@ export default function ProviderAvailability() {
         </div>
 
         {/* Main grid */}
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 280px',gap:16,alignItems:'start' }}>
+        <div className="pa-grid" style={{ display:'grid',gridTemplateColumns:'1fr 280px',gap:16,alignItems:'start' }}>
 
           {/* Calendar card */}
           <div style={s.card}>
@@ -513,12 +527,12 @@ export default function ProviderAvailability() {
 
       {/* ADD EXCEPTION MODAL */}
       {modal === 'add-exc' && (
-        <div style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
+        <div className="pa-modal" style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
           <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
             <div><div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>Add exception</div><div style={{ fontSize:11,color:'#9ca3af',marginTop:2 }}>Set custom hours or block a date</div></div>
             <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
           </div>
-          <div style={{ padding:'16px 18px' }}>
+          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
             <label style={s.label}>Date</label>
             <input type="date" value={excDate} onChange={e=>setExcDate(e.target.value)} style={s.input}/>
             <label style={{ ...s.label, marginBottom:8 }}>Exception type</label>
@@ -547,12 +561,12 @@ export default function ProviderAvailability() {
 
       {/* BLOCK DATES MODAL */}
       {modal === 'block' && (
-        <div style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
+        <div className="pa-modal" style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
           <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
             <div><div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>Block off dates</div><div style={{ fontSize:11,color:'#9ca3af',marginTop:2 }}>Mark a date range as unavailable</div></div>
             <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
           </div>
-          <div style={{ padding:'16px 18px' }}>
+          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
             <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8 }}>
               <div><label style={s.label}>Start date</label><input type="date" value={blockStart} onChange={e=>setBlockStart(e.target.value)} style={s.input}/></div>
               <div><label style={s.label}>End date</label><input type="date" value={blockEnd} onChange={e=>setBlockEnd(e.target.value)} style={s.input}/></div>
@@ -569,12 +583,12 @@ export default function ProviderAvailability() {
 
       {/* DAY EDIT MODAL */}
       {modal === 'day' && (
-        <div style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
+        <div className="pa-modal" style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
           <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
             <div><div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>{MONTHS[monthIdx]} {activeDayNum}</div><div style={{ fontSize:11,color:'#9ca3af',marginTop:2 }}>Edit availability for this day</div></div>
             <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
           </div>
-          <div style={{ padding:'16px 18px' }}>
+          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
             <label style={{ ...s.label,marginBottom:8 }}>Status</label>
             <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12 }}>
               <TypeOption icon={<AvailIcon color={dayType==='available'?'#1a7f5e':'#374151'}/>} label="Available" selected={dayType==='available'} color="#1a7f5e" onClick={()=>setDayType('available')}/>
@@ -605,7 +619,7 @@ export default function ProviderAvailability() {
             </div>
             <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
           </div>
-          <div style={{ padding:'16px 18px' }}>
+          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
             <div style={{ display:'flex',alignItems:'center',gap:12,background:'#f9f8f6',border:'1.5px solid #e5e7eb',borderRadius:10,padding:'12px 14px',marginBottom:16 }}>
               <div style={{ width:40,height:40,background:'#e8f5f0',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -635,11 +649,11 @@ export default function ProviderAvailability() {
           { label:'Home', path:'/provider-dashboard', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
           { label:'Requests', path:'/provider-requests', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg> },
           { label:'Find Shifts', path:'/provider-find-shifts', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
-          { label:'Messages', path:'/provider-messages', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+          { label:'Messages', path:'/provider-messages', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, badge: unreadMsgCount },
           { label:'Profile', path:'/provider-profile', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>, active:true },
-        ].map(({label,path,icon,active})=>(
+        ].map(({label,path,icon,active,badge})=>(
           <div key={label} onClick={()=>navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
-            <span style={{color:active?'#1a7f5e':'#9ca3af'}}>{icon}</span>
+            <span style={{color:active?'#1a7f5e':'#9ca3af',position:'relative',display:'inline-block'}}>{icon}{badge>0 && <span style={{position:'absolute',top:-4,right:-6,background:'#ef4444',color:'white',fontSize:9,fontWeight:700,width:14,height:14,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid white'}}>{badge}</span>}</span>
             <span style={{fontSize:10,fontWeight:active?700:600,color:active?'#1a7f5e':'#9ca3af'}}>{label}</span>
           </div>
         ))}

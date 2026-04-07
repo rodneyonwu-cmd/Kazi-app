@@ -49,9 +49,9 @@ export default function AdminAudit() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <div className="text-[13px] font-bold text-[#1a1a1a]">{entries.length} audit entries</div>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search logs..." className="border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px] text-[12px] outline-none bg-white text-[#1a1a1a] w-[240px] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search logs..." className="border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px] text-[12px] outline-none bg-white text-[#1a1a1a] w-full md:w-[240px] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
       </div>
       <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
         {loading ? (

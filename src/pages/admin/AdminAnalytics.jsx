@@ -35,14 +35,14 @@ export default function AdminAnalytics() {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-3.5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
         <StatCard icon={<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>} iconBg="#e8f5f0" value="78%" label="Shift Fill Rate" delta="↑ 5% this month" deltaType="up"/>
         <StatCard icon={<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>} iconBg="#e8f5f0" value="48m" label="Avg Fill Time" delta="↓ 6m faster" deltaType="up"/>
         <StatCard icon={<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>} iconBg="#fef9c3" value="7.2%" label="Cancellation Rate" delta="↑ 1.2% this week" deltaType="warn"/>
         <StatCard icon={<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>} iconBg="#e8f5f0" value="64%" label="Repeat Booking Rate" delta="↑ Strong retention" deltaType="up"/>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
           <div className="px-[18px] py-3.5 border-b border-[#f3f4f6]"><span className="text-[13px] font-extrabold text-[#1a1a1a]">Shift Volume by Role</span></div>
           <div className="p-4">
@@ -68,6 +68,7 @@ export default function AdminAnalytics() {
 
       <div className="bg-white border border-[#e5e7eb] rounded-[14px] overflow-hidden">
         <div className="px-[18px] py-3.5 border-b border-[#f3f4f6]"><span className="text-[13px] font-extrabold text-[#1a1a1a]">Geographic Coverage — Top Cities</span></div>
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>{['City','Offices','Professionals','Shifts This Month','Fill Rate'].map(h => <th key={h} className="text-left text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] px-4 py-2.5 border-b border-[#f3f4f6] bg-[#fafafa]">{h}</th>)}</tr>
@@ -84,6 +85,7 @@ export default function AdminAnalytics() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

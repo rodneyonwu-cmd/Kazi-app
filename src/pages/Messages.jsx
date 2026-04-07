@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
 import InitialsAvatar from '../components/InitialsAvatar'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function Messages() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { refresh: refreshUnread } = useUnreadMessageCount()
   const [activeConvo, setActiveConvo] = useState(null)
   const [message, setMessage] = useState('')
   const [conversations, setConversations] = useState([])
@@ -30,12 +32,11 @@ export default function Messages() {
         if (!res.ok) throw new Error('Failed to fetch conversations')
         const data = await res.json()
 
-        // Transform API data into conversation list
+        // Transform API data into conversation list.
+        // This page is the OFFICE inbox, so the "other" party is ALWAYS the provider,
+        // regardless of who sent the most recent message.
         const convos = data.map(msg => {
-          // Determine the "other" party in the conversation
-          const otherUser = msg.fromRole === 'OFFICE'
-            ? msg.provider?.user
-            : msg.office?.user
+          const otherUser = msg.provider?.user
           const name = otherUser
             ? `${otherUser.firstName || ''} ${otherUser.lastName ? otherUser.lastName.charAt(0) + '.' : ''}`.trim()
             : 'Unknown'
@@ -49,7 +50,7 @@ export default function Messages() {
             role,
             lastMsg: msg.body,
             time: formatTime(msg.createdAt),
-            unread: !msg.read && msg.fromRole !== 'OFFICE',
+            unread: msg.unreadCount || 0,
           }
         })
         setConversations(convos)
@@ -92,6 +93,8 @@ export default function Messages() {
           method: 'PATCH',
           headers: { Authorization: `Bearer ${token}` },
         })
+        setConversations(prev => prev.map(c => c.id === activeConvo ? { ...c, unread: false } : c))
+        refreshUnread()
       } catch (err) {
         console.error('Error fetching thread:', err)
       } finally {
@@ -218,10 +221,10 @@ export default function Messages() {
       )}
 
       <div className="flex-1 flex justify-center overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
-        <div className="w-full max-w-[860px] flex border-x border-[#e5e7eb] bg-white">
+        <div className="w-full max-w-[860px] flex md:border-x border-[#e5e7eb] bg-white">
 
           {/* Conversation list */}
-          <div className="w-[280px] flex-shrink-0 border-r border-[#e5e7eb] flex flex-col">
+          <div className={`w-full md:w-[280px] flex-shrink-0 md:border-r border-[#e5e7eb] flex-col ${activeConvo ? 'hidden md:flex' : 'flex'}`}>
             <div className="p-4 border-b border-[#e5e7eb]">
               <h2 className="text-lg font-extrabold text-[#1a1a1a]">Messages</h2>
             </div>
@@ -254,35 +257,39 @@ export default function Messages() {
 
           {/* Active conversation or empty state */}
           {!hasConvos ? (
-            <NoConversations />
+            <div className="hidden md:flex flex-1"><NoConversations /></div>
           ) : !activeConvo ? (
-            <NoConvoSelected />
+            <div className="hidden md:flex flex-1"><NoConvoSelected /></div>
           ) : (
             <div className="flex-1 flex flex-col min-w-0">
               {/* Convo header */}
-              <div className="bg-white border-b border-[#e5e7eb] px-5 h-16 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+              <div className="bg-white border-b border-[#e5e7eb] px-4 md:px-5 h-16 flex items-center justify-between flex-shrink-0 gap-2">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                  <button onClick={() => setActiveConvo(null)} className="md:hidden w-10 h-10 flex items-center justify-center flex-shrink-0 -ml-2" aria-label="Back">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                  </button>
+                  <div className="relative flex-shrink-0">
                     <InitialsAvatar name={active.name} size={40} />
                     <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#1a7f5e] border-2 border-white"></div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#1a1a1a]">{active.name}</p>
-                    <p className="text-xs text-[#6b7280]">{active.role}</p>
+                  <div className="min-w-0">
+                    <p className="text-[13px] md:text-sm font-bold text-[#1a1a1a] truncate">{active.name}</p>
+                    <p className="text-xs text-[#6b7280] truncate">{active.role}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 relative">
+                <div className="flex items-center gap-2 relative flex-shrink-0">
                   {active.providerId && (
-                    <button onClick={() => navigate(`/provider-profile/${active.providerId}`)} className="flex items-center gap-1.5 px-3 h-9 rounded-full border border-[#e5e7eb] text-[12px] font-bold text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition" style={{ fontFamily: 'inherit' }}>
+                    <button onClick={() => navigate(`/provider-profile/${active.providerId}`)} className="flex items-center gap-1.5 px-3 h-11 md:h-9 rounded-full border border-[#e5e7eb] text-[12px] font-bold text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition" style={{ fontFamily: 'inherit' }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                      View profile
+                      <span className="hidden sm:inline">View profile</span>
+                      <span className="sm:hidden">Profile</span>
                     </button>
                   )}
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3">
+              <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-3">
                 {threadLoading ? (
                   <div className="flex-1 flex items-center justify-center">
                     <div className="w-6 h-6 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin"></div>
@@ -298,7 +305,7 @@ export default function Messages() {
                     return (
                       <div key={msg.id} className={`flex items-end gap-2 ${msg.sent ? 'flex-row-reverse' : ''}`}>
                         {!msg.sent && <InitialsAvatar name={active.name} size={28} />}
-                        <div className="max-w-[65%]">
+                        <div className="max-w-[75%] md:max-w-[65%]">
                           <div className={`rounded-2xl px-4 py-2.5 ${msg.sent ? 'bg-[#1a7f5e] rounded-br-sm' : 'bg-white border border-[#e5e7eb] rounded-bl-sm'}`}>
                             <p className={`text-sm ${msg.sent ? 'text-white' : 'text-[#1a1a1a]'}`}>{msg.text}</p>
                           </div>
@@ -328,9 +335,9 @@ export default function Messages() {
               </div>
 
               {/* Input */}
-              <div className="bg-white border-t border-[#e5e7eb] px-4 py-3 flex items-center gap-3 flex-shrink-0">
-                <input type="text" value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type a message..." className="flex-1 border border-[#e5e7eb] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a7f5e] transition" />
-                <button onClick={handleSend} className={`w-10 h-10 rounded-full flex items-center justify-center transition ${message.trim() ? 'bg-[#1a7f5e] hover:bg-[#156649]' : 'bg-[#e5e7eb]'}`}>
+              <div className="bg-white border-t border-[#e5e7eb] px-4 py-3 flex items-center gap-2 md:gap-3 flex-shrink-0 sticky bottom-0">
+                <input type="text" value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type a message..." className="flex-1 min-w-0 border border-[#e5e7eb] rounded-full px-4 h-11 text-[14px] outline-none focus:border-[#1a7f5e] transition" />
+                <button onClick={handleSend} className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition ${message.trim() ? 'bg-[#1a7f5e] hover:bg-[#156649]' : 'bg-[#e5e7eb]'}`}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>

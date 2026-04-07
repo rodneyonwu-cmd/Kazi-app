@@ -6,15 +6,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
-      <nav className="bg-white border-b border-[#e5e7eb] h-16 flex items-center px-6 justify-between flex-shrink-0">
+      <nav className="bg-white border-b border-[#e5e7eb] min-h-16 flex flex-col md:flex-row items-center px-4 md:px-6 py-3 md:py-0 md:h-16 gap-2 md:gap-0 justify-between flex-shrink-0">
         <span
           onClick={() => navigate('/')}
-          className="text-[#1a7f5e] text-4xl tracking-tight cursor-pointer"
+          className="text-[#1a7f5e] text-3xl md:text-4xl tracking-tight cursor-pointer"
           style={{ fontFamily: "'Inter',-apple-system,sans-serif", fontWeight: 900, letterSpacing: '-1px' }}
         >
           kazi.
         </span>
-        <span className="text-sm text-[#6b7280]">
+        <span className="text-[13px] md:text-sm text-[#6b7280] text-center">
           Don't have an account?{' '}
           <span
             onClick={() => navigate('/signup')}
@@ -24,7 +24,7 @@ export default function Login() {
           </span>
         </span>
       </nav>
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex-1 flex items-center justify-center px-4 py-6 md:py-12 w-full">
         <SignIn
           routing="hash"
           afterSignInUrl="/onboarding"

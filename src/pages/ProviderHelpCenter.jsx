@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const FAQS = [
   { q: 'How does Kazi pay me?', a: "Kazi processes payments via Stripe. After a completed shift, your earnings are typically deposited to your connected bank account within 1–2 business days. If Instant Pay is enabled by the office, you'll receive funds the same day." },
@@ -30,6 +31,7 @@ function FaqItem({ q, a }) {
 
 export default function ProviderHelpCenter() {
   const navigate = useNavigate()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [search, setSearch] = useState('')
   const [toast, setToast] = useState(null)
 
@@ -55,7 +57,7 @@ export default function ProviderHelpCenter() {
       )}
 
       {/* Inner */}
-      <div style={{ maxWidth: 520, margin: '0 auto', padding: '16px 14px 100px' }}>
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '16px 16px 100px', width: '100%', boxSizing: 'border-box' }}>
 
         <div style={{ fontSize: 20, fontWeight: 900, color: '#1a1a1a', marginBottom: 2 }}>Help Center</div>
         <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16 }}>Find answers or contact support</div>
@@ -140,13 +142,13 @@ export default function ProviderHelpCenter() {
             { label: 'Home',        path: '/provider-dashboard',   icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
             { label: 'Requests',    path: '/provider-requests',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> },
             { label: 'Find Shifts', path: '/provider-find-shifts', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
-            { label: 'Messages',    path: '/provider-messages',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> },
+            { label: 'Messages',    path: '/provider-messages',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, badge: unreadMsgCount },
             { label: 'Finance',     path: '/provider-earnings',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
           ].map(({ label, path, icon, badge }) => (
             <div key={label} onClick={() => navigate(path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '10px 0', cursor: 'pointer' }}>
               <div style={{ position: 'relative' }}>
                 {icon}
-                {badge && <span style={{ position: 'absolute', top: -4, right: -6, background: '#ef4444', color: 'white', fontSize: 9, fontWeight: 700, width: 14, height: 14, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white' }}>{badge}</span>}
+                {badge > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: '#ef4444', color: 'white', fontSize: 9, fontWeight: 700, width: 14, height: 14, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white' }}>{badge}</span>}
               </div>
               <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af' }}>{label}</span>
             </div>

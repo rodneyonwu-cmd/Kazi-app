@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser, useClerk } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 export default function ProviderSettings() {
   const navigate = useNavigate()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const { user } = useUser()
   const { openUserProfile } = useClerk()
   const userEmail = user?.primaryEmailAddress?.emailAddress || ''
@@ -45,7 +47,7 @@ export default function ProviderSettings() {
 
       <ProviderNav />
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto px-4 py-6 w-full">
         <div className="mb-6">
           <button onClick={() => navigate('/provider-dashboard')} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#9ca3af] hover:text-[#374151] mb-4 transition">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -56,7 +58,7 @@ export default function ProviderSettings() {
         </div>
 
         {/* Notification channels */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-5 mb-4">
+        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 md:p-5 mb-4">
           <p className="text-[15px] font-black text-[#1a1a1a] mb-4">Notification channels</p>
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -78,7 +80,7 @@ export default function ProviderSettings() {
         </div>
 
         {/* Notification types */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-5 mb-4">
+        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 md:p-5 mb-4">
           <p className="text-[15px] font-black text-[#1a1a1a] mb-4">Notification types</p>
           <div className="flex flex-col gap-4">
             {[
@@ -122,14 +124,14 @@ export default function ProviderSettings() {
         </div>
 
         {/* Danger zone */}
-        <div className="bg-white border border-[#fee2e2] rounded-[18px] p-5">
+        <div className="bg-white border border-[#fee2e2] rounded-[18px] p-4 md:p-5">
           <p className="text-[15px] font-black text-[#1a1a1a] mb-1">Danger zone</p>
           <p className="text-[12px] text-[#9ca3af] mb-4">These actions are permanent and cannot be undone.</p>
           <div className="flex flex-col gap-2">
-            <button onClick={() => showToast('Account deactivation coming soon')} className="w-full border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px] hover:border-[#ef4444] hover:text-[#ef4444] transition">
+            <button onClick={() => showToast('Account deactivation coming soon')} className="w-full border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:border-[#ef4444] hover:text-[#ef4444] transition">
               Deactivate account
             </button>
-            <button onClick={() => setShowDeleteConfirm(true)} className="w-full bg-[#fee2e2] text-[#991b1b] font-bold py-2.5 rounded-full text-[13px] hover:bg-[#fecaca] transition">
+            <button onClick={() => setShowDeleteConfirm(true)} className="w-full bg-[#fee2e2] text-[#991b1b] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:bg-[#fecaca] transition">
               Delete account
             </button>
           </div>
@@ -140,12 +142,12 @@ export default function ProviderSettings() {
       {showDeleteConfirm && (
         <>
           <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setShowDeleteConfirm(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-6 w-[340px] z-50 shadow-2xl">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-6 w-[calc(100%-32px)] max-w-[340px] max-h-[90vh] overflow-y-auto z-50 shadow-2xl">
             <p className="text-[18px] font-black text-[#1a1a1a] mb-1">Delete account?</p>
             <p className="text-[13px] text-[#9ca3af] mb-5">This will permanently delete your profile, history, and all data. This cannot be undone.</p>
             <div className="flex gap-2">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px]">Cancel</button>
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 bg-[#ef4444] text-white font-bold py-2.5 rounded-full text-[13px]">Delete</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px]">Cancel</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 bg-[#ef4444] text-white font-bold py-3 min-h-[44px] rounded-full text-[13px]">Delete</button>
             </div>
           </div>
         </>
@@ -157,12 +159,12 @@ export default function ProviderSettings() {
           { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
           { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages', path: '/provider-messages', icon: <MsgIcon /> },
+          { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, badge: unreadMsgCount },
           { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },
         ].map(({ label, path, icon, badge }) => (
           <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
             <div className="relative"><span className="text-[#9ca3af]">{icon}</span>
-              {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+              {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
             </div>
             <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
           </div>

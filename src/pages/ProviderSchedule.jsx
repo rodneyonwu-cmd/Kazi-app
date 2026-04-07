@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
@@ -27,6 +28,7 @@ const availability = [
 
 export default function ProviderSchedule() {
   const navigate = useNavigate()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const today    = new Date()
   const [monthIdx, setMonthIdx] = useState(today.getMonth())
   const [year,     setYear]     = useState(today.getFullYear())
@@ -219,13 +221,13 @@ export default function ProviderSchedule() {
           { label: 'Home',        path: '/provider-dashboard',   icon: <HomeIcon /> },
           { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon /> },
+          { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon />, badge: unreadMsgCount },
           { label: 'Earnings',    path: '/provider-earnings',    icon: <EarnIcon /> },
         ].map(({ label, path, icon, badge }) => (
           <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
             <div className="relative">
               <span className="text-[#9ca3af]">{icon}</span>
-              {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+              {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
             </div>
             <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
           </div>

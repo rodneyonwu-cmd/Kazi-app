@@ -4,6 +4,7 @@ import { useUser, useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 import Nav from '../components/Nav'
 import InitialsAvatar from '../components/InitialsAvatar'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -27,6 +28,7 @@ const CheckIcon = () => (
 
 export default function ProviderProfile() {
   const navigate = useNavigate()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const location = useLocation()
   const { id: providerIdParam } = useParams()
   const isExternalView = !!providerIdParam
@@ -333,7 +335,7 @@ export default function ProviderProfile() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+      <div className="overflow-x-hidden w-full" style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif", overflowX: 'hidden', maxWidth: '100vw', width: '100%' }}>
         {isExternalView ? <Nav /> : <ProviderNav />}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 120 }}>
           <div style={{ textAlign: 'center' }}>
@@ -347,7 +349,25 @@ export default function ProviderProfile() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+    <div className="overflow-x-hidden w-full" style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif", overflowX: 'hidden', maxWidth: '100vw', width: '100%' }}>
+
+      {/* Mobile responsive overrides */}
+      <style>{`
+        @media (max-width: 768px) {
+          .pp-back-wrap { padding: 12px 16px !important; }
+          .pp-content-wrap { padding: 0 16px 96px !important; }
+          .pp-row { flex-direction: column !important; gap: 14px !important; }
+          .pp-sidebar { width: 100% !important; position: static !important; order: 2; }
+          .pp-main { order: 1; width: 100%; }
+          .pp-hero { padding: 18px 16px 16px !important; }
+          .pp-hero-name { font-size: 20px !important; }
+          .pp-stats { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+          .pp-modal-wrap { padding: 0 !important; align-items: stretch !important; }
+          .pp-modal { max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; min-height: 100vh; display: flex; flex-direction: column; }
+          .pp-modal-body { flex: 1; overflow-y: auto; }
+          .pp-modal-input { font-size: 16px !important; }
+        }
+      `}</style>
 
       {/* TOAST */}
       {toast && (
@@ -359,8 +379,8 @@ export default function ProviderProfile() {
 
       {/* EDIT PROFILE MODAL */}
       {showEditModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 460, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="pp-modal-wrap" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+          <div className="pp-modal" style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 460, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Edit profile</h2>
               <button onClick={() => setShowEditModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
@@ -385,10 +405,10 @@ export default function ProviderProfile() {
               } catch { showToast('Failed to upload photo') }
               e.target.value = ''
             }} />
-            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="pp-modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {profile?.avatarUrl
-                  ? <img src={profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`} alt="Profile" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
+                {(user?.imageUrl || profile?.avatarUrl)
+                  ? <img src={user?.imageUrl || (profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`)} alt="Profile" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
                   : <InitialsAvatar name={firstName} size={64} />
                 }
                 <button onClick={() => avatarInputRef.current?.click()} style={{ border: '1px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Change photo</button>
@@ -402,12 +422,12 @@ export default function ProviderProfile() {
               ].map(([label, placeholder, type]) => (
                 <div key={label}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{label}</p>
-                  <input type={type} placeholder={placeholder} defaultValue={placeholder} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                  <input className="pp-modal-input" type={type} placeholder={placeholder} defaultValue={placeholder} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
               ))}
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>About</p>
-                <textarea rows={4} defaultValue={about} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                <textarea className="pp-modal-input" rows={4} defaultValue={about} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
                 <button onClick={() => setShowEditModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
@@ -420,8 +440,8 @@ export default function ProviderProfile() {
 
       {/* SOFTWARE MODAL */}
       {showSoftwareModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)' }}>
+        <div className="pp-modal-wrap" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+          <div className="pp-modal" style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Practice Software</h2>
               <button onClick={() => setShowSoftwareModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
@@ -447,8 +467,8 @@ export default function ProviderProfile() {
 
       {/* SKILLS MODAL */}
       {showSkillsModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '80vh', overflowY: 'auto' }}>
+        <div className="pp-modal-wrap" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+          <div className="pp-modal" style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '80vh', overflowY: 'auto' }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Skills & Experience</h2>
               <button onClick={() => setShowSkillsModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
@@ -475,28 +495,28 @@ export default function ProviderProfile() {
       {isExternalView ? <Nav /> : <ProviderNav />}
 
       {/* BACK */}
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '16px 32px' }}>
+      <div className="pp-back-wrap" style={{ maxWidth: 900, margin: '0 auto', padding: '16px 32px' }}>
         <button onClick={() => isExternalView ? navigate(-1) : navigate('/provider-dashboard')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#1a7f5e', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           {isExternalView ? 'Back' : 'Back to dashboard'}
         </button>
       </div>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 100px' }}>
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+      <div className="pp-content-wrap" style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 100px' }}>
+        <div className="pp-row" style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
 
           {/* -- MAIN COLUMN -- */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          <div className="pp-main" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
             {/* HERO */}
-            <div style={{ ...s.card, padding: '22px 22px 18px' }}>
+            <div className="pp-hero" style={{ ...s.card, padding: '22px 22px 18px' }}>
               {!readOnly && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e8f5f0', color: '#1a7f5e', fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 100, marginBottom: 16 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                   Profile visible to offices
                 </div>
               )}
-              {readOnly && (
+              {readOnly && !isExternalView && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e8f5f0', color: '#1a7f5e', fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 100, marginBottom: 16 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                   This is how offices see your profile
@@ -505,10 +525,10 @@ export default function ProviderProfile() {
               {/* Photo + Info row */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  {profile?.avatarUrl
-                    ? <img src={profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`} alt="Profile" style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover' }} />
-                    : <InitialsAvatar name={firstName} size={84} />
-                  }
+                  {(user?.imageUrl || profile?.avatarUrl)
+                    ? <img src={user?.imageUrl || (profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`)} alt="Profile" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex' }} style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover' }} />
+                    : null}
+                  <div style={{ display: (user?.imageUrl || profile?.avatarUrl) ? 'none' : 'flex' }}><InitialsAvatar name={firstName} size={84} /></div>
                   {strengthPct === 100 && (
                     <div style={{ position: 'absolute', bottom: 2, right: 2, width: 26, height: 26, borderRadius: '50%', background: '#7c3aed', border: '2.5px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -517,7 +537,7 @@ export default function ProviderProfile() {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {/* Name */}
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2, marginBottom: 3 }}>
+                  <div className="pp-hero-name" style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2, marginBottom: 3 }}>
                     {displayName || 'Complete your profile'}
                   </div>
                   {/* Role + location */}
@@ -545,7 +565,7 @@ export default function ProviderProfile() {
                 </div>
               </div>
               {/* 4 stat tiles */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+              <div className="pp-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
                 {[
                   ['SHIFTS', String(completedShifts), '#1a1a1a'],
                   ['RESPONSE', '\u2014', '#1a1a1a'],
@@ -813,7 +833,7 @@ export default function ProviderProfile() {
 
           {/* -- RIGHT SIDEBAR -- */}
           {readOnly ? (
-            <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
+            <div className="pp-sidebar" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
               <div style={s.sideCard}>
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Badges</div>
                 {completedShifts > 0 ? (
@@ -833,7 +853,7 @@ export default function ProviderProfile() {
               </div>
             </div>
           ) : (
-            <div style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
+            <div className="pp-sidebar" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
               {/* Edit actions */}
               <div style={s.sideCard}>
                 <button onClick={() => setShowEditModal(true)} style={{ width: '100%', background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 800, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 8 }}>
@@ -930,12 +950,13 @@ export default function ProviderProfile() {
           { label: 'Home',        path: '/provider-dashboard',   icon: <HomeIcon /> },
           { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon /> },
+          { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon />, badge: unreadMsgCount },
           { label: 'Earnings',    path: '/provider-earnings',    icon: <EarnIcon /> },
-        ].map(({ label, path, icon }) => (
+        ].map(({ label, path, icon, badge }) => (
           <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
             <div className="relative">
               <span className="text-[#9ca3af]">{icon}</span>
+              {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
             </div>
             <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
           </div>

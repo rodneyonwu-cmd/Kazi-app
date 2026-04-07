@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -16,6 +17,7 @@ const DOC_TYPES = [
 export default function ProviderDocuments() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [modal, setModal] = useState(false)
   const [docType, setDocType] = useState('License')
   const [toast, setToast] = useState(null)
@@ -121,14 +123,14 @@ export default function ProviderDocuments() {
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => setModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => fileInputRef.current?.click()} className="flex-[2] bg-[#1a7f5e] hover:bg-[#156649] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>Upload</button>
+              <button onClick={() => setModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-3 min-h-[44px] text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={() => fileInputRef.current?.click()} className="flex-[2] bg-[#1a7f5e] hover:bg-[#156649] text-white rounded-full py-3 min-h-[44px] text-[13px] font-extrabold border-none cursor-pointer transition" style={{ fontFamily: 'inherit' }}>Upload</button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-[520px] mx-auto px-3.5 py-5 pb-24">
+      <div className="max-w-[520px] mx-auto px-4 md:px-3.5 py-5 pb-24">
         <h1 className="text-[20px] font-black text-[#1a1a1a] mb-0.5">Documents</h1>
         <p className="text-[13px] text-[#9ca3af] mb-4">Your licenses, certifications, and credentials</p>
 
@@ -208,13 +210,13 @@ export default function ProviderDocuments() {
             { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
             { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
             { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-            { label: 'Messages', path: '/provider-messages', icon: <MsgIcon /> },
+            { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, badge: unreadMsgCount },
             { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },
           ].map(({ label, path, icon, badge }) => (
             <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
               <div className="relative">
                 <span className="text-[#9ca3af]">{icon}</span>
-                {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+                {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
               </div>
               <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
             </div>

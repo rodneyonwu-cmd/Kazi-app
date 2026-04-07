@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 import InitialsAvatar from '../components/InitialsAvatar'
+import ApplyConfirmModal from '../components/ApplyConfirmModal'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 const LOGO_COLORS = [
   { bg: 'bg-[#e8f5f0]', text: 'text-[#1a7f5e]' },
   { bg: 'bg-[#fef9c3]', text: 'text-[#92400e]' },
-  { bg: 'bg-[#ede9fe]', text: 'text-[#5b21b6]' },
+  { bg: 'bg-[#e8f5f0]', text: 'text-[#1a7f5e]' },
   { bg: 'bg-[#fee2e2]', text: 'text-[#991b1b]' },
   { bg: 'bg-[#dbeafe]', text: 'text-[#1e40af]' },
 ]
@@ -95,6 +97,7 @@ export default function ProviderDashboard() {
   const navigate = useNavigate()
   const { user } = useUser()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [zip, setZip] = useState('77459')
   const [distance, setDistance] = useState('Within 25 miles')
   const [searchDate, setSearchDate] = useState('')
@@ -104,8 +107,12 @@ export default function ProviderDashboard() {
   const [profileLoading, setProfileLoading] = useState(true)
   const [shiftsLoading, setShiftsLoading] = useState(true)
   const [selectedShift, setSelectedShift] = useState(null)
-  const [msgModal, setMsgModal] = useState(null)
+  const [showMessageModal, setShowMessageModal] = useState(false)
   const [msgText, setMsgText] = useState('')
+  const [toast, setToast] = useState(null)
+  const [confirmApply, setConfirmApply] = useState(null)
+  const [appliedIds, setAppliedIds] = useState([])
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -113,19 +120,19 @@ export default function ProviderDashboard() {
         const token = await getToken()
         const headers = { Authorization: `Bearer ${token}` }
 
-        // Fetch profile and shifts in parallel
-        const [profileRes, shiftsRes] = await Promise.all([
-          fetch(`${API_URL}/api/providers/me`, { headers }),
-          fetch(`${API_URL}/api/shifts?status=OPEN`, { headers }),
-        ])
-
+        // Fetch profile first to get role, then fetch role-filtered shifts
+        const profileRes = await fetch(`${API_URL}/api/providers/me`, { headers })
+        let providerRole = ''
         if (profileRes.ok) {
           const data = await profileRes.json()
           setProfile(data)
           if (data.zip) setZip(data.zip)
+          providerRole = data.role || ''
         }
         setProfileLoading(false)
 
+        const roleParam = providerRole ? `&role=${encodeURIComponent(providerRole)}` : ''
+        const shiftsRes = await fetch(`${API_URL}/api/shifts?status=OPEN${roleParam}`, { headers })
         if (shiftsRes.ok) {
           const data = await shiftsRes.json()
           setShifts(data.slice(0, 5))
@@ -196,7 +203,7 @@ export default function ProviderDashboard() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[20px] font-black text-[#1a1a1a] tracking-tight mb-1">{getGreeting()}, {firstName}</p>
+                <p className="text-[20px] font-black text-[#1a1a1a] tracking-tight mb-1">{getGreeting()}, {firstName} 👋</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[13px] font-bold text-[#1a7f5e] capitalize">{roleName}</span>
                   {location && <>
@@ -218,7 +225,7 @@ export default function ProviderDashboard() {
             <div className="h-px bg-[#f3f4f6] mb-5" />
 
             {/* Stats row */}
-            <div className="grid grid-cols-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 md:gap-y-0">
               {[
                 { value: profile?.stats?.rating ? `★ ${profile.stats.rating}` : '—', label: 'Rating', color: profile?.stats?.rating ? 'text-[#F97316]' : 'text-[#9ca3af]' },
                 { value: profile?.stats?.completedShifts > 0 ? `${Math.round(profile.stats.reliability)}%` : '\u2014', label: 'Reliability', color: profile?.stats?.completedShifts > 0 ? 'text-[#1a1a1a]' : 'text-[#9ca3af]' },
@@ -227,9 +234,9 @@ export default function ProviderDashboard() {
               ].map(({ value, label, color }, i, arr) => (
                 <div
                   key={label}
-                  className={`text-center px-2 ${i < arr.length - 1 ? 'border-r border-[#f3f4f6]' : ''}`}
+                  className={`text-center px-2 md:${i < arr.length - 1 ? 'border-r border-[#f3f4f6]' : ''} ${i < arr.length - 1 ? 'md:border-r md:border-[#f3f4f6]' : ''}`}
                 >
-                  <p className={`text-[22px] font-bold ${color} mb-0.5`}>{value}</p>
+                  <p className={`text-[20px] md:text-[22px] font-bold ${color} mb-0.5`}>{value}</p>
                   <p className="text-[13px] text-[#9ca3af]">{label}</p>
                 </div>
               ))}
@@ -242,7 +249,7 @@ export default function ProviderDashboard() {
           <p className="text-[16px] font-black text-[#1a1a1a] mb-1">Find your next opportunity</p>
           <p className="text-[13px] text-[#9ca3af] mb-4">Shifts and jobs near you matching your license</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr_1fr_auto] gap-2 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr_1fr_auto] gap-2 sm:items-center">
             {/* ZIP */}
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round">
@@ -290,7 +297,7 @@ export default function ProviderDashboard() {
             {/* Search button */}
             <button
               onClick={handleSearch}
-              className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-xl text-[14px] transition whitespace-nowrap"
+              className="w-full sm:w-auto bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-3 sm:py-2.5 rounded-xl text-[14px] transition whitespace-nowrap min-h-[44px]"
             >
               Search
             </button>
@@ -354,11 +361,7 @@ View your schedule
                 const isTomorrow = new Date(shift.date).toDateString() === new Date(Date.now() + 86400000).toDateString()
                 return (
                   <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#1a7f5e] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
-                    {shift.office?.logoUrl ? (
-                      <img src={shift.office.logoUrl.startsWith('http') ? shift.office.logoUrl : `${API_URL}${shift.office.logoUrl}`} alt="" className="w-11 h-11 rounded-[12px] object-cover flex-shrink-0" />
-                    ) : (
-                      <div className={`w-11 h-11 rounded-[12px] ${colors.bg} flex items-center justify-center text-[11px] font-black ${colors.text} flex-shrink-0`}>{initials}</div>
-                    )}
+                    <InitialsAvatar name={officeName} size={44} radius={12} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{officeName}</p>
@@ -383,10 +386,10 @@ View your schedule
           {shifts.filter(s => s.jobType === 'PERMANENT').length > 0 && (<>
             <div className="flex items-center justify-between mb-3">
               <p className="text-[15px] font-black text-[#1a1a1a] flex items-center gap-2">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                 Permanent jobs
               </p>
-              <button onClick={() => navigate('/provider-find-shifts')} className="text-[13px] font-bold text-[#5b21b6] hover:underline">See all</button>
+              <button onClick={() => navigate('/provider-find-shifts')} className="text-[13px] font-bold text-[#1a7f5e] hover:underline">See all</button>
             </div>
             <div className="space-y-3 mb-6">
               {shifts.filter(s => s.jobType === 'PERMANENT').map((shift) => {
@@ -394,24 +397,20 @@ View your schedule
                 const initials = getInitials(officeName)
                 const salaryDisplay = shift.salaryMin ? `$${Number(shift.salaryMin).toLocaleString()}${shift.salaryMax ? ` – $${Number(shift.salaryMax).toLocaleString()}` : ''}/yr` : ''
                 return (
-                  <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#5b21b6] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
-                    {shift.office?.logoUrl ? (
-                      <img src={shift.office.logoUrl.startsWith('http') ? shift.office.logoUrl : `${API_URL}${shift.office.logoUrl}`} alt="" className="w-11 h-11 rounded-[12px] object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-11 h-11 rounded-[12px] bg-[#ede9fe] flex items-center justify-center text-[11px] font-black text-[#5b21b6] flex-shrink-0">{initials}</div>
-                    )}
+                  <button key={shift.id} onClick={() => setSelectedShift(shift)} className="w-full bg-white border border-[#e5e7eb] hover:border-[#1a7f5e] rounded-[18px] p-4 flex items-center gap-4 transition text-left">
+                    <InitialsAvatar name={officeName} size={44} radius={12} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-[14px] font-extrabold text-[#1a1a1a] truncate">{officeName}</p>
                         {(() => { const empType = shift.schedule?.split(' · ')[0] || 'Full-time'; const isPart = empType === 'Part-time'; return (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#ede9fe] text-[#5b21b6]'}`}>{empType}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${isPart ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{empType}</span>
                         ) })()}
                       </div>
                       <p className="text-[12px] text-[#6b7280]">{shift.role}</p>
                       <p className="text-[12px] text-[#9ca3af]">{shift.schedule?.split(' · ')[0] || 'Full-time'}</p>
                     </div>
                     <div className="text-right flex-shrink-0" style={{ maxWidth: 120 }}>
-                      <p className="text-[13px] font-black text-[#5b21b6]">{salaryDisplay || `$${shift.hourlyRate}/hr`}</p>
+                      <p className="text-[13px] font-black text-[#1a7f5e]">{salaryDisplay || `$${shift.hourlyRate}/hr`}</p>
                       {salaryDisplay && shift.hourlyRate > 0 && <p className="text-[11px] text-[#9ca3af]">${shift.hourlyRate}/hr</p>}
                     </div>
                   </button>
@@ -443,16 +442,14 @@ View your schedule
         const software = (s.software || []).join(', ') || 'N/A'
         const salaryDisplay = s.salaryMin ? `$${Number(s.salaryMin).toLocaleString()}${s.salaryMax ? ` – $${Number(s.salaryMax).toLocaleString()}` : ''}/yr` : ''
         const benefits = s.benefits || []
-        const accent = isPerm ? '#5b21b6' : '#1a7f5e'
-        const accentBg = isPerm ? 'bg-[#ede9fe]' : 'bg-[#e8f5f0]'
-        const accentText = isPerm ? 'text-[#5b21b6]' : 'text-[#1a7f5e]'
-        const accentDark = isPerm ? 'text-[#5b21b6]' : 'text-[#0f4d38]'
-        const accentBtn = isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95]' : 'bg-[#1a7f5e] hover:bg-[#156649]'
-        const accentHover = isPerm ? 'hover:border-[#5b21b6] hover:bg-[#f5f3ff]' : 'hover:border-[#1a7f5e] hover:bg-[#f0faf5]'
+        const accentBg = 'bg-[#e8f5f0]'
+        const accentText = 'text-[#1a7f5e]'
+        const accentDark = 'text-[#0f4d38]'
+        const accentHover = 'hover:border-[#1a7f5e] hover:bg-[#f0faf5]'
         return (
         <>
-          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSelectedShift(null)} />
-          <div className="fixed top-0 right-0 bottom-0 w-full max-w-[440px] bg-white z-50 flex flex-col shadow-2xl">
+          <div className="fixed inset-0 bg-black/40 z-[55]" onClick={() => setSelectedShift(null)} />
+          <div className="fixed top-0 right-0 bottom-0 left-0 md:left-auto w-full md:max-w-[440px] bg-white z-[60] flex flex-col shadow-2xl">
             {/* Header */}
             <div className="px-5 pt-6 pb-4 border-b border-[#f3f4f6] flex-shrink-0">
               <button onClick={() => setSelectedShift(null)} className="flex items-center gap-1.5 text-[13px] font-bold text-[#6b7280] mb-4 bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
@@ -460,11 +457,7 @@ View your schedule
                 Back
               </button>
               <div className="flex items-start gap-3">
-                {s.office?.logoUrl ? (
-                  <img src={s.office.logoUrl.startsWith('http') ? s.office.logoUrl : `${API_URL}${s.office.logoUrl}`} alt="" className="w-14 h-14 rounded-[14px] object-cover flex-shrink-0" />
-                ) : (
-                  <div className={`w-14 h-14 rounded-[14px] ${accentBg} flex items-center justify-center text-[14px] font-black ${accentText} flex-shrink-0`}>{initials}</div>
-                )}
+                <InitialsAvatar name={officeName} size={56} radius={14} />
                 <div className="flex-1">
                   <p className="text-[20px] font-black text-[#1a1a1a]">{officeName}</p>
                   <p className="text-[13px] text-[#6b7280]">{location}</p>
@@ -476,9 +469,9 @@ View your schedule
             <div className="flex-1 overflow-y-auto px-5 py-4">
               {/* Compensation banner */}
               <div className={`rounded-[14px] px-4 py-3 mb-5 ${accentBg}`}>
-                <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${isPerm ? 'text-[#7c3aed]' : 'text-[#6b9e8a]'}`}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
+                <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${isPerm ? 'text-[#1a7f5e]' : 'text-[#6b9e8a]'}`}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
                 <p className={`font-black ${isPerm ? 'text-[17px]' : 'text-[22px]'} ${accentDark}`}>{isPerm ? (salaryDisplay || rate) : estPay}</p>
-                {isPerm && rate && salaryDisplay && <p className="text-[12px] text-[#7c3aed] mt-0.5">{rate}</p>}
+                {isPerm && rate && salaryDisplay && <p className="text-[12px] text-[#1a7f5e] mt-0.5">{rate}</p>}
               </div>
 
               {isPerm ? (<>
@@ -505,8 +498,8 @@ View your schedule
                     <p className="text-[15px] font-semibold text-[#374151] mb-3">Benefits</p>
                     <div className="flex flex-wrap gap-2">
                       {benefits.map(b => (
-                        <span key={b} className="flex items-center gap-1.5 bg-[#f5f3ff] border border-[#e5e7eb] rounded-full px-3 py-1.5 text-[12px] font-semibold text-[#374151]">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>{b}
+                        <span key={b} className="flex items-center gap-1.5 bg-[#f0faf5] border border-[#e5e7eb] rounded-full px-3 py-1.5 text-[12px] font-semibold text-[#374151]">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>{b}
                         </span>
                       ))}
                     </div>
@@ -552,25 +545,14 @@ View your schedule
 
             {/* Footer */}
             <div className="px-5 py-4 border-t border-[#f3f4f6] flex gap-2 flex-shrink-0 bg-white">
-              <button onClick={() => { setMsgModal({ officeName, officeId: s.officeId }); setSelectedShift(null) }} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+              <button onClick={() => setShowMessageModal(true)} className="flex items-center justify-center gap-2 border border-[#e5e7eb] text-[#374151] font-bold px-5 py-3 rounded-full text-[14px] flex-shrink-0 hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
               </button>
               <button
-                onClick={async () => {
-                  try {
-                    const token = await getToken()
-                    const res = await fetch(`${API_URL}/api/applications`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ shiftId: s.id }),
-                    })
-                    if (res.ok) { setSelectedShift(null); showToast('Application submitted!') }
-                    else { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to apply') }
-                  } catch { showToast('Failed to apply') }
-                }}
-                className={`flex-1 ${accentBtn} text-white font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer`} style={{ fontFamily: 'inherit' }}
+                onClick={() => { if (!appliedIds.includes(s.id)) setConfirmApply(s) }}
+                className={`flex-1 ${appliedIds.includes(s.id) ? 'bg-[#0f4d38]' : 'bg-[#1a7f5e] hover:bg-[#156649]'} text-white font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer`} style={{ fontFamily: 'inherit' }}
               >
-                {isPerm ? 'Apply Now' : 'Apply'}
+                {appliedIds.includes(s.id) ? '✓ Applied' : (isPerm ? 'Apply Now' : 'Apply')}
               </button>
             </div>
           </div>
@@ -578,18 +560,18 @@ View your schedule
         )
       })()}
 
-      {/* ── MESSAGE MODAL ── */}
-      {msgModal && (
+      {/* ── MESSAGE MODAL (overlays shift drawer) ── */}
+      {showMessageModal && selectedShift && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setMsgModal(null)} />
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-50 shadow-2xl max-w-[500px] mx-auto">
+          <div className="fixed inset-0 bg-black/40 z-[150]" onClick={() => setShowMessageModal(false)} />
+          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-[151] shadow-2xl max-w-[500px] mx-auto">
             <div className="px-5 py-4 border-b border-[#f3f4f6]">
-              <p className="text-[15px] font-bold text-[#1a1a1a]">Message {msgModal.officeName}</p>
+              <p className="text-[15px] font-bold text-[#1a1a1a]">Message {selectedShift.office?.name || 'Office'}</p>
             </div>
             <div className="px-5 py-4">
               <textarea value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="Type your message..." className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] resize-none h-24" />
               <div className="flex gap-2 mt-3">
-                <button onClick={() => setMsgModal(null)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px]">Cancel</button>
+                <button onClick={() => setShowMessageModal(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px]">Cancel</button>
                 <button onClick={async () => {
                   if (!msgText.trim()) return
                   try {
@@ -597,10 +579,11 @@ View your schedule
                     await fetch(`${API_URL}/api/messages`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                      body: JSON.stringify({ officeId: msgModal?.officeId || null, providerId: profile?.id || null, body: msgText.trim() }),
+                      body: JSON.stringify({ officeId: selectedShift?.officeId || null, providerId: profile?.id || null, body: msgText.trim() }),
                     })
+                    showToast('Message sent!')
                   } catch {}
-                  setMsgModal(null); setMsgText('')
+                  setShowMessageModal(false); setMsgText('')
                 }} className="flex-1 bg-[#1a7f5e] text-white font-bold py-2.5 rounded-full text-[13px]">Send</button>
               </div>
             </div>
@@ -608,13 +591,41 @@ View your schedule
         </>
       )}
 
+      {/* Apply confirmation modal */}
+      <ApplyConfirmModal
+        shift={confirmApply}
+        onCancel={() => setConfirmApply(null)}
+        onConfirm={async () => {
+          const id = confirmApply.id
+          setConfirmApply(null)
+          try {
+            const token = await getToken()
+            const res = await fetch(`${API_URL}/api/applications`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ shiftId: id }),
+            })
+            if (res.ok) { setAppliedIds(prev => [...prev, id]); showToast('Application submitted!') }
+            else { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to apply') }
+          } catch { showToast('Failed to apply') }
+        }}
+      />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[12px] font-semibold px-4 py-2.5 rounded-full z-[300] flex items-center gap-2 shadow-xl whitespace-nowrap">
+          <div className="w-4 h-4 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0"><svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg></div>
+          {toast}
+        </div>
+      )}
+
       {/* ── MOBILE BOTTOM TOOLBAR ── */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
         {[
           { label: 'Home', path: '/provider-dashboard', active: true, icon: <HomeIcon /> },
-          { label: 'Requests', path: '/provider-requests', icon: <RequestsIcon />, badge: profile?.stats?.pendingRequests || 0 },
+          { label: 'Requests', path: '/provider-requests', icon: <RequestsIcon />, badge: profile?.stats?.pendingRequests || null },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages', path: '/provider-messages', icon: <MessageIcon /> },
+          { label: 'Messages', path: '/provider-messages', icon: <MessageIcon />, badge: unreadMsgCount },
           { label: 'Earnings', path: '/provider-earnings', icon: <EarningsIcon /> },
         ].map(({ label, path, active, icon, badge }) => (
           <div

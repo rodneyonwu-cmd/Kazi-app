@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function FavoriteOffices() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [favs, setFavs] = useState([])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
@@ -52,7 +54,7 @@ export default function FavoriteOffices() {
         </div>
       )}
 
-      <div className="max-w-[520px] mx-auto px-3.5 py-5 pb-24">
+      <div className="max-w-[520px] mx-auto px-4 md:px-3.5 py-5 pb-24">
         <h1 className="text-[20px] font-black text-[#1a1a1a] mb-0.5">Favorite Offices</h1>
         <p className="text-[13px] text-[#9ca3af] mb-4">{loading ? '...' : `${favs.length} saved office${favs.length !== 1 ? 's' : ''}`}</p>
 
@@ -75,7 +77,7 @@ export default function FavoriteOffices() {
             </div>
             <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No favorite offices yet</p>
             <p className="text-[13px] text-[#9ca3af] mb-4 max-w-[260px] mx-auto">Save offices you love to quickly find and rebook them later.</p>
-            <button onClick={() => navigate('/provider-find-shifts')} className="bg-[#1a7f5e] text-white font-bold px-5 py-2.5 rounded-full text-[13px] hover:bg-[#156649] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Browse shifts</button>
+            <button onClick={() => navigate('/provider-find-shifts')} className="bg-[#1a7f5e] text-white font-bold px-5 py-3 min-h-[44px] rounded-full text-[13px] hover:bg-[#156649] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Browse shifts</button>
           </div>
         ) : (
           favs.map(office => (
@@ -151,15 +153,15 @@ export default function FavoriteOffices() {
         <div className="flex">
           {[
             { label: 'Home',        path: '/provider-dashboard',   icon: <HomeIcon /> },
-            { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon />,  badge: 2 },
+            { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon /> },
             { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-            { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon /> },
+            { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon />, badge: unreadMsgCount },
             { label: 'Finance',     path: '/provider-earnings',    icon: <EarnIcon /> },
           ].map(({ label, path, icon, badge }) => (
             <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
               <div className="relative">
                 <span className="text-[#9ca3af]">{icon}</span>
-                {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+                {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
               </div>
               <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
             </div>

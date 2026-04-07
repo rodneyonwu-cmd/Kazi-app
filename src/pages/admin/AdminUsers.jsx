@@ -103,7 +103,7 @@ export default function AdminUsers() {
               <button onClick={() => setModal(null)} className="w-7 h-7 rounded-full border border-[#e5e7eb] flex items-center justify-center text-[#6b7280] text-[15px] cursor-pointer bg-white" style={{ fontFamily: 'inherit' }}>×</button>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-2 gap-3.5 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
                 {[
                   ['Email', modal.email], ['Type', modal.type === 'professional' ? 'Professional' : modal.type === 'office' ? 'Office' : 'Admin'],
                   ['Status', STATUS_LABEL[modal.status]], ['Joined', modal.joined],
@@ -136,8 +136,9 @@ export default function AdminUsers() {
               <button key={f.val} onClick={() => setFilter(f.val)} className={`px-[11px] py-[5px] rounded-full border text-[11px] font-bold cursor-pointer transition ${filter === f.val ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-white border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>{f.label}</button>
             ))}
           </div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." className="border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px] text-[12px] outline-none bg-[#f9f8f6] text-[#1a1a1a] w-[200px] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." className="border border-[#e5e7eb] rounded-[9px] px-[11px] py-[6px] text-[12px] outline-none bg-[#f9f8f6] text-[#1a1a1a] w-full md:w-[200px] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>{['User','Type','Plan','Location','Reliability','Status','Joined','Actions'].map(h => <th key={h} className="text-left text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] px-4 py-2.5 border-b border-[#f3f4f6] bg-[#fafafa] whitespace-nowrap">{h}</th>)}</tr>
@@ -174,6 +175,7 @@ export default function AdminUsers() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

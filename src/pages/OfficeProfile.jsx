@@ -4,6 +4,7 @@ import { useUser, useAuth } from '@clerk/clerk-react'
 import Nav from '../components/Nav'
 import ProviderNav from '../components/ProviderNav'
 import InitialsAvatar from '../components/InitialsAvatar'
+import PermanentJobCard from '../components/PermanentJobCard'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -31,6 +32,7 @@ export default function OfficeProfile() {
   const [editDetails, setEditDetails] = useState({})
   const [editingShift, setEditingShift] = useState(false)
   const [shiftEdit, setShiftEdit] = useState({})
+  const [logoFailed, setLogoFailed] = useState(false)
   const logoRef = useRef(null)
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
   const isOwner = !isExternalView
@@ -169,7 +171,7 @@ export default function OfficeProfile() {
     <div className="min-h-screen bg-[#f9f8f6]">
       {isExternalView ? <ProviderNav /> : <Nav />}
 
-      <div className="max-w-[700px] mx-auto px-6 py-8 pb-16">
+      <div className="max-w-[700px] mx-auto px-4 md:px-6 py-6 md:py-8 pb-24">
 
         {/* Back link */}
         <button
@@ -183,17 +185,22 @@ export default function OfficeProfile() {
         </button>
 
         {/* HEADER CARD */}
-        <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 mb-4">
-          <div className="flex items-start gap-5 mb-5">
+        <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-6 mb-4">
+          <div className="flex items-start gap-4 md:gap-5 mb-5">
 
             {/* Logo */}
             <input type="file" ref={logoRef} accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) { uploadLogo(e.target.files[0]); e.target.value = '' } }} />
             <div className="relative flex-shrink-0" onClick={() => isOwner && logoRef.current?.click()} style={{ cursor: isOwner ? 'pointer' : 'default' }}>
-              {office?.logoUrl ? (
-                <img src={office.logoUrl.startsWith('http') ? office.logoUrl : `${API_URL}${office.logoUrl}`} alt="Logo" className="w-20 h-20 rounded-2xl object-cover" />
+              {office?.logoUrl && !logoFailed ? (
+                <img
+                  src={office.logoUrl.startsWith('http') ? office.logoUrl : `${API_URL}${office.logoUrl}`}
+                  alt="Logo"
+                  className="w-20 h-20 rounded-full object-cover"
+                  onError={() => setLogoFailed(true)}
+                />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-[#1a7f5e] flex items-center justify-center">
-                  <span className="text-white text-xl font-extrabold">{officeInitials}</span>
+                <div className="w-20 h-20 rounded-full bg-[#1a7f5e] flex items-center justify-center">
+                  <span className="text-white text-[28px] font-extrabold">{officeInitials}</span>
                 </div>
               )}
               {isOwner && (
@@ -210,8 +217,8 @@ export default function OfficeProfile() {
 
             {/* Name & meta */}
             <div className="flex-1 min-w-0">
-              <h1 className="text-[22px] font-extrabold text-[#1a1a1a] mb-0.5">{officeName}</h1>
-              <p className="text-[14px] text-[#6b7280] mb-2">{officeSpecialty}{officeLocation ? ` · ${officeLocation}` : ''}</p>
+              <h1 className="text-[18px] md:text-[22px] font-extrabold text-[#1a1a1a] mb-0.5 break-words">{officeName}</h1>
+              <p className="text-[13px] md:text-[14px] text-[#6b7280] mb-2">{officeSpecialty}{officeLocation ? ` · ${officeLocation}` : ''}</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[#F97316] font-bold text-[14px]">★ {avgRating}</span>
                 <span className="text-[13px] text-[#6b7280]">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
@@ -220,7 +227,7 @@ export default function OfficeProfile() {
           </div>
 
           {/* Address / phone */}
-          <div className="flex items-center gap-5 flex-wrap text-[13px] text-[#6b7280]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 sm:flex-wrap text-[13px] text-[#6b7280]">
             {officeAddress && (
               <span className="flex items-center gap-1.5">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -242,12 +249,12 @@ export default function OfficeProfile() {
 
         {/* TABS */}
         <div className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-0">
-          <div className="flex border-b border-[#e5e7eb]">
+          <div className="flex border-b border-[#e5e7eb] overflow-x-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3.5 text-[14px] font-semibold transition border-b-2 ${
+                className={`px-4 md:px-6 py-3.5 text-[13px] md:text-[14px] font-semibold transition border-b-2 whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id
                     ? 'text-[#1a7f5e] border-[#1a7f5e]'
                     : 'text-[#6b7280] border-transparent hover:text-[#1a1a1a]'
@@ -260,7 +267,7 @@ export default function OfficeProfile() {
 
           {/* OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[15px] font-extrabold text-[#1a1a1a]">About</h2>
                 {isOwner && !editingBio && <button onClick={() => { setEditBio(officeBio); setEditingBio(true) }} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline cursor-pointer bg-none border-none" style={{ fontFamily: 'inherit' }}>Edit</button>}
@@ -269,8 +276,8 @@ export default function OfficeProfile() {
                 <div className="mb-6">
                   <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={4} className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] resize-none leading-relaxed" style={{ fontFamily: 'inherit' }} />
                   <div className="flex gap-2 mt-2">
-                    <button onClick={() => setEditingBio(false)} className="px-4 py-1.5 border border-[#e5e7eb] rounded-full text-[13px] font-bold text-[#374151] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={async () => { if (await saveField({ bio: editBio })) setEditingBio(false) }} className="px-4 py-1.5 bg-[#1a7f5e] text-white rounded-full text-[13px] font-bold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
+                    <button onClick={() => setEditingBio(false)} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] border border-[#e5e7eb] rounded-full text-[13px] font-bold text-[#374151] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+                    <button onClick={async () => { if (await saveField({ bio: editBio })) setEditingBio(false) }} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] bg-[#1a7f5e] text-white rounded-full text-[13px] font-bold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
                   </div>
                 </div>
               ) : officeBio ? (
@@ -292,8 +299,8 @@ export default function OfficeProfile() {
                     </div>
                   ))}
                   <div className="flex gap-2 mt-1">
-                    <button onClick={() => setEditingDetails(false)} className="px-4 py-1.5 border border-[#e5e7eb] rounded-full text-[13px] font-bold text-[#374151] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={async () => { if (await saveField(editDetails)) setEditingDetails(false) }} className="px-4 py-1.5 bg-[#1a7f5e] text-white rounded-full text-[13px] font-bold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
+                    <button onClick={() => setEditingDetails(false)} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] border border-[#e5e7eb] rounded-full text-[13px] font-bold text-[#374151] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+                    <button onClick={async () => { if (await saveField(editDetails)) setEditingDetails(false) }} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] bg-[#1a7f5e] text-white rounded-full text-[13px] font-bold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
                   </div>
                 </div>
               ) : (
@@ -316,7 +323,7 @@ export default function OfficeProfile() {
 
           {/* JOBS */}
           {activeTab === 'jobs' && (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {openShifts.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
@@ -371,32 +378,14 @@ export default function OfficeProfile() {
                   {permJobs.length > 0 && (
                     <>
                       <h2 className="text-[15px] font-extrabold text-[#1a1a1a] mb-3 flex items-center gap-2">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                         Permanent Positions
                         <span className="text-[12px] font-bold text-[#9ca3af] ml-1">({permJobs.length})</span>
                       </h2>
-                      <div className="flex flex-col gap-2">
-                        {permJobs.map(job => {
-                          return (
-                            <div key={job.id} onClick={() => setSelectedShift(job)} className="bg-[#f9f8f6] border border-[#e5e7eb] rounded-xl p-4 hover:border-[#5b21b6] transition cursor-pointer">
-                              <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <p className="text-[14px] font-bold text-[#1a1a1a]">{job.role}</p>
-                                  <p className="text-[12px] text-[#5b21b6] font-semibold">Full-time · Permanent</p>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className="text-[16px] font-black text-[#5b21b6]">${job.hourlyRate}/hr</p>
-                                </div>
-                              </div>
-                              {job.description && <p className="text-[12px] text-[#6b7280] mb-2 line-clamp-2">{job.description}</p>}
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {(job.software || []).map(sw => (
-                                  <span key={sw} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#ede9fe] text-[#5b21b6]">{sw}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )
-                        })}
+                      <div className="flex flex-col gap-3">
+                        {permJobs.map(job => (
+                          <PermanentJobCard key={job.id} job={job} onClick={() => setSelectedShift(job)} />
+                        ))}
                       </div>
                     </>
                   )}
@@ -407,7 +396,7 @@ export default function OfficeProfile() {
 
           {/* REVIEWS */}
           {activeTab === 'reviews' && (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {reviews.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
@@ -419,9 +408,9 @@ export default function OfficeProfile() {
               ) : (
                 <>
                   {/* Rating summary */}
-                  <div className="flex items-center gap-5 mb-6 pb-6 border-b border-[#f3f4f6]">
+                  <div className="flex items-center gap-4 md:gap-5 mb-6 pb-6 border-b border-[#f3f4f6]">
                     <div className="text-center">
-                      <p className="text-[48px] font-extrabold text-[#1a1a1a] leading-none">{avgRating}</p>
+                      <p className="text-[40px] md:text-[48px] font-extrabold text-[#1a1a1a] leading-none">{avgRating}</p>
                       <Stars count={Math.round(parseFloat(avgRating))} />
                       <p className="text-[12px] text-[#9ca3af] mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
                     </div>
@@ -468,7 +457,7 @@ export default function OfficeProfile() {
 
           {/* PHOTOS */}
           {activeTab === 'photos' && (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {officePhotos.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
@@ -478,7 +467,7 @@ export default function OfficeProfile() {
                   <p className="text-[14px] text-[#9ca3af] leading-relaxed max-w-[280px] mx-auto">Add photos of your office to help professionals know what to expect.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {officePhotos.map((src, i) => (
                     <div key={i} className="aspect-video rounded-xl overflow-hidden bg-[#f3f4f6]">
                       <img
@@ -522,25 +511,25 @@ export default function OfficeProfile() {
         return (
           <>
             <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSelectedShift(null)} />
-            <div className="fixed top-0 right-0 bottom-0 w-full max-w-[440px] bg-white z-50 flex flex-col shadow-2xl">
+            <div className="fixed top-0 right-0 bottom-0 left-0 md:left-auto w-full md:max-w-[440px] bg-white z-50 flex flex-col shadow-2xl">
               <div className="px-5 py-4 border-b border-[#f3f4f6] flex-shrink-0">
                 <button onClick={() => setSelectedShift(null)} className="flex items-center gap-1.5 text-[13px] font-bold text-[#6b7280] mb-4 bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
                   Back
                 </button>
                 <div className="flex items-start gap-3">
-                  <div className={`w-14 h-14 rounded-[14px] flex items-center justify-center text-[14px] font-black flex-shrink-0 ${isPerm ? 'bg-[#ede9fe] text-[#5b21b6]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{oInitials}</div>
+                  <div className={`w-14 h-14 rounded-[14px] flex items-center justify-center text-[14px] font-black flex-shrink-0 ${isPerm ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{oInitials}</div>
                   <div className="flex-1">
                     <p className="text-[20px] font-black text-[#1a1a1a]">{oName}</p>
                     <p className="text-[13px] text-[#6b7280]">{s.role}</p>
-                    {isPerm && <span className="text-[11px] font-bold text-[#5b21b6]">Permanent Position</span>}
+                    {isPerm && <span className="text-[11px] font-bold text-[#1a7f5e]">Permanent Position</span>}
                   </div>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className={`rounded-[14px] px-4 py-3 mb-5 ${isPerm ? 'bg-[#ede9fe]' : 'bg-[#e8f5f0]'}`}>
-                  <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${isPerm ? 'text-[#7c3aed]' : 'text-[#6b9e8a]'}`}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
-                  <p className={`text-[22px] font-black ${isPerm ? 'text-[#5b21b6]' : 'text-[#0f4d38]'}`}>{isPerm ? rate : estPay}</p>
+                <div className={`rounded-[14px] px-4 py-3 mb-5 ${isPerm ? 'bg-[#e8f5f0]' : 'bg-[#e8f5f0]'}`}>
+                  <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${isPerm ? 'text-[#1a7f5e]' : 'text-[#6b9e8a]'}`}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
+                  <p className={`text-[22px] font-black ${isPerm ? 'text-[#1a7f5e]' : 'text-[#0f4d38]'}`}>{isPerm ? rate : estPay}</p>
                 </div>
                 <p className="text-[16px] font-semibold text-[#374151] mb-3">{isPerm ? 'Job details' : 'Shift details'}</p>
                 <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
@@ -570,8 +559,8 @@ export default function OfficeProfile() {
                       <textarea value={shiftEdit.description || ''} onChange={e => setShiftEdit(p => ({ ...p, description: e.target.value }))} className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#1a7f5e] bg-white resize-none h-24" style={{ fontFamily: 'inherit' }} />
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingShift(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-2 rounded-full text-[13px] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                      <button onClick={saveShiftEdit} className="flex-1 bg-[#1a7f5e] text-white font-bold py-2 rounded-full text-[13px] border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
+                      <button onClick={() => setEditingShift(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+                      <button onClick={saveShiftEdit} className="flex-1 bg-[#1a7f5e] text-white font-bold py-3 min-h-[44px] rounded-full text-[13px] border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
                     </div>
                   </div>
                 ) : (
@@ -600,7 +589,7 @@ export default function OfficeProfile() {
                         else { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to apply') }
                       } catch { showToast('Failed to apply') }
                     }}
-                    className={`flex-1 font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer ${isPerm ? 'bg-[#5b21b6] hover:bg-[#4c1d95]' : 'bg-[#1a7f5e] hover:bg-[#156649]'} text-white`}
+                    className={`flex-1 font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer ${'bg-[#1a7f5e] hover:bg-[#156649]'} text-white`}
                     style={{ fontFamily: 'inherit' }}
                   >
                     {isPerm ? 'Apply Now' : 'Apply'}
@@ -610,11 +599,11 @@ export default function OfficeProfile() {
               {isOwner && !editingShift && (
                 <div className="px-5 py-4 border-t border-[#f3f4f6] flex flex-col gap-2 flex-shrink-0 bg-white">
                   <button onClick={() => { setShiftEdit({ role: s.role, hourlyRate: s.hourlyRate, description: s.description || '' }); setEditingShift(true) }}
-                    className="w-full flex items-center justify-center gap-1.5 border border-[#e5e7eb] text-[#374151] font-bold py-2.5 rounded-full text-[13px] hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+                    className="w-full flex items-center justify-center gap-1.5 border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     Edit this post
                   </button>
-                  <button onClick={cancelShift} className="w-full border border-[#fee2e2] text-[#ef4444] font-bold py-2.5 rounded-full text-[13px] hover:bg-[#fef2f2] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel posting</button>
+                  <button onClick={cancelShift} className="w-full border border-[#fee2e2] text-[#ef4444] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:bg-[#fef2f2] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel posting</button>
                 </div>
               )}
             </div>

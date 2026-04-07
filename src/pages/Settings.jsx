@@ -16,6 +16,8 @@ export default function Settings() {
   const [officeId, setOfficeId] = useState(null)
   const [logoUrl, setLogoUrl] = useState(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const [savingOffice, setSavingOffice] = useState(false)
+  const [officeSoftware, setOfficeSoftware] = useState([])
   const logoInputRef = useRef(null)
 
   // Office Profile state
@@ -81,6 +83,7 @@ export default function Settings() {
           setOfficeWebsite(data.website || '')
           setOfficeSpecialty(data.specialty || 'General Dentistry')
           setOfficeBio(data.bio || '')
+          setOfficeSoftware(Array.isArray(data.software) ? data.software : [])
           setLogoUrl(data.logoUrl || null)
         }
       } catch (err) {
@@ -93,13 +96,16 @@ export default function Settings() {
   }, [getToken])
 
   const handleSaveOffice = async () => {
-    if (!officeId) {
-      showToast('Office profile not found')
-      return
-    }
+    if (savingOffice) return
+    setSavingOffice(true)
     try {
       const token = await getToken()
-      const res = await fetch(`${API_URL}/api/offices/${officeId}`, {
+      if (!token) {
+        showToast('Please sign in again to save.')
+        setSavingOffice(false)
+        return
+      }
+      const res = await fetch(`${API_URL}/api/offices/me`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -111,16 +117,21 @@ export default function Settings() {
           zip: officeZip,
           website: officeWebsite,
           specialty: officeSpecialty,
+          software: officeSoftware,
           bio: officeBio,
         }),
       })
       if (res.ok) {
-        showToast('Office profile saved!')
+        showToast('Profile updated!')
       } else {
-        showToast('Failed to save office profile')
+        const err = await res.json().catch(() => ({}))
+        showToast(err.error || 'Failed to save office profile')
       }
     } catch (err) {
+      console.error('Save office error:', err)
       showToast('Failed to save office profile')
+    } finally {
+      setSavingOffice(false)
     }
   }
 
@@ -155,7 +166,7 @@ export default function Settings() {
       {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="px-6 pt-6 pb-4 border-b border-[#e5e7eb]">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -167,8 +178,8 @@ export default function Settings() {
               <p className="text-xs font-bold text-[#1a1a1a] mb-2">Type <span className="text-red-500 font-extrabold">DELETE</span> to confirm</p>
               <input type="text" value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="Type DELETE here" className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-sm outline-none focus:border-red-400 mb-4" />
               <div className="flex gap-3">
-                <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }} className="flex-1 border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 rounded-full text-sm hover:border-[#1a7f5e] transition">Cancel</button>
-                <button onClick={() => { if (deleteConfirm === 'DELETE') { setShowDeleteModal(false); setDeleteConfirm(''); showToast('Account deletion requested') } }} className={'flex-1 font-bold py-3 rounded-full text-sm transition ' + (deleteConfirm === 'DELETE' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed')}>
+                <button onClick={() => { setShowDeleteModal(false); setDeleteConfirm('') }} className="flex-1 border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-sm hover:border-[#1a7f5e] transition">Cancel</button>
+                <button onClick={() => { if (deleteConfirm === 'DELETE') { setShowDeleteModal(false); setDeleteConfirm(''); showToast('Account deletion requested') } }} className={'flex-1 font-bold py-3 min-h-[44px] rounded-full text-sm transition ' + (deleteConfirm === 'DELETE' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed')}>
                   Delete my account
                 </button>
               </div>
@@ -177,8 +188,8 @@ export default function Settings() {
         </div>
       )}
 
-      <div className="max-w-[860px] mx-auto px-4 md:px-6 py-6">
-        <div className="flex gap-6 items-start">
+      <div className="max-w-[860px] mx-auto px-4 md:px-6 py-6 pb-24">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start">
 
           {/* LEFT NAV */}
           <div className="hidden md:block w-[220px] flex-shrink-0 sticky top-24">
@@ -213,7 +224,7 @@ export default function Settings() {
 
             {/* OFFICE PROFILE */}
             {activeSection === 'office' && (
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
+              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-5">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Office Profile</h2>
                 {loadingProfile ? (
                   <p className="text-sm text-[#9ca3af] py-8 text-center">Loading...</p>
@@ -251,7 +262,7 @@ export default function Settings() {
                       <div>
                         <p className="text-sm font-bold text-[#1a1a1a] mb-1">Office Logo</p>
                         <p className="text-xs text-[#6b7280] mb-2">PNG or JPG, max 2MB</p>
-                        <button onClick={() => logoInputRef.current?.click()} className="text-xs font-bold text-[#1a7f5e] border border-[#1a7f5e] px-3 py-1.5 rounded-full hover:bg-[#e8f5f0] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Upload logo</button>
+                        <button onClick={() => logoInputRef.current?.click()} className="text-xs font-bold text-[#1a7f5e] border border-[#1a7f5e] px-3 py-2 min-h-[36px] rounded-full hover:bg-[#e8f5f0] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Upload logo</button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -284,7 +295,7 @@ export default function Settings() {
                       <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Street Address</label>
                       <input value={officeAddress} onChange={e => setOfficeAddress(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
                     </div>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                       <div>
                         <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">City</label>
                         <input value={officeCity} onChange={e => setOfficeCity(e.target.value)} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a]" />
@@ -302,7 +313,9 @@ export default function Settings() {
                       <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Office Bio</label>
                       <textarea value={officeBio} onChange={e => setOfficeBio(e.target.value)} rows={3} className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#1a7f5e] bg-white text-[#1a1a1a] resize-none" />
                     </div>
-                    <button onClick={handleSaveOffice} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Save changes</button>
+                    <button onClick={handleSaveOffice} disabled={savingOffice} className={'w-full md:w-auto text-white font-bold px-6 py-3 min-h-[44px] rounded-full text-sm transition ' + (savingOffice ? 'bg-[#9ca3af] cursor-not-allowed' : 'bg-[#1a7f5e] hover:bg-[#156649]')}>
+                      {savingOffice ? 'Saving...' : 'Save changes'}
+                    </button>
                   </>
                 )}
               </div>
@@ -310,7 +323,7 @@ export default function Settings() {
 
             {/* NOTIFICATIONS */}
             {activeSection === 'notifications' && (
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
+              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-5">
                 <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Notification Preferences</h2>
                 <div className="mb-5 pb-5 border-b border-[#e5e7eb]">
                   <p className="text-xs font-extrabold text-[#9ca3af] uppercase tracking-widest mb-3">Delivery Channels</p>
@@ -350,16 +363,16 @@ export default function Settings() {
                     <Toggle value={notifPromoEmail} onChange={setNotifPromoEmail} />
                   </div>
                 </div>
-                <button onClick={() => showToast('Notification preferences saved!')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Save preferences</button>
+                <button onClick={() => showToast('Notification preferences saved!')} className="w-full md:w-auto bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-3 min-h-[44px] rounded-full text-sm transition">Save preferences</button>
               </div>
             )}
 
             {/* TEAM MEMBERS */}
             {activeSection === 'team' && (
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-5">
+                <div className="flex items-center justify-between mb-4 gap-2">
                   <h2 className="text-sm font-extrabold text-[#1a1a1a]">Team Members</h2>
-                  <button onClick={() => setShowInviteForm(!showInviteForm)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2 rounded-full text-xs transition flex items-center gap-1.5">
+                  <button onClick={() => setShowInviteForm(!showInviteForm)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2 min-h-[36px] rounded-full text-xs transition flex items-center gap-1.5 flex-shrink-0">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Invite member
                   </button>
@@ -382,8 +395,8 @@ export default function Settings() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setShowInviteForm(false)} className="border border-[#e5e7eb] text-[#1a1a1a] font-bold px-4 py-2 rounded-full text-xs hover:border-[#1a7f5e] transition">Cancel</button>
-                      <button onClick={() => { setShowInviteForm(false); setInviteEmail(''); showToast('Invite sent!') }} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2 rounded-full text-xs transition">Send invite</button>
+                      <button onClick={() => setShowInviteForm(false)} className="flex-1 md:flex-none border border-[#e5e7eb] text-[#1a1a1a] font-bold px-4 py-2.5 min-h-[40px] rounded-full text-xs hover:border-[#1a7f5e] transition">Cancel</button>
+                      <button onClick={() => { setShowInviteForm(false); setInviteEmail(''); showToast('Invite sent!') }} className="flex-1 md:flex-none bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2.5 min-h-[40px] rounded-full text-xs transition">Send invite</button>
                     </div>
                   </div>
                 )}
@@ -426,8 +439,8 @@ export default function Settings() {
             {activeSection === 'billing' && (
               <>
                 {/* Current plan hero */}
-                <div className="rounded-2xl p-6" style={{ background: '#1a7f5e' }}>
-                  <div className="flex items-start justify-between mb-5">
+                <div className="rounded-2xl p-5 md:p-6" style={{ background: '#1a7f5e' }}>
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-5">
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,.6)' }}>Current Plan</p>
                       <p className="text-2xl font-extrabold text-white mb-1">Pay Per Shift</p>
@@ -439,9 +452,9 @@ export default function Settings() {
                       <p className="text-[11px]" style={{ color: 'rgba(255,255,255,.5)' }}>fees paid</p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => showToast('Plan upgrade coming soon!')} className="bg-white text-[#1a7f5e] font-bold px-5 py-2 rounded-full text-sm hover:bg-[#f0faf6] transition">Upgrade plan</button>
-                    <button onClick={() => showToast('Plan options loaded')} className="font-bold px-5 py-2 rounded-full text-sm text-white transition" style={{ background: 'rgba(255,255,255,.15)' }}>View all plans</button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button onClick={() => showToast('Plan upgrade coming soon!')} className="w-full sm:w-auto bg-white text-[#1a7f5e] font-bold px-5 py-2.5 min-h-[44px] rounded-full text-sm hover:bg-[#f0faf6] transition">Upgrade plan</button>
+                    <button onClick={() => showToast('Plan options loaded')} className="w-full sm:w-auto font-bold px-5 py-2.5 min-h-[44px] rounded-full text-sm text-white transition" style={{ background: 'rgba(255,255,255,.15)' }}>View all plans</button>
                   </div>
                 </div>
 
@@ -450,9 +463,9 @@ export default function Settings() {
                   <div className="px-5 py-4 border-b border-[#e5e7eb]">
                     <h2 className="text-sm font-extrabold text-[#1a1a1a]">Compare plans</h2>
                   </div>
-                  <div className="grid grid-cols-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3">
                     {/* Free */}
-                    <div className="p-5 border-r border-[#f3f4f6]">
+                    <div className="p-5 border-b md:border-b-0 md:border-r border-[#f3f4f6]">
                       <p className="text-sm font-extrabold text-[#1a1a1a] mb-1">Free</p>
                       <p className="text-2xl font-extrabold text-[#1a1a1a] mb-4">$0<span className="text-xs font-normal text-[#9ca3af]">/mo</span></p>
                       <ul className="flex flex-col gap-2">
@@ -461,7 +474,7 @@ export default function Settings() {
                       </ul>
                     </div>
                     {/* Pay Per Shift - current */}
-                    <div className="p-5 border-r border-[#c6e6d9] bg-[#f0faf5] relative">
+                    <div className="p-5 border-b md:border-b-0 md:border-r border-[#c6e6d9] bg-[#f0faf5] relative">
                       <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-[#1a7f5e] text-white text-[10px] font-extrabold px-3 py-0.5 rounded-b-lg">CURRENT</div>
                       <p className="text-sm font-extrabold text-[#1a1a1a] mb-1 mt-2">Pay Per Shift</p>
                       <p className="text-2xl font-extrabold text-[#1a1a1a] mb-4">15%<span className="text-xs font-normal text-[#9ca3af]"> fee</span></p>
@@ -482,26 +495,26 @@ export default function Settings() {
                 </div>
 
                 {/* Payment method */}
-                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-5">
+                  <div className="flex items-center justify-between mb-4 gap-2">
                     <h2 className="text-sm font-extrabold text-[#1a1a1a]">Payment method</h2>
-                    <button onClick={() => setShowAddCard(!showAddCard)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2 rounded-full text-xs transition flex items-center gap-1.5">
+                    <button onClick={() => setShowAddCard(!showAddCard)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2 min-h-[36px] rounded-full text-xs transition flex items-center gap-1.5 flex-shrink-0">
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                       Add card
                     </button>
                   </div>
 
                   {/* Existing card */}
-                  <div className="flex items-center gap-3 p-3 bg-[#f0faf5] border border-[#1a7f5e] rounded-2xl mb-3">
+                  <div className="flex items-center gap-2 md:gap-3 p-3 bg-[#f0faf5] border border-[#1a7f5e] rounded-2xl mb-3 flex-wrap">
                     <div className="w-10 h-7 bg-[#1a7f5e] rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-[9px] font-extrabold">VISA</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-[#1a1a1a]">Visa ending in 4521</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#1a1a1a] truncate">Visa ending in 4521</p>
                       <p className="text-xs text-[#6b7280]">Expires 09/27</p>
                     </div>
-                    <span className="text-xs font-bold text-[#1a7f5e] bg-[#e8f5f0] px-2.5 py-1 rounded-full">Default</span>
-                    <button onClick={() => showToast('Edit card coming soon')} className="text-xs font-semibold text-[#6b7280] hover:text-[#1a7f5e] transition ml-1">Edit</button>
+                    <span className="text-xs font-bold text-[#1a7f5e] bg-[#e8f5f0] px-2.5 py-1 rounded-full flex-shrink-0">Default</span>
+                    <button onClick={() => showToast('Edit card coming soon')} className="text-xs font-semibold text-[#6b7280] hover:text-[#1a7f5e] transition ml-1 flex-shrink-0">Edit</button>
                   </div>
 
                   {/* Add card form */}
@@ -527,8 +540,8 @@ export default function Settings() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => { setShowAddCard(false); setNewCardNumber(''); setNewCardExpiry(''); setNewCardCVC(''); setNewCardName('') }} className="flex-1 border border-[#e5e7eb] text-[#1a1a1a] font-bold py-2.5 rounded-full text-xs hover:border-[#1a7f5e] transition">Cancel</button>
-                        <button onClick={() => { setShowAddCard(false); setNewCardNumber(''); setNewCardExpiry(''); setNewCardCVC(''); setNewCardName(''); showToast('Card added!') }} className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-2.5 rounded-full text-xs transition">Save card</button>
+                        <button onClick={() => { setShowAddCard(false); setNewCardNumber(''); setNewCardExpiry(''); setNewCardCVC(''); setNewCardName('') }} className="flex-1 border border-[#e5e7eb] text-[#1a1a1a] font-bold py-3 min-h-[44px] rounded-full text-xs hover:border-[#1a7f5e] transition">Cancel</button>
+                        <button onClick={() => { setShowAddCard(false); setNewCardNumber(''); setNewCardExpiry(''); setNewCardCVC(''); setNewCardName(''); showToast('Card added!') }} className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-3 min-h-[44px] rounded-full text-xs transition">Save card</button>
                       </div>
                     </div>
                   )}
@@ -536,7 +549,7 @@ export default function Settings() {
 
                 {/* Billing history */}
                 <div className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden">
-                  <div className="px-5 py-4 border-b border-[#e5e7eb] flex items-center justify-between">
+                  <div className="px-4 md:px-5 py-4 border-b border-[#e5e7eb] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <h2 className="text-sm font-extrabold text-[#1a1a1a]">Billing history</h2>
                     <div className="flex items-center gap-2">
                       <select value={invoiceFilter} onChange={e => setInvoiceFilter(e.target.value)} className="border border-[#e5e7eb] rounded-xl px-3 py-1.5 text-xs outline-none focus:border-[#1a7f5e] bg-white text-[#374151] font-semibold">
@@ -569,10 +582,10 @@ export default function Settings() {
                 </div>
 
                 {/* Cancel plan */}
-                <div className="bg-white border border-[#fecaca] rounded-2xl p-5">
+                <div className="bg-white border border-[#fecaca] rounded-2xl p-4 md:p-5">
                   <p className="text-sm font-extrabold text-[#dc2626] mb-2">Cancel subscription</p>
                   <p className="text-sm text-[#6b7280] leading-relaxed mb-4">Cancelling will revert your account to the Free plan at the end of your billing cycle. You won't lose any data.</p>
-                  <button onClick={() => showToast('Plan cancellation requested')} className="bg-[#fee2e2] text-[#dc2626] font-bold px-5 py-2.5 rounded-full text-sm hover:bg-[#fecaca] transition">Cancel plan</button>
+                  <button onClick={() => showToast('Plan cancellation requested')} className="w-full md:w-auto bg-[#fee2e2] text-[#dc2626] font-bold px-5 py-3 min-h-[44px] rounded-full text-sm hover:bg-[#fecaca] transition">Cancel plan</button>
                 </div>
               </>
             )}
@@ -580,32 +593,32 @@ export default function Settings() {
             {/* EMAIL & PASSWORD */}
             {activeSection === 'account' && (
               <>
-                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
+                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-5">
                   <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Email Address</h2>
                   <div className="mb-4">
                     <label className="block text-[10px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">Current Email</label>
                     <input value={clerkEmail} disabled className="w-full border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-sm bg-[#f9f8f6] text-[#6b7280] outline-none" />
                   </div>
                   <p className="text-xs text-[#6b7280] mb-3">Email changes are managed through your Clerk account.</p>
-                  <button onClick={() => showToast('Email and password are managed through Clerk')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Manage account</button>
+                  <button onClick={() => showToast('Email and password are managed through Clerk')} className="w-full md:w-auto bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-3 min-h-[44px] rounded-full text-sm transition">Manage account</button>
                 </div>
-                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-5">
+                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-5">
                   <h2 className="text-sm font-extrabold text-[#1a1a1a] mb-4">Change Password</h2>
                   <p className="text-sm text-[#6b7280] leading-relaxed mb-4">Password management is handled through Clerk. Click the button below to update your password securely.</p>
-                  <button onClick={() => showToast('Password changes are managed through Clerk')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Manage password</button>
+                  <button onClick={() => showToast('Password changes are managed through Clerk')} className="w-full md:w-auto bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-3 min-h-[44px] rounded-full text-sm transition">Manage password</button>
                 </div>
               </>
             )}
 
             {/* DELETE ACCOUNT */}
             {activeSection === 'danger' && (
-              <div className="bg-white border border-red-200 rounded-2xl p-5">
+              <div className="bg-white border border-red-200 rounded-2xl p-4 md:p-5">
                 <h2 className="text-sm font-extrabold text-red-500 mb-2">Delete Account</h2>
                 <p className="text-sm text-[#6b7280] leading-relaxed mb-4">Permanently delete your kazi. account and all associated data including bookings, messages, team members, and billing history. This action <span className="font-bold text-[#1a1a1a]">cannot be undone</span>.</p>
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-5">
                   <p className="text-xs text-red-500 font-semibold">⚠ All active bookings will be cancelled and your team will lose access immediately.</p>
                 </div>
-                <button onClick={() => setShowDeleteModal(true)} className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2.5 rounded-full text-sm transition">Delete my account</button>
+                <button onClick={() => setShowDeleteModal(true)} className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 min-h-[44px] rounded-full text-sm transition">Delete my account</button>
               </div>
             )}
 

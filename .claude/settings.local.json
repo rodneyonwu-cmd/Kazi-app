@@ -54,7 +54,31 @@
       "Bash(railway variables:*)",
       "Bash(grep -v \"^deleting\\\\|^copying\\\\|^removing\\\\|^note:\\\\|^ /nix\\\\|^$\" /tmp/railway-deploy2.log)",
       "Bash(grep -v \"^$\" /tmp/railway-deploy3.log)",
-      "Bash(railway domain:*)"
+      "Bash(railway domain:*)",
+      "Bash(wc -l src/pages/*.jsx src/components/*.jsx)",
+      "Bash(grep -rn \"w-\\\\[[0-9]\\\\{3,\\\\}px\\\\]\" src/pages src/components)",
+      "Bash(grep -rn \"min-w-\\\\[[0-9]\\\\{3,\\\\}px\\\\]\" src/pages src/components)",
+      "Bash(npm run:*)",
+      "Bash(vercel --prod)",
+      "Bash(node --check src/pages/Messages.jsx)",
+      "Bash(node -e \"require\\('fs'\\).readFileSync\\('server/routes/providers.js','utf8'\\); require\\('fs'\\).readFileSync\\('server/routes/messages.js','utf8'\\); console.log\\('files readable'\\)\")",
+      "Bash(npx vercel:*)",
+      "Bash(xargs grep:*)",
+      "Bash(ls prisma/seed*)",
+      "Bash(node prisma/seed-demo.mjs)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(type\\(data\\)\\); print\\(json.dumps\\(data[0] if isinstance\\(data,list\\) and len\\(data\\)>0 else data, indent=2\\)[:500]\\)\")",
+      "Bash(node prisma/reset-clean.mjs)",
+      "Bash(node prisma/debug-data.mjs)",
+      "Bash(node prisma/fix-pending-shifts.mjs)",
+      "Bash(npx railway:*)",
+      "Bash(railway deploy:*)",
+      "Bash(railway logs:*)",
+      "Bash(railway link:*)",
+      "Bash(node prisma/check-user.mjs)",
+      "Bash(python3 -m json.tool)",
+      "Bash(vercel curl:*)",
+      "Bash(grep -c \"buildPendingGroups\\\\|pendingApps\" dist/assets/*.js)",
+      "Bash(grep -c \"Sent to.*professional\" dist/assets/*.js)"
     ]
   }
 }

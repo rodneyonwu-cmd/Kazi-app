@@ -46,7 +46,7 @@ export default function AdminFlags() {
   return (
     <div>
       {/* Stats */}
-      <div className="flex gap-3.5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 mb-6">
         <div className="bg-white border border-[#e5e7eb] rounded-[14px] p-[18px] flex-1">
           <div className="w-[38px] h-[38px] rounded-[9px] bg-[#fee2e2] flex items-center justify-center mb-3">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#991b1b" strokeWidth="2.5" strokeLinecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>

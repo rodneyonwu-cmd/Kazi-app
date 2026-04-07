@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -13,6 +14,7 @@ const STATUS = {
 export default function ProviderEarnings() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount } = useUnreadMessageCount()
   const [tab, setTab] = useState('history')
   const [bankModal, setBankModal] = useState(false)
   const [w9Modal, setW9Modal] = useState(false)
@@ -60,7 +62,7 @@ export default function ProviderEarnings() {
       {/* Add Bank Modal */}
       {bankModal && (
         <div className="fixed inset-0 bg-black/45 z-[200] flex items-center justify-center px-4" onClick={() => setBankModal(false)}>
-          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-5 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-5 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="text-[15px] font-black text-[#1a1a1a] mb-0.5">Add bank account</div>
             <div className="text-[12px] text-[#9ca3af] mb-4">Securely connected via Stripe</div>
             {[
@@ -81,8 +83,8 @@ export default function ProviderEarnings() {
               </select>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setBankModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => { setBankModal(false); showToast('Bank account setup coming soon — Stripe integration pending') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save account</button>
+              <button onClick={() => setBankModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-3 min-h-[44px] text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={() => { setBankModal(false); showToast('Bank account setup coming soon — Stripe integration pending') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-3 min-h-[44px] text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save account</button>
             </div>
           </div>
         </div>
@@ -91,7 +93,7 @@ export default function ProviderEarnings() {
       {/* W-9 Modal */}
       {w9Modal && (
         <div className="fixed inset-0 bg-black/45 z-[200] flex items-center justify-center px-4" onClick={() => setW9Modal(false)}>
-          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-5 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-5 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="text-[15px] font-black text-[#1a1a1a] mb-0.5">W-9 Information</div>
             <div className="text-[12px] text-[#9ca3af] mb-4">Required by the IRS for independent contractors</div>
             {[
@@ -117,8 +119,8 @@ export default function ProviderEarnings() {
               <input type="password" placeholder="···-··-····" className="w-full border border-[#e5e7eb] rounded-[9px] px-3 py-2.5 text-[13px] outline-none bg-[#f9f8f6] focus:border-[#1a7f5e]" style={{ fontFamily: 'inherit' }}/>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setW9Modal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => { setW9Modal(false); showToast('W-9 submission coming soon') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save W-9</button>
+              <button onClick={() => setW9Modal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-3 min-h-[44px] text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={() => { setW9Modal(false); showToast('W-9 submission coming soon') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-3 min-h-[44px] text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save W-9</button>
             </div>
           </div>
         </div>
@@ -127,7 +129,7 @@ export default function ProviderEarnings() {
       {/* SSN Modal */}
       {ssnModal && (
         <div className="fixed inset-0 bg-black/45 z-[200] flex items-center justify-center px-4" onClick={() => setSsnModal(false)}>
-          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-5 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-5 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="text-[15px] font-black text-[#1a1a1a] mb-0.5">Update SSN / EIN</div>
             <div className="text-[12px] text-[#9ca3af] mb-4">Encrypted and stored securely. Used for tax reporting only.</div>
             {['Social Security Number', 'Confirm SSN'].map(l => (
@@ -137,18 +139,18 @@ export default function ProviderEarnings() {
               </div>
             ))}
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setSsnModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-2.5 text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => { setSsnModal(false); showToast('SSN update coming soon') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-2.5 text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Update SSN</button>
+              <button onClick={() => setSsnModal(false)} className="flex-1 bg-white text-[#374151] border border-[#e5e7eb] rounded-full py-3 min-h-[44px] text-[13px] font-bold cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
+              <button onClick={() => { setSsnModal(false); showToast('SSN update coming soon') }} className="flex-[2] bg-[#1a7f5e] text-white rounded-full py-3 min-h-[44px] text-[13px] font-extrabold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Update SSN</button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-[520px] mx-auto px-3.5 py-5 pb-24">
+      <div className="max-w-[520px] mx-auto px-4 md:px-3.5 py-5 pb-24">
         <h1 className="text-[20px] font-black text-[#1a1a1a] mb-3">Finance</h1>
 
         {/* Tabs */}
-        <div className="flex gap-1.5 mb-5 flex-wrap">
+        <div className="flex gap-1.5 mb-5 flex-wrap overflow-x-auto">
           {TABS.map(t => (
             <button
               key={t.key}
@@ -234,13 +236,13 @@ export default function ProviderEarnings() {
             { label: 'Home',       path: '/provider-dashboard',   icon: <HomeIcon /> },
             { label: 'Requests',   path: '/provider-requests',    icon: <ReqIcon /> },
             { label: 'Find Shifts',path: '/provider-find-shifts', icon: <SearchIcon /> },
-            { label: 'Messages',   path: '/provider-messages',    icon: <MsgIcon /> },
+            { label: 'Messages',   path: '/provider-messages',    icon: <MsgIcon />, badge: unreadMsgCount },
             { label: 'Finance',    path: '/provider-earnings',    icon: <EarnIcon />, active: true },
           ].map(({ label, path, icon, badge, active }) => (
             <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
               <div className="relative">
                 <span className={active ? 'text-[#1a7f5e]' : 'text-[#9ca3af]'}>{icon}</span>
-                {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+                {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
               </div>
               <span className={`text-[10px] ${active ? 'font-bold text-[#1a7f5e]' : 'font-semibold text-[#9ca3af]'}`}>{label}</span>
             </div>

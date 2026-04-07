@@ -46,7 +46,7 @@ export default function AdminTickets() {
               <button onClick={() => setModal(null)} className="w-7 h-7 rounded-full border border-[#e5e7eb] flex items-center justify-center text-[#6b7280] cursor-pointer bg-white text-[15px]" style={{ fontFamily: 'inherit' }}>×</button>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 {[['Submitted by', modal.user],['Email', modal.email],['Category', modal.cat],['Status', STATUS_LABEL[modal.status]],['Priority', modal.priority.toUpperCase()]].map(([l, v]) => (
                   <div key={l}><div className="text-[9px] font-extrabold text-[#9ca3af] uppercase tracking-[.08em] mb-1">{l}</div><div className="text-[13px] font-semibold text-[#1a1a1a]">{v}</div></div>
                 ))}
@@ -69,7 +69,7 @@ export default function AdminTickets() {
         </div>
       )}
 
-      <div className="flex gap-1.5 mb-4">
+      <div className="flex gap-1.5 mb-4 flex-wrap">
         {FILTERS.map(f => (
           <button key={f} onClick={() => setFilter(f)} className={`px-[11px] py-[5px] rounded-full border text-[11px] font-bold cursor-pointer transition capitalize ${filter === f ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-white border-[#e5e7eb] text-[#374151] hover:border-[#1a7f5e]'}`} style={{ fontFamily: 'inherit' }}>{f === 'all' ? 'All' : STATUS_LABEL[f]}</button>
         ))}

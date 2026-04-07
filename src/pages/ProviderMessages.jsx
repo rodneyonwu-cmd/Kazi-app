@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
+import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function ProviderMessages() {
   const navigate = useNavigate()
   const { getToken } = useAuth()
+  const { count: unreadMsgCount, refresh: refreshUnread } = useUnreadMessageCount()
   const [conversations, setConversations] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -75,6 +77,7 @@ export default function ProviderMessages() {
           headers: { Authorization: `Bearer ${token}` },
         })
         setConversations(prev => prev.map(c => c.id === activeId ? { ...c, unread: 0 } : c))
+        refreshUnread()
       } catch {}
       setThreadLoading(false)
     }
@@ -136,10 +139,10 @@ export default function ProviderMessages() {
       <ProviderNav />
 
       <div className="flex flex-1 overflow-hidden justify-center" style={{ height: 'calc(100vh - 64px)' }}>
-        <div className="flex w-full max-w-4xl border-x border-[#e5e7eb] bg-white">
+        <div className="flex w-full max-w-4xl md:border-x border-[#e5e7eb] bg-white">
 
           {/* LEFT — conversation list */}
-          <div className="w-[280px] flex-shrink-0 border-r border-[#e5e7eb] bg-white flex flex-col">
+          <div className={`w-full md:w-[280px] flex-shrink-0 md:border-r border-[#e5e7eb] bg-white flex-col pb-20 md:pb-0 ${activeId ? 'hidden md:flex' : 'flex'}`}>
             <div className="p-4 border-b border-[#f3f4f6]">
               <h2 className="text-[18px] font-black text-[#1a1a1a] mb-3">Messages</h2>
               <div className="relative">
@@ -191,19 +194,22 @@ export default function ProviderMessages() {
 
           {/* RIGHT — chat thread */}
           {!hasConvos ? (
-            <NoConversations />
+            <div className="hidden md:flex flex-1"><NoConversations /></div>
           ) : !activeId ? (
-            <NoConvoSelected />
+            <div className="hidden md:flex flex-1"><NoConvoSelected /></div>
           ) : (
             <div className="flex-1 flex flex-col bg-[#f9f8f6] overflow-hidden">
-              <div className="bg-white border-b border-[#e5e7eb] px-6 py-3.5 flex items-center gap-3 flex-shrink-0">
+              <div className="bg-white border-b border-[#e5e7eb] px-4 md:px-6 py-3.5 flex items-center gap-2 md:gap-3 flex-shrink-0">
+                <button onClick={() => setActiveId(null)} className="md:hidden w-10 h-10 flex items-center justify-center flex-shrink-0 -ml-2" aria-label="Back">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
                 <div className="w-10 h-10 rounded-[11px] bg-[#e8f5f0] flex items-center justify-center text-[11px] font-black text-[#1a7f5e] flex-shrink-0">{activeConv.initials}</div>
-                <div>
-                  <p className="text-[15px] font-black text-[#1a1a1a]">{activeConv.name}</p>
+                <div className="min-w-0">
+                  <p className="text-[14px] md:text-[15px] font-black text-[#1a1a1a] truncate">{activeConv.name}</p>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
+              <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 flex flex-col gap-3">
                 {threadLoading ? (
                   <div className="flex items-center justify-center py-10">
                     <svg className="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -216,7 +222,7 @@ export default function ProviderMessages() {
                     const time = fmtTime(msg.createdAt)
                     return (
                       <div key={msg.id || i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} gap-1`}>
-                        <div className={`max-w-[65%] px-4 py-2.5 text-[14px] leading-relaxed ${isMe ? 'bg-[#1a7f5e] text-white rounded-[18px_18px_4px_18px]' : 'bg-white text-[#1a1a1a] rounded-[18px_18px_18px_4px] border border-[#e5e7eb]'}`}>
+                        <div className={`max-w-[75%] md:max-w-[65%] px-4 py-2.5 text-[14px] leading-relaxed break-words ${isMe ? 'bg-[#1a7f5e] text-white rounded-[18px_18px_4px_18px]' : 'bg-white text-[#1a1a1a] rounded-[18px_18px_18px_4px] border border-[#e5e7eb]'}`}>
                           {msg.body}
                         </div>
                         <p className="text-[11px] text-[#9ca3af] px-1">{time}</p>
@@ -226,9 +232,9 @@ export default function ProviderMessages() {
                 )}
               </div>
 
-              <div className="bg-white border-t border-[#e5e7eb] px-6 py-3 flex gap-3 items-end flex-shrink-0">
-                <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="Type a message..." rows={1} className="flex-1 bg-[#f9f8f6] border border-[#f3f4f6] rounded-[16px] px-4 py-2.5 text-[14px] outline-none focus:border-[#1a7f5e] transition resize-none" />
-                <button onClick={sendMessage} className="w-10 h-10 rounded-full bg-[#1a7f5e] hover:bg-[#156649] flex items-center justify-center flex-shrink-0 transition">
+              <div className="bg-white border-t border-[#e5e7eb] px-4 md:px-6 py-3 flex gap-2 md:gap-3 items-end flex-shrink-0 mb-16 md:mb-0">
+                <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="Type a message..." rows={1} className="flex-1 min-w-0 bg-[#f9f8f6] border border-[#f3f4f6] rounded-[16px] px-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] transition resize-none" />
+                <button onClick={sendMessage} className="w-11 h-11 rounded-full bg-[#1a7f5e] hover:bg-[#156649] flex items-center justify-center flex-shrink-0 transition">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>
@@ -243,13 +249,13 @@ export default function ProviderMessages() {
           { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
           { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
           { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, active: true },
+          { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, active: true, badge: unreadMsgCount },
           { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },
         ].map(({ label, path, active, icon, badge }) => (
           <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
             <div className="relative">
               <span className={active ? 'text-[#1a7f5e]' : 'text-[#9ca3af]'}>{icon}</span>
-              {badge && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+              {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
             </div>
             <span className={`text-[10px] ${active ? 'font-bold text-[#1a7f5e]' : 'font-semibold text-[#9ca3af]'}`}>{label}</span>
           </div>
