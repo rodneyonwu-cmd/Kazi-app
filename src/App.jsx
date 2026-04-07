@@ -36,6 +36,7 @@ import FavoriteOffices from './pages/FavoriteOffices'
 import ProviderHelpCenter from './pages/ProviderHelpCenter'
 import ProviderSettings from './pages/ProviderSettings'
 import ProviderProfile from './pages/ProviderProfile'
+import ProfessionalProfile from './pages/ProfessionalProfile'
 import ProviderAvailability from './pages/ProviderAvailability'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -64,6 +65,7 @@ function App() {
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="/post-shift" element={<RequireAuth><PostShift /></RequireAuth>} />
       <Route path="/professionals" element={<RequireAuth><Professionals /></RequireAuth>} />
+      <Route path="/professionals/:id" element={<RequireAuth><ProfessionalProfile /></RequireAuth>} />
       <Route path="/profile" element={<Navigate to="/office-profile" replace />} />
       <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
       <Route path="/applicants" element={<RequireAuth><Applicants /></RequireAuth>} />
