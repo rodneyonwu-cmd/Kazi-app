@@ -67,6 +67,8 @@ export default function Bookings() {
           if (pendingList.length > 0 && confirmedCount === 0) {
             setActiveTab('pending')
           }
+        } else if (appsRes) {
+          console.error('Applications fetch failed:', appsRes.status, await appsRes.text().catch(() => ''))
         }
       } catch (err) {
         console.error('Failed to fetch bookings:', err)

@@ -32,28 +32,6 @@ app.get('/api/health', (_req, res) => {
 // ── Webhooks (no auth required) ─────────────────────
 app.use('/api/webhooks', webhooksRouter);
 
-// TEMP DEBUG — remove later
-app.get('/api/debug-apps', async (_req, res) => {
-  try {
-    const { PrismaClient } = await import('@prisma/client');
-    const { PrismaPg } = await import('@prisma/adapter-pg');
-    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-    const p = new PrismaClient({ adapter });
-    const admin = await p.user.findFirst({ where: { role: 'ADMIN' }, include: { provider: true, office: true } });
-    if (!admin) return res.json({ error: 'no admin' });
-    const apps = await p.application.findMany({
-      where: { shift: { officeId: admin.office?.id } },
-      include: { shift: true, provider: { include: { user: { select: { firstName: true, lastName: true } } } } },
-    });
-    await p.$disconnect();
-    res.json({
-      adminRole: admin.role, hasOffice: !!admin.office, officeId: admin.office?.id,
-      appCount: apps.length,
-      apps: apps.map(a => ({ id: a.id.slice(-8), status: a.status, shiftStatus: a.shift?.status, provider: `${a.provider?.user?.firstName} ${a.provider?.user?.lastName}` })),
-    });
-  } catch (err) { res.json({ error: err.message }); }
-});
-
 // ── Auth-protected routes ───────────────────────────
 app.use('/api/users', requireAuth, usersRouter);
 app.use('/api/offices', optionalAuth, officesRouter);
