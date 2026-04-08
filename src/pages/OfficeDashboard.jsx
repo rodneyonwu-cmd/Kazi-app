@@ -86,6 +86,7 @@ export default function OfficeDashboard() {
             kazi.
           </div>
           <div
+            onClick={() => navigate('/office-profile')}
             style={{
               width: 40,
               height: 40,
@@ -98,6 +99,7 @@ export default function OfficeDashboard() {
               fontFamily: "'Outfit', sans-serif",
               fontWeight: 700,
               fontSize: 14,
+              cursor: 'pointer',
             }}
           >
             DO
@@ -226,7 +228,7 @@ export default function OfficeDashboard() {
         {/* QUICK ACTIONS */}
         <div style={{ padding: '22px 16px 0' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div style={quickTileStyle}>
+            <div style={quickTileStyle} onClick={() => navigate('/professionals')}>
               <div style={quickIconStyle(COLORS.greenTint)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17 }}>
                   <circle cx="11" cy="11" r="8" />
@@ -235,7 +237,7 @@ export default function OfficeDashboard() {
               </div>
               <div style={quickLabelStyle}>Find Pros</div>
             </div>
-            <div style={quickTileStyle}>
+            <div style={quickTileStyle} onClick={() => navigate('/bookings')}>
               <div style={quickIconStyle(COLORS.purpleSoft)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17 }}>
                   <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -253,9 +255,9 @@ export default function OfficeDashboard() {
         <div style={{ padding: '18px 16px 0' }}>
           <SectionHeader title="Today's overview" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <StatCard color="green" icon="check" value="2" label="Active today" />
-            <StatCard color="orange" icon="clock" value="3" label="Pending" />
-            <StatCard color="coral" icon="alert" value="1" label="Unfilled" />
+            <StatCard color="green" icon="check" value="2" label="Active today" onClick={() => navigate('/bookings')} />
+            <StatCard color="orange" icon="clock" value="3" label="Pending" onClick={() => navigate('/bookings')} />
+            <StatCard color="coral" icon="alert" value="1" label="Unfilled" onClick={() => navigate('/applicants')} />
           </div>
         </div>
 
@@ -270,13 +272,13 @@ export default function OfficeDashboard() {
               <button onClick={() => setScheduleView('month')} style={toggleBtnStyle(scheduleView === 'month')}>Month</button>
             </div>
           </div>
-          {scheduleView === 'week' ? <WeekStrip /> : <MonthGrid />}
+          {scheduleView === 'week' ? <WeekStrip navigate={navigate} /> : <MonthGrid navigate={navigate} />}
         </div>
 
         {/* ON-SITE NOW */}
         <div style={{ padding: '18px 16px 0' }}>
-          <SectionHeader title="On-site now" linkLabel="View all" />
-          <div style={{ background: COLORS.card, margin: '0 4px', padding: 16, display: 'flex', alignItems: 'center', gap: 14, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18 }}>
+          <SectionHeader title="On-site now" linkLabel="View all" onLinkClick={() => navigate('/bookings')} />
+          <div onClick={() => navigate('/bookings')} style={{ background: COLORS.card, margin: '0 4px', padding: 16, display: 'flex', alignItems: 'center', gap: 14, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18, cursor: 'pointer' }}>
             <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: 'white', flexShrink: 0, position: 'relative' }}>
               SK
               <div style={{ position: 'absolute', inset: -3, borderRadius: 19, border: `2px solid ${COLORS.green}`, animation: 'ringPulse 2s infinite' }} />
@@ -300,7 +302,7 @@ export default function OfficeDashboard() {
         </div>
 
         {/* BOTTOM NAV */}
-        <BottomNav />
+        <BottomNav navigate={navigate} />
 
         {/* POST A JOB CHOOSER MODAL */}
         {chooserOpen && (
@@ -328,12 +330,12 @@ export default function OfficeDashboard() {
   );
 }
 
-function SectionHeader({ title, linkLabel }) {
+function SectionHeader({ title, linkLabel, onLinkClick }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
       <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text }}>{title}</div>
       {linkLabel && (
-        <button style={{ fontSize: 12, fontWeight: 700, color: COLORS.green, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+        <button onClick={onLinkClick} style={{ fontSize: 12, fontWeight: 700, color: COLORS.green, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
           {linkLabel}
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><polyline points="9 18 15 12 9 6" /></svg>
         </button>
@@ -342,11 +344,11 @@ function SectionHeader({ title, linkLabel }) {
   );
 }
 
-function StatCard({ color, icon, value, label }) {
+function StatCard({ color, icon, value, label, onClick }) {
   const bgMap = { green: COLORS.greenTint, orange: COLORS.orangeSoft, coral: COLORS.coralSoft };
   const strokeMap = { green: COLORS.green, orange: COLORS.orange, coral: COLORS.coral };
   return (
-    <div style={{ background: COLORS.card, borderRadius: 18, padding: '14px 12px', border: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
+    <div onClick={onClick} style={{ background: COLORS.card, borderRadius: 18, padding: '14px 12px', border: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
       <div style={{ width: 30, height: 30, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10, background: bgMap[color] }}>
         <svg viewBox="0 0 24 24" fill="none" stroke={strokeMap[color]} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
           {icon === 'check' && <><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></>}
@@ -360,7 +362,7 @@ function StatCard({ color, icon, value, label }) {
   );
 }
 
-function WeekStrip() {
+function WeekStrip({ navigate }) {
   const days = [
     { name: 'Tue', num: 7, dots: [true, true, false], today: true },
     { name: 'Wed', num: 8, dots: [true, false, false] },
@@ -373,7 +375,7 @@ function WeekStrip() {
   return (
     <div style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', padding: '0 16px 4px', margin: '0 -16px' }}>
       {days.map((d, i) => (
-        <div key={i} style={{ flexShrink: 0, width: 72, background: d.today ? COLORS.green : COLORS.card, border: `1px solid ${d.today ? COLORS.green : COLORS.borderSoft}`, borderRadius: 16, padding: '12px 8px', textAlign: 'center', cursor: 'pointer' }}>
+        <div key={i} onClick={() => navigate && navigate('/bookings')} style={{ flexShrink: 0, width: 72, background: d.today ? COLORS.green : COLORS.card, border: `1px solid ${d.today ? COLORS.green : COLORS.borderSoft}`, borderRadius: 16, padding: '12px 8px', textAlign: 'center', cursor: 'pointer' }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: d.today ? 'white' : COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>{d.name}</div>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: d.today ? 'white' : COLORS.text, marginTop: 4 }}>{d.num}</div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8, height: 6 }}>
@@ -387,7 +389,7 @@ function WeekStrip() {
   );
 }
 
-function MonthGrid() {
+function MonthGrid({ navigate }) {
   const cells = [
     null, null, null, 1, 2, 3, 4,
     5, 6, { num: 7, today: true }, { num: 8, booked: true }, { num: 9, booked: true }, { num: 10, booked: true }, 11,
@@ -417,7 +419,7 @@ function MonthGrid() {
           const today = isObj && cell.today;
           const booked = isObj && cell.booked;
           return (
-            <div key={i} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: booked || today ? 700 : 600, color: today ? 'white' : booked ? COLORS.green : COLORS.text, background: today ? COLORS.green : booked ? COLORS.greenTint : 'transparent', borderRadius: 10, cursor: 'pointer' }}>
+            <div key={i} onClick={() => (booked || today) && navigate && navigate('/bookings')} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: booked || today ? 700 : 600, color: today ? 'white' : booked ? COLORS.green : COLORS.text, background: today ? COLORS.green : booked ? COLORS.greenTint : 'transparent', borderRadius: 10, cursor: booked || today ? 'pointer' : 'default' }}>
               {num}
             </div>
           );
@@ -427,17 +429,18 @@ function MonthGrid() {
   );
 }
 
-function BottomNav() {
+function BottomNav({ navigate }) {
+  const items = [
+    { label: 'Home', path: '/dashboard', active: true, icon: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></> },
+    { label: 'Find', path: '/professionals', icon: <><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></> },
+    { label: 'Bookings', path: '/bookings', icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></> },
+    { label: 'Messages', path: '/messages', icon: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /> },
+    { label: 'Profile', path: '/office-profile', icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></> },
+  ];
   return (
     <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', maxWidth: 480, width: '100%', background: COLORS.card, borderTop: `1px solid ${COLORS.border}`, display: 'flex', padding: '10px 0 22px', zIndex: 40 }}>
-      {[
-        { label: 'Home', active: true, icon: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></> },
-        { label: 'Find', icon: <><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></> },
-        { label: 'Bookings', icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></> },
-        { label: 'Messages', icon: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /> },
-        { label: 'Profile', icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></> },
-      ].map((item, i) => (
-        <button key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
+      {items.map((item, i) => (
+        <button key={i} onClick={() => !item.active && navigate(item.path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={item.active ? COLORS.green : COLORS.textLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>{item.icon}</svg>
           <span style={{ fontSize: 10, color: item.active ? COLORS.green : COLORS.textLight, fontWeight: 600 }}>{item.label}</span>
         </button>
