@@ -1,350 +1,256 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@clerk/clerk-react'
-import Nav from '../components/Nav'
-import InitialsAvatar from '../components/InitialsAvatar'
-import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import Nav from '../components/Nav';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+const COLORS = {
+  green: '#1a7f5e',
+  greenSoft: '#e8f3ee',
+  greenTint: '#f1f9f5',
+  coral: '#e8734a',
+  bg: '#f9f8f6',
+  card: '#ffffff',
+  text: '#1a1a1a',
+  textMid: '#5a5a5a',
+  textLight: '#8a8a8a',
+  border: '#ececec',
+  borderSoft: '#f3f3f3',
+  gold: '#f4b740',
+};
+
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
+  'linear-gradient(135deg, #c8a8d4 0%, #e8a87c 100%)',
+  'linear-gradient(135deg, #88c9a1 0%, #c8d4a8 100%)',
+  'linear-gradient(135deg, #e8a87c 0%, #7ab8d4 100%)',
+  'linear-gradient(135deg, #d4a88f 0%, #7a9bd4 100%)',
+];
+
+function relativeTime(dateStr) {
+  if (!dateStr) return '';
+  const now = new Date();
+  const d = new Date(dateStr);
+  const diffMs = now - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'now';
+  if (diffMin < 60) return `${diffMin}m`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay === 1) return 'Yest';
+  if (diffDay < 7) return `${diffDay}d`;
+  const diffWk = Math.floor(diffDay / 7);
+  return `${diffWk}w`;
+}
+
+function getInitials(name) {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] || '') + (parts[1]?.[0] || '').toUpperCase();
+}
 
 export default function Messages() {
-  const navigate = useNavigate()
-  const { getToken } = useAuth()
-  const { refresh: refreshUnread } = useUnreadMessageCount()
-  const [activeConvo, setActiveConvo] = useState(null)
-  const [message, setMessage] = useState('')
-  const [conversations, setConversations] = useState([])
-  const [threadMessages, setThreadMessages] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [threadLoading, setThreadLoading] = useState(false)
-  const [toast, setToast] = useState(null)
+  const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
-
-  // Fetch conversations list
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const token = await getToken()
+        const token = await getToken();
         const res = await fetch(`${API_URL}/api/messages/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
-        if (!res.ok) throw new Error('Failed to fetch conversations')
-        const data = await res.json()
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
 
-        // Transform API data into conversation list.
-        // This page is the OFFICE inbox, so the "other" party is ALWAYS the provider,
-        // regardless of who sent the most recent message.
         const convos = data.map(msg => {
-          const otherUser = msg.provider?.user
-          const name = otherUser
-            ? `${otherUser.firstName || ''} ${otherUser.lastName ? otherUser.lastName.charAt(0) + '.' : ''}`.trim()
-            : 'Unknown'
-          const role = msg.provider?.role || 'Professional'
+          const otherUser = msg.provider?.user;
+          const firstName = otherUser?.firstName || '';
+          const lastName = otherUser?.lastName || '';
+          const displayName = lastName
+            ? `${firstName} ${lastName.charAt(0)}.`
+            : firstName || 'Unknown';
 
           return {
             id: `${msg.officeId}-${msg.providerId}`,
-            officeId: msg.officeId,
-            providerId: msg.providerId,
-            name,
-            role,
-            lastMsg: msg.body,
-            time: formatTime(msg.createdAt),
-            unread: msg.unreadCount || 0,
-          }
-        })
-        setConversations(convos)
+            name: displayName,
+            initials: getInitials(`${firstName} ${lastName}`),
+            preview: msg.body || '',
+            time: relativeTime(msg.createdAt),
+            unreadCount: msg.unreadCount || 0,
+            isOnline: false,
+            sentByMe: msg.fromRole === 'OFFICE',
+          };
+        });
+        setConversations(convos);
       } catch (err) {
-        console.error('Error fetching conversations:', err)
+        console.error('Error fetching conversations:', err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchConversations()
-  }, [getToken])
+    };
+    fetchConversations();
+  }, [getToken]);
 
-  // Fetch thread messages when a conversation is selected
-  useEffect(() => {
-    if (!activeConvo) { setThreadMessages([]); return }
-    const convo = conversations.find(c => c.id === activeConvo)
-    if (!convo) return
+  const filteredConversations = conversations.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.preview.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    const fetchThread = async () => {
-      setThreadLoading(true)
-      try {
-        const token = await getToken()
-        const res = await fetch(`${API_URL}/api/messages/${convo.officeId}/${convo.providerId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (!res.ok) throw new Error('Failed to fetch messages')
-        const data = await res.json()
+  const handleConversationClick = (convId) => {
+    navigate(`/messages/${convId}`);
+  };
 
-        const msgs = data.map(m => ({
-          id: m.id,
-          sent: m.fromRole === 'OFFICE',
-          text: m.body,
-          time: formatTime(m.createdAt),
-          read: m.read,
-        }))
-        setThreadMessages(msgs)
-
-        // Mark messages as read
-        await fetch(`${API_URL}/api/messages/read-all/${convo.officeId}/${convo.providerId}`, {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        setConversations(prev => prev.map(c => c.id === activeConvo ? { ...c, unread: false } : c))
-        refreshUnread()
-      } catch (err) {
-        console.error('Error fetching thread:', err)
-      } finally {
-        setThreadLoading(false)
-      }
-    }
-    fetchThread()
-  }, [activeConvo, conversations, getToken])
-
-  const formatTime = (dateStr) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const now = new Date()
-    const diffMs = now - date
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-    if (diffDays === 0) {
-      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-    } else if (diffDays === 1) {
-      return 'Yesterday'
-    } else if (diffDays < 7) {
-      return date.toLocaleDateString('en-US', { weekday: 'short' })
-    }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
-
-  const active = conversations.find(c => c.id === activeConvo)
-  const lastSentMsg = threadMessages.length > 0
-    ? [...threadMessages].reverse().find(m => m.sent)
-    : null
-
-  const handleSend = async () => {
-    if (!message.trim() || !active) return
-    const newMsg = { id: Date.now().toString(), sent: true, text: message.trim(), time: 'Just now' }
-    setThreadMessages(prev => [...prev, newMsg])
-    const msgText = message.trim()
-    setMessage('')
-
-    try {
-      const token = await getToken()
-      await fetch(`${API_URL}/api/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          officeId: active.officeId,
-          providerId: active.providerId,
-          body: msgText,
-        }),
-      })
-
-      // Update last message in conversation list
-      setConversations(prev => prev.map(c =>
-        c.id === activeConvo ? { ...c, lastMsg: msgText, time: 'Just now' } : c
-      ))
-    } catch (err) {
-      console.error('Error sending message:', err)
-      showToast('Failed to send message')
-    }
-  }
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
-  }
-
-  // ── Empty state: no conversations at all ──
-  const NoConversations = () => (
-    <div className="flex-1 flex items-center justify-center bg-[#f9f8f6]">
-      <div className="text-center px-8">
-        <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">No messages yet</p>
-        <p className="text-[14px] text-[#9ca3af] leading-relaxed mb-6 max-w-[240px] mx-auto">Start a conversation with a professional.</p>
-        <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">
-          Browse professionals
-        </button>
-      </div>
-    </div>
-  )
-
-  // ── Empty state: no convo selected ──
-  const NoConvoSelected = () => (
-    <div className="flex-1 flex items-center justify-center bg-[#f9f8f6]">
-      <div className="text-center px-8">
-        <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <p className="text-[15px] font-bold text-[#1a1a1a] mb-1">Select a conversation</p>
-        <p className="text-[13px] text-[#9ca3af]">Choose a conversation from the list to get started.</p>
-      </div>
-    </div>
-  )
-
-  const hasConvos = conversations.length > 0
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
-        <Nav />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-8 h-8 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p className="text-sm text-[#9ca3af]">Loading messages...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const handleCompose = () => {
+    console.log('Compose new message');
+  };
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
+    <div
+      style={{
+        background: COLORS.bg,
+        minHeight: '100vh',
+        fontFamily: "'DM Sans', sans-serif",
+        WebkitFontSmoothing: 'antialiased',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <Nav />
 
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-sm font-semibold px-5 py-3 rounded-full z-50 shadow-lg flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-            <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      {/* TOP BAR */}
+      <div
+        style={{
+          background: COLORS.card,
+          padding: '18px 20px 14px',
+          borderBottom: `1px solid ${COLORS.borderSoft}`,
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, color: COLORS.text, letterSpacing: '-0.4px' }}>
+            Messages
           </div>
-          {toast}
+          <button
+            onClick={handleCompose}
+            style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            aria-label="Compose new message"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
         </div>
-      )}
 
-      <div className="flex-1 flex justify-center overflow-hidden" style={{ height: 'calc(100vh - 64px)' }}>
-        <div className="w-full max-w-[860px] flex md:border-x border-[#e5e7eb] bg-white">
-
-          {/* Conversation list */}
-          <div className={`w-full md:w-[280px] flex-shrink-0 md:border-r border-[#e5e7eb] flex-col ${activeConvo ? 'hidden md:flex' : 'flex'}`}>
-            <div className="p-4 border-b border-[#e5e7eb]">
-              <h2 className="text-lg font-extrabold text-[#1a1a1a]">Messages</h2>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {!hasConvos ? (
-                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                  <div className="w-10 h-10 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-3">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  </div>
-                  <p className="text-[13px] font-bold text-[#1a1a1a] mb-1">No messages</p>
-                  <p className="text-[12px] text-[#9ca3af]">Your conversations will appear here.</p>
-                </div>
-              ) : (
-                conversations.map(convo => (
-                  <div key={convo.id} onClick={() => setActiveConvo(convo.id)} className={`flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-[#e5e7eb] transition ${activeConvo === convo.id ? 'bg-[#e8f5f0]' : 'hover:bg-[#f9f8f6]'}`}>
-                    <InitialsAvatar name={convo.name} size={40} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-bold text-[#1a1a1a]">{convo.name}</p>
-                        <p className="text-xs text-[#9ca3af]">{convo.time}</p>
-                      </div>
-                      <p className="text-xs text-[#6b7280] truncate">{convo.lastMsg}</p>
-                    </div>
-                    {convo.unread && <div className="w-2 h-2 rounded-full bg-[#1a7f5e] flex-shrink-0"></div>}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Active conversation or empty state */}
-          {!hasConvos ? (
-            <div className="hidden md:flex flex-1"><NoConversations /></div>
-          ) : !activeConvo ? (
-            <div className="hidden md:flex flex-1"><NoConvoSelected /></div>
-          ) : (
-            <div className="flex-1 flex flex-col min-w-0">
-              {/* Convo header */}
-              <div className="bg-white border-b border-[#e5e7eb] px-4 md:px-5 h-16 flex items-center justify-between flex-shrink-0 gap-2">
-                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-                  <button onClick={() => setActiveConvo(null)} className="md:hidden w-10 h-10 flex items-center justify-center flex-shrink-0 -ml-2" aria-label="Back">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-                  </button>
-                  <div className="relative flex-shrink-0">
-                    <InitialsAvatar name={active.name} size={40} />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#1a7f5e] border-2 border-white"></div>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[13px] md:text-sm font-bold text-[#1a1a1a] truncate">{active.name}</p>
-                    <p className="text-xs text-[#6b7280] truncate">{active.role}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 relative flex-shrink-0">
-                  {active.providerId && (
-                    <button onClick={() => navigate(`/provider-profile/${active.providerId}`)} className="flex items-center gap-1.5 px-3 h-11 md:h-9 rounded-full border border-[#e5e7eb] text-[12px] font-bold text-[#374151] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition" style={{ fontFamily: 'inherit' }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                      <span className="hidden sm:inline">View profile</span>
-                      <span className="sm:hidden">Profile</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-3">
-                {threadLoading ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : threadMessages.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <p className="text-sm text-[#9ca3af]">No messages yet. Say hello!</p>
-                  </div>
-                ) : (
-                  threadMessages.map((msg, index) => {
-                    const isLastSent = msg.sent && msg.id === lastSentMsg?.id
-                    const isLastOverall = index === threadMessages.length - 1
-                    return (
-                      <div key={msg.id} className={`flex items-end gap-2 ${msg.sent ? 'flex-row-reverse' : ''}`}>
-                        {!msg.sent && <InitialsAvatar name={active.name} size={28} />}
-                        <div className="max-w-[75%] md:max-w-[65%]">
-                          <div className={`rounded-2xl px-4 py-2.5 ${msg.sent ? 'bg-[#1a7f5e] rounded-br-sm' : 'bg-white border border-[#e5e7eb] rounded-bl-sm'}`}>
-                            <p className={`text-sm ${msg.sent ? 'text-white' : 'text-[#1a1a1a]'}`}>{msg.text}</p>
-                          </div>
-                          <div className={`flex items-center gap-1 mt-1 ${msg.sent ? 'justify-end mr-1' : 'ml-1'}`}>
-                            <p className="text-xs text-[#9ca3af]">{msg.time}</p>
-                            {msg.sent && isLastSent && isLastOverall && msg.read && (
-                              <span className="text-xs text-[#1a7f5e] font-semibold flex items-center gap-0.5">
-                                <svg width="16" height="10" viewBox="0 0 18 10" fill="none">
-                                  <path d="M1 5l3.5 3.5L11 1" stroke="#1a7f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                  <path d="M6 5l3.5 3.5L16 1" stroke="#1a7f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                                Read
-                              </span>
-                            )}
-                            {msg.sent && !(isLastSent && isLastOverall && msg.read) && (
-                              <svg width="16" height="10" viewBox="0 0 18 10" fill="none">
-                                <path d="M1 5l3.5 3.5L11 1" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M6 5l3.5 3.5L16 1" stroke="#9ca3af" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-
-              {/* Input */}
-              <div className="bg-white border-t border-[#e5e7eb] px-4 py-3 flex items-center gap-2 md:gap-3 flex-shrink-0 sticky bottom-0">
-                <input type="text" value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type a message..." className="flex-1 min-w-0 border border-[#e5e7eb] rounded-full px-4 h-11 text-[14px] outline-none focus:border-[#1a7f5e] transition" />
-                <button onClick={handleSend} className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition ${message.trim() ? 'bg-[#1a7f5e] hover:bg-[#156649]' : 'bg-[#e5e7eb]'}`}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                </button>
-              </div>
-            </div>
-          )}
+        {/* Search box */}
+        <div style={{ background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 100, padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textLight} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search messages"
+            style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: 13, color: COLORS.text, fontFamily: 'inherit', fontWeight: 500 }}
+          />
         </div>
       </div>
+
+      {/* CONVERSATION LIST */}
+      <div style={{ flex: 1, background: COLORS.card, overflowY: 'auto' }}>
+        {loading ? (
+          <div style={{ padding: '60px 32px', textAlign: 'center' }}>
+            <div style={{ width: 32, height: 32, border: `2px solid ${COLORS.green}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 13, color: COLORS.textLight }}>Loading messages...</div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+          </div>
+        ) : filteredConversations.length === 0 ? (
+          <EmptyState searchQuery={searchQuery} />
+        ) : (
+          filteredConversations.map((conv, idx) => (
+            <ConversationRow
+              key={conv.id}
+              conv={conv}
+              gradient={AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]}
+              onClick={() => handleConversationClick(conv.id)}
+            />
+          ))
+        )}
+      </div>
     </div>
-  )
+  );
+}
+
+function ConversationRow({ conv, gradient, onClick }) {
+  const isUnread = conv.unreadCount > 0;
+  const previewText = conv.sentByMe ? `You: ${conv.preview}` : conv.preview;
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px',
+        borderBottom: `1px solid ${COLORS.borderSoft}`,
+        background: isUnread ? COLORS.greenTint : COLORS.card,
+        position: 'relative', cursor: 'pointer', transition: 'background 0.15s',
+      }}
+      onMouseEnter={(e) => { if (!isUnread) e.currentTarget.style.background = COLORS.bg; }}
+      onMouseLeave={(e) => { if (!isUnread) e.currentTarget.style.background = COLORS.card; }}
+    >
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div style={{ width: 48, height: 48, borderRadius: 15, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14 }}>
+          {conv.initials}
+        </div>
+        {conv.isOnline && (
+          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, background: COLORS.green, border: `2px solid ${isUnread ? COLORS.greenTint : COLORS.card}`, borderRadius: '50%' }} />
+        )}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0, paddingRight: isUnread ? 32 : 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {conv.name}
+          </div>
+          <div style={{ fontSize: 11, color: COLORS.textLight, flexShrink: 0, fontWeight: 500 }}>
+            {conv.time}
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: isUnread ? COLORS.text : COLORS.textMid, fontWeight: isUnread ? 700 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.4 }}>
+          {previewText}
+        </div>
+      </div>
+
+      {isUnread && (
+        <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(50%)', background: COLORS.green, color: 'white', fontSize: 10, fontWeight: 800, fontFamily: "'Outfit', sans-serif", padding: '3px 7px', borderRadius: 100, minWidth: 18, textAlign: 'center' }}>
+          {conv.unreadCount}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ searchQuery }) {
+  return (
+    <div style={{ padding: '60px 32px', textAlign: 'center' }}>
+      <div style={{ width: 64, height: 64, background: COLORS.greenTint, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 26, height: 26 }}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </div>
+      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, marginBottom: 6 }}>
+        {searchQuery ? 'No matches found' : 'No messages yet'}
+      </div>
+      <div style={{ fontSize: 13, color: COLORS.textLight, lineHeight: 1.5 }}>
+        {searchQuery ? 'Try a different search term' : 'When you message a professional, your conversations will appear here.'}
+      </div>
+    </div>
+  );
 }
