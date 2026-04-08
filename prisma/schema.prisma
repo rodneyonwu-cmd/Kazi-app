@@ -96,6 +96,7 @@ model Provider {
   avgRating         Float    @default(0)
   reviewCount       Int      @default(0)
   shiftsCompleted   Int      @default(0)
+  isMock            Boolean  @default(false)
   verified          Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

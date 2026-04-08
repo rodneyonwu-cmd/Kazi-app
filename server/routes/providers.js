@@ -64,6 +64,11 @@ router.get('/', authGuard, async (req, res) => {
   try {
     const { role, city, state, verified, availableOn } = req.query;
     const where = {};
+
+    // Hide mock pros in production
+    if (process.env.NODE_ENV === 'production') {
+      where.isMock = false;
+    }
     if (role) where.role = role;
     if (city) where.city = city;
     if (state) where.state = state;
