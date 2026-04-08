@@ -378,6 +378,102 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
   );
 }
 
+// ============ Filter Bottom Sheet ============
+const CRED_FILTERS = ['RDH', 'RDA', 'EFDA', 'CDA', 'BLS CPR', 'Radiology', 'Local Anesthesia'];
+
+function FilterSheet({ open, onClose, activeFilter, setActiveFilter, fAvailability, setFAvailability, fDistance, setFDistance, fReliability, setFReliability, fRating, setFRating, fCredentials, toggleCred, resetFilters, resultCount }) {
+  const sectionLabel = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, color: '#8a8a8a', marginBottom: 10 };
+  const pillBase = { fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, padding: '10px 16px', borderRadius: 100, border: '1.5px solid #ececec', background: 'white', color: '#5a5a5a', cursor: 'pointer', transition: 'all 0.15s' };
+  const pillActive = { ...pillBase, borderColor: '#1a7f5e', background: '#f1f9f5', color: '#1a7f5e', fontWeight: 700 };
+
+  const PillGroup = ({ options, value, onChange }) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {options.map(o => (
+        <button key={o} onClick={() => onChange(o)} style={value === o ? pillActive : pillBase}>{o}</button>
+      ))}
+    </div>
+  );
+
+  const MultiPillGroup = ({ options, selected, onToggle }) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {options.map(o => (
+        <button key={o} onClick={() => onToggle(o)} style={selected.includes(o) ? pillActive : pillBase}>{o}</button>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, transition: 'opacity 0.25s', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+      />
+      <div
+        style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderRadius: '28px 28px 0 0',
+          zIndex: 101, maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+          transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+          fontFamily: "'DM Sans', sans-serif",
+        }}
+      >
+        {/* Handle */}
+        <div style={{ width: 40, height: 4, background: '#ececec', borderRadius: 100, margin: '12px auto 4px' }} />
+
+        {/* Header */}
+        <div style={{ padding: '14px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f3f3f3' }}>
+          <button onClick={() => { resetFilters(); setActiveFilter('All Roles'); }} style={{ fontSize: 13, fontWeight: 600, color: '#8a8a8a', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Reset all</button>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: '#1a1a1a' }}>Filter Professionals</div>
+          <button onClick={onClose} style={{ width: 34, height: 34, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Icon.Close />
+          </button>
+        </div>
+
+        {/* Scrollable filters */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div>
+            <div style={sectionLabel}>Role</div>
+            <PillGroup options={ROLE_FILTERS} value={activeFilter} onChange={setActiveFilter} />
+          </div>
+          <div>
+            <div style={sectionLabel}>Availability</div>
+            <PillGroup options={['Any time', 'Today', 'This week', 'Next week']} value={fAvailability} onChange={setFAvailability} />
+          </div>
+          <div>
+            <div style={sectionLabel}>Distance</div>
+            <PillGroup options={['Within 5 mi', 'Within 10 mi', 'Within 25 mi', 'Any distance']} value={fDistance} onChange={setFDistance} />
+          </div>
+          <div>
+            <div style={sectionLabel}>Min Reliability</div>
+            <PillGroup options={['Any', '70%+', '85%+', '95%+']} value={fReliability} onChange={setFReliability} />
+          </div>
+          <div>
+            <div style={sectionLabel}>Min Rating</div>
+            <PillGroup options={['Any', '4.0+', '4.5+', '5.0 only']} value={fRating} onChange={setFRating} />
+          </div>
+          <div>
+            <div style={sectionLabel}>Credentials</div>
+            <MultiPillGroup options={CRED_FILTERS} selected={fCredentials} onToggle={toggleCred} />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '16px 24px 28px', borderTop: '1px solid #f3f3f3' }}>
+          <button
+            onClick={onClose}
+            style={{
+              width: '100%', background: '#1a7f5e', color: 'white', border: 'none', borderRadius: 100,
+              padding: '16px 0', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            Show {resultCount} professional{resultCount !== 1 ? 's' : ''}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ============ Main Page ============
 export default function FindProfessionals() {
   const navigate = useNavigate();
@@ -386,6 +482,16 @@ export default function FindProfessionals() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [criteriaLabel, setCriteriaLabel] = useState('Add date & time');
   const [filterOpen, setFilterOpen] = useState(false);
+
+  // Advanced filters
+  const [fAvailability, setFAvailability] = useState('Any time');
+  const [fDistance, setFDistance] = useState('Any distance');
+  const [fReliability, setFReliability] = useState('Any');
+  const [fRating, setFRating] = useState('Any');
+  const [fCredentials, setFCredentials] = useState([]);
+  const toggleCred = (c) => setFCredentials(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+  const activeFilterCount = [fAvailability !== 'Any time', fDistance !== 'Any distance', fReliability !== 'Any', fRating !== 'Any', fCredentials.length > 0].filter(Boolean).length;
+  const resetFilters = () => { setFAvailability('Any time'); setFDistance('Any distance'); setFReliability('Any'); setFRating('Any'); setFCredentials([]); };
 
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -478,10 +584,28 @@ export default function FindProfessionals() {
   }, [getToken]);
 
   const filtered = professionals.filter(p => {
-    if (activeFilter === 'All Roles') return true;
-    if (activeFilter === 'Hygienist' && p.role === 'Dental Hygienist') return true;
-    if (activeFilter === p.role) return true;
-    return false;
+    // Role filter
+    if (activeFilter !== 'All Roles') {
+      if (activeFilter === 'Hygienist' && p.role !== 'Dental Hygienist') return false;
+      else if (activeFilter !== 'Hygienist' && activeFilter !== p.role) return false;
+    }
+    // Reliability filter
+    if (fReliability === '70%+' && p.reliability < 70) return false;
+    if (fReliability === '85%+' && p.reliability < 85) return false;
+    if (fReliability === '95%+' && p.reliability < 95) return false;
+    // Rating filter
+    if (fRating === '4.0+' && p.rating < 4.0) return false;
+    if (fRating === '4.5+' && p.rating < 4.5) return false;
+    if (fRating === '5.0 only' && p.rating < 5.0) return false;
+    // Distance filter
+    if (fDistance !== 'Any distance') {
+      const maxDist = parseInt(fDistance.replace(/[^0-9]/g, ''));
+      const proDist = parseInt(p.distance);
+      if (proDist > maxDist) return false;
+    }
+    // Credentials filter
+    if (fCredentials.length > 0 && !fCredentials.every(c => p.creds.includes(c))) return false;
+    return true;
   });
 
   const handleApplyCriteria = ({ date, start, end }) => {
@@ -535,7 +659,7 @@ export default function FindProfessionals() {
           </div>
           <button onClick={() => setFilterOpen(true)} className="w-10 h-10 rounded-full bg-[#f9f8f6] flex items-center justify-center relative">
             <Icon.Filter />
-            <div className="absolute top-2 right-2.5 w-2 h-2 bg-[#e8734a] rounded-full border-2 border-white" />
+            {activeFilterCount > 0 && <div className="absolute top-2 right-2.5 w-2 h-2 bg-[#e8734a] rounded-full border-2 border-white" />}
           </button>
         </div>
 
@@ -624,6 +748,20 @@ export default function FindProfessionals() {
       )}
 
       <BookingCriteriaSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onApply={handleApplyCriteria} />
+
+      {/* Filter Bottom Sheet */}
+      <FilterSheet
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        activeFilter={activeFilter} setActiveFilter={setActiveFilter}
+        fAvailability={fAvailability} setFAvailability={setFAvailability}
+        fDistance={fDistance} setFDistance={setFDistance}
+        fReliability={fReliability} setFReliability={setFReliability}
+        fRating={fRating} setFRating={setFRating}
+        fCredentials={fCredentials} toggleCred={toggleCred}
+        resetFilters={resetFilters}
+        resultCount={filtered.length}
+      />
 
       {/* Rapid Fill bottom bar */}
       {isRapidFill && (
