@@ -52,11 +52,15 @@ export default function BookingSheet({
   const startTimes = ['7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM'];
   const endTimes = ['3:00 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '7:00 PM'];
 
+  const [internalDate, setInternalDate] = useState(selectedDate);
   const [startIdx, setStartIdx] = useState(2); // 8:00 AM
   const [endIdx, setEndIdx] = useState(3);     // 5:00 PM
   const [lunchOn, setLunchOn] = useState(true);
   const [lunchMins, setLunchMins] = useState(45);
   const [note, setNote] = useState('');
+
+  // Sync when prop changes
+  useEffect(() => { setInternalDate(selectedDate); }, [selectedDate]);
 
   // Lock body scroll while sheet is open
   useEffect(() => {
@@ -76,9 +80,9 @@ export default function BookingSheet({
   const hourlyRate = pro?.rate || 0;
 
   const dateLabel = useMemo(() => {
-    if (!selectedDate) return 'Select a date';
-    return `${fullDays[selectedDate.getDay()]}, ${shortMonths[selectedDate.getMonth()]} ${selectedDate.getDate()}`;
-  }, [selectedDate]);
+    if (!internalDate) return 'Select a date';
+    return `${fullDays[internalDate.getDay()]}, ${shortMonths[internalDate.getMonth()]} ${internalDate.getDate()}`;
+  }, [internalDate]);
 
   const parseTime = (str) => {
     const [time, mer] = str.split(' ');
@@ -109,7 +113,7 @@ export default function BookingSheet({
   const handleSend = () => {
     onSend &&
       onSend({
-        date: selectedDate,
+        date: internalDate,
         start: startTimes[startIdx],
         end: endTimes[endIdx],
         lunchOn,
@@ -174,23 +178,44 @@ export default function BookingSheet({
           </button>
         </div>
 
-        {/* Date banner */}
-        <div className="mx-6 mt-4 mb-2 bg-[#f1f9f5] border-[1.5px] border-[#e8f3ee] rounded-2xl px-4 py-3.5 flex items-center gap-3">
-          <div className="w-[38px] h-[38px] bg-white rounded-xl flex items-center justify-center text-[#1a7f5e] flex-shrink-0">
-            <IconCalendar />
-          </div>
-          <div className="flex-1">
-            <div className="text-[10px] font-bold text-[#1a7f5e] uppercase tracking-wider">
-              Selected date
+        {/* Date banner or date picker */}
+        {internalDate ? (
+          <div className="mx-6 mt-4 mb-2 bg-[#f1f9f5] border-[1.5px] border-[#e8f3ee] rounded-2xl px-4 py-3.5 flex items-center gap-3">
+            <div className="w-[38px] h-[38px] bg-white rounded-xl flex items-center justify-center text-[#1a7f5e] flex-shrink-0">
+              <IconCalendar />
             </div>
-            <div
-              className="text-base font-bold mt-0.5 text-[#1a1a1a]"
-              style={{ fontFamily: "'Outfit', sans-serif" }}
-            >
-              {dateLabel}
+            <div className="flex-1">
+              <div className="text-[10px] font-bold text-[#1a7f5e] uppercase tracking-wider">Selected date</div>
+              <div className="text-base font-bold mt-0.5 text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>{dateLabel}</div>
+            </div>
+            <button onClick={() => setInternalDate(null)} style={{ background: 'none', border: 'none', color: '#8a8a8a', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Change</button>
+          </div>
+        ) : (
+          <div className="px-6 mt-4 mb-2">
+            <div className="text-[11px] font-bold text-[#8a8a8a] uppercase tracking-wider mb-2.5">Select a date</div>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', margin: '0 -24px', padding: '0 24px 4px' }}>
+              {Array.from({ length: 21 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                return d;
+              }).map((d, i) => (
+                <div
+                  key={i}
+                  onClick={() => setInternalDate(d)}
+                  style={{
+                    flexShrink: 0, width: 60, padding: '12px 8px',
+                    background: '#f9f8f6', border: '1.5px solid #f3f3f3',
+                    borderRadius: 14, textAlign: 'center', cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#8a8a8a', textTransform: 'uppercase' }}>{fullDays[d.getDay()].slice(0, 3)}</div>
+                  <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', marginTop: 4, lineHeight: 1 }}>{d.getDate()}</div>
+                  <div style={{ fontSize: 10, color: '#8a8a8a', marginTop: 3, fontWeight: 600 }}>{shortMonths[d.getMonth()]}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Shift hours */}
         <div className="px-6 py-4">

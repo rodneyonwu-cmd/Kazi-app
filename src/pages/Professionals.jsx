@@ -68,12 +68,16 @@ function ProCard({ pro, onClick, onSave, onBook }) {
       <div className="flex gap-3.5 items-start">
         {/* Avatar */}
         <div className="relative flex-shrink-0">
-          <div
-            className="w-16 h-16 rounded-[18px] flex items-center justify-center text-white font-bold text-[22px]"
-            style={{ background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', fontFamily: "'Outfit', sans-serif" }}
-          >
-            {pro.initials}
-          </div>
+          {pro.avatarUrl ? (
+            <img src={pro.avatarUrl} alt={pro.name} className="w-16 h-16 rounded-[18px] object-cover" />
+          ) : (
+            <div
+              className="w-16 h-16 rounded-[18px] flex items-center justify-center text-white font-bold text-[22px]"
+              style={{ background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', fontFamily: "'Outfit', sans-serif" }}
+            >
+              {pro.initials}
+            </div>
+          )}
           <div className="absolute -bottom-0.5 -right-0.5 w-[22px] h-[22px] bg-[#1a7f5e] rounded-full flex items-center justify-center border-[2.5px] border-white text-white">
             <Icon.Check />
           </div>
@@ -496,6 +500,7 @@ export default function FindProfessionals() {
               bookings: p.shiftsCompleted || 0,
               reliability: p.reliabilityScore || 100,
               badges: ['Background Verified', ...(p.skills || []).slice(0, 2)],
+              avatarUrl: u.avatarUrl || null,
               bio: p.bio || null,
               saved: false,
             };
@@ -721,7 +726,7 @@ export default function FindProfessionals() {
           open={!!bookingPro}
           onClose={() => setBookingPro(null)}
           pro={{ name: bookingPro.name, firstName: bookingPro.name.split(' ')[0], rate: parseFloat((bookingPro.rate || '$0').replace(/[^0-9.]/g, '')) || 0 }}
-          selectedDate={new Date()}
+          selectedDate={null}
           backups={[]}
           onLaunchRapidFill={() => {}}
           onSend={(details) => { setBookingPro(null); alert(`Booking request sent to ${bookingPro.name}!`); }}
