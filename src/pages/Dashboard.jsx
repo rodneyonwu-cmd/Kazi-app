@@ -27,6 +27,7 @@ export default function Dashboard() {
   const { user } = useUser()
   const { getToken } = useAuth()
 
+  const [postJobOpen, setPostJobOpen] = useState(false)
   const [shiftModal, setShiftModal] = useState(null)
   const [shiftApplicants, setShiftApplicants] = useState([])
   const [loadingApps, setLoadingApps] = useState(false)
@@ -498,7 +499,7 @@ export default function Dashboard() {
             <p className="text-[13px] text-[#4b8c72] leading-relaxed">Post another shift or invite a professional directly.</p>
           </div>
           <button
-            onClick={() => navigate('/post-shift')}
+            onClick={() => setPostJobOpen(true)}
             className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-extrabold px-6 py-3 rounded-full text-[14px] flex items-center gap-2 transition whitespace-nowrap w-full sm:w-auto justify-center"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -567,7 +568,7 @@ export default function Dashboard() {
             </div>
             <p className="text-[15px] font-bold text-[#1a1a1a] mb-1">No shifts or jobs posted yet</p>
             <p className="text-[13px] text-[#9ca3af] mb-4">Post your first shift or job to start finding professionals.</p>
-            <button onClick={() => navigate('/post-shift')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-[13px] transition">Post a shift</button>
+            <button onClick={() => setPostJobOpen(true)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-[13px] transition">Post a shift</button>
           </div>
         ) : (<>
           {/* Temp Shifts */}
@@ -684,6 +685,33 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Post a Job chooser modal */}
+      {postJobOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[100]" onClick={() => setPostJobOpen(false)} />
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[28px] z-[101] pb-6 w-[calc(100%-40px)] max-w-[400px] shadow-2xl">
+            <div className="px-6 pt-6 pb-2 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-[26px] font-black text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif", lineHeight: 1.15 }}>Post a Job</h2>
+                <p className="text-[14px] text-[#5a5a5a] mt-1.5">What kind of position are you hiring for?</p>
+              </div>
+              <button onClick={() => setPostJobOpen(false)} className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] border-none flex items-center justify-center cursor-pointer flex-shrink-0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+            <div className="px-5 pt-6 pb-2 flex flex-col gap-3.5">
+              <button onClick={() => { setPostJobOpen(false); navigate('/post/temp'); }} className="bg-white border-2 border-[#ececec] rounded-[22px] p-[22px] cursor-pointer text-left w-full hover:border-[#1a7f5e] transition" style={{ fontFamily: 'inherit' }}>
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#f1f9f5] text-[#1a7f5e] mb-1.5">Single day</span>
+                <div className="text-[22px] font-black text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>Temp Shift</div>
+              </button>
+              <button onClick={() => { setPostJobOpen(false); navigate('/post/permanent'); }} className="bg-white border-2 border-[#ececec] rounded-[22px] p-[22px] cursor-pointer text-left w-full hover:border-[#7c3aed] transition" style={{ fontFamily: 'inherit' }}>
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#f1ebfa] text-[#7c3aed] mb-1.5">Long-term hire</span>
+                <div className="text-[22px] font-black text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>Permanent Role</div>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

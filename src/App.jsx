@@ -50,6 +50,9 @@ import AdminBilling from './pages/admin/AdminBilling'
 import AdminTickets from './pages/admin/AdminTickets'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminAudit from './pages/admin/AdminAudit'
+import OfficeDashboard from './pages/OfficeDashboard'
+import PostTempShiftWizard from './pages/PostTempShiftWizard'
+import PostPermanentJobWizard from './pages/PostPermanentJobWizard'
 
 function App() {
   return (
@@ -64,6 +67,9 @@ function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="/post-shift" element={<RequireAuth><PostShift /></RequireAuth>} />
+      <Route path="/post/temp" element={<RequireAuth><PostTempShiftWizard /></RequireAuth>} />
+      <Route path="/post/permanent" element={<RequireAuth><PostPermanentJobWizard /></RequireAuth>} />
+      <Route path="/office-dashboard-new" element={<RequireAuth><OfficeDashboard /></RequireAuth>} />
       <Route path="/professionals" element={<RequireAuth><Professionals /></RequireAuth>} />
       <Route path="/professionals/:id" element={<RequireAuth><ProfessionalProfile /></RequireAuth>} />
       <Route path="/profile" element={<Navigate to="/office-profile" replace />} />
