@@ -415,6 +415,9 @@ export default function FindProfessionals() {
   const [activeFilter, setActiveFilter] = useState('All Roles');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [criteriaLabel, setCriteriaLabel] = useState('Add date & time');
+  const [criteriaDate, setCriteriaDate] = useState(null);
+  const [criteriaStart, setCriteriaStart] = useState(null);
+  const [criteriaEnd, setCriteriaEnd] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
 
 
@@ -533,6 +536,9 @@ export default function FindProfessionals() {
     const opts = { month: 'short', day: 'numeric' };
     const d = date.toLocaleDateString('en-US', opts);
     setCriteriaLabel(`${d} · ${start} – ${end}`);
+    setCriteriaDate(date);
+    setCriteriaStart(start);
+    setCriteriaEnd(end);
     setSheetOpen(false);
   };
 
@@ -726,7 +732,7 @@ export default function FindProfessionals() {
           open={!!bookingPro}
           onClose={() => setBookingPro(null)}
           pro={{ name: bookingPro.name, firstName: bookingPro.name.split(' ')[0], rate: parseFloat((bookingPro.rate || '$0').replace(/[^0-9.]/g, '')) || 0 }}
-          selectedDate={null}
+          selectedDate={criteriaDate || null}
           backups={[]}
           onLaunchRapidFill={() => {}}
           onSend={(details) => { setBookingPro(null); alert(`Booking request sent to ${bookingPro.name}!`); }}
