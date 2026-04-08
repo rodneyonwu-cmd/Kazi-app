@@ -106,17 +106,28 @@ router.get('/', authGuard, async (req, res) => {
       where.id = { in: availableIds.filter(id => !bookedIds.has(id)) };
     }
 
-    const providers = await prisma.provider.findMany({
-      where,
-      include: {
-        user: { select: { firstName: true, lastName: true, avatarUrl: true } },
-        reviews: { orderBy: { createdAt: 'desc' }, take: 20 },
-        bookings: { where: { status: 'COMPLETED' }, select: { id: true, status: true } },
-        availability: true,
-      },
-      orderBy: { reliabilityScore: 'desc' },
-    });
-    res.json(providers);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [providers, total] = await Promise.all([
+      prisma.provider.findMany({
+        where,
+        include: {
+          user: { select: { firstName: true, lastName: true, avatarUrl: true } },
+          reviews: { orderBy: { createdAt: 'desc' }, take: 20 },
+          bookings: { where: { status: 'COMPLETED' }, select: { id: true, status: true } },
+          availability: true,
+          credentials: true,
+        },
+        orderBy: [{ isMock: 'desc' }, { reliabilityScore: 'desc' }, { avgRating: 'desc' }],
+        skip,
+        take: limit,
+      }),
+      prisma.provider.count({ where }),
+    ]);
+
+    res.json({ providers, total, page, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });

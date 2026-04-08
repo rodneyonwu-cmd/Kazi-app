@@ -133,6 +133,17 @@ function ProCard({ pro, onClick, onSave }) {
         </div>
       </div>
 
+      {/* About section — only renders if pro has a bio */}
+      {pro.bio && pro.bio.trim() && (
+        <div className="mt-3 pt-3 border-t border-[#f3f3f3]">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+            <span className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold">About</span>
+          </div>
+          <p className="text-[13px] leading-[1.6] text-[#3a3a3a]" style={{ fontFamily: "'DM Sans', sans-serif", margin: 0 }}>{pro.bio}</p>
+        </div>
+      )}
+
       {/* Stats strip */}
       <div className="flex gap-2 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
         <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
@@ -392,6 +403,9 @@ export default function FindProfessionals() {
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState([]);
   const [officeId, setOfficeId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Rapid Fill mode
   const searchParams = new URLSearchParams(window.location.search);
@@ -430,11 +444,19 @@ export default function FindProfessionals() {
         const token = await getToken();
         const headers = { Authorization: `Bearer ${token}` };
         const [prosRes, meRes] = await Promise.all([
-          fetch(`${API_URL}/api/providers`, { headers }),
+          fetch(`${API_URL}/api/providers?page=${currentPage}&limit=10`, { headers }),
           fetch(`${API_URL}/api/offices/me`, { headers }).catch(() => null),
         ]);
         if (prosRes.ok) {
-          const data = await prosRes.json();
+          const json = await prosRes.json();
+          // Handle both paginated { providers, total, ... } and legacy array responses
+          const data = Array.isArray(json) ? json : json.providers || [];
+          if (!Array.isArray(json)) {
+            setTotalPages(json.totalPages || 1);
+            setTotalCount(json.total || data.length);
+          } else {
+            setTotalCount(data.length);
+          }
           const ROLE_MAP = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Desk', dentist: 'Dentist', specialist: 'Specialist' };
           const transformed = data.map(p => {
             const u = p.user || {};
@@ -458,6 +480,7 @@ export default function FindProfessionals() {
               bookings: p.shiftsCompleted || 0,
               reliability: p.reliabilityScore || 100,
               badges: ['Background Verified', ...(p.skills || []).slice(0, 2)],
+              bio: p.bio || null,
               saved: false,
             };
           });
@@ -476,7 +499,7 @@ export default function FindProfessionals() {
       setLoading(false);
     };
     fetchData();
-  }, [getToken]);
+  }, [getToken, currentPage]);
 
   const filtered = professionals.filter(p => {
     if (activeFilter === 'All Roles') return true;
@@ -571,7 +594,7 @@ export default function FindProfessionals() {
 
       {/* Results meta */}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-        <div className="text-[13px] text-[#5a5a5a]"><strong className="text-[#1a1a1a] font-bold">{filtered.length}</strong> available professionals</div>
+        <div className="text-[13px] text-[#5a5a5a]"><strong className="text-[#1a1a1a] font-bold">{totalCount}</strong> available professionals</div>
         <button className="text-[13px] font-bold text-[#1a7f5e] flex items-center gap-1">
           Best Match <Icon.ChevronDown />
         </button>
@@ -620,6 +643,53 @@ export default function FindProfessionals() {
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
           <div className="text-lg font-bold text-[#1a1a1a] mb-1" style={{ fontFamily: "'Outfit', sans-serif" }}>No professionals found</div>
           <div className="text-sm text-[#8a8a8a]">Try adjusting your filters or check back later.</div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 px-5 py-6">
+          <button
+            onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            disabled={currentPage === 1}
+            className="w-10 h-10 rounded-full bg-white border border-[#ececec] flex items-center justify-center disabled:opacity-40"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(p => {
+              if (totalPages <= 7) return true;
+              if (p === 1 || p === totalPages) return true;
+              if (Math.abs(p - currentPage) <= 1) return true;
+              return false;
+            })
+            .map((p, idx, arr) => {
+              const prev = arr[idx - 1];
+              const showEllipsis = prev && p - prev > 1;
+              return (
+                <span key={p} className="flex items-center gap-2">
+                  {showEllipsis && <span className="text-[#8a8a8a] font-bold">…</span>}
+                  <button
+                    onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className={`min-w-[40px] h-10 rounded-full text-[13px] font-bold transition-colors ${
+                      currentPage === p
+                        ? 'bg-[#1a7f5e] text-white'
+                        : 'bg-white text-[#1a1a1a] border border-[#ececec]'
+                    }`}
+                    style={{ fontFamily: "'Outfit', sans-serif" }}
+                  >
+                    {p}
+                  </button>
+                </span>
+              );
+            })}
+          <button
+            onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            disabled={currentPage === totalPages}
+            className="w-10 h-10 rounded-full bg-white border border-[#ececec] flex items-center justify-center disabled:opacity-40"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
         </div>
       )}
 
