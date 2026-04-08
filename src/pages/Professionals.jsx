@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import Nav from '../components/Nav';
+import BookingSheet from '../components/BookingSheet';
 
 // ============================================================
 // Kazi - Find Professionals (Search Feed)
@@ -50,7 +51,7 @@ const Icon = {
 };
 
 // ============ Pro Card ============
-function ProCard({ pro, onClick, onSave }) {
+function ProCard({ pro, onClick, onSave, onBook }) {
   const [saved, setSaved] = useState(pro.saved);
   const [bioExpanded, setBioExpanded] = useState(false);
   const tier = getReliabilityTier(pro.reliability);
@@ -207,7 +208,7 @@ function ProCard({ pro, onClick, onSave }) {
           <Icon.Message /> Message
         </button>
         <button
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); if (onBook) onBook(pro); }}
           className="flex-1 py-2.5 px-4 rounded-full bg-[#1a7f5e] text-white text-[13px] font-bold flex items-center justify-center gap-1.5"
         >
           <Icon.CalSmall /> Book
@@ -417,6 +418,7 @@ export default function FindProfessionals() {
   const [loading, setLoading] = useState(true);
   const [savedIds, setSavedIds] = useState([]);
   const [officeId, setOfficeId] = useState(null);
+  const [bookingPro, setBookingPro] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -647,6 +649,7 @@ export default function FindProfessionals() {
                 }
               }}
               onSave={isRapidFill ? undefined : handleSavePro}
+              onBook={isRapidFill ? undefined : (p) => setBookingPro(p)}
             />
           </div>
         );
@@ -711,6 +714,19 @@ export default function FindProfessionals() {
 
       {/* Filter Bottom Sheet */}
       <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} />
+
+      {/* Booking sheet — opens from Book button on ProCard */}
+      {bookingPro && (
+        <BookingSheet
+          open={!!bookingPro}
+          onClose={() => setBookingPro(null)}
+          pro={{ name: bookingPro.name, firstName: bookingPro.name.split(' ')[0], rate: parseFloat((bookingPro.rate || '$0').replace(/[^0-9.]/g, '')) || 0 }}
+          selectedDate={new Date()}
+          backups={[]}
+          onLaunchRapidFill={() => {}}
+          onSend={(details) => { setBookingPro(null); alert(`Booking request sent to ${bookingPro.name}!`); }}
+        />
+      )}
 
       {/* Rapid Fill bottom bar */}
       {isRapidFill && (
