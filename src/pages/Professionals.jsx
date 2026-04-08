@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import Nav from '../components/Nav';
@@ -378,102 +378,6 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
   );
 }
 
-// ============ Filter Bottom Sheet ============
-const CRED_FILTERS = ['RDH', 'RDA', 'EFDA', 'CDA', 'BLS CPR', 'Radiology', 'Local Anesthesia'];
-
-function FilterSheet({ open, onClose, activeFilter, setActiveFilter, fAvailability, setFAvailability, fDistance, setFDistance, fReliability, setFReliability, fRating, setFRating, fCredentials, toggleCred, resetFilters, resultCount }) {
-  const sectionLabel = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, color: '#8a8a8a', marginBottom: 10 };
-  const pillBase = { fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, padding: '10px 16px', borderRadius: 100, border: '1.5px solid #ececec', background: 'white', color: '#5a5a5a', cursor: 'pointer', transition: 'all 0.15s' };
-  const pillActive = { ...pillBase, borderColor: '#1a7f5e', background: '#f1f9f5', color: '#1a7f5e', fontWeight: 700 };
-
-  const PillGroup = ({ options, value, onChange }) => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {options.map(o => (
-        <button key={o} onClick={() => onChange(o)} style={value === o ? pillActive : pillBase}>{o}</button>
-      ))}
-    </div>
-  );
-
-  const MultiPillGroup = ({ options, selected, onToggle }) => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {options.map(o => (
-        <button key={o} onClick={() => onToggle(o)} style={selected.includes(o) ? pillActive : pillBase}>{o}</button>
-      ))}
-    </div>
-  );
-
-  return (
-    <>
-      <div
-        onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, transition: 'opacity 0.25s', opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
-      />
-      <div
-        style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderRadius: '28px 28px 0 0',
-          zIndex: 101, maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-          transform: open ? 'translateY(0)' : 'translateY(100%)', transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
-          fontFamily: "'DM Sans', sans-serif",
-        }}
-      >
-        {/* Handle */}
-        <div style={{ width: 40, height: 4, background: '#ececec', borderRadius: 100, margin: '12px auto 4px' }} />
-
-        {/* Header */}
-        <div style={{ padding: '14px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f3f3f3' }}>
-          <button onClick={() => { resetFilters(); setActiveFilter('All Roles'); }} style={{ fontSize: 13, fontWeight: 600, color: '#8a8a8a', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Reset all</button>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: '#1a1a1a' }}>Filter Professionals</div>
-          <button onClick={onClose} style={{ width: 34, height: 34, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Icon.Close />
-          </button>
-        </div>
-
-        {/* Scrollable filters */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div>
-            <div style={sectionLabel}>Role</div>
-            <PillGroup options={ROLE_FILTERS} value={activeFilter} onChange={setActiveFilter} />
-          </div>
-          <div>
-            <div style={sectionLabel}>Availability</div>
-            <PillGroup options={['Any time', 'Today', 'This week', 'Next week']} value={fAvailability} onChange={setFAvailability} />
-          </div>
-          <div>
-            <div style={sectionLabel}>Distance</div>
-            <PillGroup options={['Within 5 mi', 'Within 10 mi', 'Within 25 mi', 'Any distance']} value={fDistance} onChange={setFDistance} />
-          </div>
-          <div>
-            <div style={sectionLabel}>Min Reliability</div>
-            <PillGroup options={['Any', '70%+', '85%+', '95%+']} value={fReliability} onChange={setFReliability} />
-          </div>
-          <div>
-            <div style={sectionLabel}>Min Rating</div>
-            <PillGroup options={['Any', '4.0+', '4.5+', '5.0 only']} value={fRating} onChange={setFRating} />
-          </div>
-          <div>
-            <div style={sectionLabel}>Credentials</div>
-            <MultiPillGroup options={CRED_FILTERS} selected={fCredentials} onToggle={toggleCred} />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div style={{ padding: '16px 24px 28px', borderTop: '1px solid #f3f3f3' }}>
-          <button
-            onClick={onClose}
-            style={{
-              width: '100%', background: '#1a7f5e', color: 'white', border: 'none', borderRadius: 100,
-              padding: '16px 0', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            Show {resultCount} professional{resultCount !== 1 ? 's' : ''}
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
-
 // ============ Main Page ============
 export default function FindProfessionals() {
   const navigate = useNavigate();
@@ -483,15 +387,6 @@ export default function FindProfessionals() {
   const [criteriaLabel, setCriteriaLabel] = useState('Add date & time');
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // Advanced filters
-  const [fAvailability, setFAvailability] = useState('Any time');
-  const [fDistance, setFDistance] = useState('Any distance');
-  const [fReliability, setFReliability] = useState('Any');
-  const [fRating, setFRating] = useState('Any');
-  const [fCredentials, setFCredentials] = useState([]);
-  const toggleCred = (c) => setFCredentials(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
-  const activeFilterCount = [fAvailability !== 'Any time', fDistance !== 'Any distance', fReliability !== 'Any', fRating !== 'Any', fCredentials.length > 0].filter(Boolean).length;
-  const resetFilters = () => { setFAvailability('Any time'); setFDistance('Any distance'); setFReliability('Any'); setFRating('Any'); setFCredentials([]); };
 
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -584,28 +479,10 @@ export default function FindProfessionals() {
   }, [getToken]);
 
   const filtered = professionals.filter(p => {
-    // Role filter
-    if (activeFilter !== 'All Roles') {
-      if (activeFilter === 'Hygienist' && p.role !== 'Dental Hygienist') return false;
-      else if (activeFilter !== 'Hygienist' && activeFilter !== p.role) return false;
-    }
-    // Reliability filter
-    if (fReliability === '70%+' && p.reliability < 70) return false;
-    if (fReliability === '85%+' && p.reliability < 85) return false;
-    if (fReliability === '95%+' && p.reliability < 95) return false;
-    // Rating filter
-    if (fRating === '4.0+' && p.rating < 4.0) return false;
-    if (fRating === '4.5+' && p.rating < 4.5) return false;
-    if (fRating === '5.0 only' && p.rating < 5.0) return false;
-    // Distance filter
-    if (fDistance !== 'Any distance') {
-      const maxDist = parseInt(fDistance.replace(/[^0-9]/g, ''));
-      const proDist = parseInt(p.distance);
-      if (proDist > maxDist) return false;
-    }
-    // Credentials filter
-    if (fCredentials.length > 0 && !fCredentials.every(c => p.creds.includes(c))) return false;
-    return true;
+    if (activeFilter === 'All Roles') return true;
+    if (activeFilter === 'Hygienist' && p.role === 'Dental Hygienist') return true;
+    if (activeFilter === p.role) return true;
+    return false;
   });
 
   const handleApplyCriteria = ({ date, start, end }) => {
@@ -659,7 +536,6 @@ export default function FindProfessionals() {
           </div>
           <button onClick={() => setFilterOpen(true)} className="w-10 h-10 rounded-full bg-[#f9f8f6] flex items-center justify-center relative">
             <Icon.Filter />
-            {activeFilterCount > 0 && <div className="absolute top-2 right-2.5 w-2 h-2 bg-[#e8734a] rounded-full border-2 border-white" />}
           </button>
         </div>
 
@@ -750,18 +626,7 @@ export default function FindProfessionals() {
       <BookingCriteriaSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onApply={handleApplyCriteria} />
 
       {/* Filter Bottom Sheet */}
-      <FilterSheet
-        open={filterOpen}
-        onClose={() => setFilterOpen(false)}
-        activeFilter={activeFilter} setActiveFilter={setActiveFilter}
-        fAvailability={fAvailability} setFAvailability={setFAvailability}
-        fDistance={fDistance} setFDistance={setFDistance}
-        fReliability={fReliability} setFReliability={setFReliability}
-        fRating={fRating} setFRating={setFRating}
-        fCredentials={fCredentials} toggleCred={toggleCred}
-        resetFilters={resetFilters}
-        resultCount={filtered.length}
-      />
+      <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} />
 
       {/* Rapid Fill bottom bar */}
       {isRapidFill && (
@@ -807,3 +672,246 @@ export default function FindProfessionals() {
     </div>
   );
 }
+
+// ============================================================
+// FILTER SHEET COMPONENT
+// ============================================================
+
+function FilterSheet({ open, onClose }) {
+  const [distance, setDistance] = useState('12 mi');
+  const [rateMin, setRateMin] = useState(22);
+  const [rateMax, setRateMax] = useState(48);
+  const [reliability, setReliability] = useState('Excellent 95%+');
+  const [experience, setExperience] = useState('Any');
+  const [credentials, setCredentials] = useState(['RDA', 'BLS CPR']);
+  const [software, setSoftware] = useState(['Dentrix']);
+  const [bgVerified, setBgVerified] = useState(true);
+  const [active24h, setActive24h] = useState(true);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [withPhoto, setWithPhoto] = useState(false);
+
+  const [credOpen, setCredOpen] = useState(false);
+  const [softOpen, setSoftOpen] = useState(false);
+
+  const resetAll = () => {
+    setDistance('12 mi');
+    setRateMin(15);
+    setRateMax(80);
+    setReliability('Any');
+    setExperience('Any');
+    setCredentials([]);
+    setSoftware([]);
+    setBgVerified(false);
+    setActive24h(false);
+    setSavedOnly(false);
+    setWithPhoto(false);
+  };
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <>
+      <style>{`
+        @keyframes kaziFilterSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes kaziFilterFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .kazi-filter-sheet .scroll-hide::-webkit-scrollbar { display: none; }
+      `}</style>
+
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
+          animation: 'kaziFilterFadeIn 0.25s ease-out',
+        }}
+      />
+
+      <div
+        className="kazi-filter-sheet"
+        style={{
+          position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          width: '100%', maxWidth: 480, background: '#ffffff',
+          borderRadius: '28px 28px 0 0', zIndex: 101, maxHeight: '92vh',
+          display: 'flex', flexDirection: 'column', fontFamily: "'DM Sans', sans-serif",
+          animation: 'kaziFilterSlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+          boxShadow: '0 -10px 40px rgba(0,0,0,0.2)',
+        }}
+      >
+        <div style={{ width: 40, height: 4, background: '#ececec', borderRadius: 100, margin: '12px auto 4px', flexShrink: 0 }} />
+
+        <div style={{ padding: '14px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f3f3f3', flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a1a1a', letterSpacing: '-0.3px' }}>Filters</div>
+          <button onClick={onClose} style={{ width: 38, height: 38, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit' }} aria-label="Close filters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+
+        <div className="scroll-hide" style={{ flex: 1, overflowY: 'auto', paddingBottom: 16 }}>
+          <FilterGroup label="Distance" value={distance}>
+            <FilterPills options={['5 mi', '10 mi', '12 mi', '25 mi', '50 mi']} selected={distance} onSelect={setDistance} />
+          </FilterGroup>
+          <FilterDivider />
+          <FilterGroup label="Hourly rate" value={`$${rateMin} – $${rateMax}`}>
+            <RangeSlider min={15} max={80} valueMin={rateMin} valueMax={rateMax} onChange={(lo, hi) => { setRateMin(lo); setRateMax(hi); }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#8a8a8a', fontWeight: 600, marginTop: 8 }}><span>$15</span><span>$80+</span></div>
+          </FilterGroup>
+          <FilterDivider />
+          <FilterGroup label="Reliability" sub="Filter by Kazi's trust score">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <ReliabilityPill label="Excellent 95%+" tier="excellent" selected={reliability === 'Excellent 95%+'} onClick={() => setReliability('Excellent 95%+')} />
+              <ReliabilityPill label="Great 85%+" tier="great" selected={reliability === 'Great 85%+'} onClick={() => setReliability('Great 85%+')} />
+              <ReliabilityPill label="Good 70%+" tier="good" selected={reliability === 'Good 70%+'} onClick={() => setReliability('Good 70%+')} />
+              <ReliabilityPill label="Any" tier="any" selected={reliability === 'Any'} onClick={() => setReliability('Any')} />
+            </div>
+          </FilterGroup>
+          <FilterDivider />
+          <FilterGroup label="Years of experience">
+            <FilterPills options={['Any', '1+ yrs', '3+ yrs', '5+ yrs', '10+ yrs']} selected={experience} onSelect={setExperience} />
+          </FilterGroup>
+          <FilterDivider />
+          <FilterGroup label="Credentials">
+            <MultiSelectDropdown open={credOpen} onToggle={() => setCredOpen(!credOpen)} options={['RDA', 'EFDA', 'RDH', 'CDA', 'BLS CPR', 'Radiology', 'Nitrous Monitoring', 'Coronal Polishing']} selected={credentials} onChange={setCredentials} placeholder="Any credentials" />
+          </FilterGroup>
+          <FilterDivider />
+          <FilterGroup label="Practice software" sub="Pros experienced with your system">
+            <MultiSelectDropdown open={softOpen} onToggle={() => setSoftOpen(!softOpen)} options={['Dentrix', 'Eaglesoft', 'Open Dental', 'Curve', 'Denticon', 'Carestream']} selected={software} onChange={setSoftware} placeholder="Any software" />
+          </FilterGroup>
+          <FilterDivider />
+          <ToggleRow title="Background verified only" sub="Pros with current background checks" value={bgVerified} onChange={setBgVerified} isFirst />
+          <ToggleRow title="Active in last 24 hours" sub="More likely to accept your booking" value={active24h} onChange={setActive24h} />
+          <ToggleRow title="Saved professionals only" sub="Show only your favorites" value={savedOnly} onChange={setSavedOnly} />
+          <ToggleRow title="Profile photo" sub="Only show pros with a photo" value={withPhoto} onChange={setWithPhoto} />
+          <div style={{ height: 20 }} />
+        </div>
+
+        <div style={{ padding: '14px 20px 26px', borderTop: '1px solid #f3f3f3', background: 'white', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={resetAll} style={{ background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, color: '#5a5a5a', cursor: 'pointer', padding: '14px 4px', textDecoration: 'underline', flexShrink: 0 }}>Reset all</button>
+          <button onClick={onClose} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>Show 247 professionals</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function FilterGroup({ label, sub, value, children }) {
+  return (
+    <div style={{ padding: '20px 24px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: sub ? 2 : 12 }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: '#1a1a1a' }}>{label}</div>
+        {value != null && <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 700, color: '#1a7f5e' }}>{value}</div>}
+      </div>
+      {sub && <div style={{ fontSize: 12, color: '#8a8a8a', marginBottom: 12, lineHeight: 1.4 }}>{sub}</div>}
+      {children}
+    </div>
+  );
+}
+
+function FilterDivider() {
+  return <div style={{ height: 8, background: '#f9f8f6' }} />;
+}
+
+function FilterPills({ options, selected, onSelect }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {options.map((opt) => {
+        const isSel = selected === opt;
+        return (
+          <button key={opt} onClick={() => onSelect(opt)} style={{ background: isSel ? '#1a7f5e' : '#ffffff', border: `1.5px solid ${isSel ? '#1a7f5e' : '#ececec'}`, borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 700, color: isSel ? 'white' : '#5a5a5a', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>{opt}</button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReliabilityPill({ label, tier, selected, onClick }) {
+  const tierColors = { excellent: { bg: '#1a7f5e', border: '#1a7f5e' }, great: { bg: '#7c3aed', border: '#7c3aed' }, good: { bg: '#d97706', border: '#d97706' }, any: { bg: '#1a7f5e', border: '#1a7f5e' } };
+  const c = tierColors[tier];
+  return (
+    <button onClick={onClick} style={{ background: selected ? c.bg : '#ffffff', border: `1.5px solid ${selected ? c.border : '#ececec'}`, borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 700, color: selected ? 'white' : '#5a5a5a', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>{label}</button>
+  );
+}
+
+function MultiSelectDropdown({ open, onToggle, options, selected, onChange, placeholder }) {
+  const toggle = (opt) => { if (selected.includes(opt)) onChange(selected.filter((x) => x !== opt)); else onChange([...selected, opt]); };
+  const summary = selected.length > 0 ? selected.join(', ') : placeholder;
+  const hasSelection = selected.length > 0;
+  return (
+    <div style={{ background: '#ffffff', border: `1.5px solid ${open ? '#1a7f5e' : '#ececec'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color 0.15s' }}>
+      <div onClick={onToggle} style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 10 }}>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: hasSelection ? 700 : 500, color: hasSelection ? '#1a1a1a' : '#8a8a8a', fontFamily: hasSelection ? "'Outfit', sans-serif" : "'DM Sans', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{summary}</div>
+        <svg viewBox="0 0 24 24" fill="none" stroke={open ? '#1a7f5e' : '#8a8a8a'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><polyline points="6 9 12 15 18 9" /></svg>
+      </div>
+      {open && (
+        <div style={{ borderTop: '1px solid #f3f3f3', padding: '4px 0', maxHeight: 240, overflowY: 'auto' }}>
+          {options.map((opt) => {
+            const isSel = selected.includes(opt);
+            return (
+              <div key={opt} onClick={() => toggle(opt)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer' }}>
+                <div style={{ width: 20, height: 20, borderRadius: 6, background: isSel ? '#1a7f5e' : 'white', border: `1.5px solid ${isSel ? '#1a7f5e' : '#ececec'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {isSel && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}><polyline points="20 6 9 17 4 12" /></svg>}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{opt}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ToggleRow({ title, sub, value, onChange, isFirst }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px', borderTop: isFirst ? 'none' : '1px solid #f3f3f3' }}>
+      <div style={{ flex: 1, paddingRight: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', fontFamily: "'Outfit', sans-serif" }}>{title}</div>
+        <div style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2 }}>{sub}</div>
+      </div>
+      <button onClick={() => onChange(!value)} style={{ position: 'relative', width: 46, height: 26, background: value ? '#1a7f5e' : '#ececec', borderRadius: 100, border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, padding: 0 }} aria-label={title}>
+        <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: 'transform 0.2s', transform: value ? 'translateX(20px)' : 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+      </button>
+    </div>
+  );
+}
+
+function RangeSlider({ min, max, valueMin, valueMax, onChange }) {
+  const trackRef = useRef(null);
+  const [dragging, setDragging] = useState(null);
+  const pctMin = ((valueMin - min) / (max - min)) * 100;
+  const pctMax = ((valueMax - min) / (max - min)) * 100;
+  const setFromX = useCallback((clientX, handle) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    let pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const value = Math.round(min + pct * (max - min));
+    if (handle === 'min') onChange(Math.min(value, valueMax - 1), valueMax);
+    else onChange(valueMin, Math.max(value, valueMin + 1));
+  }, [min, max, valueMin, valueMax, onChange]);
+  useEffect(() => {
+    if (!dragging) return;
+    const handleMove = (e) => { const clientX = e.touches ? e.touches[0].clientX : e.clientX; setFromX(clientX, dragging); };
+    const handleUp = () => setDragging(null);
+    document.addEventListener('mousemove', handleMove); document.addEventListener('mouseup', handleUp);
+    document.addEventListener('touchmove', handleMove, { passive: true }); document.addEventListener('touchend', handleUp);
+    return () => { document.removeEventListener('mousemove', handleMove); document.removeEventListener('mouseup', handleUp); document.removeEventListener('touchmove', handleMove); document.removeEventListener('touchend', handleUp); };
+  }, [dragging, setFromX]);
+  return (
+    <div ref={trackRef} style={{ position: 'relative', height: 6, background: '#f9f8f6', borderRadius: 100, margin: '22px 12px 8px' }}>
+      <div style={{ position: 'absolute', height: '100%', background: '#1a7f5e', borderRadius: 100, left: `${pctMin}%`, right: `${100 - pctMax}%` }} />
+      <div onMouseDown={() => setDragging('min')} onTouchStart={() => setDragging('min')} style={{ position: 'absolute', top: '50%', left: `${pctMin}%`, width: 22, height: 22, background: 'white', border: '3px solid #1a7f5e', borderRadius: '50%', transform: 'translate(-50%, -50%)', cursor: 'grab', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', touchAction: 'none' }} />
+      <div onMouseDown={() => setDragging('max')} onTouchStart={() => setDragging('max')} style={{ position: 'absolute', top: '50%', left: `${pctMax}%`, width: 22, height: 22, background: 'white', border: '3px solid #1a7f5e', borderRadius: '50%', transform: 'translate(-50%, -50%)', cursor: 'grab', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', touchAction: 'none' }} />
+    </div>
+  );
+}
+
+// ============================================================
+// END FILTER SHEET COMPONENT
+// ============================================================
