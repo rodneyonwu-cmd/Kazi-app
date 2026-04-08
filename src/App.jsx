@@ -65,7 +65,8 @@ function App() {
       <Route path="/otp-verification" element={<OTPVerification />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+      <Route path="/dashboard" element={<RequireAuth><OfficeDashboard /></RequireAuth>} />
+      <Route path="/dashboard-old" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="/post-shift" element={<RequireAuth><PostShift /></RequireAuth>} />
       <Route path="/post/temp" element={<RequireAuth><PostTempShiftWizard /></RequireAuth>} />
       <Route path="/post/permanent" element={<RequireAuth><PostPermanentJobWizard /></RequireAuth>} />
