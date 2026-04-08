@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Nav from '../components/Nav';
 
 // ============================================================
 // KAZI OFFICE DASHBOARD
@@ -62,49 +63,8 @@ export default function OfficeDashboard() {
           position: 'relative',
         }}
       >
-        {/* TOP BAR */}
-        <div
-          style={{
-            background: COLORS.card,
-            padding: '18px 20px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            borderBottom: `1px solid ${COLORS.borderSoft}`,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 30,
-              color: COLORS.green,
-              letterSpacing: '-0.8px',
-              flex: 1,
-            }}
-          >
-            kazi.
-          </div>
-          <div
-            onClick={() => navigate('/office-profile')}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
-          >
-            DO
-          </div>
-        </div>
+        {/* TOP BAR — uses existing Nav with hamburger + dropdown */}
+        <Nav />
 
         {/* GREETING */}
         <div style={{ padding: '22px 20px 8px' }}>
