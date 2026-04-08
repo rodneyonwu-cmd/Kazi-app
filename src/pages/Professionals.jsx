@@ -52,6 +52,7 @@ const Icon = {
 // ============ Pro Card ============
 function ProCard({ pro, onClick, onSave }) {
   const [saved, setSaved] = useState(pro.saved);
+  const [bioExpanded, setBioExpanded] = useState(false);
   const tier = getReliabilityTier(pro.reliability);
 
   useEffect(() => {
@@ -135,12 +136,25 @@ function ProCard({ pro, onClick, onSave }) {
 
       {/* About section — only renders if pro has a bio */}
       {pro.bio && pro.bio.trim() && (
-        <div className="mt-3 pt-3 border-t border-[#f3f3f3]">
+        <div className="mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
-            <span className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold">About</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-[10px] h-[10px]"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+            <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#8a8a8a]">About</span>
           </div>
-          <p className="text-[13px] leading-[1.6] text-[#3a3a3a]" style={{ fontFamily: "'DM Sans', sans-serif", margin: 0 }}>{pro.bio}</p>
+          <p className="text-[15px] leading-[1.6] text-[#3a3a3a]">
+            {pro.bio.length > 260 && !bioExpanded
+              ? pro.bio.slice(0, 260).trimEnd() + '…'
+              : pro.bio}
+            {pro.bio.length > 260 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setBioExpanded(!bioExpanded); }}
+                className="ml-1 text-[#1a7f5e] font-bold text-[14px] hover:underline"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {bioExpanded ? 'See less' : 'See more'}
+              </button>
+            )}
+          </p>
         </div>
       )}
 
