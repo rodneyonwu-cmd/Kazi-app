@@ -5,6 +5,8 @@ import Nav from '../components/Nav'
 import ProviderNav from '../components/ProviderNav'
 import InitialsAvatar from '../components/InitialsAvatar'
 import PermanentJobCard from '../components/PermanentJobCard'
+import BackToDashboard from '../components/BackToDashboard'
+import BottomNav from '../components/BottomNav'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -151,6 +153,7 @@ export default function OfficeProfile() {
         <div className="flex items-center justify-center py-20">
           <p className="text-sm text-[#9ca3af]">Loading profile...</p>
         </div>
+        {!isExternalView && <BottomNav />}
       </div>
     )
   }
@@ -171,18 +174,25 @@ export default function OfficeProfile() {
     <div className="min-h-screen bg-[#f9f8f6]">
       {isExternalView ? <ProviderNav /> : <Nav />}
 
-      <div className="max-w-[700px] mx-auto px-4 md:px-6 py-6 md:py-8 pb-24">
+      <div className="max-w-[700px] mx-auto px-4 md:px-6 py-6 md:py-8 pb-32">
 
-        {/* Back link */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-[13px] font-semibold text-[#6b7280] hover:text-[#1a1a1a] transition mb-5"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-          Back to settings
-        </button>
+        {/* Back to dashboard */}
+        {!isExternalView && (
+          <div style={{ marginBottom: 14 }}>
+            <BackToDashboard />
+          </div>
+        )}
+        {isExternalView && (
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-[13px] font-semibold text-[#6b7280] hover:text-[#1a1a1a] transition mb-5"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back
+          </button>
+        )}
 
         {/* HEADER CARD */}
         <div className="bg-white border border-[#e5e7eb] rounded-2xl p-4 md:p-6 mb-4">
@@ -610,6 +620,7 @@ export default function OfficeProfile() {
           </>
         )
       })()}
+      {!isExternalView && <BottomNav />}
     </div>
   )
 }

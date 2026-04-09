@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../components/Nav';
 import FindProsSheet from '../components/FindProsSheet';
+import BottomNav from '../components/BottomNav';
 
 // ============================================================
 // KAZI OFFICE DASHBOARD
@@ -277,7 +278,7 @@ export default function OfficeDashboard() {
         </div>
 
         {/* BOTTOM NAV */}
-        <BottomNav navigate={navigate} />
+        <BottomNav />
 
         {/* POST A JOB CHOOSER MODAL */}
         {/* FIND PROS SHEET */}
@@ -403,26 +404,6 @@ function MonthGrid({ navigate }) {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function BottomNav({ navigate }) {
-  const items = [
-    { label: 'Home', path: '/dashboard', active: true, icon: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></> },
-    { label: 'Find', path: '/professionals', icon: <><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></> },
-    { label: 'Bookings', path: '/bookings', icon: <><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></> },
-    { label: 'Messages', path: '/messages', icon: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /> },
-    { label: 'Profile', path: '/office-profile', icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></> },
-  ];
-  return (
-    <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', maxWidth: 480, width: '100%', background: COLORS.card, borderTop: `1px solid ${COLORS.border}`, display: 'flex', padding: '10px 0 22px', zIndex: 40 }}>
-      {items.map((item, i) => (
-        <button key={i} onClick={() => !item.active && navigate(item.path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: 6 }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke={item.active ? COLORS.green : COLORS.textLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 22, height: 22 }}>{item.icon}</svg>
-          <span style={{ fontSize: 10, color: item.active ? COLORS.green : COLORS.textLight, fontWeight: 600 }}>{item.label}</span>
-        </button>
-      ))}
     </div>
   );
 }

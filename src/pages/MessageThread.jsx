@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import BackToDashboard from '../components/BackToDashboard';
+import BottomNav from '../components/BottomNav';
 
 // ============================================================
 // KAZI MESSAGE THREAD — Standard bubbles, iMessage style
@@ -211,46 +213,18 @@ export default function MessageThread() {
       <div
         style={{
           background: COLORS.card,
-          padding: '16px 14px 12px',
+          padding: '12px 14px 12px',
           borderBottom: `1px solid ${COLORS.borderSoft}`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
           flexShrink: 0,
           position: 'sticky',
           top: 0,
           zIndex: 50,
         }}
       >
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            background: COLORS.bg,
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            cursor: 'pointer',
-          }}
-          aria-label="Back"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke={COLORS.text}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ width: 15, height: 15 }}
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-
+        <div style={{ marginBottom: 10 }}>
+          <BackToDashboard />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         {conversation.pro.avatarUrl ? (
           <img
             src={conversation.pro.avatarUrl}
@@ -336,6 +310,7 @@ export default function MessageThread() {
           </svg>
           Book
         </button>
+        </div>
       </div>
 
       {/* ============================================================
@@ -473,12 +448,13 @@ export default function MessageThread() {
       <div
         style={{
           background: COLORS.card,
-          padding: '12px 14px 28px',
+          padding: '12px 14px 12px',
           borderTop: `1px solid ${COLORS.borderSoft}`,
           display: 'flex',
           alignItems: 'center',
           gap: 8,
           flexShrink: 0,
+          marginBottom: 76,
         }}
       >
         {/* Hidden file input */}
@@ -578,6 +554,7 @@ export default function MessageThread() {
           </svg>
         </button>
       </div>
+      <BottomNav />
     </div>
   );
 }

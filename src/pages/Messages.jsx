@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BackToDashboard from '../components/BackToDashboard';
+import BottomNav from '../components/BottomNav';
 
 // ============================================================
 // KAZI MESSAGES — Inbox list (iMessage-style)
@@ -85,7 +87,7 @@ export default function Messages() {
         WebkitFontSmoothing: 'antialiased',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: 80, // leave room for the existing bottom nav
+        paddingBottom: 110, // leave room for the bottom nav
       }}
     >
       {/* ============================================================
@@ -94,13 +96,16 @@ export default function Messages() {
       <div
         style={{
           background: COLORS.card,
-          padding: '18px 20px 14px',
+          padding: '14px 20px 14px',
           borderBottom: `1px solid ${COLORS.borderSoft}`,
           position: 'sticky',
           top: 0,
           zIndex: 50,
         }}
       >
+        <div style={{ marginBottom: 10 }}>
+          <BackToDashboard />
+        </div>
         <div
           style={{
             display: 'flex',
@@ -216,6 +221,7 @@ export default function Messages() {
           ))
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

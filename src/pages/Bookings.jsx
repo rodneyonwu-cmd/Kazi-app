@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import BackToDashboard from '../components/BackToDashboard';
+import BottomNav from '../components/BottomNav';
 
 // ============================================================
 // KAZI BOOKINGS — Minimal redesign
@@ -128,7 +130,10 @@ export default function Bookings() {
 
       <div className="kazi-bookings" style={{ background: COLORS.bg, minHeight: '100vh', maxWidth: 480, margin: '0 auto', boxShadow: '0 0 40px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif", color: COLORS.text, WebkitFontSmoothing: 'antialiased', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         {/* TOP BAR */}
-        <div style={{ background: 'white', padding: '18px 18px 16px', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0, position: 'sticky', top: 0, zIndex: 20 }}>
+        <div style={{ background: 'white', padding: '14px 18px 16px', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0, position: 'sticky', top: 0, zIndex: 20 }}>
+          <div style={{ marginBottom: 10 }}>
+            <BackToDashboard />
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: COLORS.text, letterSpacing: '-0.5px', lineHeight: 1.1 }}>Bookings</div>
@@ -160,7 +165,7 @@ export default function Bookings() {
         </div>
 
         {/* SCROLL AREA */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 0 40px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 0 110px' }}>
           {activeTab === 'pending' && (
             <>
               {MOCK_RAPID_FILL.map((rf) => <RapidFillCard key={rf.id} item={rf} onOpen={() => setSelectedBooking({ type: 'rapid-fill', data: rf })} />)}
@@ -183,6 +188,7 @@ export default function Bookings() {
 
         {selectedBooking && <DetailSheet type={selectedBooking.type} booking={selectedBooking.data} onClose={() => setSelectedBooking(null)} />}
         {filterSheetOpen && <FilterSheet filters={filters} setFilters={setFilters} onClose={() => setFilterSheetOpen(false)} resultCount={filteredCompleted.length} />}
+        <BottomNav />
       </div>
     </>
   );

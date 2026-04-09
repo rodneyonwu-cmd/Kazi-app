@@ -102,7 +102,7 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
   return (
     <>
       <style>{`
-        @keyframes kaziFPSheetSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes kaziSheetSlide { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
         @keyframes kaziFPOverlayFade { from { opacity: 0; } to { opacity: 1; } }
         .kazi-fp-sheet * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         .kazi-fp-sheet .scroll-hide::-webkit-scrollbar { display: none; }
@@ -121,13 +121,13 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
       <div
         className="kazi-fp-sheet"
         style={{
-          position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: 0, left: '50%', transform: 'translate(-50%, 0)',
           width: '100%', maxWidth: 480, background: 'white',
           borderRadius: '28px 28px 0 0', zIndex: 201, maxHeight: '92vh',
           display: 'flex', flexDirection: 'column',
           fontFamily: "'DM Sans', sans-serif", color: COLORS.text,
           WebkitFontSmoothing: 'antialiased',
-          animation: 'kaziFPSheetSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
+          animation: 'kaziSheetSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1)',
           boxShadow: '0 -10px 50px rgba(0,0,0,0.25)',
         }}
       >
