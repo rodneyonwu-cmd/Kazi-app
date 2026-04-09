@@ -433,6 +433,46 @@ export default function FindProfessionals() {
   // Rapid Fill mode
   const searchParams = new URLSearchParams(window.location.search);
   const isRapidFill = searchParams.get('rapidfill') === '1';
+
+  // Pre-applied filters from FindProsSheet (URL params)
+  const [preRole, setPreRole] = useState(null);
+  const [preDate, setPreDate] = useState(null);
+  const [preStart, setPreStart] = useState(null);
+  const [preEnd, setPreEnd] = useState(null);
+  const [preLunch, setPreLunch] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const r = params.get('role');
+    const d = params.get('date');
+    const s = params.get('startTime');
+    const e = params.get('endTime');
+    const l = params.get('lunch');
+    if (r) {
+      setPreRole(r);
+      // Map sheet role to activeFilter value
+      const roleMap = { 'Hygienist': 'Hygienist', 'Assistant': 'Dental Assistant', 'Front Desk': 'Front Desk', 'Dentist': 'Dentist' };
+      if (roleMap[r]) setActiveFilter(roleMap[r]);
+    }
+    if (d) {
+      setPreDate(d);
+      const parsed = new Date(d + 'T12:00:00');
+      if (!isNaN(parsed.getTime())) setCriteriaDate(parsed);
+    }
+    if (s) setPreStart(s);
+    if (e) setPreEnd(e);
+    if (l) setPreLunch(l);
+    if (d || s || e) {
+      const parts = [];
+      if (d) {
+        const parsed = new Date(d + 'T12:00:00');
+        if (!isNaN(parsed.getTime())) parts.push(parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      }
+      const fmt12 = (t) => { if (!t) return ''; const [h, m] = t.split(':').map(Number); const ampm = h >= 12 ? 'PM' : 'AM'; return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`; };
+      if (s && e) parts.push(`${fmt12(s)} – ${fmt12(e)}`);
+      if (parts.length > 0) setCriteriaLabel(parts.join(' · '));
+    }
+  }, []);
   const [rfBackups, setRfBackups] = useState([]);
   const [rfContext, setRfContext] = useState(null);
 
@@ -626,6 +666,48 @@ export default function FindProfessionals() {
           Best Match <Icon.ChevronDown />
         </button>
       </div>
+
+      {/* Active filter chips from URL params */}
+      {(preRole || preDate || preStart || preEnd || preLunch) && (
+        <div className="px-5 pb-2 pt-1" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {preRole && (
+            <button
+              onClick={() => { setPreRole(null); setActiveFilter('All Roles'); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+            >
+              {preRole}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          )}
+          {preDate && (
+            <button
+              onClick={() => { setPreDate(null); setCriteriaDate(null); setCriteriaLabel('Add date & time'); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+            >
+              {new Date(preDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          )}
+          {preStart && preEnd && (
+            <button
+              onClick={() => { setPreStart(null); setPreEnd(null); }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+            >
+              {(() => { const fmt = (t) => { const [h, m] = t.split(':').map(Number); const ampm = h >= 12 ? 'PM' : 'AM'; return `${h % 12 || 12}${m ? ':' + String(m).padStart(2, '0') : ''}${ampm.toLowerCase().slice(0,1)}`; }; return `${fmt(preStart)}–${fmt(preEnd)}`; })()}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          )}
+          {preLunch && (
+            <button
+              onClick={() => setPreLunch(null)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+            >
+              {preLunch === '60' ? '1hr lunch' : `${preLunch}min lunch`}
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Loading state */}
       {loading && (

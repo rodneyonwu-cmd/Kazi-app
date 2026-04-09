@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../components/Nav';
+import FindProsSheet from '../components/FindProsSheet';
 
 // ============================================================
 // KAZI OFFICE DASHBOARD
@@ -32,6 +33,20 @@ export default function OfficeDashboard() {
   const navigate = useNavigate();
   const [scheduleView, setScheduleView] = useState('week');
   const [chooserOpen, setChooserOpen] = useState(false);
+  const [findProsOpen, setFindProsOpen] = useState(false);
+
+  const handleFindProsSubmit = (criteria) => {
+    setFindProsOpen(false);
+    const params = new URLSearchParams();
+    if (criteria.role) params.set('role', criteria.role);
+    if (criteria.date) params.set('date', criteria.date);
+    if (criteria.startTime) params.set('startTime', criteria.startTime);
+    if (criteria.endTime) params.set('endTime', criteria.endTime);
+    if (criteria.lunchBreakDuration != null) params.set('lunch', String(criteria.lunchBreakDuration));
+    if (criteria.rapidFillEnabled) params.set('rapidFill', '1');
+    if (criteria.rapidFillCount) params.set('rapidFillCount', String(criteria.rapidFillCount));
+    navigate(`/professionals?${params.toString()}`);
+  };
 
   const openChooser = () => setChooserOpen(true);
   const closeChooser = () => setChooserOpen(false);
@@ -188,7 +203,7 @@ export default function OfficeDashboard() {
         {/* QUICK ACTIONS */}
         <div style={{ padding: '22px 16px 0' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div style={quickTileStyle} onClick={() => navigate('/professionals')}>
+            <div style={quickTileStyle} onClick={() => setFindProsOpen(true)}>
               <div style={quickIconStyle(COLORS.greenTint)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17 }}>
                   <circle cx="11" cy="11" r="8" />
@@ -265,6 +280,9 @@ export default function OfficeDashboard() {
         <BottomNav navigate={navigate} />
 
         {/* POST A JOB CHOOSER MODAL */}
+        {/* FIND PROS SHEET */}
+        <FindProsSheet open={findProsOpen} onClose={() => setFindProsOpen(false)} onSubmit={handleFindProsSubmit} />
+
         {chooserOpen && (
           <>
             <div onClick={closeChooser} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)', zIndex: 100, animation: 'fadeIn 0.3s' }} />
