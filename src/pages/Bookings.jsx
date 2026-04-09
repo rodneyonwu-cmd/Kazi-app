@@ -44,6 +44,36 @@ const MOCK_PENDING = [
   { id: 'alexandra-pending', name: 'Alexandra A.', initials: 'AA', avatarUrl: AVATARS.AA, role: 'Dental Assistant', cred: 'RDA', dateMonth: 'APR', dateDay: 18, dateLong: 'Friday, April 18', timeShort: '8a–4p', timeRange: '8:00 AM – 4:00 PM', hours: 8, hourlyRate: 28, rate: '$28/hr', total: 224, expiresIn: '22h 04m' },
 ];
 
+const MOCK_RAPID_FILL = [
+  {
+    id: 'rapid-fill-1',
+    isRapidFill: true,
+    role: 'Dental Hygienist',
+    roleShort: 'Hygienist',
+    cred: 'RDH',
+    dateLong: 'Tuesday, April 15',
+    dateMonth: 'APR',
+    dateDay: 15,
+    timeShort: '8a–5p',
+    timeRange: '8:00 AM – 5:00 PM',
+    hours: 8.5,
+    hourlyRate: 55,
+    rate: '$55/hr',
+    total: 467.50,
+    expiresIn: '2h 47m',
+    sentCount: 7,
+    providers: [
+      { id: 'rf-sarah', name: 'Sarah K.', initials: 'SK', avatarUrl: AVATARS.SK, status: 'pending' },
+      { id: 'rf-maria', name: 'Maria G.', initials: 'MG', avatarUrl: AVATARS.MG, status: 'pending' },
+      { id: 'rf-marcus', name: 'Marcus T.', initials: 'MT', avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg', status: 'viewed' },
+      { id: 'rf-rachel', name: 'Rachel M.', initials: 'RM', avatarUrl: 'https://randomuser.me/api/portraits/women/65.jpg', status: 'pending' },
+      { id: 'rf-jasmine', name: 'Jasmine P.', initials: 'JP', avatarUrl: AVATARS.JP, status: 'viewed' },
+      { id: 'rf-anthony', name: 'Anthony B.', initials: 'AB', avatarUrl: AVATARS.AB, status: 'pending' },
+      { id: 'rf-priya', name: 'Priya S.', initials: 'PS', avatarUrl: 'https://randomuser.me/api/portraits/women/79.jpg', status: 'pending' },
+    ],
+  },
+];
+
 const MOCK_UPCOMING = [
   { id: 'sarah-upcoming', name: 'Sarah K.', initials: 'SK', avatarUrl: AVATARS.SK, role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateMonth: 'APR', dateDay: 10, dateLong: 'Thursday, April 10', dayLabel: 'Tomorrow', timeShort: '8a–5p', timeRange: '8:00 AM – 5:00 PM', hours: 8.5, hourlyRate: 58, total: 493, startsIn: '1 day 14h' },
   { id: 'michelle-upcoming', name: 'Michelle O.', initials: 'MO', avatarUrl: AVATARS.MO, role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateMonth: 'APR', dateDay: 11, dateLong: 'Friday, April 11', dayLabel: 'Friday', timeShort: '9a–5p', timeRange: '9:00 AM – 5:00 PM', hours: 8, hourlyRate: 24, total: 192, startsIn: '2 days' },
@@ -103,7 +133,7 @@ export default function Bookings() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: COLORS.text, letterSpacing: '-0.5px', lineHeight: 1.1 }}>Bookings</div>
               <div style={{ fontSize: 12, color: COLORS.textLight, marginTop: 4 }}>
-                {MOCK_PENDING.length} awaiting · {MOCK_UPCOMING.length} upcoming · {MOCK_COMPLETED.filter((c) => c.status === 'completed').length} completed
+                {MOCK_PENDING.length + MOCK_RAPID_FILL.length} awaiting · {MOCK_UPCOMING.length} upcoming · {MOCK_COMPLETED.filter((c) => c.status === 'completed').length} completed
               </div>
             </div>
             {activeTab === 'completed' && (
@@ -116,7 +146,7 @@ export default function Bookings() {
             )}
           </div>
 
-          <Tabs activeTab={activeTab} setActiveTab={setActiveTab} counts={{ pending: MOCK_PENDING.length, upcoming: MOCK_UPCOMING.length, completed: MOCK_COMPLETED.filter((c) => c.status === 'completed').length }} />
+          <Tabs activeTab={activeTab} setActiveTab={setActiveTab} counts={{ pending: MOCK_PENDING.length + MOCK_RAPID_FILL.length, upcoming: MOCK_UPCOMING.length, completed: MOCK_COMPLETED.filter((c) => c.status === 'completed').length }} />
 
           {activeTab === 'completed' && (
             <div style={{ marginTop: 14, background: 'white', border: `1px solid ${COLORS.borderSoft}`, borderRadius: 100, padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -131,7 +161,12 @@ export default function Bookings() {
 
         {/* SCROLL AREA */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '18px 0 40px' }}>
-          {activeTab === 'pending' && MOCK_PENDING.map((b) => <PendingCard key={b.id} item={b} onOpen={() => setSelectedBooking({ type: 'pending', data: b })} />)}
+          {activeTab === 'pending' && (
+            <>
+              {MOCK_RAPID_FILL.map((rf) => <RapidFillCard key={rf.id} item={rf} onOpen={() => setSelectedBooking({ type: 'rapid-fill', data: rf })} />)}
+              {MOCK_PENDING.map((b) => <PendingCard key={b.id} item={b} onOpen={() => setSelectedBooking({ type: 'pending', data: b })} />)}
+            </>
+          )}
           {activeTab === 'upcoming' && MOCK_UPCOMING.map((b) => <UpcomingCard key={b.id} item={b} onOpen={() => setSelectedBooking({ type: 'upcoming', data: b })} />)}
           {activeTab === 'completed' && (
             <CompletedPanel
@@ -199,6 +234,89 @@ function PendingCard({ item, onOpen }) {
           <StatusPill variant="awaiting">Awaiting</StatusPill>
         </div>
       </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
+        <div style={{ fontSize: 11, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+          {item.dateLong}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: COLORS.amber, fontWeight: 700 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{item.expiresIn}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// RAPID FILL CARD — one shift sent to multiple providers
+// ============================================================
+function RapidFillCard({ item, onOpen }) {
+  const stackPros = item.providers.slice(0, 4);
+  const remaining = item.providers.length - stackPros.length;
+  return (
+    <div onClick={onOpen} style={{ margin: '0 16px 12px', background: 'white', border: `1.5px solid ${COLORS.green}`, borderRadius: 18, padding: '16px 18px', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+      {/* Header row with bolt icon + Rapid Fill label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: COLORS.greenTint, border: `1px solid ${COLORS.greenSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg viewBox="0 0 24 24" fill={COLORS.green} stroke={COLORS.green} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}>
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>Rapid Fill</span>
+            <span style={{ background: COLORS.green, color: 'white', fontSize: 9, fontWeight: 800, padding: '3px 7px', borderRadius: 100, fontFamily: "'Outfit', sans-serif", letterSpacing: 0.3 }}>SENT TO {item.sentCount}</span>
+          </div>
+          <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+            <span>{item.roleShort}</span>
+            <Sep />
+            <span>{item.timeShort}</span>
+            <Sep />
+            <span style={{ color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{item.rate}</span>
+          </div>
+        </div>
+        <div style={{ flexShrink: 0 }}>
+          <StatusPill variant="awaiting">Awaiting</StatusPill>
+        </div>
+      </div>
+
+      {/* Stacked provider avatars */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex' }}>
+          {stackPros.map((p, idx) => (
+            <div
+              key={p.id}
+              style={{
+                width: 32, height: 32, borderRadius: 10,
+                border: '2px solid white',
+                marginLeft: idx === 0 ? 0 : -8,
+                overflow: 'hidden', flexShrink: 0,
+                background: COLORS.bg,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              {p.avatarUrl ? (
+                <img src={p.avatarUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, color: COLORS.text }}>{p.initials}</span>
+              )}
+            </div>
+          ))}
+          {remaining > 0 && (
+            <div style={{ width: 32, height: 32, borderRadius: 10, border: '2px solid white', marginLeft: -8, background: COLORS.green, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, color: 'white' }}>+{remaining}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: COLORS.textMid, lineHeight: 1.3 }}>
+          First to accept gets it
+        </div>
+      </div>
+
+      {/* Footer: date + expires */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
         <div style={{ fontSize: 11, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
           {item.dateLong}
@@ -343,6 +461,7 @@ function DetailSheet({ type, booking, onClose }) {
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 20px' }}>
           {type === 'pending' && <PendingDetailBody b={booking} />}
+          {type === 'rapid-fill' && <RapidFillDetailBody rf={booking} />}
           {type === 'upcoming' && <UpcomingDetailBody b={booking} />}
           {(type === 'completed-reviewed' || type === 'completed-unrated') && <CompletedDetailBody b={booking} reviewed={type === 'completed-reviewed'} />}
         </div>
@@ -362,6 +481,65 @@ function PendingDetailBody({ b }) {
         <InfoRow label="Hourly rate" value={`$${b.hourlyRate}/hr`} />
         <InfoRow label="Hours" value={b.hours.toString()} />
         <InfoRow label="Estimated total" value={`$${b.total}`} valueGreen />
+      </DetailSection>
+    </>
+  );
+}
+
+function RapidFillDetailBody({ rf }) {
+  return (
+    <>
+      {/* Hero */}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: COLORS.greenTint, border: `1px solid ${COLORS.greenSoft}`, borderRadius: 100, padding: '5px 10px 5px 8px', marginBottom: 10 }}>
+          <svg viewBox="0 0 24 24" fill={COLORS.green} stroke={COLORS.green} strokeWidth="1.5" style={{ width: 12, height: 12 }}>
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, color: COLORS.green, letterSpacing: 0.4, textTransform: 'uppercase' }}>Rapid Fill request</span>
+        </div>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, letterSpacing: '-0.4px', lineHeight: 1.15 }}>{rf.dateLong}</div>
+        <div style={{ fontSize: 13, color: COLORS.textMid, marginTop: 4 }}>{rf.timeRange} · {rf.hours} hours</div>
+      </div>
+
+      <InfoChip variant="amber">Expires in <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{rf.expiresIn}</strong></InfoChip>
+
+      <DetailSection title={`Sent to ${rf.providers.length} professionals`}>
+        <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 12, lineHeight: 1.5 }}>
+          First to accept the shift gets it. The rest will be notified that the shift was filled.
+        </div>
+        <div style={{ background: 'white', border: `1px solid ${COLORS.borderSoft}`, borderRadius: 14, overflow: 'hidden' }}>
+          {rf.providers.map((p, idx) => (
+            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: idx === rf.providers.length - 1 ? 'none' : `1px solid ${COLORS.borderSoft}` }}>
+              <Avatar url={p.avatarUrl} initials={p.initials} size={40} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>{p.name}</div>
+                <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>
+                  {p.status === 'viewed' ? 'Viewed request' : 'Awaiting response'}
+                </div>
+              </div>
+              <div style={{ flexShrink: 0 }}>
+                {p.status === 'viewed' ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 100, padding: '4px 9px' }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textMid} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", letterSpacing: 0.2 }}>VIEWED</span>
+                  </div>
+                ) : (
+                  <div style={{ width: 8, height: 8, background: COLORS.amber, borderRadius: '50%' }} />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DetailSection>
+
+      <DetailSection title="Shift details">
+        <InfoRow label="Role" value={`${rf.role} (${rf.cred})`} />
+        <InfoRow label="Hourly rate" value={`$${rf.hourlyRate}/hr`} />
+        <InfoRow label="Hours" value={rf.hours.toString()} />
+        <InfoRow label="Estimated total" value={`$${rf.total.toFixed(2)}`} valueGreen />
       </DetailSection>
     </>
   );
@@ -427,7 +605,7 @@ function CompletedDetailBody({ b, reviewed }) {
 }
 
 function DetailFooter({ type }) {
-  const showCancel = type === 'pending' || type === 'upcoming';
+  const showCancel = type === 'pending' || type === 'upcoming' || type === 'rapid-fill';
   const showAddCal = type === 'upcoming';
   const showBookAgain = type === 'completed-reviewed' || type === 'completed-unrated';
 
