@@ -31,6 +31,7 @@ const MOCK_CONVERSATION = {
     id: 'sarah',
     name: 'Sarah K.',
     initials: 'SK',
+    avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
     role: 'Dental Hygienist',
     credential: 'RDH',
     avatarGradient: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
@@ -250,24 +251,24 @@ export default function MessageThread() {
           </svg>
         </button>
 
-        <div
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 12,
-            background: conversation.pro.avatarGradient,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontFamily: "'Outfit', sans-serif",
-            fontWeight: 800,
-            fontSize: 13,
-            flexShrink: 0,
-          }}
-        >
-          {conversation.pro.initials}
-        </div>
+        {conversation.pro.avatarUrl ? (
+          <img
+            src={conversation.pro.avatarUrl}
+            alt={conversation.pro.name}
+            style={{ width: 38, height: 38, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 38, height: 38, borderRadius: 12,
+              background: conversation.pro.avatarGradient,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0,
+            }}
+          >
+            {conversation.pro.initials}
+          </div>
+        )}
 
         <div
           style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}

@@ -34,86 +34,14 @@ const AVATAR_GRADIENTS = [
 // MOCK DATA — replace with backend fetch
 // ============================================================
 const MOCK_CONVERSATIONS = [
-  {
-    id: 'conv-1',
-    name: 'Sarah K.',
-    initials: 'SK',
-    preview: "Yes, I'm available Friday! What time do you need me?",
-    time: '2m',
-    unreadCount: 2,
-    isOnline: true,
-    sentByMe: false,
-  },
-  {
-    id: 'conv-2',
-    name: 'Maria G.',
-    initials: 'MG',
-    preview: 'Thanks for considering me. Happy to chat more about the role.',
-    time: '1h',
-    unreadCount: 1,
-    isOnline: false,
-    sentByMe: false,
-  },
-  {
-    id: 'conv-3',
-    name: 'Rachel M.',
-    initials: 'RM',
-    preview: 'See you tomorrow at 8am — thanks!',
-    time: '3h',
-    unreadCount: 0,
-    isOnline: false,
-    sentByMe: false,
-  },
-  {
-    id: 'conv-4',
-    name: 'Anthony B.',
-    initials: 'AB',
-    preview: "Sounds good, I'll bring my EFDA license",
-    time: 'Yest',
-    unreadCount: 0,
-    isOnline: false,
-    sentByMe: false,
-  },
-  {
-    id: 'conv-5',
-    name: 'David L.',
-    initials: 'DL',
-    preview: 'Let me check the schedule and get back to you',
-    time: '2d',
-    unreadCount: 0,
-    isOnline: false,
-    sentByMe: true,
-  },
-  {
-    id: 'conv-6',
-    name: 'Marcus T.',
-    initials: 'MT',
-    preview: 'Thanks, looking forward to it',
-    time: '3d',
-    unreadCount: 0,
-    isOnline: false,
-    sentByMe: false,
-  },
-  {
-    id: 'conv-7',
-    name: 'Jasmine P.',
-    initials: 'JP',
-    preview: 'I can do Tuesday or Wednesday next week',
-    time: '4d',
-    unreadCount: 0,
-    isOnline: false,
-    sentByMe: false,
-  },
-  {
-    id: 'conv-8',
-    name: 'Chloe N.',
-    initials: 'CN',
-    preview: 'You: Perfect, see you then!',
-    time: '1w',
-    unreadCount: 0,
-    isOnline: false,
-    sentByMe: true,
-  },
+  { id: 'conv-1', name: 'Sarah K.', initials: 'SK', avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg', preview: "Yes, I'm available Friday! What time do you need me?", time: '2m', unreadCount: 2, isOnline: true, sentByMe: false },
+  { id: 'conv-2', name: 'Maria G.', initials: 'MG', avatarUrl: 'https://randomuser.me/api/portraits/women/90.jpg', preview: 'Thanks for considering me. Happy to chat more about the role.', time: '1h', unreadCount: 1, isOnline: false, sentByMe: false },
+  { id: 'conv-3', name: 'Rachel M.', initials: 'RM', avatarUrl: 'https://randomuser.me/api/portraits/women/65.jpg', preview: 'See you tomorrow at 8am — thanks!', time: '3h', unreadCount: 0, isOnline: false, sentByMe: false },
+  { id: 'conv-4', name: 'Anthony B.', initials: 'AB', avatarUrl: 'https://randomuser.me/api/portraits/men/86.jpg', preview: "Sounds good, I'll bring my EFDA license", time: 'Yest', unreadCount: 0, isOnline: false, sentByMe: false },
+  { id: 'conv-5', name: 'David L.', initials: 'DL', avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg', preview: 'Let me check the schedule and get back to you', time: '2d', unreadCount: 0, isOnline: false, sentByMe: true },
+  { id: 'conv-6', name: 'Marcus T.', initials: 'MT', avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg', preview: 'Thanks, looking forward to it', time: '3d', unreadCount: 0, isOnline: false, sentByMe: false },
+  { id: 'conv-7', name: 'Jasmine P.', initials: 'JP', avatarUrl: 'https://randomuser.me/api/portraits/women/33.jpg', preview: 'I can do Tuesday or Wednesday next week', time: '4d', unreadCount: 0, isOnline: false, sentByMe: false },
+  { id: 'conv-8', name: 'Chloe N.', initials: 'CN', avatarUrl: 'https://randomuser.me/api/portraits/women/17.jpg', preview: 'You: Perfect, see you then!', time: '1w', unreadCount: 0, isOnline: false, sentByMe: true },
 ];
 
 // ============================================================
@@ -327,23 +255,31 @@ function ConversationRow({ conv, gradient, onClick }) {
           flexShrink: 0,
         }}
       >
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 15,
-            background: gradient,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontFamily: "'Outfit', sans-serif",
-            fontWeight: 800,
-            fontSize: 14,
-          }}
-        >
-          {conv.initials}
-        </div>
+        {conv.avatarUrl ? (
+          <img
+            src={conv.avatarUrl}
+            alt={conv.name}
+            style={{ width: 48, height: 48, borderRadius: 15, objectFit: 'cover' }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 15,
+              background: gradient,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontFamily: "'Outfit', sans-serif",
+              fontWeight: 800,
+              fontSize: 14,
+            }}
+          >
+            {conv.initials}
+          </div>
+        )}
         {conv.isOnline && (
           <div
             style={{

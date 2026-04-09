@@ -352,17 +352,28 @@ export default function BookingSheet({
               <div className="mt-3.5 pt-3.5 border-t border-[#e8f3ee] flex items-center gap-2.5">
                 <div className="flex items-center">
                   {backups.slice(0, 4).map((b, i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white text-[11px] font-bold border-2 border-white"
-                      style={{
-                        background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-                        marginLeft: i === 0 ? 0 : -8,
-                        fontFamily: "'Outfit', sans-serif",
-                      }}
-                    >
-                      {b.initials}
-                    </div>
+                    b.avatarUrl ? (
+                      <img
+                        key={i}
+                        src={b.avatarUrl}
+                        alt={b.name || ''}
+                        className="w-8 h-8 rounded-[10px] border-2 border-white object-cover"
+                        style={{ marginLeft: i === 0 ? 0 : -8 }}
+                      />
+                    ) : (
+                      <div
+                        key={i}
+                        className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold border-2 border-white"
+                        style={{
+                          background: '#f9f8f6',
+                          color: '#1a1a1a',
+                          marginLeft: i === 0 ? 0 : -8,
+                          fontFamily: "'Outfit', sans-serif",
+                        }}
+                      >
+                        {b.initials}
+                      </div>
+                    )
                   ))}
                   {backups.length > 4 && (
                     <div

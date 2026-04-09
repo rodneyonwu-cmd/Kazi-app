@@ -239,8 +239,8 @@ export default function OfficeDashboard() {
         <div style={{ padding: '18px 16px 0' }}>
           <SectionHeader title="On-site now" linkLabel="View all" onLinkClick={() => navigate('/bookings')} />
           <div onClick={() => navigate('/bookings')} style={{ background: COLORS.card, margin: '0 4px', padding: 16, display: 'flex', alignItems: 'center', gap: 14, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18, cursor: 'pointer' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: 'white', flexShrink: 0, position: 'relative' }}>
-              SK
+            <div style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
+              <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sarah K." style={{ width: '100%', height: '100%', borderRadius: 16, objectFit: 'cover' }} />
               <div style={{ position: 'absolute', inset: -3, borderRadius: 19, border: `2px solid ${COLORS.green}`, animation: 'ringPulse 2s infinite' }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>

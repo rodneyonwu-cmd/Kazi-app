@@ -44,9 +44,9 @@ const MOCK_SHIFTS = [
     rate: '$58/hr',
     filled: false,
     applicants: [
-      { id: 'sarah', name: 'Sarah K.', initials: 'SK', role: 'Dental Hygienist', cred: 'RDH', rating: 4.9, reviewCount: 82, reliability: 99, experience: '8 yrs', distance: '3.2 mi', distanceText: '3.2 mi away', status: 'pending', bio: 'Experienced hygienist with a calm chairside manner. Specializes in periodontal therapy and patient education. Available for temp coverage Mon–Fri.', skills: ['Dentrix', 'Periodontal therapy', 'Spanish-speaking', 'Pediatric experience', 'X-ray certified'] },
-      { id: 'maria', name: 'Maria G.', initials: 'MG', role: 'Dental Hygienist', cred: 'RDH', rating: 5.0, reviewCount: 56, reliability: 91, experience: '6 yrs', distance: '7.4 mi', distanceText: '7.4 mi away', status: 'pending', bio: 'Detail-oriented hygienist who has worked in both pediatric and general practices. Strong relationship-builder with patients of all ages.', skills: ['Eaglesoft', 'Spanish-speaking', 'Pediatric experience', 'Local anesthesia certified'] },
-      { id: 'priya', name: 'Priya S.', initials: 'PS', role: 'Dental Hygienist', cred: 'RDH', rating: 4.7, reviewCount: 34, reliability: 94, experience: '4 yrs', distance: '12.1 mi', distanceText: '12.1 mi away', status: 'pending', bio: 'Reliable hygienist with strong clinical skills. Comfortable working independently and adapting to different practice software.', skills: ['Dentrix', 'Open Dental', 'X-ray certified'] },
+      { id: 'sarah', name: 'Sarah K.', initials: 'SK', avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg', role: 'Dental Hygienist', cred: 'RDH', rating: 4.9, reviewCount: 82, reliability: 99, experience: '8 yrs', distance: '3.2 mi', distanceText: '3.2 mi away', status: 'pending', bio: 'Experienced hygienist with a calm chairside manner. Specializes in periodontal therapy and patient education. Available for temp coverage Mon–Fri.', skills: ['Dentrix', 'Periodontal therapy', 'Spanish-speaking', 'Pediatric experience', 'X-ray certified'] },
+      { id: 'maria', name: 'Maria G.', initials: 'MG', avatarUrl: 'https://randomuser.me/api/portraits/women/90.jpg', role: 'Dental Hygienist', cred: 'RDH', rating: 5.0, reviewCount: 56, reliability: 91, experience: '6 yrs', distance: '7.4 mi', distanceText: '7.4 mi away', status: 'pending', bio: 'Detail-oriented hygienist who has worked in both pediatric and general practices. Strong relationship-builder with patients of all ages.', skills: ['Eaglesoft', 'Spanish-speaking', 'Pediatric experience', 'Local anesthesia certified'] },
+      { id: 'priya', name: 'Priya S.', initials: 'PS', avatarUrl: 'https://randomuser.me/api/portraits/women/79.jpg', role: 'Dental Hygienist', cred: 'RDH', rating: 4.7, reviewCount: 34, reliability: 94, experience: '4 yrs', distance: '12.1 mi', distanceText: '12.1 mi away', status: 'pending', bio: 'Reliable hygienist with strong clinical skills. Comfortable working independently and adapting to different practice software.', skills: ['Dentrix', 'Open Dental', 'X-ray certified'] },
     ],
   },
   {
@@ -59,9 +59,9 @@ const MOCK_SHIFTS = [
     rate: '$24/hr',
     filled: true,
     applicants: [
-      { id: 'michelle', name: 'Michelle O.', initials: 'MO', role: 'Dental Assistant', cred: 'RDA', rating: 4.7, reviewCount: 41, reliability: 96, experience: '5 yrs', distance: '4.5 mi', distanceText: '4.5 mi away', status: 'accepted', bio: 'Versatile dental assistant comfortable with all chairside duties. Quick learner who adapts to new offices easily.', skills: ['Dentrix', 'X-ray certified', 'Sterilization', 'Impressions'] },
-      { id: 'alexandra', name: 'Alexandra A.', initials: 'AA', role: 'Dental Assistant', cred: 'RDA', rating: 4.8, reviewCount: 22, reliability: 96, experience: '3 yrs', distance: '6.8 mi', distanceText: '6.8 mi away', status: 'not-selected', bio: 'Friendly and energetic dental assistant with strong patient communication skills.', skills: ['Eaglesoft', 'X-ray certified', 'Sterilization'] },
-      { id: 'anthony', name: 'Anthony B.', initials: 'AB', role: 'Dental Assistant', cred: 'EFDA', rating: 4.9, reviewCount: 53, reliability: 97, experience: '7 yrs', distance: '9.2 mi', distanceText: '9.2 mi away', status: 'not-selected', bio: 'Expanded function dental assistant with extensive experience in cosmetic and restorative procedures.', skills: ['Open Dental', 'EFDA certified', 'Cosmetic dentistry', 'X-ray certified', 'Impressions'] },
+      { id: 'michelle', name: 'Michelle O.', initials: 'MO', avatarUrl: 'https://randomuser.me/api/portraits/women/17.jpg', role: 'Dental Assistant', cred: 'RDA', rating: 4.7, reviewCount: 41, reliability: 96, experience: '5 yrs', distance: '4.5 mi', distanceText: '4.5 mi away', status: 'accepted', bio: 'Versatile dental assistant comfortable with all chairside duties. Quick learner who adapts to new offices easily.', skills: ['Dentrix', 'X-ray certified', 'Sterilization', 'Impressions'] },
+      { id: 'alexandra', name: 'Alexandra A.', initials: 'AA', avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg', role: 'Dental Assistant', cred: 'RDA', rating: 4.8, reviewCount: 22, reliability: 96, experience: '3 yrs', distance: '6.8 mi', distanceText: '6.8 mi away', status: 'not-selected', bio: 'Friendly and energetic dental assistant with strong patient communication skills.', skills: ['Eaglesoft', 'X-ray certified', 'Sterilization'] },
+      { id: 'anthony', name: 'Anthony B.', initials: 'AB', avatarUrl: 'https://randomuser.me/api/portraits/men/86.jpg', role: 'Dental Assistant', cred: 'EFDA', rating: 4.9, reviewCount: 53, reliability: 97, experience: '7 yrs', distance: '9.2 mi', distanceText: '9.2 mi away', status: 'not-selected', bio: 'Expanded function dental assistant with extensive experience in cosmetic and restorative procedures.', skills: ['Open Dental', 'EFDA certified', 'Cosmetic dentistry', 'X-ray certified', 'Impressions'] },
     ],
   },
   {
@@ -74,8 +74,8 @@ const MOCK_SHIFTS = [
     rate: '$48–62/hr',
     filled: false,
     applicants: [
-      { id: 'rachel', name: 'Rachel M.', initials: 'RM', role: 'Dental Hygienist', cred: 'RDH', rating: 4.8, reviewCount: 67, reliability: 98, experience: '5 yrs', distance: '5.5 mi', distanceText: '5 yrs experience', status: 'pending', bio: 'Looking for a permanent position with a forward-thinking practice. Strong background in preventive care and patient education.', skills: ['Dentrix', 'Eaglesoft', 'Periodontal therapy', 'Patient education', 'X-ray certified'] },
-      { id: 'chloe', name: 'Chloe N.', initials: 'CN', role: 'Dental Hygienist', cred: 'RDH', rating: 5.0, reviewCount: 29, reliability: 100, experience: '3 yrs', distance: '8.3 mi', distanceText: '3 yrs experience', status: 'pending', bio: 'Recent graduate with perfect reliability score. Eager to grow with a stable practice and build long-term patient relationships.', skills: ['Open Dental', 'Pediatric experience', 'X-ray certified'] },
+      { id: 'rachel', name: 'Rachel M.', initials: 'RM', avatarUrl: 'https://randomuser.me/api/portraits/women/65.jpg', role: 'Dental Hygienist', cred: 'RDH', rating: 4.8, reviewCount: 67, reliability: 98, experience: '5 yrs', distance: '5.5 mi', distanceText: '5 yrs experience', status: 'pending', bio: 'Looking for a permanent position with a forward-thinking practice. Strong background in preventive care and patient education.', skills: ['Dentrix', 'Eaglesoft', 'Periodontal therapy', 'Patient education', 'X-ray certified'] },
+      { id: 'chloe', name: 'Chloe N.', initials: 'CN', avatarUrl: 'https://randomuser.me/api/portraits/women/33.jpg', role: 'Dental Hygienist', cred: 'RDH', rating: 5.0, reviewCount: 29, reliability: 100, experience: '3 yrs', distance: '8.3 mi', distanceText: '3 yrs experience', status: 'pending', bio: 'Recent graduate with perfect reliability score. Eager to grow with a stable practice and build long-term patient relationships.', skills: ['Open Dental', 'Pediatric experience', 'X-ray certified'] },
     ],
   },
 ];
@@ -271,7 +271,7 @@ function ApplicantRow({ applicant, isLast, onClick }) {
 
   return (
     <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: isLast ? 'none' : `1px solid ${COLORS.borderSoft}`, cursor: 'pointer', transition: 'background 0.1s', opacity: isNotSelected ? 0.5 : 1 }}>
-      <Initials text={applicant.initials} />
+      <Initials text={applicant.initials} url={applicant.avatarUrl} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>{applicant.name}</div>
         <div style={{ fontSize: 12, color: COLORS.textLight, marginTop: 2, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
@@ -327,9 +327,18 @@ function IconBtn({ variant, onClick, ariaLabel, children }) {
   );
 }
 
-function Initials({ text }) {
+function Initials({ text, url, size = 42 }) {
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={text || ''}
+        style={{ width: size, height: size, borderRadius: 12, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }}
+      />
+    );
+  }
   return (
-    <div style={{ width: 42, height: 42, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
+    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: size >= 50 ? 18 : 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
       {text}
     </div>
   );
@@ -360,9 +369,13 @@ function ApplicantDetailSheet({ applicant, onClose }) {
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 20px' }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-            <div style={{ width: 60, height: 60, borderRadius: 16, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, flexShrink: 0, letterSpacing: '-0.5px' }}>
-              {applicant.initials}
-            </div>
+            {applicant.avatarUrl ? (
+              <img src={applicant.avatarUrl} alt={applicant.name} style={{ width: 60, height: 60, borderRadius: 16, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
+            ) : (
+              <div style={{ width: 60, height: 60, borderRadius: 16, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, flexShrink: 0, letterSpacing: '-0.5px' }}>
+                {applicant.initials}
+              </div>
+            )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.4px', marginBottom: 4 }}>{applicant.name}</div>
               <div style={{ fontSize: 13, color: COLORS.textMid, display: 'flex', alignItems: 'center', gap: 6 }}>
