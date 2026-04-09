@@ -28,26 +28,36 @@ const COLORS = {
 // ============================================================
 // MOCK DATA — replace with backend fetches later
 // ============================================================
+const AVATARS = {
+  SK: 'https://randomuser.me/api/portraits/women/68.jpg',
+  MG: 'https://randomuser.me/api/portraits/women/90.jpg',
+  AA: 'https://randomuser.me/api/portraits/women/44.jpg',
+  MO: 'https://randomuser.me/api/portraits/women/17.jpg',
+  AB: 'https://randomuser.me/api/portraits/men/86.jpg',
+  JP: 'https://randomuser.me/api/portraits/women/33.jpg',
+  DL: 'https://randomuser.me/api/portraits/men/32.jpg',
+};
+
 const MOCK_PENDING = [
-  { id: 'sarah-pending', name: 'Sarah K.', initials: 'SK', role: 'Dental Hygienist', cred: 'RDH', dateMonth: 'APR', dateDay: 14, dateLong: 'Monday, April 14', timeShort: '8a–5p', timeRange: '8:00 AM – 5:00 PM', hours: 8.5, hourlyRate: 58, rate: '$58/hr', total: 493, expiresIn: '4h 23m' },
-  { id: 'maria-pending', name: 'Maria G.', initials: 'MG', role: 'Dental Hygienist', cred: 'RDH', dateMonth: 'APR', dateDay: 16, dateLong: 'Wednesday, April 16', timeShort: '9a–5p', timeRange: '9:00 AM – 5:00 PM', hours: 8, hourlyRate: 55, rate: '$55/hr', total: 440, expiresIn: '12h 51m' },
-  { id: 'alexandra-pending', name: 'Alexandra A.', initials: 'AA', role: 'Dental Assistant', cred: 'RDA', dateMonth: 'APR', dateDay: 18, dateLong: 'Friday, April 18', timeShort: '8a–4p', timeRange: '8:00 AM – 4:00 PM', hours: 8, hourlyRate: 28, rate: '$28/hr', total: 224, expiresIn: '22h 04m' },
+  { id: 'sarah-pending', name: 'Sarah K.', initials: 'SK', avatarUrl: AVATARS.SK, role: 'Dental Hygienist', cred: 'RDH', dateMonth: 'APR', dateDay: 14, dateLong: 'Monday, April 14', timeShort: '8a–5p', timeRange: '8:00 AM – 5:00 PM', hours: 8.5, hourlyRate: 58, rate: '$58/hr', total: 493, expiresIn: '4h 23m' },
+  { id: 'maria-pending', name: 'Maria G.', initials: 'MG', avatarUrl: AVATARS.MG, role: 'Dental Hygienist', cred: 'RDH', dateMonth: 'APR', dateDay: 16, dateLong: 'Wednesday, April 16', timeShort: '9a–5p', timeRange: '9:00 AM – 5:00 PM', hours: 8, hourlyRate: 55, rate: '$55/hr', total: 440, expiresIn: '12h 51m' },
+  { id: 'alexandra-pending', name: 'Alexandra A.', initials: 'AA', avatarUrl: AVATARS.AA, role: 'Dental Assistant', cred: 'RDA', dateMonth: 'APR', dateDay: 18, dateLong: 'Friday, April 18', timeShort: '8a–4p', timeRange: '8:00 AM – 4:00 PM', hours: 8, hourlyRate: 28, rate: '$28/hr', total: 224, expiresIn: '22h 04m' },
 ];
 
 const MOCK_UPCOMING = [
-  { id: 'sarah-upcoming', name: 'Sarah K.', initials: 'SK', role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateMonth: 'APR', dateDay: 10, dateLong: 'Thursday, April 10', dayLabel: 'Tomorrow', timeShort: '8a–5p', timeRange: '8:00 AM – 5:00 PM', hours: 8.5, hourlyRate: 58, total: 493, startsIn: '1 day 14h' },
-  { id: 'michelle-upcoming', name: 'Michelle O.', initials: 'MO', role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateMonth: 'APR', dateDay: 11, dateLong: 'Friday, April 11', dayLabel: 'Friday', timeShort: '9a–5p', timeRange: '9:00 AM – 5:00 PM', hours: 8, hourlyRate: 24, total: 192, startsIn: '2 days' },
-  { id: 'anthony-upcoming', name: 'Anthony B.', initials: 'AB', role: 'Dental Assistant', cred: 'EFDA', roleShort: 'Assistant', dateMonth: 'APR', dateDay: 14, dateLong: 'Monday, April 14', dayLabel: 'Monday', timeShort: '8a–4p', timeRange: '8:00 AM – 4:00 PM', hours: 7.5, hourlyRate: 30, total: 225, startsIn: '5 days' },
+  { id: 'sarah-upcoming', name: 'Sarah K.', initials: 'SK', avatarUrl: AVATARS.SK, role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateMonth: 'APR', dateDay: 10, dateLong: 'Thursday, April 10', dayLabel: 'Tomorrow', timeShort: '8a–5p', timeRange: '8:00 AM – 5:00 PM', hours: 8.5, hourlyRate: 58, total: 493, startsIn: '1 day 14h' },
+  { id: 'michelle-upcoming', name: 'Michelle O.', initials: 'MO', avatarUrl: AVATARS.MO, role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateMonth: 'APR', dateDay: 11, dateLong: 'Friday, April 11', dayLabel: 'Friday', timeShort: '9a–5p', timeRange: '9:00 AM – 5:00 PM', hours: 8, hourlyRate: 24, total: 192, startsIn: '2 days' },
+  { id: 'anthony-upcoming', name: 'Anthony B.', initials: 'AB', avatarUrl: AVATARS.AB, role: 'Dental Assistant', cred: 'EFDA', roleShort: 'Assistant', dateMonth: 'APR', dateDay: 14, dateLong: 'Monday, April 14', dayLabel: 'Monday', timeShort: '8a–4p', timeRange: '8:00 AM – 4:00 PM', hours: 7.5, hourlyRate: 30, total: 225, startsIn: '5 days' },
 ];
 
 const MOCK_COMPLETED = [
-  { id: 'sarah-completed', name: 'Sarah K.', initials: 'SK', role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateShort: 'Dec 19', year: '2025', dateLong: 'Friday, December 19', timeRange: '10:15 AM – 5:00 PM', hours: 6.75, hourlyRate: 51, total: 344.25, status: 'completed', reviewed: true, yourRating: 5.0, yourReview: 'Sarah was amazing — arrived 15 minutes early, brought her own loupes, and handled a full schedule without missing a beat. My patients loved her. Would absolutely book again.', yourReviewDate: 'DEC 19, 2025', theirRating: 5.0, theirReview: 'Clean practice, well-organized team, Dentrix was set up and ready. Lunch was provided. Would come back anytime.', theirReviewDate: 'DEC 20, 2025' },
-  { id: 'michelle-completed', name: 'Michelle O.', initials: 'MO', role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateShort: 'Dec 12', year: '2025', dateLong: 'Friday, December 12', timeRange: '8:30 AM – 5:00 PM', hours: 7.5, hourlyRate: 24, total: 180, status: 'completed', reviewed: false },
-  { id: 'jasmine-expired', name: 'Jasmine P.', initials: 'JP', roleShort: 'Request expired', dateShort: 'Dec 10', year: '2025', status: 'expired' },
-  { id: 'michelle-completed-2', name: 'Michelle O.', initials: 'MO', role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateShort: 'Nov 14', year: '2025', dateLong: 'Friday, November 14', timeRange: '8:30 AM – 5:00 PM', hours: 7.5, hourlyRate: 24, total: 180, status: 'completed', reviewed: false },
-  { id: 'david-declined', name: 'David L.', initials: 'DL', roleShort: 'Declined request', dateShort: 'Nov 9', year: '2025', status: 'declined' },
-  { id: 'maria-completed', name: 'Maria G.', initials: 'MG', role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateShort: 'Nov 7', year: '2025', dateLong: 'Friday, November 7', timeRange: '8:00 AM – 5:00 PM', hours: 8, hourlyRate: 58, total: 464, status: 'completed', reviewed: true, yourRating: 4.8, yourReview: 'Strong clinical skills and great with patients. Showed up on time, easy to work with.', yourReviewDate: 'NOV 7, 2025' },
-  { id: 'alexandra-completed', name: 'Alexandra A.', initials: 'AA', role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateShort: 'Oct 31', year: '2025', dateLong: 'Friday, October 31', timeRange: '8:00 AM – 4:00 PM', hours: 8, hourlyRate: 28, total: 224, status: 'completed', reviewed: false },
+  { id: 'sarah-completed', name: 'Sarah K.', initials: 'SK', avatarUrl: AVATARS.SK, role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateShort: 'Dec 19', year: '2025', dateLong: 'Friday, December 19', timeRange: '10:15 AM – 5:00 PM', hours: 6.75, hourlyRate: 51, total: 344.25, status: 'completed', reviewed: true, yourRating: 5.0, yourReview: 'Sarah was amazing — arrived 15 minutes early, brought her own loupes, and handled a full schedule without missing a beat. My patients loved her. Would absolutely book again.', yourReviewDate: 'DEC 19, 2025', theirRating: 5.0, theirReview: 'Clean practice, well-organized team, Dentrix was set up and ready. Lunch was provided. Would come back anytime.', theirReviewDate: 'DEC 20, 2025' },
+  { id: 'michelle-completed', name: 'Michelle O.', initials: 'MO', avatarUrl: AVATARS.MO, role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateShort: 'Dec 12', year: '2025', dateLong: 'Friday, December 12', timeRange: '8:30 AM – 5:00 PM', hours: 7.5, hourlyRate: 24, total: 180, status: 'completed', reviewed: false },
+  { id: 'jasmine-expired', name: 'Jasmine P.', initials: 'JP', avatarUrl: AVATARS.JP, roleShort: 'Request expired', dateShort: 'Dec 10', year: '2025', status: 'expired' },
+  { id: 'michelle-completed-2', name: 'Michelle O.', initials: 'MO', avatarUrl: AVATARS.MO, role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateShort: 'Nov 14', year: '2025', dateLong: 'Friday, November 14', timeRange: '8:30 AM – 5:00 PM', hours: 7.5, hourlyRate: 24, total: 180, status: 'completed', reviewed: false },
+  { id: 'david-declined', name: 'David L.', initials: 'DL', avatarUrl: AVATARS.DL, roleShort: 'Declined request', dateShort: 'Nov 9', year: '2025', status: 'declined' },
+  { id: 'maria-completed', name: 'Maria G.', initials: 'MG', avatarUrl: AVATARS.MG, role: 'Dental Hygienist', cred: 'RDH', roleShort: 'Hygienist', dateShort: 'Nov 7', year: '2025', dateLong: 'Friday, November 7', timeRange: '8:00 AM – 5:00 PM', hours: 8, hourlyRate: 58, total: 464, status: 'completed', reviewed: true, yourRating: 4.8, yourReview: 'Strong clinical skills and great with patients. Showed up on time, easy to work with.', yourReviewDate: 'NOV 7, 2025' },
+  { id: 'alexandra-completed', name: 'Alexandra A.', initials: 'AA', avatarUrl: AVATARS.AA, role: 'Dental Assistant', cred: 'RDA', roleShort: 'Assistant', dateShort: 'Oct 31', year: '2025', dateLong: 'Friday, October 31', timeRange: '8:00 AM – 4:00 PM', hours: 8, hourlyRate: 28, total: 224, status: 'completed', reviewed: false },
 ];
 
 // ============================================================
@@ -174,7 +184,7 @@ function PendingCard({ item, onOpen }) {
   return (
     <div onClick={onOpen} style={{ margin: '0 16px 12px', background: 'white', border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18, padding: '16px 18px', cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <DateBlock month={item.dateMonth} day={item.dateDay} />
+        <Avatar url={item.avatarUrl} initials={item.initials} size={48} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px', marginBottom: 2 }}>{item.name}</div>
           <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
@@ -189,12 +199,17 @@ function PendingCard({ item, onOpen }) {
           <StatusPill variant="awaiting">Awaiting</StatusPill>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}`, fontSize: 11, color: COLORS.amber, fontWeight: 700 }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-        Expires in <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{item.expiresIn}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
+        <div style={{ fontSize: 11, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+          {item.dateLong}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: COLORS.amber, fontWeight: 700 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{item.expiresIn}</span>
+        </div>
       </div>
     </div>
   );
@@ -207,7 +222,7 @@ function UpcomingCard({ item, onOpen }) {
   return (
     <div onClick={onOpen} style={{ margin: '0 16px 12px', background: 'white', border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18, padding: '16px 18px', cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <DateBlock month={item.dateMonth} day={item.dateDay} />
+        <Avatar url={item.avatarUrl} initials={item.initials} size={48} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px', marginBottom: 2 }}>{item.name}</div>
           <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
@@ -227,8 +242,8 @@ function UpcomingCard({ item, onOpen }) {
           </StatusPill>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}`, fontSize: 11, color: COLORS.textLight }}>
-        <span>{item.dayLabel} · {item.timeRange}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}`, fontSize: 11, color: COLORS.textMid }}>
+        <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{item.dateLong} · {item.dayLabel}</span>
         <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.green, fontSize: 13 }}>${item.total}</span>
       </div>
     </div>
@@ -279,15 +294,12 @@ function CompletedRow({ row, isLast, onOpen }) {
 
   return (
     <div onClick={isClickable ? onOpen : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: isLast ? 'none' : `1px solid ${COLORS.borderSoft}`, cursor: isClickable ? 'pointer' : 'default', opacity: isExpired ? 0.5 : 1 }}>
-      <div style={{ width: 44, textAlign: 'center', flexShrink: 0, lineHeight: 1.1 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 11, color: COLORS.text }}>{row.dateShort}</div>
-        <div style={{ fontSize: 9, color: COLORS.textLight, fontWeight: 600, marginTop: 1 }}>{row.year}</div>
-      </div>
-      <Initials text={row.initials} />
+      <Avatar url={row.avatarUrl} initials={row.initials} size={44} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>{row.name}</div>
         <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>
-          {row.roleShort}
+          {row.dateShort}, {row.year}
+          {row.roleShort && ` · ${row.roleShort}`}
           {row.total != null && row.status === 'completed' && ` · $${row.total}`}
         </div>
       </div>
@@ -561,6 +573,23 @@ function Initials({ text }) {
   return (
     <div style={{ width: 42, height: 42, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
       {text}
+    </div>
+  );
+}
+
+function Avatar({ url, initials, size = 48 }) {
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={initials || ''}
+        style={{ width: size, height: size, borderRadius: 12, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }}
+      />
+    );
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: size >= 48 ? 14 : 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
+      {initials}
     </div>
   );
 }
