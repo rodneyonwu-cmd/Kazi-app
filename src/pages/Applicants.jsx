@@ -1,526 +1,509 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@clerk/clerk-react'
-import Nav from '../components/Nav'
-import InitialsAvatar from '../components/InitialsAvatar'
+import { useState, useMemo, useEffect } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+// ============================================================
+// KAZI APPLICANTS — Minimal redesign
+// Shifts grouped with their applicants in collapsible blocks
+// Top: All / Temp / Permanent segmented toggle
+// Tap applicant row → detail popup
+// Status-aware ✓ / × icon buttons
+// ============================================================
 
-const EmptyState = ({ icon, title, sub, action }) => (
-  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-    <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-4">{icon}</div>
-    <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">{title}</p>
-    <p className="text-[14px] text-[#9ca3af] leading-relaxed mb-6 max-w-[280px]">{sub}</p>
-    {action}
-  </div>
-)
+const COLORS = {
+  green: '#1a7f5e',
+  greenDark: '#15604a',
+  greenSoft: '#e8f3ee',
+  greenTint: '#f1f9f5',
+  coral: '#e8734a',
+  coralSoft: '#fdeee7',
+  purple: '#7c3aed',
+  purpleSoft: '#f1ebfa',
+  amber: '#d97706',
+  amberSoft: '#fef3e6',
+  red: '#dc2626',
+  redSoft: '#fee2e2',
+  bg: '#f9f8f6',
+  text: '#1a1a1a',
+  textMid: '#5a5a5a',
+  textLight: '#8a8a8a',
+  border: '#ececec',
+  borderSoft: '#f3f3f3',
+  gold: '#f4b740',
+};
 
-const SkeletonCard = () => (
-  <div className="flex items-start gap-3 sm:gap-4 px-4 sm:px-6 py-4 border-b border-[#e5e7eb] last:border-0 animate-pulse">
-    <div className="w-12 h-12 rounded-full bg-[#e5e7eb] flex-shrink-0" />
-    <div className="flex-1">
-      <div className="h-4 bg-[#e5e7eb] rounded w-32 mb-2" />
-      <div className="h-3 bg-[#f3f4f6] rounded w-48 mb-1" />
-      <div className="h-3 bg-[#f3f4f6] rounded w-24" />
-    </div>
-    <div className="flex items-center gap-2 flex-shrink-0">
-      <div className="h-7 bg-[#e5e7eb] rounded-full w-16" />
-      <div className="h-7 bg-[#f3f4f6] rounded-full w-16" />
-    </div>
-  </div>
-)
+// ============================================================
+// MOCK DATA — replace with backend fetches later
+// ============================================================
+const MOCK_SHIFTS = [
+  {
+    id: 'shift-1',
+    type: 'temp',
+    tagText: 'Tomorrow',
+    tagVariant: 'urgent',
+    title: 'Dental Hygienist',
+    timeText: '8:00 AM – 5:00 PM',
+    rate: '$58/hr',
+    filled: false,
+    applicants: [
+      { id: 'sarah', name: 'Sarah K.', initials: 'SK', role: 'Dental Hygienist', cred: 'RDH', rating: 4.9, reviewCount: 82, reliability: 99, experience: '8 yrs', distance: '3.2 mi', distanceText: '3.2 mi away', status: 'pending', bio: 'Experienced hygienist with a calm chairside manner. Specializes in periodontal therapy and patient education. Available for temp coverage Mon–Fri.', skills: ['Dentrix', 'Periodontal therapy', 'Spanish-speaking', 'Pediatric experience', 'X-ray certified'] },
+      { id: 'maria', name: 'Maria G.', initials: 'MG', role: 'Dental Hygienist', cred: 'RDH', rating: 5.0, reviewCount: 56, reliability: 91, experience: '6 yrs', distance: '7.4 mi', distanceText: '7.4 mi away', status: 'pending', bio: 'Detail-oriented hygienist who has worked in both pediatric and general practices. Strong relationship-builder with patients of all ages.', skills: ['Eaglesoft', 'Spanish-speaking', 'Pediatric experience', 'Local anesthesia certified'] },
+      { id: 'priya', name: 'Priya S.', initials: 'PS', role: 'Dental Hygienist', cred: 'RDH', rating: 4.7, reviewCount: 34, reliability: 94, experience: '4 yrs', distance: '12.1 mi', distanceText: '12.1 mi away', status: 'pending', bio: 'Reliable hygienist with strong clinical skills. Comfortable working independently and adapting to different practice software.', skills: ['Dentrix', 'Open Dental', 'X-ray certified'] },
+    ],
+  },
+  {
+    id: 'shift-2',
+    type: 'temp',
+    tagText: 'Apr 11',
+    tagVariant: 'temp',
+    title: 'Dental Assistant',
+    timeText: '9:00 AM – 5:00 PM',
+    rate: '$24/hr',
+    filled: true,
+    applicants: [
+      { id: 'michelle', name: 'Michelle O.', initials: 'MO', role: 'Dental Assistant', cred: 'RDA', rating: 4.7, reviewCount: 41, reliability: 96, experience: '5 yrs', distance: '4.5 mi', distanceText: '4.5 mi away', status: 'accepted', bio: 'Versatile dental assistant comfortable with all chairside duties. Quick learner who adapts to new offices easily.', skills: ['Dentrix', 'X-ray certified', 'Sterilization', 'Impressions'] },
+      { id: 'alexandra', name: 'Alexandra A.', initials: 'AA', role: 'Dental Assistant', cred: 'RDA', rating: 4.8, reviewCount: 22, reliability: 96, experience: '3 yrs', distance: '6.8 mi', distanceText: '6.8 mi away', status: 'not-selected', bio: 'Friendly and energetic dental assistant with strong patient communication skills.', skills: ['Eaglesoft', 'X-ray certified', 'Sterilization'] },
+      { id: 'anthony', name: 'Anthony B.', initials: 'AB', role: 'Dental Assistant', cred: 'EFDA', rating: 4.9, reviewCount: 53, reliability: 97, experience: '7 yrs', distance: '9.2 mi', distanceText: '9.2 mi away', status: 'not-selected', bio: 'Expanded function dental assistant with extensive experience in cosmetic and restorative procedures.', skills: ['Open Dental', 'EFDA certified', 'Cosmetic dentistry', 'X-ray certified', 'Impressions'] },
+    ],
+  },
+  {
+    id: 'shift-3',
+    type: 'perm',
+    tagText: 'Permanent',
+    tagVariant: 'perm',
+    title: 'Full-time Hygienist',
+    timeText: 'Posted 2 days ago',
+    rate: '$48–62/hr',
+    filled: false,
+    applicants: [
+      { id: 'rachel', name: 'Rachel M.', initials: 'RM', role: 'Dental Hygienist', cred: 'RDH', rating: 4.8, reviewCount: 67, reliability: 98, experience: '5 yrs', distance: '5.5 mi', distanceText: '5 yrs experience', status: 'pending', bio: 'Looking for a permanent position with a forward-thinking practice. Strong background in preventive care and patient education.', skills: ['Dentrix', 'Eaglesoft', 'Periodontal therapy', 'Patient education', 'X-ray certified'] },
+      { id: 'chloe', name: 'Chloe N.', initials: 'CN', role: 'Dental Hygienist', cred: 'RDH', rating: 5.0, reviewCount: 29, reliability: 100, experience: '3 yrs', distance: '8.3 mi', distanceText: '3 yrs experience', status: 'pending', bio: 'Recent graduate with perfect reliability score. Eager to grow with a stable practice and build long-term patient relationships.', skills: ['Open Dental', 'Pediatric experience', 'X-ray certified'] },
+    ],
+  },
+];
 
-const LoadingSkeleton = () => (
-  <div className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-4">
-    <div className="flex items-center justify-between px-4 sm:px-6 py-4 animate-pulse">
-      <div className="flex items-center gap-3">
-        <div className="h-6 bg-[#e5e7eb] rounded-full w-20" />
-        <div>
-          <div className="h-4 bg-[#e5e7eb] rounded w-48 mb-1" />
-          <div className="h-3 bg-[#f3f4f6] rounded w-36" />
-        </div>
-      </div>
-    </div>
-    <div className="border-t border-[#e5e7eb]">
-      <SkeletonCard />
-      <SkeletonCard />
-      <SkeletonCard />
-    </div>
-  </div>
-)
-
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
 export default function Applicants() {
-  const navigate = useNavigate()
-  const { getToken } = useAuth()
-  const [activeTopTab, setActiveTopTab] = useState('temp')
-  const [openGroups, setOpenGroups] = useState({})
-  const [toast, setToast] = useState(null)
-  const [accepted, setAccepted] = useState({})
-  const [declined, setDeclined] = useState({})
-  const [shortlisted, setShortlisted] = useState({})
-  const [subTabs, setSubTabs] = useState({})
-  const [applications, setApplications] = useState([])
-  const [shifts, setShifts] = useState([])
-  const [shiftGroups, setShiftGroups] = useState({})
-  const [loading, setLoading] = useState(true)
+  const [segment, setSegment] = useState('all');
+  const [collapsed, setCollapsed] = useState({});
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [filters, setFilters] = useState({ role: 'All roles', hideFilled: false, hideNotSelected: false });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = await getToken()
-        const headers = { Authorization: `Bearer ${token}` }
+  const hasActiveFilters = filters.role !== 'All roles' || filters.hideFilled || filters.hideNotSelected;
 
-        // Fetch office profile to get officeId
-        const officeRes = await fetch(`${API_URL}/api/offices/me`, { headers })
-        if (!officeRes.ok) { setLoading(false); return }
-        const office = await officeRes.json()
+  const visibleShifts = useMemo(() => {
+    return MOCK_SHIFTS.filter((s) => {
+      if (segment !== 'all' && s.type !== segment) return false;
+      if (filters.hideFilled && s.filled) return false;
+      return true;
+    });
+  }, [segment, filters]);
 
-        // Fetch shifts AND applications in parallel
-        const [shiftsRes, appsRes] = await Promise.all([
-          fetch(`${API_URL}/api/shifts?officeId=${office.id}`, { headers }),
-          fetch(`${API_URL}/api/applications`, { headers }),
-        ])
+  const counts = {
+    all: MOCK_SHIFTS.length,
+    temp: MOCK_SHIFTS.filter((s) => s.type === 'temp').length,
+    perm: MOCK_SHIFTS.filter((s) => s.type === 'perm').length,
+  };
 
-        const shiftsData = shiftsRes.ok ? await shiftsRes.json() : []
-        const apps = appsRes.ok ? await appsRes.json() : []
+  const totalPending = MOCK_SHIFTS.reduce((acc, s) => acc + s.applicants.filter((a) => a.status === 'pending').length, 0);
 
-        // Filter out office-initiated requests — only show shifts the office posted (OPEN/FILLED)
-        // not booking requests the office sent to providers (PENDING status)
-        const postedShifts = shiftsData.filter(s => s.status !== 'PENDING')
-        const postedShiftIds = new Set(postedShifts.map(s => s.id))
-        const providerApps = apps.filter(a => postedShiftIds.has(a.shiftId))
-
-        setShifts(postedShifts)
-        setApplications(providerApps)
-
-        // Build groups: each shift is a group, with its applications
-        const grouped = {}
-        postedShifts.forEach(s => { grouped[s.id] = { shift: s, applications: [] } })
-        providerApps.forEach(a => {
-          if (grouped[a.shiftId]) grouped[a.shiftId].applications.push(a)
-          else if (postedShiftIds.has(a.shiftId)) grouped[a.shiftId] = { shift: a.shift, applications: [a] }
-        })
-        setShiftGroups(grouped)
-
-        // Initialize sub-tabs for each shift. Cards start collapsed.
-        const initialSubTabs = {}
-        Object.keys(grouped).forEach(shiftId => {
-          initialSubTabs[shiftId] = 'All'
-        })
-        setOpenGroups({})
-        setSubTabs(initialSubTabs)
-      } catch (err) {
-        console.error('Error fetching data:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [getToken])
-
-  const groupByShift = (apps) => {
-    const groups = {}
-    apps.forEach(app => {
-      const key = app.shiftId
-      if (!groups[key]) groups[key] = []
-      groups[key].push(app)
-    })
-    return groups
-  }
-
-  const toggleGroup = (id) => setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
-
-  const handleAccept = async (appId, name) => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/applications/${appId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'ACCEPTED' }),
-      })
-      if (!res.ok) throw new Error('Failed to accept application')
-      setAccepted(prev => ({ ...prev, [appId]: true }))
-      setDeclined(prev => ({ ...prev, [appId]: false }))
-      setToast(`${name} accepted — shift confirmed!`)
-      setTimeout(() => setToast(null), 3000)
-    } catch (err) {
-      console.error('Error accepting application:', err)
-      setToast('Failed to accept applicant. Please try again.')
-      setTimeout(() => setToast(null), 3000)
-    }
-  }
-
-  const handleDecline = async (appId, name) => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/applications/${appId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'DECLINED' }),
-      })
-      if (!res.ok) throw new Error('Failed to decline application')
-      setDeclined(prev => ({ ...prev, [appId]: true }))
-      setAccepted(prev => ({ ...prev, [appId]: false }))
-      setShortlisted(prev => ({ ...prev, [appId]: false }))
-      setToast(`${name} declined`)
-      setTimeout(() => setToast(null), 3000)
-    } catch (err) {
-      console.error('Error declining application:', err)
-      setToast('Failed to decline applicant. Please try again.')
-      setTimeout(() => setToast(null), 3000)
-    }
-  }
-
-  const handleShortlist = (appId, name) => {
-    const isNow = !shortlisted[appId]
-    setShortlisted(prev => ({ ...prev, [appId]: isNow }))
-    setToast(isNow ? `${name} shortlisted!` : `${name} removed from shortlist`)
-    setTimeout(() => setToast(null), 3000)
-  }
-
-  const filterApplicants = (applicants, groupId) => {
-    const tab = subTabs[groupId] || 'All'
-    return applicants.filter(app => {
-      const isAccepted = app.status === 'ACCEPTED' || accepted[app.id]
-      const isDeclined = app.status === 'DECLINED' || declined[app.id]
-      const isShortlisted = shortlisted[app.id]
-      if (tab === 'All') return true
-      if (tab === 'Pending') return !isAccepted && !isDeclined && !isShortlisted
-      if (tab === 'Accepted') return isAccepted
-      if (tab === 'Reviewing') return !isDeclined && !isShortlisted
-      if (tab === 'Shortlisted') return isShortlisted
-      if (tab === 'Declined') return isDeclined
-      return true
-    })
-  }
-
-  const formatTime = (timeStr) => {
-    if (!timeStr) return ''
-    const [h, m] = timeStr.split(':')
-    const hour = parseInt(h, 10)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const display = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
-    return `${display}:${m} ${ampm}`
-  }
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return ''
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-  }
-
-  const getApplicantName = (app) => {
-    const u = app.provider?.user
-    if (u?.firstName && u?.lastName) return `${u.firstName} ${u.lastName.charAt(0)}.`
-    if (u?.firstName) return u.firstName
-    return 'Unknown'
-  }
-
-  const getFullName = (app) => {
-    const u = app.provider?.user
-    if (u?.firstName && u?.lastName) return `${u.firstName} ${u.lastName}`
-    if (u?.firstName) return u.firstName
-    return 'Unknown'
-  }
-
-  const handleCancel = async (appId, name) => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/applications/${appId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'CANCELLED' }),
-      })
-      if (!res.ok) throw new Error('Failed to cancel application')
-      setAccepted(prev => ({ ...prev, [appId]: false }))
-      setDeclined(prev => ({ ...prev, [appId]: false }))
-      setToast(`${name} cancelled`)
-      setTimeout(() => setToast(null), 3000)
-    } catch (err) {
-      console.error('Error cancelling application:', err)
-      setToast('Failed to cancel. Please try again.')
-      setTimeout(() => setToast(null), 3000)
-    }
-  }
-
-  const renderStars = (rating) => {
-    const stars = []
-    const r = rating != null ? Math.round(rating) : 0
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <svg key={i} width="12" height="12" viewBox="0 0 24 24" fill={i <= r ? '#f59e0b' : 'none'} stroke={i <= r ? '#f59e0b' : '#d1d5db'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-      )
-    }
-    return <div className="flex items-center gap-0.5">{stars}</div>
-  }
-
-  const renderApplicant = (app, type = 'temp') => {
-    const isAccepted = app.status === 'ACCEPTED' || accepted[app.id]
-    const isDeclined = app.status === 'DECLINED' || declined[app.id]
-    const isShortlisted = shortlisted[app.id]
-    const name = getApplicantName(app)
-    const fullName = getFullName(app)
-    const provider = app.provider
-    const providerId = provider?.id || provider?.userId
-    const rating = provider?.averageRating ?? provider?.reliabilityScore
-    const rate = provider?.hourlyRate ? `$${provider.hourlyRate}/hr` : ''
-
-    if (type === 'temp') {
-      return (
-        <div key={app.id} className="flex items-center gap-3 px-4 sm:px-6 py-3 border-b border-[#e5e7eb] last:border-0">
-          <div onClick={() => navigate(providerId ? `/provider-profile/${providerId}` : '/profile')} className="cursor-pointer flex-shrink-0">
-            <InitialsAvatar name={fullName} size={36} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span onClick={() => navigate(providerId ? `/provider-profile/${providerId}` : '/profile')} className="text-[13px] font-bold text-[#1a1a1a] cursor-pointer hover:underline">{name}</span>
-              {rate && <span className="text-[11px] text-[#6b7280]">{rate}</span>}
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              {renderStars(rating)}
-              {rating != null && <span className="text-[11px] text-[#9ca3af]">{Number(rating).toFixed(1)}</span>}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {isDeclined ? (
-              <span className="text-[11px] font-bold text-red-400 bg-red-50 px-2 py-1 rounded-full">Declined</span>
-            ) : isAccepted ? (
-              <>
-                <span className="text-[11px] font-bold text-[#1a7f5e] bg-[#e8f5f0] px-2 py-1 rounded-full">Accepted</span>
-                <button onClick={() => handleCancel(app.id, name)} className="text-[11px] text-[#9ca3af] hover:text-red-400 px-1.5 py-1 rounded transition" title="Cancel">✕</button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => handleAccept(app.id, name)} className="bg-[#1a7f5e] hover:bg-[#156649] text-white text-[11px] font-bold px-2.5 py-1 rounded-full transition">Accept</button>
-                <button onClick={() => handleDecline(app.id, name)} className="border border-[#e5e7eb] text-[#6b7280] text-[11px] font-semibold px-2.5 py-1 rounded-full hover:border-red-400 hover:text-red-400 transition">Decline</button>
-                <button onClick={() => handleCancel(app.id, name)} className="text-[11px] text-[#9ca3af] hover:text-red-400 px-1.5 py-1 rounded transition" title="Cancel">✕</button>
-              </>
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    // Permanent job applicant rendering
-    const reliability = provider?.reliabilityScore != null ? `${provider.reliabilityScore}% reliable` : ''
-    const meta = [rate, reliability].filter(Boolean).join(' · ')
-
-    return (
-      <div key={app.id} className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 px-4 sm:px-6 py-4 border-b border-[#e5e7eb] last:border-0">
-        <div className="flex items-start gap-3 sm:gap-4 sm:contents">
-          <div onClick={() => navigate(providerId ? `/provider-profile/${providerId}` : '/profile')} className="cursor-pointer flex-shrink-0">
-            <InitialsAvatar name={fullName} size={48} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="text-[13px] sm:text-sm font-bold text-[#1a1a1a]">{name}</span>
-              {renderStars(rating)}
-              {rating != null && <span className="text-[11px] text-[#9ca3af]">{Number(rating).toFixed(1)}</span>}
-            </div>
-            {meta && <p className="text-xs text-[#6b7280] mb-0.5">{meta}</p>}
-            <p className="text-xs text-[#9ca3af] mb-1">{provider?.role || ''}</p>
-            {app.note && <p className="text-xs text-[#6b7280] italic">"{app.note}"</p>}
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-          {isDeclined ? (
-            <span className="text-xs font-bold text-red-400 bg-red-50 px-3 py-2 sm:py-1.5 rounded-full text-center">Declined</span>
-          ) : isAccepted ? (
-            <>
-              <span className="flex items-center justify-center gap-1 text-xs font-bold text-[#1a7f5e] bg-[#e8f5f0] px-3 py-2 sm:py-1.5 rounded-full">Accepted</span>
-              <button onClick={() => navigate(providerId ? `/provider-profile/${providerId}` : '/profile')} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-2 sm:py-1.5 rounded-full hover:border-[#1a7f5e] transition">Profile</button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => handleShortlist(app.id, name)} className={`text-xs font-semibold px-3 py-2 sm:py-1.5 rounded-full border transition ${isShortlisted ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#1a7f5e]'}`}>{isShortlisted ? '✓ Shortlisted' : 'Shortlist'}</button>
-              <button onClick={() => handleDecline(app.id, name)} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-2 sm:py-1.5 rounded-full hover:border-red-400 hover:text-red-400 transition">Decline</button>
-              <button onClick={() => navigate(providerId ? `/provider-profile/${providerId}` : '/profile')} className="border border-[#e5e7eb] text-[#6b7280] text-xs font-semibold px-3 py-2 sm:py-1.5 rounded-full hover:border-[#1a7f5e] transition">Profile</button>
-            </>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  const getDateParts = (dateStr) => {
-    if (!dateStr) return { day: '', month: '' }
-    const d = new Date(dateStr)
-    return {
-      day: d.getDate(),
-      month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
-    }
-  }
-
-  const renderGroup = (shiftId, shift, applicants, type, tabOptions) => {
-    const filtered = filterApplicants(applicants, shiftId)
-    const isPerm = shift.jobType === 'PERMANENT'
-    const timeRange = `${formatTime(shift.startTime)} – ${formatTime(shift.endTime)}`
-    const rateDisplay = shift.hourlyRate ? `$${shift.hourlyRate}/hr` : ''
-    const metaText = [timeRange, rateDisplay].filter(Boolean).join(' · ')
-    const dateParts = getDateParts(shift.date)
-
-    // For perm jobs, keep full stats
-    const pendingCount = applicants.filter(a => {
-      const acc = a.status === 'ACCEPTED' || accepted[a.id]
-      const dec = a.status === 'DECLINED' || declined[a.id]
-      return !acc && !dec
-    }).length
-
-    const stats = isPerm
-      ? [
-          { val: pendingCount, label: 'Reviewing', color: 'text-[#f59e0b]' },
-          { val: applicants.filter(a => shortlisted[a.id]).length, label: 'Shortlisted' },
-          { val: applicants.length, label: 'Total' },
-        ]
-      : null
-
-    return (
-      <div key={shiftId} className="bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden mb-4">
-        <div onClick={() => toggleGroup(shiftId)} className="flex items-center justify-between px-4 sm:px-6 py-4 cursor-pointer hover:bg-[#f9f8f6] transition">
-          <div className="flex items-center gap-3 min-w-0">
-            {isPerm ? (
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 bg-[#ede9fe] text-[#5b21b6]">Permanent</span>
-            ) : (
-              <div className="w-12 h-12 rounded-lg bg-[#e8f5f0] flex flex-col items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-[#1a7f5e] leading-none">{dateParts.month}</span>
-                <span className="text-[20px] font-extrabold text-[#1a7f5e] leading-none">{dateParts.day}</span>
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-[13px] sm:text-sm font-extrabold text-[#1a1a1a] break-words">{shift.role || 'Shift'}</p>
-              <div className="flex items-center gap-2 text-[13px] text-[#6b7280] mt-0.5">
-                {metaText}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {isPerm && stats ? (
-              <div className="flex gap-4">
-                {stats.map((s, i) => (
-                  <div key={i} className="text-center">
-                    <div className={`text-base font-extrabold ${s.color || 'text-[#1a1a1a]'}`}>{s.val}</div>
-                    <div className="text-xs text-[#9ca3af]">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-extrabold text-[#1a1a1a]">{applicants.length}</span>
-                <span className="text-xs text-[#9ca3af]">{applicants.length === 1 ? 'applicant' : 'applicants'}</span>
-              </div>
-            )}
-            <span className="text-[#9ca3af]">{openGroups[shiftId] ? '∧' : '∨'}</span>
-          </div>
-        </div>
-        {openGroups[shiftId] && (
-          <div className="border-t border-[#e5e7eb]">
-            {isPerm && (
-              <div className="flex gap-4 px-4 sm:px-6 py-3 border-b border-[#e5e7eb] overflow-x-auto whitespace-nowrap">
-                {tabOptions.map(t => (
-                  <button key={t} onClick={() => setSubTabs(prev => ({ ...prev, [shiftId]: t }))} className={`text-sm font-semibold pb-1 border-b-2 transition ${(subTabs[shiftId] || 'All') === t ? 'border-[#1a7f5e] text-[#1a7f5e]' : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>{t}</button>
-                ))}
-              </div>
-            )}
-            {applicants.length === 0 ? (
-              <EmptyState
-                icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
-                title="Awaiting applicants..."
-                sub="No one has applied to this shift yet. Applications will appear here."
-                action={null}
-              />
-            ) : (isPerm ? filtered : applicants).length === 0 ? (
-              <EmptyState
-                icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
-                title="No applicants in this category"
-                sub="Try selecting a different filter tab above."
-                action={null}
-              />
-            ) : (
-              (isPerm ? filtered : applicants).map(app => renderApplicant(app, type))
-            )}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const shiftEntries = Object.entries(shiftGroups)
-  const tempCount = shiftEntries.filter(([, g]) => g.shift?.jobType !== 'PERMANENT').length
-  const permCount = shiftEntries.filter(([, g]) => g.shift?.jobType === 'PERMANENT').length
-
-  const visibleShifts = activeTopTab === 'temp'
-    ? shiftEntries.filter(([, g]) => g.shift?.jobType !== 'PERMANENT')
-    : shiftEntries.filter(([, g]) => g.shift?.jobType === 'PERMANENT')
-
-  const topTabs = [
-    { id: 'temp', label: 'Temp shifts', count: tempCount },
-    { id: 'perm', label: 'Permanent jobs', count: permCount },
-  ]
+  const toggleCollapse = (id) => setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6]">
-      <Nav />
-      <div className="max-w-[720px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <h1 className="text-[22px] sm:text-[28px] font-extrabold text-[#1a1a1a] mb-1">Applicants</h1>
-        <p className="text-[13px] sm:text-[15px] text-[#6b7280] mb-6">Review professionals who have applied to your shifts and job postings.</p>
+    <>
+      <style>{`
+        .kazi-applicants * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        .kazi-applicants button, .kazi-applicants input { font-family: inherit; cursor: pointer; }
+        .kazi-applicants input { outline: none; }
+        @keyframes kaziSheetSlide { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+        @keyframes kaziOverlayFade { from { opacity: 0; } to { opacity: 1; } }
+      `}</style>
 
-        <div className="flex gap-0 border-b border-[#e5e7eb] mb-6 overflow-x-auto whitespace-nowrap -mx-4 px-4 sm:mx-0 sm:px-0">
-          {topTabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTopTab(tab.id)} className={`flex items-center gap-2 px-4 sm:px-5 py-3 text-[14px] sm:text-[15px] font-medium border-b-2 -mb-px transition flex-shrink-0 ${activeTopTab === tab.id ? (tab.id === 'perm' ? 'border-[#5b21b6] text-[#5b21b6] font-semibold' : 'border-[#1a7f5e] text-[#1a7f5e] font-semibold') : 'border-transparent text-[#9ca3af] hover:text-[#1a1a1a]'}`}>
-              {tab.icon}
-              {tab.label} <span className="text-[13px] bg-[#f3f4f6] text-[#6b7280] px-1.5 py-0.5 rounded-full font-semibold">{tab.count}</span>
+      <div className="kazi-applicants" style={{ background: COLORS.bg, minHeight: '100vh', maxWidth: 480, margin: '0 auto', boxShadow: '0 0 40px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif", color: COLORS.text, WebkitFontSmoothing: 'antialiased', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {/* TOP BAR */}
+        <div style={{ background: 'white', padding: '18px 18px 16px', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0, position: 'sticky', top: 0, zIndex: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: COLORS.text, letterSpacing: '-0.5px', lineHeight: 1.1 }}>Applicants</div>
+              <div style={{ fontSize: 12, color: COLORS.textLight, marginTop: 4 }}>{totalPending} applicants across {visibleShifts.length} jobs</div>
+            </div>
+            <button onClick={() => setFilterSheetOpen(true)} style={{ width: 40, height: 40, borderRadius: '50%', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', flexShrink: 0 }} aria-label="Filter">
+              <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              {hasActiveFilters && <div style={{ position: 'absolute', top: 7, right: 9, width: 7, height: 7, background: COLORS.coral, borderRadius: '50%', border: '1.5px solid white' }} />}
             </button>
+          </div>
+
+          {/* Segmented toggle */}
+          <SegmentedToggle segment={segment} setSegment={setSegment} counts={counts} />
+        </div>
+
+        {/* SCROLL AREA */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 0 40px' }}>
+          {visibleShifts.map((shift) => (
+            <ShiftBlock
+              key={shift.id}
+              shift={shift}
+              collapsed={!!collapsed[shift.id]}
+              onToggleCollapse={() => toggleCollapse(shift.id)}
+              onApplicantClick={(applicant) => setSelectedApplicant({ applicant, shift })}
+              hideNotSelected={filters.hideNotSelected}
+            />
           ))}
         </div>
 
-        {loading ? (
-          <>
-            <LoadingSkeleton />
-            <LoadingSkeleton />
-          </>
-        ) : shiftEntries.length === 0 ? (
-          <div className="bg-white border border-[#e5e7eb] rounded-2xl">
-            <EmptyState
-              icon={<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
-              title="No shifts posted yet"
-              sub="Post a shift to start receiving applications."
-              action={<button onClick={() => navigate('/post-shift')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-2.5 rounded-full text-sm transition">Post a shift</button>}
-            />
-          </div>
-        ) : (
-          <>
-            {visibleShifts.map(([shiftId, group]) => {
-              const shift = group.shift || {}
-              const apps = group.applications || []
-              const type = 'temp' // adjust when API provides shift type
-              const tabOptions = type === 'perm'
-                ? ['All', 'Reviewing', 'Shortlisted', 'Declined']
-                : ['All', 'Pending', 'Accepted', 'Declined']
-              return renderGroup(shiftId, shift, apps, type, tabOptions)
-            })}
-          </>
+        {selectedApplicant && (
+          <ApplicantDetailSheet applicant={selectedApplicant.applicant} onClose={() => setSelectedApplicant(null)} />
+        )}
+
+        {filterSheetOpen && (
+          <FilterSheet filters={filters} setFilters={setFilters} onClose={() => setFilterSheetOpen(false)} />
         )}
       </div>
+    </>
+  );
+}
 
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-sm font-semibold px-5 py-3 rounded-full z-50 shadow-lg flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-            <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+// ============================================================
+// SEGMENTED TOGGLE
+// ============================================================
+function SegmentedToggle({ segment, setSegment, counts }) {
+  const segs = [
+    { id: 'all', label: 'All', count: counts.all },
+    { id: 'temp', label: 'Temp shifts', count: counts.temp },
+    { id: 'perm', label: 'Permanent', count: counts.perm },
+  ];
+  return (
+    <div style={{ marginTop: 14, display: 'flex', background: 'white', border: `1px solid ${COLORS.borderSoft}`, borderRadius: 100, padding: 4, gap: 2 }}>
+      {segs.map((s) => {
+        const isActive = segment === s.id;
+        return (
+          <button key={s.id} onClick={() => setSegment(s.id)} style={{ flex: 1, background: isActive ? COLORS.green : 'none', border: 'none', padding: '10px 8px', fontSize: 12, fontWeight: 700, color: isActive ? 'white' : COLORS.textLight, borderRadius: 100, fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            {s.label}
+            <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 100, background: isActive ? 'rgba(255,255,255,0.25)' : COLORS.bg, color: isActive ? 'white' : COLORS.textLight, minWidth: 16 }}>{s.count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================
+// SHIFT BLOCK
+// ============================================================
+function ShiftBlock({ shift, collapsed, onToggleCollapse, onApplicantClick, hideNotSelected }) {
+  const visibleApplicants = hideNotSelected ? shift.applicants.filter((a) => a.status !== 'not-selected') : shift.applicants;
+  const pendingCount = shift.applicants.filter((a) => a.status === 'pending').length;
+
+  return (
+    <div style={{ margin: '0 16px 16px', background: shift.filled ? COLORS.greenTint : 'white', border: `1px solid ${shift.filled ? COLORS.greenSoft : COLORS.borderSoft}`, borderRadius: 20, overflow: 'hidden', transition: 'background 0.2s' }}>
+      {/* Header */}
+      <div onClick={onToggleCollapse} style={{ padding: '18px 18px 14px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, cursor: 'pointer', userSelect: 'none' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ShiftTag variant={shift.tagVariant}>{shift.tagText}</ShiftTag>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px', marginTop: 6 }}>{shift.title}</div>
+          <div style={{ fontSize: 12, color: COLORS.textMid, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <span>{shift.timeText}</span>
+            <span style={{ width: 2.5, height: 2.5, background: COLORS.textLight, borderRadius: '50%' }} />
+            <span style={{ color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{shift.rate}</span>
           </div>
-          {toast}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {shift.filled ? (
+            <span style={{ background: COLORS.green, color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 9, padding: '5px 11px', borderRadius: 100, display: 'inline-flex', alignItems: 'center', gap: 4, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 9, height: 9 }}>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Filled
+            </span>
+          ) : (
+            <span style={{ background: COLORS.text, color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 11, padding: '5px 12px', borderRadius: 100, lineHeight: 1.4 }}>
+              <span style={{ fontSize: 13 }}>{pendingCount}</span> applicants
+            </span>
+          )}
+          <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform 0.25s', marginLeft: 4, marginTop: 2, transform: collapsed ? 'rotate(-90deg)' : 'none' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textLight} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Applicants list */}
+      {!collapsed && (
+        <div style={{ borderTop: `1px solid ${shift.filled ? COLORS.greenSoft : COLORS.borderSoft}`, background: 'white' }}>
+          {visibleApplicants.map((applicant, idx) => (
+            <ApplicantRow
+              key={applicant.id}
+              applicant={applicant}
+              isLast={idx === visibleApplicants.length - 1}
+              onClick={() => onApplicantClick(applicant)}
+            />
+          ))}
         </div>
       )}
     </div>
-  )
+  );
+}
+
+function ShiftTag({ variant, children }) {
+  const styles = {
+    temp: { background: COLORS.greenTint, color: COLORS.green },
+    perm: { background: COLORS.purpleSoft, color: COLORS.purple },
+    urgent: { background: COLORS.coralSoft, color: COLORS.coral },
+  };
+  return (
+    <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 800, padding: '3px 8px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: 0.4, fontFamily: "'Outfit', sans-serif", ...styles[variant] }}>
+      {children}
+    </span>
+  );
+}
+
+// ============================================================
+// APPLICANT ROW
+// ============================================================
+function ApplicantRow({ applicant, isLast, onClick }) {
+  const isPending = applicant.status === 'pending';
+  const isAccepted = applicant.status === 'accepted';
+  const isNotSelected = applicant.status === 'not-selected';
+
+  return (
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: isLast ? 'none' : `1px solid ${COLORS.borderSoft}`, cursor: 'pointer', transition: 'background 0.1s', opacity: isNotSelected ? 0.5 : 1 }}>
+      <Initials text={applicant.initials} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>{applicant.name}</div>
+        <div style={{ fontSize: 12, color: COLORS.textLight, marginTop: 2, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          <span style={{ color: COLORS.gold, fontSize: 11 }}>★</span>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.textMid }}>{applicant.rating}</span>
+          <span style={{ width: 2, height: 2, background: COLORS.textLight, borderRadius: '50%' }} />
+          <span>{applicant.distanceText}</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        {isPending && (
+          <>
+            <IconBtn variant="reject" onClick={(e) => { e.stopPropagation(); }} ariaLabel="Pass">
+              <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.red} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </IconBtn>
+            <IconBtn variant="accept" onClick={(e) => { e.stopPropagation(); }} ariaLabel="Accept">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </IconBtn>
+          </>
+        )}
+        {isAccepted && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.3, padding: '6px 10px', borderRadius: 100, background: COLORS.green, color: 'white' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 9, height: 9 }}>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Hired
+          </span>
+        )}
+        {isNotSelected && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.3, padding: '6px 10px', borderRadius: 100, background: COLORS.bg, color: COLORS.textLight, border: `1px solid ${COLORS.border}` }}>
+            Not selected
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IconBtn({ variant, onClick, ariaLabel, children }) {
+  const styles = {
+    reject: { background: COLORS.redSoft, borderColor: '#fca5a5' },
+    accept: { background: COLORS.green, borderColor: COLORS.green },
+  };
+  return (
+    <button onClick={onClick} aria-label={ariaLabel} style={{ width: 38, height: 38, borderRadius: '50%', border: '1.5px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, ...styles[variant] }}>
+      {children}
+    </button>
+  );
+}
+
+function Initials({ text }) {
+  return (
+    <div style={{ width: 42, height: 42, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
+      {text}
+    </div>
+  );
+}
+
+// ============================================================
+// APPLICANT DETAIL SHEET
+// ============================================================
+function ApplicantDetailSheet({ applicant, onClose }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, animation: 'kaziOverlayFade 0.25s ease-out' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: 'white', borderRadius: '28px 28px 0 0', zIndex: 201, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 50px rgba(0,0,0,0.25)', animation: 'kaziSheetSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1)', fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ width: 40, height: 4, background: COLORS.border, borderRadius: 100, margin: '12px auto 4px', flexShrink: 0 }} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 18px 0', flexShrink: 0 }}>
+          <button onClick={onClose} style={{ width: 34, height: 34, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 20px' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+            <div style={{ width: 60, height: 60, borderRadius: 16, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, flexShrink: 0, letterSpacing: '-0.5px' }}>
+              {applicant.initials}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.4px', marginBottom: 4 }}>{applicant.name}</div>
+              <div style={{ fontSize: 13, color: COLORS.textMid, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>{applicant.role}</span>
+                <span style={{ background: COLORS.greenTint, color: COLORS.green, fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 100, letterSpacing: 0.2, fontFamily: "'Outfit', sans-serif" }}>{applicant.cred}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 22 }}>
+            <StatTile num={<><span style={{ color: COLORS.gold, fontSize: 14, marginRight: 1 }}>★</span>{applicant.rating}</>} label={`${applicant.reviewCount} reviews`} />
+            <StatTile num={<>{applicant.reliability}<span style={{ fontSize: 14 }}>%</span></>} label="Reliability" />
+            <StatTile num={applicant.experience} label="Experience" />
+          </div>
+
+          <DetailSection title="About">
+            <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.55 }}>{applicant.bio}</div>
+          </DetailSection>
+
+          <DetailSection title="Skills & certifications">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {applicant.skills.map((s) => (
+                <span key={s} style={{ background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 100, padding: '6px 11px', fontSize: 11, color: COLORS.textMid, fontWeight: 600 }}>{s}</span>
+              ))}
+            </div>
+          </DetailSection>
+
+          <DetailSection title="Location">
+            <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.55 }}>{applicant.distance} from your office</div>
+          </DetailSection>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 20px 26px', borderTop: `1px solid ${COLORS.borderSoft}`, background: 'white', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button style={{ width: 52, height: 52, borderRadius: '50%', border: `1.5px solid ${COLORS.border}`, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} aria-label="Message">
+            <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          <button style={{ width: 52, height: 52, borderRadius: '50%', border: '1.5px solid #fca5a5', background: COLORS.redSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} aria-label="Pass">
+            <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.red} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Accept
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function StatTile({ num, label }) {
+  return (
+    <div style={{ background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 14, padding: '14px 10px', textAlign: 'center' }}>
+      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: COLORS.text, lineHeight: 1, letterSpacing: '-0.3px' }}>{num}</div>
+      <div style={{ fontSize: 9, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 700, marginTop: 5, letterSpacing: 0.4 }}>{label}</div>
+    </div>
+  );
+}
+
+function DetailSection({ title, children }) {
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>{title}</div>
+      {children}
+    </div>
+  );
+}
+
+// ============================================================
+// FILTER SHEET
+// ============================================================
+function FilterSheet({ filters, setFilters, onClose }) {
+  const [local, setLocal] = useState(filters);
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const apply = () => { setFilters(local); onClose(); };
+  const reset = () => setLocal({ role: 'All roles', hideFilled: false, hideNotSelected: false });
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, animation: 'kaziOverlayFade 0.25s ease-out' }} />
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: 'white', borderRadius: '28px 28px 0 0', zIndex: 201, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 40px rgba(0,0,0,0.2)', animation: 'kaziSheetSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1)', fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ width: 40, height: 4, background: COLORS.border, borderRadius: 100, margin: '12px auto 4px', flexShrink: 0 }} />
+        <div style={{ padding: '14px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, letterSpacing: '-0.3px' }}>Filter applicants</div>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ padding: '20px 24px 18px' }}>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, marginBottom: 12 }}>Role</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {['All roles', 'Hygienist', 'Assistant', 'Front Desk', 'Dentist'].map((opt) => {
+                const isSel = local.role === opt;
+                return (
+                  <button key={opt} onClick={() => setLocal({ ...local, role: opt })} style={{ background: isSel ? COLORS.green : 'white', border: `1.5px solid ${isSel ? COLORS.green : COLORS.border}`, borderRadius: 100, padding: '10px 16px', fontSize: 12, fontWeight: 700, color: isSel ? 'white' : COLORS.textMid }}>
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{ height: 8, background: COLORS.bg }} />
+          <ToggleRow title="Hide filled jobs" sub="Only show jobs needing decisions" value={local.hideFilled} onChange={(v) => setLocal({ ...local, hideFilled: v })} isFirst />
+          <ToggleRow title='Hide "not selected"' sub="Cleaner view, no grayed-out applicants" value={local.hideNotSelected} onChange={(v) => setLocal({ ...local, hideNotSelected: v })} />
+          <div style={{ height: 20 }} />
+        </div>
+        <div style={{ padding: '14px 20px 26px', borderTop: `1px solid ${COLORS.borderSoft}`, background: 'white', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button onClick={reset} style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 700, color: COLORS.textMid, padding: '14px 4px', textDecoration: 'underline', flexShrink: 0 }}>Reset all</button>
+          <button onClick={apply} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>Apply filters</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ToggleRow({ title, sub, value, onChange, isFirst }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px', borderTop: isFirst ? 'none' : `1px solid ${COLORS.borderSoft}` }}>
+      <div style={{ flex: 1, paddingRight: 16 }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: COLORS.text, lineHeight: 1.2 }}>{title}</div>
+        <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 3 }}>{sub}</div>
+      </div>
+      <button onClick={() => onChange(!value)} style={{ position: 'relative', width: 46, height: 26, background: value ? COLORS.green : COLORS.border, borderRadius: 100, border: 'none', flexShrink: 0, padding: 0 }}>
+        <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: 'transform 0.2s', transform: value ? 'translateX(20px)' : 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }} />
+      </button>
+    </div>
+  );
 }
