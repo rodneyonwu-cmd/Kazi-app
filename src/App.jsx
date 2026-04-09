@@ -18,6 +18,7 @@ import PostShift from './pages/PostShift'
 import Professionals from './pages/Professionals'
 import Profile from './pages/Profile'
 import Messages from './pages/Messages'
+import MessageThread from './pages/MessageThread'
 import Applicants from './pages/Applicants'
 import Bookings from './pages/Bookings'
 import Help from './pages/Help'
@@ -75,6 +76,7 @@ function App() {
       <Route path="/professionals/:id" element={<RequireAuth><ProfessionalProfile /></RequireAuth>} />
       <Route path="/profile" element={<Navigate to="/office-profile" replace />} />
       <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
+      <Route path="/messages/:conversationId" element={<RequireAuth><MessageThread /></RequireAuth>} />
       <Route path="/applicants" element={<RequireAuth><Applicants /></RequireAuth>} />
       <Route path="/bookings" element={<RequireAuth><Bookings /></RequireAuth>} />
       <Route path="/help" element={<RequireAuth><Help /></RequireAuth>} />
