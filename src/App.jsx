@@ -28,6 +28,9 @@ import SavedProfessionals from './pages/SavedProfessionals'
 import ProviderDashboard from './pages/ProviderDashboard'
 import FindShifts from './pages/FindShifts'
 import ShiftRequests from './pages/ShiftRequests'
+import ProviderRequests from './pages/ProviderRequests'
+import RequestDetail from './pages/RequestDetail'
+import ApplyShift from './pages/ApplyShift'
 import ProviderMessages from './pages/ProviderMessages'
 import ProviderEarnings from './pages/ProviderEarnings'
 import ProviderSchedule from './pages/ProviderSchedule'
@@ -83,8 +86,13 @@ function App() {
       <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
       <Route path="/office-profile" element={<RequireAuth><OfficeProfile /></RequireAuth>} />
       <Route path="/saved-professionals" element={<RequireAuth><SavedProfessionals /></RequireAuth>} />
-      <Route path="/provider-dashboard" element={<RequireAuth><ProviderDashboard /></RequireAuth>} />
-      <Route path="/provider-find-shifts" element={<RequireAuth><FindShifts /></RequireAuth>} />
+      <Route path="/provider" element={<RequireAuth><ProviderDashboard /></RequireAuth>} />
+      <Route path="/provider-dashboard" element={<Navigate to="/provider" replace />} />
+      <Route path="/find-shifts" element={<RequireAuth><FindShifts /></RequireAuth>} />
+      <Route path="/find-shifts/:id" element={<RequireAuth><ApplyShift /></RequireAuth>} />
+      <Route path="/provider-find-shifts" element={<Navigate to="/find-shifts" replace />} />
+      <Route path="/requests" element={<RequireAuth><ProviderRequests /></RequireAuth>} />
+      <Route path="/requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
       <Route path="/provider-requests" element={<RequireAuth><ShiftRequests /></RequireAuth>} />
       <Route path="/provider-messages" element={<RequireAuth><ProviderMessages /></RequireAuth>} />
       <Route path="/provider-earnings" element={<RequireAuth><ProviderEarnings /></RequireAuth>} />
