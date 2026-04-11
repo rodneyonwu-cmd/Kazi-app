@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
+import SuccessToast from '../components/SuccessToast';
 
 const styles = `
 .kazi-shift * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -79,9 +81,14 @@ export default function ShiftDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const shift = MOCK[id] || MOCK.default;
+  const [toastOpen, setToastOpen] = useState(false);
 
   const handleApply = () => {
-    alert(`Application submitted to ${shift.officeName}`);
+    setToastOpen(true);
+  };
+
+  const closeToast = () => {
+    setToastOpen(false);
     navigate(-1);
   };
 
@@ -163,6 +170,12 @@ export default function ShiftDetails() {
         </button>
         <button className="btn-save" onClick={handleSave}>Save</button>
       </div>
+      <SuccessToast
+        open={toastOpen}
+        title="Application sent"
+        subtitle={`${shift.officeName} will review your application and get back to you shortly.`}
+        onClose={closeToast}
+      />
     </div>
   );
 }

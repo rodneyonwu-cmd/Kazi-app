@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SuccessToast from './SuccessToast';
 
 // ============================================================
 // KAZI SHIFT DETAILS VIEW — Shared detail screen
@@ -36,6 +37,29 @@ const DEFAULT_SHIFT = {
 export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIFT, onAccept, onDecline, onApply, onSave }) {
   const navigate = useNavigate();
   const isInvite = mode === 'invite';
+  const [toast, setToast] = useState(null); // { title, subtitle, then }
+
+  const handlePrimary = () => {
+    if (isInvite) {
+      setToast({
+        title: 'Shift accepted',
+        subtitle: `${shift.office.name} has been notified. See you on ${shift.date}.`,
+        then: onAccept,
+      });
+    } else {
+      setToast({
+        title: 'Application sent',
+        subtitle: `${shift.office.name} will review your application and get back to you shortly.`,
+        then: onApply,
+      });
+    }
+  };
+
+  const closeToast = () => {
+    const next = toast?.then;
+    setToast(null);
+    if (next) next();
+  };
 
   return (
     <>
@@ -300,7 +324,7 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
           }}
         >
           <button
-            onClick={isInvite ? onAccept : onApply}
+            onClick={handlePrimary}
             style={{
               flex: 1,
               padding: 15,
@@ -337,6 +361,7 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
           </button>
         </div>
       </div>
+      <SuccessToast open={!!toast} title={toast?.title} subtitle={toast?.subtitle} onClose={closeToast} />
     </>
   );
 }

@@ -67,7 +67,7 @@ export default function RequestDetail() {
   const shift = MOCK_REQUESTS[id] || MOCK_REQUESTS['req-2'];
 
   const handleAccept = () => {
-    alert(`Accepted shift at ${shift.office.name}`);
+    // Toast is shown by ShiftDetailsView before this fires.
     navigate('/requests');
   };
 

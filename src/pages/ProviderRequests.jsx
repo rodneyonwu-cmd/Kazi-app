@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
+import SuccessToast from '../components/SuccessToast';
 
 const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
@@ -85,8 +86,16 @@ export default function ProviderRequests() {
   const navigate = useNavigate();
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('incoming');
+  const [acceptedToast, setAcceptedToast] = useState(null);
 
   const initials = (user?.firstName?.[0] || 'S') + (user?.lastName?.[0] || 'K');
+
+  const handleAccept = (req) => {
+    setAcceptedToast({
+      title: 'Shift accepted',
+      subtitle: `${req.name} has been notified. See you on ${req.date}.`,
+    });
+  };
 
   return (
     <>
@@ -184,7 +193,7 @@ export default function ProviderRequests() {
         {activeTab === 'incoming' && (
           <div style={{ padding: '0 16px' }}>
             {INCOMING_REQUESTS.map((req) => (
-              <RequestCard key={req.id} req={req} onOpen={() => navigate(`/requests/${req.id}`)} />
+              <RequestCard key={req.id} req={req} onOpen={() => navigate(`/requests/${req.id}`)} onAccept={() => handleAccept(req)} />
             ))}
           </div>
         )}
@@ -206,11 +215,17 @@ export default function ProviderRequests() {
 
         <ProviderBottomNav />
       </div>
+      <SuccessToast
+        open={!!acceptedToast}
+        title={acceptedToast?.title}
+        subtitle={acceptedToast?.subtitle}
+        onClose={() => setAcceptedToast(null)}
+      />
     </>
   );
 }
 
-function RequestCard({ req, onOpen }) {
+function RequestCard({ req, onOpen, onAccept }) {
   return (
     <div
       onClick={onOpen}
@@ -303,7 +318,7 @@ function RequestCard({ req, onOpen }) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            alert(`Accepted: ${req.name}`);
+            if (onAccept) onAccept();
           }}
           style={{
             flex: 1,

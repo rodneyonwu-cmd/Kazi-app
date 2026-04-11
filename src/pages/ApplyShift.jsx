@@ -65,7 +65,7 @@ export default function ApplyShift() {
   const shift = MOCK_OPEN_SHIFTS[id] || MOCK_OPEN_SHIFTS['shift-mcd'];
 
   const handleApply = () => {
-    alert(`Application submitted to ${shift.office.name}`);
+    // Toast is shown by ShiftDetailsView before this fires.
     navigate('/find-shifts');
   };
 
