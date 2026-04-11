@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import BookedShiftModal from './BookedShiftModal';
 
 // ============================================================
 // KAZI PROVIDER DASHBOARD — Pro home (route: /provider)
@@ -66,6 +67,58 @@ const WEEK_DAYS = [
   { name: 'Mon', num: 15, status: 'booked', label: 'SBD\n9a–4p' },
 ];
 
+// Mock booked shifts keyed by day-of-month for April 2026
+const BOOKED_SHIFTS = {
+  10: {
+    officeName: 'Missouri City Dental',
+    officeInitials: 'MCD',
+    officeRating: '4.9',
+    officeBookingCount: 12,
+    priorBookings: 3,
+    dateTime: 'Wednesday, April 10 · 8:00 AM – 5:00 PM',
+    duration: '9 hours · 1 hour lunch break',
+    role: 'Dental Hygienist (RDH)',
+    roleSub: 'General dentistry · Adult prophy + perio',
+    payTotal: 464,
+    paySub: '$58/hr × 8 paid hours',
+    address: '7890 Highway 6, Missouri City, TX',
+    distance: '4.2 miles · ~14 min drive',
+  },
+  14: {
+    officeName: 'Sugar Land Bright Dental',
+    officeInitials: 'SBD',
+    officeRating: '4.6',
+    officeBookingCount: 8,
+    priorBookings: 1,
+    dateTime: 'Monday, April 14 · 9:00 AM – 4:00 PM',
+    duration: '7 hours · 30 min lunch break',
+    role: 'Dental Hygienist (RDH)',
+    roleSub: 'Cosmetic + general · Hygiene focus',
+    payTotal: 385,
+    paySub: '$55/hr × 7 paid hours',
+    address: '4500 Highway 6, Sugar Land, TX',
+    distance: '7.8 miles · ~22 min drive',
+  },
+  15: {
+    officeName: 'Sugar Land Bright Dental',
+    officeInitials: 'SBD',
+    officeRating: '4.6',
+    officeBookingCount: 8,
+    priorBookings: 1,
+    dateTime: 'Tuesday, April 15 · 9:00 AM – 4:00 PM',
+    duration: '7 hours · 30 min lunch break',
+    role: 'Dental Hygienist (RDH)',
+    roleSub: 'Cosmetic + general · Hygiene focus',
+    payTotal: 385,
+    paySub: '$55/hr × 7 paid hours',
+    address: '4500 Highway 6, Sugar Land, TX',
+    distance: '7.8 miles · ~22 min drive',
+  },
+  20: { officeName: 'Pearland Wellness Dental', officeInitials: 'PWD', officeRating: '4.7', officeBookingCount: 6, dateTime: 'Sunday, April 20 · 8:00 AM – 5:00 PM', duration: '9 hours · 1 hour lunch break', role: 'Dental Hygienist (RDH)', payTotal: 558, paySub: '$62/hr × 9 paid hours', address: '4500 Broadway St, Pearland, TX', distance: '3.1 miles · ~11 min drive' },
+  23: { officeName: 'Houston Dental Care', officeInitials: 'HDC', officeRating: '4.8', officeBookingCount: 9, dateTime: 'Wednesday, April 23 · 9:00 AM – 3:00 PM', duration: '6 hours · 30 min lunch break', role: 'Dental Hygienist (RDH)', payTotal: 330, paySub: '$60/hr × 5.5 paid hours', address: '1234 Main St, Houston, TX', distance: '5.6 miles · ~18 min drive' },
+  28: { officeName: 'Missouri City Dental', officeInitials: 'MCD', officeRating: '4.9', officeBookingCount: 12, priorBookings: 3, dateTime: 'Monday, April 28 · 8:00 AM – 5:00 PM', duration: '9 hours · 1 hour lunch break', role: 'Dental Hygienist (RDH)', payTotal: 464, paySub: '$58/hr × 8 paid hours', address: '7890 Highway 6, Missouri City, TX', distance: '4.2 miles · ~14 min drive' },
+};
+
 // April 2026 — starts on Wednesday
 const MONTH_CELLS = [
   null, null, null, { d: 1 }, { d: 2 }, { d: 3, s: 'off' }, { d: 4, s: 'off' },
@@ -79,9 +132,15 @@ export default function ProviderDashboard() {
   const navigate = useNavigate();
   const { user } = useUser();
   const [scheduleView, setScheduleView] = useState('week');
+  const [bookedShift, setBookedShift] = useState(null);
 
   const firstName = user?.firstName || 'Sarah';
   const initials = (user?.firstName?.[0] || 'S') + (user?.lastName?.[0] || 'K');
+
+  const openBooked = (dayNum) => {
+    const data = BOOKED_SHIFTS[dayNum];
+    if (data) setBookedShift(data);
+  };
 
   return (
     <>
@@ -270,11 +329,11 @@ export default function ProviderDashboard() {
           {scheduleView === 'week' ? (
             <div className="scroll-x" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 4px', margin: '0 -16px' }}>
               {WEEK_DAYS.map((day) => (
-                <DayCard key={day.num} day={day} />
+                <DayCard key={day.num} day={day} onOpenBooked={() => openBooked(day.num)} />
               ))}
             </div>
           ) : (
-            <MonthGrid />
+            <MonthGrid onOpenBooked={openBooked} />
           )}
         </div>
 
@@ -301,6 +360,14 @@ export default function ProviderDashboard() {
 
         <ProviderBottomNav />
       </div>
+      {bookedShift && (
+        <BookedShiftModal
+          shift={bookedShift}
+          onClose={() => setBookedShift(null)}
+          onCancelShift={() => setBookedShift(null)}
+          onMessageOffice={() => { setBookedShift(null); navigate('/provider-messages'); }}
+        />
+      )}
     </>
   );
 }
@@ -384,7 +451,7 @@ function ToggleButton({ active, onClick, children }) {
   );
 }
 
-function DayCard({ day }) {
+function DayCard({ day, onOpenBooked }) {
   const isToday = day.status === 'today';
   const isBooked = day.status === 'booked';
   const isOff = day.status === 'off';
@@ -397,6 +464,7 @@ function DayCard({ day }) {
 
   return (
     <div
+      onClick={isBooked ? onOpenBooked : undefined}
       style={{
         flexShrink: 0,
         width: 72,
@@ -405,7 +473,7 @@ function DayCard({ day }) {
         borderRadius: 16,
         padding: '12px 8px',
         textAlign: 'center',
-        cursor: 'pointer',
+        cursor: isBooked ? 'pointer' : 'default',
         opacity,
       }}
     >
@@ -430,7 +498,7 @@ function DayCard({ day }) {
   );
 }
 
-function MonthGrid() {
+function MonthGrid({ onOpenBooked }) {
   return (
     <div
       style={{
@@ -453,7 +521,7 @@ function MonthGrid() {
           </div>
         ))}
         {MONTH_CELLS.map((cell, i) => (
-          <MonthCell key={i} cell={cell} />
+          <MonthCell key={i} cell={cell} onOpenBooked={cell?.s === 'booked' ? () => onOpenBooked(cell.d) : undefined} />
         ))}
       </div>
       <div
@@ -495,7 +563,7 @@ function NavBtn({ dir }) {
   );
 }
 
-function MonthCell({ cell }) {
+function MonthCell({ cell, onOpenBooked }) {
   if (!cell) return <div style={{ aspectRatio: '1' }} />;
   const isToday = cell.s === 'today';
   const isBooked = cell.s === 'booked';
@@ -504,6 +572,7 @@ function MonthCell({ cell }) {
   const color = isToday ? 'white' : isBooked ? COLORS.green : COLORS.text;
   return (
     <div
+      onClick={isBooked && onOpenBooked ? onOpenBooked : undefined}
       style={{
         aspectRatio: '1',
         display: 'flex',
@@ -515,7 +584,7 @@ function MonthCell({ cell }) {
         color,
         background: bg,
         borderRadius: 10,
-        cursor: 'pointer',
+        cursor: isBooked ? 'pointer' : 'default',
         position: 'relative',
         opacity: isOff ? 0.55 : 1,
         textDecoration: isOff ? 'line-through' : 'none',
