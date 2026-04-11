@@ -21,10 +21,24 @@ const COLORS = {
   gold: '#f4b740',
 };
 
+// Curated dental / medical office photos used as random office logos
+// in mock mode. Real office logos will replace these once API is wired.
+const MOCK_OFFICE_LOGOS = [
+  'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1588776813457-09a4a4e8b6f5?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1641390585625-e2d72d50a8a8?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=200&h=200&fit=crop',
+  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop',
+];
+
 const TEMP_SHIFTS = [
   {
     id: 'shift-pwd',
     initials: 'PWD',
+    logoUrl: MOCK_OFFICE_LOGOS[0],
     name: 'Pearland Wellness Dental',
     role: 'Hygienist',
     distance: '3.1 mi · Pearland',
@@ -39,6 +53,7 @@ const TEMP_SHIFTS = [
   {
     id: 'shift-mcd',
     initials: 'MCD',
+    logoUrl: MOCK_OFFICE_LOGOS[1],
     name: 'Missouri City Dental',
     role: 'Hygienist',
     distance: '4.2 mi · Fort Bend',
@@ -53,6 +68,7 @@ const TEMP_SHIFTS = [
   {
     id: 'shift-hdc',
     initials: 'HDC',
+    logoUrl: MOCK_OFFICE_LOGOS[2],
     name: 'Houston Dental Care',
     role: 'Hygienist',
     distance: '5.6 mi · Houston',
@@ -67,6 +83,7 @@ const TEMP_SHIFTS = [
   {
     id: 'shift-sbd',
     initials: 'SBD',
+    logoUrl: MOCK_OFFICE_LOGOS[3],
     name: 'Sugar Land Bright Dental',
     role: 'Hygienist',
     distance: '7.8 mi · Sugar Land',
@@ -84,6 +101,7 @@ const PERM_JOBS = [
   {
     id: 'perm-mcd',
     initials: 'MCD',
+    logoUrl: MOCK_OFFICE_LOGOS[4],
     name: 'Missouri City Dental',
     role: 'Hygienist',
     distance: '4.2 mi · Fort Bend',
@@ -97,6 +115,7 @@ const PERM_JOBS = [
   {
     id: 'perm-sbd',
     initials: 'SBD',
+    logoUrl: MOCK_OFFICE_LOGOS[5],
     name: 'Sugar Land Bright Dental',
     role: 'Hygienist',
     distance: '7.8 mi · Sugar Land',
@@ -483,47 +502,68 @@ function getInitials(name) {
     .toUpperCase();
 }
 
+function OfficeAvatar({ item, onClick }) {
+  const initials = getInitials(item.name) || item.initials;
+  const [failed, setFailed] = useState(false);
+  const baseStyle = {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    flexShrink: 0,
+    border: '1.5px solid white',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    cursor: 'pointer',
+  };
+  if (item.logoUrl && !failed) {
+    return (
+      <img
+        src={item.logoUrl}
+        alt={item.name}
+        onClick={onClick}
+        onError={() => setFailed(true)}
+        style={{ ...baseStyle, objectFit: 'cover' }}
+      />
+    );
+  }
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        ...baseStyle,
+        background: 'linear-gradient(135deg, #99f6e4 0%, #7dd3fc 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'Outfit', sans-serif",
+        fontWeight: 800,
+        fontSize: 13,
+        color: 'white',
+        letterSpacing: '-0.3px',
+      }}
+    >
+      {initials}
+    </div>
+  );
+}
+
 function CardHeader({ item }) {
   const navigate = useNavigate();
   const goOffice = (e) => {
     e.stopPropagation();
     navigate(`/office/${item.officeId || item.id || 'demo'}`);
   };
-  const initials = getInitials(item.name) || item.initials;
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
-      <div
-        onClick={goOffice}
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 14,
-          background: 'linear-gradient(135deg, #99f6e4 0%, #7dd3fc 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: "'Outfit', sans-serif",
-          fontWeight: 800,
-          fontSize: 13,
-          color: 'white',
-          flexShrink: 0,
-          letterSpacing: '-0.3px',
-          border: '1.5px solid white',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-          cursor: 'pointer',
-        }}
-      >
-        {initials}
-      </div>
+      <OfficeAvatar item={item} onClick={goOffice} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           onClick={goOffice}
           style={{
             fontFamily: "'Outfit', sans-serif",
             fontWeight: 700,
-            fontSize: 20,
+            fontSize: 17,
             color: '#111111',
-            lineHeight: 1.15,
+            lineHeight: 1.2,
             marginBottom: 4,
             letterSpacing: '-0.3px',
             cursor: 'pointer',
