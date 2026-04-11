@@ -5,9 +5,6 @@ import ProviderBottomNav from '../components/ProviderBottomNav';
 import BookedShiftModal from './BookedShiftModal';
 import TopBar from '../components/TopBar';
 
-// Default profile photo for the current user (Rodney) when Clerk has no imageUrl
-const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
-
 // ============================================================
 // KAZI PROVIDER DASHBOARD — Pro home (route: /provider)
 // Locked design system: green/black/gray + gold, mobile-first
@@ -139,7 +136,6 @@ export default function ProviderDashboard() {
   const [bookedShift, setBookedShift] = useState(null);
 
   const firstName = user?.firstName || 'Sarah';
-  const initials = (user?.firstName?.[0] || 'S') + (user?.lastName?.[0] || 'K');
 
   const openBooked = (dayNum) => {
     const data = BOOKED_SHIFTS[dayNum];

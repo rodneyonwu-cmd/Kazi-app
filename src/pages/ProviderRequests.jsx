@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
 import SuccessToast from '../components/SuccessToast';
-
-const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
 // ============================================================
 // KAZI PROVIDER REQUESTS — Inbox of incoming invitations
@@ -87,11 +84,8 @@ const TABS = [
 
 export default function ProviderRequests() {
   const navigate = useNavigate();
-  const { user } = useUser();
   const [activeTab, setActiveTab] = useState('incoming');
   const [acceptedToast, setAcceptedToast] = useState(null);
-
-  const initials = (user?.firstName?.[0] || 'S') + (user?.lastName?.[0] || 'K');
 
   const handleAccept = (req) => {
     setAcceptedToast({
@@ -124,7 +118,7 @@ export default function ProviderRequests() {
         }}
       >
         <TopBar role="provider" />
-        {/* Top bar */}
+        {/* Page title */}
         <div
           style={{
             background: COLORS.card,
@@ -132,17 +126,9 @@ export default function ProviderRequests() {
             display: 'flex',
             alignItems: 'center',
             borderBottom: `1px solid ${COLORS.borderSoft}`,
-            position: 'sticky',
-            top: 0,
-            zIndex: 30,
           }}
         >
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.text, flex: 1 }}>Requests</div>
-          <img
-            src={DEFAULT_USER_PHOTO}
-            alt="me"
-            style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }}
-          />
         </div>
 
         {/* Tabs */}
