@@ -28,26 +28,28 @@ const styles = `
 .kazi-shift .topbar { position: sticky; top: 0; z-index: 50; background: var(--bg); padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
 .kazi-shift .close-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .kazi-shift .close-btn svg { width: 15px; height: 15px; stroke: var(--text); stroke-width: 2.5; fill: none; }
-.kazi-shift .hero { text-align: center; padding: 10px 20px 24px; }
-.kazi-shift .office-logo { width: 96px; height: 96px; border-radius: 24px; background: linear-gradient(135deg,#a8c9b8,#7ab8a8); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -.02em; margin: 0 auto 18px; box-shadow: 0 6px 20px rgba(26,127,94,.15); }
-.kazi-shift .office-name { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 6px; }
-.kazi-shift .office-meta { font-size: 14px; color: var(--text-light); margin-bottom: 14px; }
-.kazi-shift .rating-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1.5px solid var(--border); border-radius: 100px; padding: 7px 16px; font-size: 14px; font-weight: 700; }
-.kazi-shift .rating-pill .star { color: #f4b740; font-size: 15px; }
-.kazi-shift .rating-pill .num { color: var(--text); }
-.kazi-shift .rating-pill .count { color: var(--text-light); font-weight: 500; }
-.kazi-shift .earn-banner { background: var(--green-soft); border: 1.5px solid #cfe8de; border-radius: 16px; margin: 0 20px 14px; padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; }
-.kazi-shift .earn-label { font-size: 15px; color: var(--text-mid); font-weight: 600; }
-.kazi-shift .earn-value { font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 800; color: var(--green); letter-spacing: -.02em; line-height: 1; }
-.kazi-shift .details-card { background: var(--card); margin: 0 20px; border-radius: 18px; border: 1.5px solid var(--border); padding: 22px; }
-.kazi-shift .details-title { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 800; letter-spacing: -.01em; margin-bottom: 14px; }
-.kazi-shift .detail-row { display: flex; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border-soft); }
-.kazi-shift .detail-row:last-child { border-bottom: none; padding-bottom: 2px; }
-.kazi-shift .detail-row:first-of-type { padding-top: 2px; }
-.kazi-shift .detail-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--bg); border: 1.5px solid var(--border-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.kazi-shift .detail-icon svg { width: 17px; height: 17px; stroke: var(--text-mid); stroke-width: 2; fill: none; }
-.kazi-shift .detail-label { flex: 1; font-size: 14px; color: var(--text-mid); font-weight: 500; }
-.kazi-shift .detail-val { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800; color: var(--text); text-align: right; letter-spacing: -.01em; }
+.kazi-shift .hero { text-align: center; padding: 20px 20px 24px; }
+.kazi-shift .office-logo { width: 72px; height: 72px; border-radius: 22px; background: linear-gradient(135deg,#a8c9b8,#7ab8a8); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -.02em; margin: 0 auto 14px; }
+.kazi-shift .office-name { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 4px; }
+.kazi-shift .office-meta { font-size: 14px; color: #8a8a8a; margin-bottom: 10px; }
+.kazi-shift .rating-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid #f3f3f3; border-radius: 100px; padding: 7px 14px; }
+.kazi-shift .rating-pill svg { width: 14px; height: 14px; fill: #f4b740; stroke: #f4b740; stroke-width: 1; }
+.kazi-shift .rating-pill .star { display: none; }
+.kazi-shift .rating-pill .num { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px; color: var(--text); }
+.kazi-shift .rating-pill .count { font-size: 12px; color: #8a8a8a; font-weight: 600; }
+.kazi-shift .earn-banner { background: #f1f9f5; border: none; border-radius: 16px; margin: 0 16px 12px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
+.kazi-shift .earn-label { font-size: 14px; color: #5a5a5a; font-weight: 600; }
+.kazi-shift .earn-value { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; color: var(--green); letter-spacing: -.02em; line-height: 1; }
+.kazi-shift .details-card { background: var(--card); margin: 0 16px; border-radius: 20px; border: 1px solid #f3f3f3; padding: 0; overflow: hidden; }
+.kazi-shift .details-title { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); padding: 16px 18px 0; margin-bottom: 0; }
+.kazi-shift .details-rows { padding: 14px 18px 16px; }
+.kazi-shift .detail-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid #f3f3f3; }
+.kazi-shift .detail-row:last-child { border-bottom: none; }
+.kazi-shift .detail-left { display: flex; align-items: center; gap: 10px; }
+.kazi-shift .detail-icon { width: 32px; height: 32px; border-radius: 10px; background: #f9f8f6; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kazi-shift .detail-icon svg { width: 14px; height: 14px; stroke: #5a5a5a; stroke-width: 2.2; fill: none; }
+.kazi-shift .detail-label { font-size: 13px; color: #8a8a8a; font-weight: 500; }
+.kazi-shift .detail-val { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); text-align: right; letter-spacing: 0; }
 .kazi-shift .detail-val.green { color: var(--green); }
 .kazi-shift .action-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 480px; width: 100%; background: var(--card); padding: 14px 20px 26px; border-top: 1px solid var(--border); display: flex; gap: 10px; z-index: 41; box-shadow: 0 -4px 20px rgba(0,0,0,.04); }
 .kazi-shift .btn-apply { flex: 1; background: var(--green); color: white; border: none; border-radius: 100px; padding: 16px 20px; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -100,7 +102,7 @@ export default function ShiftDetails() {
         <div className="office-name">{shift.officeName}</div>
         <div className="office-meta">{shift.location}</div>
         <div className="rating-pill">
-          <span className="star">★</span>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
           <span className="num">{shift.rating}</span>
           <span className="count">({shift.reviewCount} reviews)</span>
         </div>
@@ -113,30 +115,42 @@ export default function ShiftDetails() {
 
       <div className="details-card">
         <div className="details-title">Shift details</div>
-        <div className="detail-row">
-          <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg></div>
-          <div className="detail-label">Date</div>
-          <div className="detail-val">{shift.date}</div>
-        </div>
-        <div className="detail-row">
-          <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div>
-          <div className="detail-label">Hours</div>
-          <div className="detail-val">{shift.hours}</div>
-        </div>
-        <div className="detail-row">
-          <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11h18M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4M5 11v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg></div>
-          <div className="detail-label">Lunch break</div>
-          <div className="detail-val">{shift.lunch}</div>
-        </div>
-        <div className="detail-row">
-          <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></div>
-          <div className="detail-label">Your rate</div>
-          <div className="detail-val green">{shift.rate}</div>
-        </div>
-        <div className="detail-row">
-          <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div>
-          <div className="detail-label">Role requested</div>
-          <div className="detail-val">{shift.role}</div>
+        <div className="details-rows">
+          <div className="detail-row">
+            <div className="detail-left">
+              <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg></div>
+              <div className="detail-label">Date</div>
+            </div>
+            <div className="detail-val">{shift.date}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-left">
+              <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div>
+              <div className="detail-label">Hours</div>
+            </div>
+            <div className="detail-val">{shift.hours}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-left">
+              <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11h18M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4M5 11v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" /></svg></div>
+              <div className="detail-label">Lunch break</div>
+            </div>
+            <div className="detail-val">{shift.lunch}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-left">
+              <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></div>
+              <div className="detail-label">Your rate</div>
+            </div>
+            <div className="detail-val green">{shift.rate}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-left">
+              <div className="detail-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div>
+              <div className="detail-label">Role requested</div>
+            </div>
+            <div className="detail-val">{shift.role}</div>
+          </div>
         </div>
       </div>
 
