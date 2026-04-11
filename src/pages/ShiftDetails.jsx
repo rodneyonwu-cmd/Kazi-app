@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import TopBar from '../components/TopBar';
 
 const styles = `
 .kazi-shift * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -91,6 +92,7 @@ export default function ShiftDetails() {
   return (
     <div className="kazi-shift">
       <style>{styles}</style>
+      <TopBar role="provider" />
       <div className="topbar">
         <button className="close-btn" onClick={() => navigate(-1)} aria-label="Close">
           <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>

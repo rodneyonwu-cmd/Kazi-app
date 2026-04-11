@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ShiftDetailsView from '../components/ShiftDetailsView';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI APPLY SHIFT — Wraps ShiftDetailsView in browse mode
@@ -72,5 +73,10 @@ export default function ApplyShift() {
     alert('Saved to favorites');
   };
 
-  return <ShiftDetailsView mode="browse" shift={shift} onApply={handleApply} onSave={handleSave} />;
+  return (
+    <>
+      <TopBar role="provider" />
+      <ShiftDetailsView mode="browse" shift={shift} onApply={handleApply} onSave={handleSave} />
+    </>
+  );
 }

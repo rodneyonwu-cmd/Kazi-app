@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import TopBar from '../components/TopBar';
 
 const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
@@ -130,6 +131,7 @@ export default function ProviderMyProfile() {
   return (
     <div className="kazi-pmp">
       <style>{styles}</style>
+      <TopBar role="provider" />
       <div className="topbar">
         <button className="back-btn" onClick={() => navigate(-1)} aria-label="Back">
           <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>

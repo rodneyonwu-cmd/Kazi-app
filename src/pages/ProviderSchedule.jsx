@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import TopBar from '../components/TopBar'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
@@ -65,6 +66,7 @@ export default function ProviderSchedule() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+      <TopBar role="provider" />
 
       {/* PAGE CONTENT */}
       <div className="max-w-2xl mx-auto px-4 py-6">

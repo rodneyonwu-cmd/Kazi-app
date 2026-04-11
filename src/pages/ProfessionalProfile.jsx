@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
 import BottomNav from '../components/BottomNav';
+import TopBar from '../components/TopBar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const ROLE_MAP = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Desk', dentist: 'Dentist', specialist: 'Specialist' };
@@ -240,6 +241,7 @@ export default function ProfessionalProfile() {
 
   if (loading) return (
     <div className="bg-[#f9f8f6] min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <TopBar role="office" />
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-[#1a7f5e] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -251,6 +253,7 @@ export default function ProfessionalProfile() {
   );
   if (!pro) return (
     <div className="bg-[#f9f8f6] min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <TopBar role="office" />
       <div className="flex items-center justify-center py-20">
         <p className="text-sm text-[#8a8a8a]">Professional not found.</p>
       </div>
@@ -263,6 +266,7 @@ export default function ProfessionalProfile() {
       className="bg-[#f9f8f6] min-h-screen pb-28"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
+      <TopBar role="office" />
       {/* Top bar */}
       <div className="bg-white px-5 py-3.5 flex items-center gap-3.5 border-b border-[#f3f3f3] sticky top-0 z-50">
         <button

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderBottomNav from '../components/ProviderBottomNav'
+import TopBar from '../components/TopBar'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 import BookedShiftModal from './BookedShiftModal'
 
@@ -356,6 +357,7 @@ export default function ProviderAvailability() {
 
   return (
     <div style={{ minHeight:'100vh',background:'#f9f8f6',fontFamily:"'DM Sans',-apple-system,sans-serif" }}>
+      <TopBar role="provider" />
       <style>{`
         @media (max-width: 768px) {
           .pa-container { padding: 16px 16px 96px !important; max-width: 100% !important; }

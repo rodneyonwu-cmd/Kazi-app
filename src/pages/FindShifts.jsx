@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI FIND SHIFTS — Browse open shifts (route: /find-shifts)
@@ -167,6 +168,7 @@ export default function FindShifts() {
           position: 'relative',
         }}
       >
+        <TopBar role="provider" />
         {/* TOP BAR */}
         <div
           style={{

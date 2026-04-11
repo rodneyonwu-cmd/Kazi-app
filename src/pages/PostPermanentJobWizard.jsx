@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI POST PERMANENT JOB WIZARD (8 steps)
@@ -156,6 +157,7 @@ export default function PostPermanentJobWizard() {
           position: 'relative',
         }}
       >
+        <TopBar role="office" />
         <div
           style={{
             padding: '18px 20px 16px',

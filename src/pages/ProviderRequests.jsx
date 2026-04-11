@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import TopBar from '../components/TopBar';
 
 const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
@@ -110,6 +111,7 @@ export default function ProviderRequests() {
           position: 'relative',
         }}
       >
+        <TopBar role="provider" />
         {/* Top bar */}
         <div
           style={{

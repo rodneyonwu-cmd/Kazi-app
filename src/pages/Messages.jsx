@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI MESSAGES — Unified inbox (office + provider)
@@ -169,6 +170,7 @@ export default function Messages() {
         paddingBottom: 110,
       }}
     >
+      <TopBar role={role === 'OFFICE' ? 'office' : 'provider'} />
       {/* TOP BAR */}
       <div
         style={{

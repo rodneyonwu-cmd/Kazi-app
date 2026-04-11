@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
+import TopBar from '../components/TopBar';
 
 const COLORS = {
   green: '#1a7f5e', greenDark: '#15604a', greenSoft: '#e8f3ee', greenTint: '#f1f9f5',
@@ -82,6 +83,7 @@ export default function PostTempShiftWizard() {
         .kazi-temp-wizard .date-strip::-webkit-scrollbar { display: none; }
       `}</style>
       <div className="kazi-temp-wizard" style={{ fontFamily: "'DM Sans', sans-serif", background: COLORS.bg, color: COLORS.text, WebkitFontSmoothing: 'antialiased', paddingBottom: 110, maxWidth: 480, margin: '0 auto', minHeight: '100vh', boxShadow: '0 0 40px rgba(0,0,0,0.06)', position: 'relative' }}>
+        <TopBar role="office" />
         <div style={{ padding: '18px 20px 16px', background: 'white', borderBottom: `1px solid ${COLORS.borderSoft}`, position: 'sticky', top: 0, zIndex: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
             <button onClick={() => navigate('/dashboard')} style={{ width: 38, height: 38, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>

@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useUser, useAuth } from '@clerk/clerk-react'
 import InitialsAvatar from '../components/InitialsAvatar'
 import PermanentJobCard from '../components/PermanentJobCard'
-import BackToDashboard from '../components/BackToDashboard'
 import BottomNav from '../components/BottomNav'
+import TopBar from '../components/TopBar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -147,6 +147,7 @@ export default function OfficeProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f9f8f6]">
+        <TopBar role="office" />
         <div className="flex items-center justify-center py-20">
           <p className="text-sm text-[#9ca3af]">Loading profile...</p>
         </div>
@@ -169,14 +170,9 @@ export default function OfficeProfile() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
+      <TopBar role="office" />
       <div className="max-w-[700px] mx-auto px-4 md:px-6 py-6 md:py-8 pb-32">
 
-        {/* Back to dashboard */}
-        {!isExternalView && (
-          <div style={{ marginBottom: 14 }}>
-            <BackToDashboard />
-          </div>
-        )}
         {isExternalView && (
           <button
             onClick={() => navigate(-1)}

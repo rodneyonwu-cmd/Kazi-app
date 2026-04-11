@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import BookingSheet from '../components/BookingSheet';
-import BackToDashboard from '../components/BackToDashboard';
 import BottomNav from '../components/BottomNav';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // Kazi - Find Professionals (Search Feed)
@@ -600,6 +600,7 @@ export default function FindProfessionals() {
 
   return (
     <div className="bg-[#f9f8f6] min-h-screen pb-28" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <TopBar role="office" />
       {/* Rapid Fill banner */}
       {isRapidFill && (
         <div className="bg-[#1a7f5e] px-5 py-3 flex items-center gap-3">
@@ -618,9 +619,6 @@ export default function FindProfessionals() {
 
       {/* Top bar */}
       <div className="bg-white px-5 pt-3 pb-3 border-b border-[#f3f3f3] sticky top-0 z-50">
-        <div style={{ marginBottom: 10 }}>
-          <BackToDashboard />
-        </div>
         <div className="flex items-center justify-between mb-3.5">
           <div>
             <div className="text-[22px] font-extrabold" style={{ fontFamily: "'Outfit', sans-serif" }}>Find Professionals</div>

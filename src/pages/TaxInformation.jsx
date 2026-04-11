@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import TopBar from '../components/TopBar'
 
 const taxDocs = [
   { year: '2025', form: '1099-NEC', amount: '$18,460.00', status: 'Ready', statusStyle: 'bg-[#e8f5f0] text-[#1a7f5e]' },
@@ -17,6 +18,7 @@ export default function TaxInformation() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+      <TopBar role="provider" />
 
       <div className="max-w-2xl mx-auto px-4 py-6 w-full">
         <div className="mb-6">

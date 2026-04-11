@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ShiftDetailsView from '../components/ShiftDetailsView';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI REQUEST DETAIL — Wraps ShiftDetailsView in invite mode
@@ -76,5 +77,10 @@ export default function RequestDetail() {
     }
   };
 
-  return <ShiftDetailsView mode="invite" shift={shift} onAccept={handleAccept} onDecline={handleDecline} />;
+  return (
+    <>
+      <TopBar role="provider" />
+      <ShiftDetailsView mode="invite" shift={shift} onAccept={handleAccept} onDecline={handleDecline} />
+    </>
+  );
 }

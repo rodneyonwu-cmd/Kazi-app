@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI MESSAGE THREAD — Unified (office + provider)
@@ -269,9 +270,10 @@ export default function MessageThread() {
         WebkitFontSmoothing: 'antialiased',
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        minHeight: '100vh',
       }}
     >
+      <TopBar role={role === 'OFFICE' ? 'office' : 'provider'} />
       {/* TOP BAR */}
       <div
         style={{

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import TopBar from '../components/TopBar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -74,6 +75,7 @@ export default function ProviderDocuments() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+      <TopBar role="provider" />
       <input type="file" ref={fileInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) { uploadCredential(e.target.files[0]); e.target.value = '' } }} />
 
       {/* Toast */}

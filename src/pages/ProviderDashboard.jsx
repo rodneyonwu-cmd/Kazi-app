@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import BookedShiftModal from './BookedShiftModal';
+import TopBar from '../components/TopBar';
 
 // Default profile photo for the current user (Rodney) when Clerk has no imageUrl
 const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
@@ -169,26 +170,7 @@ export default function ProviderDashboard() {
           position: 'relative',
         }}
       >
-        {/* TOP BAR */}
-        <div
-          style={{
-            background: COLORS.card,
-            padding: '18px 20px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            borderBottom: `1px solid ${COLORS.borderSoft}`,
-          }}
-        >
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 30, color: COLORS.green, letterSpacing: '-0.8px', flex: 1 }}>
-            kazi.
-          </div>
-          <img
-            src={DEFAULT_USER_PHOTO}
-            alt={firstName}
-            style={{ width: 40, height: 40, borderRadius: 14, objectFit: 'cover' }}
-          />
-        </div>
+        <TopBar role="provider" />
 
         {/* GREETING */}
         <div style={{ padding: '22px 20px 8px' }}>

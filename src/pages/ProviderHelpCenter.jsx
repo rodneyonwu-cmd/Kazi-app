@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import TopBar from '../components/TopBar'
 
 const FAQS = [
   { q: 'How does Kazi pay me?', a: "Kazi processes payments via Stripe. After a completed shift, your earnings are typically deposited to your connected bank account within 1–2 business days. If Instant Pay is enabled by the office, you'll receive funds the same day." },
@@ -44,6 +45,7 @@ export default function ProviderHelpCenter() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+      <TopBar role="provider" />
       {/* Toast */}
       {toast && (
         <div style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', fontSize: 12, fontWeight: 600, padding: '9px 16px', borderRadius: 100, zIndex: 300, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,.2)', whiteSpace: 'nowrap' }}>

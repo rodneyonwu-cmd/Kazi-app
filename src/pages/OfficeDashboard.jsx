@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FindProsSheet from '../components/FindProsSheet';
 import BottomNav from '../components/BottomNav';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI OFFICE DASHBOARD
@@ -78,6 +79,7 @@ export default function OfficeDashboard() {
           position: 'relative',
         }}
       >
+        <TopBar role="office" />
         {/* GREETING */}
         <div style={{ padding: '22px 20px 8px' }}>
           <div
