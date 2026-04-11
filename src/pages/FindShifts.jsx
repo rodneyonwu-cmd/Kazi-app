@@ -472,12 +472,24 @@ function PermJobCard({ job, onApply }) {
   );
 }
 
+function getInitials(name) {
+  if (!name) return '';
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 3)
+    .toUpperCase();
+}
+
 function CardHeader({ item }) {
   const navigate = useNavigate();
   const goOffice = (e) => {
     e.stopPropagation();
     navigate(`/office/${item.officeId || item.id || 'demo'}`);
   };
+  const initials = getInitials(item.name) || item.initials;
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
       <div
@@ -486,14 +498,14 @@ function CardHeader({ item }) {
           width: 56,
           height: 56,
           borderRadius: 16,
-          background: 'linear-gradient(135deg, #f1f9f5 0%, #d4ead9 100%)',
+          background: 'linear-gradient(135deg, #5eead4 0%, #6ee7b7 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: "'Outfit', sans-serif",
           fontWeight: 800,
           fontSize: 16,
-          color: COLORS.green,
+          color: 'white',
           flexShrink: 0,
           letterSpacing: '-0.5px',
           border: '1.5px solid white',
@@ -501,23 +513,19 @@ function CardHeader({ item }) {
           cursor: 'pointer',
         }}
       >
-        {item.initials}
+        {initials}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           onClick={goOffice}
           style={{
             fontFamily: "'Outfit', sans-serif",
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: 20,
-            color: COLORS.green,
+            color: '#111111',
             lineHeight: 1.15,
             marginBottom: 4,
             letterSpacing: '-0.3px',
-            textDecoration: 'underline',
-            textDecorationColor: COLORS.greenSoft,
-            textUnderlineOffset: 4,
-            textDecorationThickness: 2,
             cursor: 'pointer',
           }}
         >
