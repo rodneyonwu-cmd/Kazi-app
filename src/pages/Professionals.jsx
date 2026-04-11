@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import Nav from '../components/Nav';
 import BookingSheet from '../components/BookingSheet';
 import BackToDashboard from '../components/BackToDashboard';
 import BottomNav from '../components/BottomNav';
@@ -601,8 +600,6 @@ export default function FindProfessionals() {
 
   return (
     <div className="bg-[#f9f8f6] min-h-screen pb-28" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-      <Nav />
-
       {/* Rapid Fill banner */}
       {isRapidFill && (
         <div className="bg-[#1a7f5e] px-5 py-3 flex items-center gap-3">

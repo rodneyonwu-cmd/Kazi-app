@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
-import Nav from '../components/Nav'
+import BottomNav from '../components/BottomNav'
 import InitialsAvatar from '../components/InitialsAvatar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -104,18 +104,16 @@ export default function SavedProfessionals() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f9f8f6]">
-        <Nav />
         <div className="flex items-center justify-center py-20">
           <p className="text-sm text-[#9ca3af]">Loading saved professionals...</p>
         </div>
+        <BottomNav />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
-      <Nav />
-
       <div className="max-w-[700px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* Header */}
@@ -245,6 +243,7 @@ export default function SavedProfessionals() {
           {toast}
         </div>
       )}
+      <BottomNav />
     </div>
   )
 }

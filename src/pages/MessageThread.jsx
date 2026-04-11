@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import BackToDashboard from '../components/BackToDashboard';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
+import ProviderBottomNav from '../components/ProviderBottomNav';
 
 // ============================================================
-// KAZI MESSAGE THREAD — Standard bubbles, iMessage style
-// Drop into src/pages/MessageThread.jsx
-// Route: /messages/:conversationId
+// KAZI MESSAGE THREAD — Unified (office + provider)
+// Real API. Route: /messages/:conversationId
+// conversationId encoded as `${officeId}-${providerId}`
 // ============================================================
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const COLORS = {
   green: '#1a7f5e',
@@ -22,66 +25,6 @@ const COLORS = {
   textLight: '#8a8a8a',
   border: '#ececec',
   borderSoft: '#f3f3f3',
-};
-
-// ============================================================
-// MOCK DATA — replace with backend fetch
-// ============================================================
-const MOCK_CONVERSATION = {
-  id: 'conv-1',
-  pro: {
-    id: 'sarah',
-    name: 'Sarah K.',
-    initials: 'SK',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
-    role: 'Dental Hygienist',
-    credential: 'RDH',
-    avatarGradient: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-  },
-  messages: [
-    {
-      id: 'm1',
-      text: 'Hey Sarah, are you available Friday 8a–5p?',
-      sentByMe: true,
-      timestamp: new Date(Date.now() - 86400000 - 3600000).toISOString(), // yesterday 3:42pm
-    },
-    {
-      id: 'm2',
-      text: "Hi! Yes, I'm available. What type of practice?",
-      sentByMe: false,
-      timestamp: new Date(Date.now() - 86400000 - 3500000).toISOString(),
-    },
-    {
-      id: 'm3',
-      text: 'General practice in Missouri City. Dentrix.',
-      sentByMe: true,
-      timestamp: new Date(Date.now() - 86400000 - 3400000).toISOString(),
-    },
-    {
-      id: 'm4',
-      text: "Sounds great. I've worked with Dentrix for 6 years.",
-      sentByMe: false,
-      timestamp: new Date(Date.now() - 86400000 - 3300000).toISOString(),
-    },
-    {
-      id: 'm5',
-      text: 'Just confirming — Friday, 8a–5p in Missouri City?',
-      sentByMe: false,
-      timestamp: new Date(Date.now() - 3600000).toISOString(), // today 9:15am
-    },
-    {
-      id: 'm6',
-      text: 'Yes, confirmed. Address is 8027 Highway 6.',
-      sentByMe: true,
-      timestamp: new Date(Date.now() - 3500000).toISOString(),
-    },
-    {
-      id: 'm7',
-      text: 'Got it. What time do you need me?',
-      sentByMe: false,
-      timestamp: new Date(Date.now() - 3400000).toISOString(),
-    },
-  ],
 };
 
 // ============================================================
@@ -102,9 +45,16 @@ function formatDateSeparator(date) {
 
 function shouldShowSeparator(current, previous) {
   if (!previous) return true;
-  const gap = new Date(current.timestamp) - new Date(previous.timestamp);
-  // Show separator if more than 1 hour between messages
+  const gap = new Date(current.createdAt) - new Date(previous.createdAt);
   return gap > 60 * 60 * 1000;
+}
+
+function getInitials(name) {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '??';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 // ============================================================
@@ -113,70 +63,168 @@ function shouldShowSeparator(current, previous) {
 export default function MessageThread() {
   const navigate = useNavigate();
   const { conversationId } = useParams();
-  const [conversation, setConversation] = useState(MOCK_CONVERSATION);
+  const { getToken, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn } = useUser();
+
+  // Parse conversationId on first hyphen
+  const dashIdx = (conversationId || '').indexOf('-');
+  const officeId = dashIdx >= 0 ? conversationId.substring(0, dashIdx) : '';
+  const providerId = dashIdx >= 0 ? conversationId.substring(dashIdx + 1) : '';
+
+  const [role, setRole] = useState(null); // 'OFFICE' | 'PROVIDER' | null
+  const [messages, setMessages] = useState([]);
+  const [otherParty, setOtherParty] = useState(null); // { name, avatarUrl, subtitle }
+  const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState('');
-  const [attachments, setAttachments] = useState([]);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
 
-  // TODO: Replace mock data with real backend fetch
-  // useEffect(() => {
-  //   fetch(`${import.meta.env.VITE_API_URL}/api/conversations/${conversationId}`)
-  //     .then(res => res.json())
-  //     .then(data => setConversation(data));
-  // }, [conversationId]);
-
-  // Auto-scroll to bottom when messages change
+  // Detect role + load thread + other party + mark read
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation.messages]);
+    if (!authLoaded || !isSignedIn) return;
+    if (!officeId || !providerId) {
+      setLoading(false);
+      return;
+    }
 
-  const handleSend = () => {
-    if (!inputText.trim() && attachments.length === 0) return;
+    let cancelled = false;
 
-    const newMessage = {
-      id: `m-${Date.now()}`,
-      text: inputText.trim(),
-      sentByMe: true,
-      timestamp: new Date().toISOString(),
-      attachments: attachments.length > 0 ? attachments : undefined,
+    const load = async () => {
+      setLoading(true);
+      try {
+        const token = await getToken();
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Probe role
+        let detectedRole = null;
+        const provRes = await fetch(`${API_URL}/api/providers/me`, { headers });
+        if (provRes.ok) {
+          detectedRole = 'PROVIDER';
+        } else {
+          const offRes = await fetch(`${API_URL}/api/offices/me`, { headers });
+          if (offRes.ok) detectedRole = 'OFFICE';
+        }
+        if (cancelled) return;
+        setRole(detectedRole);
+
+        // Fetch messages
+        const msgRes = await fetch(
+          `${API_URL}/api/messages/${officeId}/${providerId}`,
+          { headers }
+        );
+        if (msgRes.ok) {
+          const msgs = await msgRes.json();
+          if (!cancelled) setMessages(msgs);
+        }
+
+        // Fetch other party info
+        try {
+          if (detectedRole === 'OFFICE') {
+            // We're an office, the other party is the provider
+            const r = await fetch(`${API_URL}/api/providers/${providerId}`, { headers });
+            if (r.ok) {
+              const p = await r.json();
+              const first = p?.user?.firstName || '';
+              const last = p?.user?.lastName || '';
+              const isDentist = (p?.role || '').toLowerCase().includes('dentist');
+              const namePrefix = isDentist ? 'Dr. ' : '';
+              const name = `${namePrefix}${first} ${last}`.trim() || 'Provider';
+              if (!cancelled) {
+                setOtherParty({
+                  name,
+                  avatarUrl: p?.user?.avatarUrl || null,
+                  subtitle: p?.role || '',
+                });
+              }
+            }
+          } else if (detectedRole === 'PROVIDER') {
+            // We're a provider, the other party is the office
+            const r = await fetch(`${API_URL}/api/offices/${officeId}`, { headers });
+            if (r.ok) {
+              const o = await r.json();
+              if (!cancelled) {
+                setOtherParty({
+                  name: o?.name || 'Office',
+                  avatarUrl: o?.user?.avatarUrl || null,
+                  subtitle: [o?.city, o?.state].filter(Boolean).join(', '),
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Other party fetch error:', e);
+        }
+
+        // Mark thread as read
+        try {
+          await fetch(
+            `${API_URL}/api/messages/read-all/${officeId}/${providerId}`,
+            { method: 'PATCH', headers }
+          );
+        } catch (e) {
+          console.error('Mark read error:', e);
+        }
+
+        if (!cancelled) setLoading(false);
+      } catch (err) {
+        console.error('Thread load error:', err);
+        if (!cancelled) setLoading(false);
+      }
     };
 
-    setConversation({
-      ...conversation,
-      messages: [...conversation.messages, newMessage],
-    });
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoaded, isSignedIn, getToken, officeId, providerId]);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = async () => {
+    const text = inputText.trim();
+    if (!text || sending) return;
+
+    setSending(true);
+    const optimisticId = `tmp-${Date.now()}`;
+    const optimistic = {
+      id: optimisticId,
+      officeId,
+      providerId,
+      fromRole: role,
+      body: text,
+      createdAt: new Date().toISOString(),
+      read: false,
+    };
+    setMessages((prev) => [...prev, optimistic]);
     setInputText('');
-    setAttachments([]);
 
-    // TODO: POST to backend
-    // fetch(`${import.meta.env.VITE_API_URL}/api/conversations/${conversationId}/messages`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ text: newMessage.text, attachments: newMessage.attachments }),
-    // });
-  };
-
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    const newAttachments = files.map((file) => ({
-      id: `att-${Date.now()}-${Math.random()}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file, // keep reference for actual upload
-    }));
-    setAttachments([...attachments, ...newAttachments]);
-    // Reset input so the same file can be selected again
-    e.target.value = '';
-  };
-
-  const removeAttachment = (id) => {
-    setAttachments(attachments.filter((a) => a.id !== id));
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ officeId, providerId, body: text }),
+      });
+      if (!res.ok) throw new Error('Send failed');
+      const created = await res.json();
+      // Replace optimistic with real
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimisticId ? { ...created } : m))
+      );
+    } catch (err) {
+      console.error('Send error:', err);
+      alert('Could not send message. Please try again.');
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      setInputText(text);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -186,11 +234,28 @@ export default function MessageThread() {
     }
   };
 
-  const handleBookPro = () => {
-    // TODO: open the booking modal / sheet for this pro
-    // Could reuse the BookingSheet component from FindProfessionals
-    console.log('Book this pro:', conversation.pro.id);
+  const handleBack = () => navigate('/messages');
+
+  const handleViewProfile = () => {
+    if (role === 'OFFICE') {
+      navigate(`/provider/${providerId}`);
+    } else {
+      navigate(`/office/${officeId}`);
+    }
   };
+
+  const handleSecondaryAction = () => {
+    if (role === 'OFFICE') {
+      alert('Booking flow coming soon');
+    } else {
+      navigate(`/find-shifts?office=${officeId}`);
+    }
+  };
+
+  const otherName = otherParty?.name || (loading ? '' : 'Conversation');
+  const otherAvatar = otherParty?.avatarUrl || null;
+  const otherInitials = getInitials(otherName);
+  const otherSubtitle = otherParty?.subtitle || '';
 
   return (
     <div
@@ -207,13 +272,11 @@ export default function MessageThread() {
         height: '100vh',
       }}
     >
-      {/* ============================================================
-          TOP BAR
-          ============================================================ */}
+      {/* TOP BAR */}
       <div
         style={{
           background: COLORS.card,
-          padding: '12px 14px 12px',
+          padding: '14px 14px 12px',
           borderBottom: `1px solid ${COLORS.borderSoft}`,
           flexShrink: 0,
           position: 'sticky',
@@ -221,101 +284,128 @@ export default function MessageThread() {
           zIndex: 50,
         }}
       >
-        <div style={{ marginBottom: 10 }}>
-          <BackToDashboard />
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {conversation.pro.avatarUrl ? (
-          <img
-            src={conversation.pro.avatarUrl}
-            alt={conversation.pro.name}
-            style={{ width: 38, height: 38, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
-          />
-        ) : (
-          <div
+          {/* Back */}
+          <button
+            onClick={handleBack}
             style={{
-              width: 38, height: 38, borderRadius: 12,
-              background: conversation.pro.avatarGradient,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0,
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: COLORS.bg,
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
             }}
+            aria-label="Back"
           >
-            {conversation.pro.initials}
-          </div>
-        )}
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={COLORS.text}
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ width: 16, height: 16 }}
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
 
-        <div
-          style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
-          onClick={() => navigate(`/professionals/${conversation.pro.id}`)}
-        >
+          {/* Avatar */}
+          {otherAvatar ? (
+            <img
+              src={otherAvatar}
+              alt={otherName}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                objectFit: 'cover',
+                flexShrink: 0,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 800,
+                fontSize: 13,
+                flexShrink: 0,
+              }}
+            >
+              {otherInitials}
+            </div>
+          )}
+
+          {/* Name + subtitle */}
           <div
+            style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+            onClick={handleViewProfile}
+          >
+            <div
+              style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 800,
+                fontSize: 15,
+                color: COLORS.text,
+                lineHeight: 1.15,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {otherName || ' '}
+            </div>
+            {otherSubtitle && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: COLORS.textLight,
+                  marginTop: 2,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {otherSubtitle}
+              </div>
+            )}
+          </div>
+
+          {/* Secondary action button */}
+          <button
+            onClick={handleSecondaryAction}
             style={{
+              background: COLORS.green,
+              color: 'white',
+              border: 'none',
+              borderRadius: 100,
+              padding: '9px 14px',
+              fontSize: 12,
+              fontWeight: 700,
               fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 15,
-              color: COLORS.text,
-              lineHeight: 1.15,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              flexShrink: 0,
+              cursor: 'pointer',
             }}
           >
-            {conversation.pro.name}
-          </div>
-          <div
-            style={{
-              fontSize: 11,
-              color: COLORS.textLight,
-              marginTop: 2,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {conversation.pro.role} · {conversation.pro.credential}
-          </div>
-        </div>
-
-        <button
-          onClick={handleBookPro}
-          style={{
-            background: COLORS.green,
-            color: 'white',
-            border: 'none',
-            borderRadius: 100,
-            padding: '9px 15px',
-            fontSize: 12,
-            fontWeight: 700,
-            fontFamily: "'Outfit', sans-serif",
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            flexShrink: 0,
-            cursor: 'pointer',
-          }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ width: 12, height: 12 }}
-          >
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          Book
-        </button>
+            {role === 'OFFICE' ? 'Book again' : 'See shifts'}
+          </button>
         </div>
       </div>
 
-      {/* ============================================================
-          MESSAGES BODY
-          ============================================================ */}
+      {/* MESSAGES BODY */}
       <div
         style={{
           flex: 1,
@@ -327,124 +417,57 @@ export default function MessageThread() {
           background: COLORS.bg,
         }}
       >
-        {conversation.messages.map((msg, idx) => {
-          const prevMsg = conversation.messages[idx - 1];
-          const showSeparator = shouldShowSeparator(msg, prevMsg);
-          return (
-            <div key={msg.id} style={{ display: 'contents' }}>
-              {showSeparator && (
-                <div
-                  style={{
-                    alignSelf: 'center',
-                    fontSize: 11,
-                    color: COLORS.textLight,
-                    fontWeight: 600,
-                    margin: '12px 0 6px',
-                  }}
-                >
-                  {formatDateSeparator(msg.timestamp)}
-                </div>
-              )}
-              <Bubble msg={msg} />
-            </div>
-          );
-        })}
+        {loading ? (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '40px 0',
+              color: COLORS.textLight,
+              fontSize: 13,
+            }}
+          >
+            Loading messages…
+          </div>
+        ) : messages.length === 0 ? (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '40px 0',
+              color: COLORS.textLight,
+              fontSize: 13,
+            }}
+          >
+            No messages yet. Say hello!
+          </div>
+        ) : (
+          messages.map((msg, idx) => {
+            const prevMsg = messages[idx - 1];
+            const showSeparator = shouldShowSeparator(msg, prevMsg);
+            const isMine = msg.fromRole === role;
+            return (
+              <div key={msg.id} style={{ display: 'contents' }}>
+                {showSeparator && (
+                  <div
+                    style={{
+                      alignSelf: 'center',
+                      fontSize: 11,
+                      color: COLORS.textLight,
+                      fontWeight: 600,
+                      margin: '12px 0 6px',
+                    }}
+                  >
+                    {formatDateSeparator(msg.createdAt)}
+                  </div>
+                )}
+                <Bubble msg={msg} isMine={isMine} />
+              </div>
+            );
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ============================================================
-          ATTACHMENT PREVIEW BAR (shown only when attachments exist)
-          ============================================================ */}
-      {attachments.length > 0 && (
-        <div
-          style={{
-            background: COLORS.card,
-            padding: '10px 14px',
-            borderTop: `1px solid ${COLORS.borderSoft}`,
-            display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            flexShrink: 0,
-          }}
-        >
-          {attachments.map((att) => (
-            <div
-              key={att.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: COLORS.bg,
-                border: `1px solid ${COLORS.borderSoft}`,
-                borderRadius: 12,
-                padding: '8px 10px 8px 12px',
-                flexShrink: 0,
-                maxWidth: 200,
-              }}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={COLORS.green}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ width: 14, height: 14, flexShrink: 0 }}
-              >
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                <polyline points="13 2 13 9 20 9" />
-              </svg>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: COLORS.text,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  flex: 1,
-                }}
-              >
-                {att.name}
-              </span>
-              <button
-                onClick={() => removeAttachment(att.id)}
-                style={{
-                  width: 18,
-                  height: 18,
-                  background: COLORS.textLight,
-                  border: 'none',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  padding: 0,
-                }}
-                aria-label="Remove attachment"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ width: 9, height: 9 }}
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ============================================================
-          INPUT BAR
-          ============================================================ */}
+      {/* INPUT BAR */}
       <div
         style={{
           background: COLORS.card,
@@ -457,47 +480,6 @@ export default function MessageThread() {
           marginBottom: 76,
         }}
       >
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-          accept="image/*,application/pdf,.doc,.docx"
-        />
-
-        {/* Attach button */}
-        <button
-          onClick={handleAttachClick}
-          style={{
-            width: 38,
-            height: 38,
-            background: COLORS.bg,
-            border: `1px solid ${COLORS.borderSoft}`,
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-          aria-label="Attach file"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke={COLORS.textMid}
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ width: 17, height: 17 }}
-          >
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-          </svg>
-        </button>
-
-        {/* Text input */}
         <input
           type="text"
           value={inputText}
@@ -516,25 +498,19 @@ export default function MessageThread() {
             outline: 'none',
           }}
         />
-
-        {/* Send button */}
         <button
           onClick={handleSend}
-          disabled={!inputText.trim() && attachments.length === 0}
+          disabled={!inputText.trim() || sending}
           style={{
             width: 38,
             height: 38,
-            background:
-              inputText.trim() || attachments.length > 0
-                ? COLORS.green
-                : COLORS.border,
+            background: inputText.trim() ? COLORS.green : COLORS.border,
             border: 'none',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor:
-              inputText.trim() || attachments.length > 0 ? 'pointer' : 'default',
+            cursor: inputText.trim() ? 'pointer' : 'default',
             flexShrink: 0,
             transition: 'background 0.15s',
           }}
@@ -554,16 +530,16 @@ export default function MessageThread() {
           </svg>
         </button>
       </div>
-      <BottomNav />
+
+      {role === 'OFFICE' ? <BottomNav /> : <ProviderBottomNav />}
     </div>
   );
 }
 
 // ============================================================
-// BUBBLE SUB-COMPONENT
+// BUBBLE
 // ============================================================
-function Bubble({ msg }) {
-  const isMine = msg.sentByMe;
+function Bubble({ msg, isMine }) {
   return (
     <div
       style={{
@@ -578,51 +554,10 @@ function Bubble({ msg }) {
         alignSelf: isMine ? 'flex-end' : 'flex-start',
         borderBottomLeftRadius: isMine ? 18 : 5,
         borderBottomRightRadius: isMine ? 5 : 18,
+        wordBreak: 'break-word',
       }}
     >
-      {msg.text && <div>{msg.text}</div>}
-      {msg.attachments && msg.attachments.length > 0 && (
-        <div style={{ marginTop: msg.text ? 8 : 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {msg.attachments.map((att) => (
-            <div
-              key={att.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: isMine ? 'rgba(255,255,255,0.15)' : COLORS.bg,
-                borderRadius: 10,
-                padding: '8px 10px',
-              }}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={isMine ? 'white' : COLORS.green}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ width: 14, height: 14, flexShrink: 0 }}
-              >
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                <polyline points="13 2 13 9 20 9" />
-              </svg>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: isMine ? 'white' : COLORS.text,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {att.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+      {msg.body}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
-import Nav from '../components/Nav'
+import BottomNav from '../components/BottomNav'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -151,7 +151,6 @@ export default function PostShift() {
 
   if (done) return (
     <div className="min-h-screen bg-[#f9f8f6] flex flex-col">
-      <Nav />
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 w-full max-w-md text-center">
           <div className="text-5xl mb-4">{isPerm ? '💼' : '🎉'}</div>
@@ -163,6 +162,7 @@ export default function PostShift() {
           </div>
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 
@@ -179,7 +179,6 @@ export default function PostShift() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
-      <Nav />
       {toast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-sm font-semibold px-5 py-3 rounded-full z-50 shadow-lg flex items-center gap-2">
           <div className="w-5 h-5 rounded-full bg-[#dc2626] flex items-center justify-center flex-shrink-0">✕</div>
@@ -455,6 +454,7 @@ export default function PostShift() {
 
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }

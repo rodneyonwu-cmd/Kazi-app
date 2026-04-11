@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import ProviderNav from '../components/ProviderNav'
+import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const FAQS = [
@@ -44,8 +44,6 @@ export default function ProviderHelpCenter() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
-      <ProviderNav />
-
       {/* Toast */}
       {toast && (
         <div style={{ position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', fontSize: 12, fontWeight: 600, padding: '9px 16px', borderRadius: 100, zIndex: 300, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(0,0,0,.2)', whiteSpace: 'nowrap' }}>
@@ -135,26 +133,7 @@ export default function ProviderHelpCenter() {
 
       </div>
 
-      {/* Mobile toolbar */}
-      <div className="md:hidden" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e5e7eb', zIndex: 50 }}>
-        <div style={{ display: 'flex' }}>
-          {[
-            { label: 'Home',        path: '/provider-dashboard',   icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-            { label: 'Requests',    path: '/provider-requests',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> },
-            { label: 'Find Shifts', path: '/provider-find-shifts', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
-            { label: 'Messages',    path: '/provider-messages',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, badge: unreadMsgCount },
-            { label: 'Finance',     path: '/provider-earnings',    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
-          ].map(({ label, path, icon, badge }) => (
-            <div key={label} onClick={() => navigate(path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '10px 0', cursor: 'pointer' }}>
-              <div style={{ position: 'relative' }}>
-                {icon}
-                {badge > 0 && <span style={{ position: 'absolute', top: -4, right: -6, background: '#ef4444', color: 'white', fontSize: 9, fontWeight: 700, width: 14, height: 14, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white' }}>{badge}</span>}
-              </div>
-              <span style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af' }}>{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ProviderBottomNav />
     </div>
   )
 }

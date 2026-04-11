@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser, useClerk } from '@clerk/clerk-react'
-import ProviderNav from '../components/ProviderNav'
+import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 export default function ProviderSettings() {
@@ -44,8 +44,6 @@ export default function ProviderSettings() {
           {toast}
         </div>
       )}
-
-      <ProviderNav />
 
       <div className="max-w-2xl mx-auto px-4 py-6 w-full">
         <div className="mb-6">
@@ -153,23 +151,7 @@ export default function ProviderSettings() {
         </>
       )}
 
-      {/* Mobile toolbar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
-        {[
-          { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
-          { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
-          { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, badge: unreadMsgCount },
-          { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },
-        ].map(({ label, path, icon, badge }) => (
-          <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
-            <div className="relative"><span className="text-[#9ca3af]">{icon}</span>
-              {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
-            </div>
-            <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
-          </div>
-        ))}
-      </div>
+      <ProviderBottomNav />
     </div>
   )
 }

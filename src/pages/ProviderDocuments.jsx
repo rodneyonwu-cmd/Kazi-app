@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
-import ProviderNav from '../components/ProviderNav'
+import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -75,7 +75,6 @@ export default function ProviderDocuments() {
   return (
     <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
       <input type="file" ref={fileInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) { uploadCredential(e.target.files[0]); e.target.value = '' } }} />
-      <ProviderNav />
 
       {/* Toast */}
       {toast && (
@@ -203,26 +202,7 @@ export default function ProviderDocuments() {
         </div>
       </div>
 
-      {/* Mobile toolbar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] z-50">
-        <div className="flex">
-          {[
-            { label: 'Home', path: '/provider-dashboard', icon: <HomeIcon /> },
-            { label: 'Requests', path: '/provider-requests', icon: <ReqIcon /> },
-            { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-            { label: 'Messages', path: '/provider-messages', icon: <MsgIcon />, badge: unreadMsgCount },
-            { label: 'Earnings', path: '/provider-earnings', icon: <EarnIcon /> },
-          ].map(({ label, path, icon, badge }) => (
-            <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
-              <div className="relative">
-                <span className="text-[#9ca3af]">{icon}</span>
-                {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
-              </div>
-              <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ProviderBottomNav />
     </div>
   )
 }

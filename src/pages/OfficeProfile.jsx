@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useUser, useAuth } from '@clerk/clerk-react'
-import Nav from '../components/Nav'
-import ProviderNav from '../components/ProviderNav'
 import InitialsAvatar from '../components/InitialsAvatar'
 import PermanentJobCard from '../components/PermanentJobCard'
 import BackToDashboard from '../components/BackToDashboard'
@@ -149,7 +147,6 @@ export default function OfficeProfile() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f9f8f6]">
-        {isExternalView ? <ProviderNav /> : <Nav />}
         <div className="flex items-center justify-center py-20">
           <p className="text-sm text-[#9ca3af]">Loading profile...</p>
         </div>
@@ -172,8 +169,6 @@ export default function OfficeProfile() {
 
   return (
     <div className="min-h-screen bg-[#f9f8f6]">
-      {isExternalView ? <ProviderNav /> : <Nav />}
-
       <div className="max-w-[700px] mx-auto px-4 md:px-6 py-6 md:py-8 pb-32">
 
         {/* Back to dashboard */}

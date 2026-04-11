@@ -13,7 +13,6 @@ import Onboarding from './pages/Onboarding'
 import OTPVerification from './pages/OTPVerification'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-import Dashboard from './pages/Dashboard'
 import PostShift from './pages/PostShift'
 import Professionals from './pages/Professionals'
 import Profile from './pages/Profile'
@@ -27,7 +26,6 @@ import OfficeProfile from './pages/OfficeProfile'
 import SavedProfessionals from './pages/SavedProfessionals'
 import ProviderDashboard from './pages/ProviderDashboard'
 import FindShifts from './pages/FindShifts'
-import ShiftRequests from './pages/ShiftRequests'
 import ProviderRequests from './pages/ProviderRequests'
 import RequestDetail from './pages/RequestDetail'
 import ApplyShift from './pages/ApplyShift'
@@ -36,7 +34,6 @@ import ProviderProfilePreview from './pages/ProviderProfilePreview'
 import OfficePublicProfile from './pages/OfficePublicProfile'
 import OfficeMyProfile from './pages/OfficeMyProfile'
 import ShiftDetails from './pages/ShiftDetails'
-import ProviderMessages from './pages/ProviderMessages'
 import ProviderEarnings from './pages/ProviderEarnings'
 import ProviderSchedule from './pages/ProviderSchedule'
 import ProviderDocuments from './pages/ProviderDocuments'
@@ -75,7 +72,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/dashboard" element={<RequireAuth><OfficeDashboard /></RequireAuth>} />
-      <Route path="/dashboard-old" element={<RequireAuth><Dashboard /></RequireAuth>} />
+      <Route path="/dashboard-old" element={<Navigate to="/dashboard" replace />} />
       <Route path="/post-shift" element={<RequireAuth><PostShift /></RequireAuth>} />
       <Route path="/post/temp" element={<RequireAuth><PostTempShiftWizard /></RequireAuth>} />
       <Route path="/post/permanent" element={<RequireAuth><PostPermanentJobWizard /></RequireAuth>} />
@@ -98,8 +95,8 @@ function App() {
       <Route path="/provider-find-shifts" element={<Navigate to="/find-shifts" replace />} />
       <Route path="/requests" element={<RequireAuth><ProviderRequests /></RequireAuth>} />
       <Route path="/requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
-      <Route path="/provider-requests" element={<RequireAuth><ShiftRequests /></RequireAuth>} />
-      <Route path="/provider-messages" element={<RequireAuth><ProviderMessages /></RequireAuth>} />
+      <Route path="/provider-requests" element={<Navigate to="/requests" replace />} />
+      <Route path="/provider-messages" element={<Navigate to="/messages" replace />} />
       <Route path="/provider-earnings" element={<RequireAuth><ProviderEarnings /></RequireAuth>} />
       <Route path="/provider-schedule" element={<RequireAuth><ProviderSchedule /></RequireAuth>} />
       <Route path="/provider-documents" element={<RequireAuth><ProviderDocuments /></RequireAuth>} />

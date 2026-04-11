@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Nav from '../components/Nav';
 import FindProsSheet from '../components/FindProsSheet';
 import BottomNav from '../components/BottomNav';
 
@@ -79,9 +78,6 @@ export default function OfficeDashboard() {
           position: 'relative',
         }}
       >
-        {/* TOP BAR — uses existing Nav with hamburger + dropdown */}
-        <Nav />
-
         {/* GREETING */}
         <div style={{ padding: '22px 20px 8px' }}>
           <div

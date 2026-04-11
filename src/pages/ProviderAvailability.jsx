@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
-import ProviderNav from '../components/ProviderNav'
+import ProviderBottomNav from '../components/ProviderBottomNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 import BookedShiftModal from './BookedShiftModal'
 
@@ -368,7 +368,6 @@ export default function ProviderAvailability() {
           .pa-modal-input { font-size: 16px !important; }
         }
       `}</style>
-      <ProviderNav />
 
       {/* Toast */}
       {toast && (
@@ -633,22 +632,7 @@ export default function ProviderAvailability() {
         />
       )}
 
-      {/* Mobile toolbar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
-        {[
-          { label:'Home', path:'/provider-dashboard', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-          { label:'Requests', path:'/provider-requests', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg> },
-          { label:'Find Shifts', path:'/provider-find-shifts', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> },
-          { label:'Messages', path:'/provider-messages', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>, badge: unreadMsgCount },
-          { label:'Profile', path:'/provider-profile', icon:<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>, active:true },
-        ].map(({label,path,icon,active,badge})=>(
-          <div key={label} onClick={()=>navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
-            <span style={{color:active?'#1a7f5e':'#9ca3af',position:'relative',display:'inline-block'}}>{icon}{badge>0 && <span style={{position:'absolute',top:-4,right:-6,background:'#ef4444',color:'white',fontSize:9,fontWeight:700,width:14,height:14,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',border:'2px solid white'}}>{badge}</span>}</span>
-            <span style={{fontSize:10,fontWeight:active?700:600,color:active?'#1a7f5e':'#9ca3af'}}>{label}</span>
-          </div>
-        ))}
-      </div>
-
+      <ProviderBottomNav />
     </div>
   )
 }

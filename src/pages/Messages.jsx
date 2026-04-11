@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BackToDashboard from '../components/BackToDashboard';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
+import ProviderBottomNav from '../components/ProviderBottomNav';
 
 // ============================================================
-// KAZI MESSAGES — Inbox list (iMessage-style)
-// Drop into src/pages/Messages.jsx or src/components/Messages.jsx
+// KAZI MESSAGES — Unified inbox (office + provider)
+// Real API. Route: /messages
 // ============================================================
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const COLORS = {
   green: '#1a7f5e',
@@ -23,7 +26,6 @@ const COLORS = {
   gold: '#f4b740',
 };
 
-// Avatar gradients — cycled by index for variety
 const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
   'linear-gradient(135deg, #c8a8d4 0%, #e8a87c 100%)',
@@ -32,38 +34,116 @@ const AVATAR_GRADIENTS = [
   'linear-gradient(135deg, #d4a88f 0%, #7a9bd4 100%)',
 ];
 
-// ============================================================
-// MOCK DATA — replace with backend fetch
-// ============================================================
-const MOCK_CONVERSATIONS = [
-  { id: 'conv-1', name: 'Sarah K.', initials: 'SK', avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg', preview: "Yes, I'm available Friday! What time do you need me?", time: '2m', unreadCount: 2, isOnline: true, sentByMe: false },
-  { id: 'conv-2', name: 'Maria G.', initials: 'MG', avatarUrl: 'https://randomuser.me/api/portraits/women/90.jpg', preview: 'Thanks for considering me. Happy to chat more about the role.', time: '1h', unreadCount: 1, isOnline: false, sentByMe: false },
-  { id: 'conv-3', name: 'Rachel M.', initials: 'RM', avatarUrl: 'https://randomuser.me/api/portraits/women/65.jpg', preview: 'See you tomorrow at 8am — thanks!', time: '3h', unreadCount: 0, isOnline: false, sentByMe: false },
-  { id: 'conv-4', name: 'Anthony B.', initials: 'AB', avatarUrl: 'https://randomuser.me/api/portraits/men/86.jpg', preview: "Sounds good, I'll bring my EFDA license", time: 'Yest', unreadCount: 0, isOnline: false, sentByMe: false },
-  { id: 'conv-5', name: 'David L.', initials: 'DL', avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg', preview: 'Let me check the schedule and get back to you', time: '2d', unreadCount: 0, isOnline: false, sentByMe: true },
-  { id: 'conv-6', name: 'Marcus T.', initials: 'MT', avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg', preview: 'Thanks, looking forward to it', time: '3d', unreadCount: 0, isOnline: false, sentByMe: false },
-  { id: 'conv-7', name: 'Jasmine P.', initials: 'JP', avatarUrl: 'https://randomuser.me/api/portraits/women/33.jpg', preview: 'I can do Tuesday or Wednesday next week', time: '4d', unreadCount: 0, isOnline: false, sentByMe: false },
-  { id: 'conv-8', name: 'Chloe N.', initials: 'CN', avatarUrl: 'https://randomuser.me/api/portraits/women/17.jpg', preview: 'You: Perfect, see you then!', time: '1w', unreadCount: 0, isOnline: false, sentByMe: true },
-];
+// today → time, yesterday → "Yesterday", older → MMM D
+function fmtTime(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  const now = new Date();
+  const diff = now - dt;
+  if (diff < 86400000) return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  if (diff < 172800000) return 'Yesterday';
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getInitials(name) {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '??';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
 
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
 export default function Messages() {
   const navigate = useNavigate();
-  const [conversations, setConversations] = useState(MOCK_CONVERSATIONS);
+  const { getToken, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn } = useUser();
+  const [role, setRole] = useState(null); // 'OFFICE' | 'PROVIDER' | null
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // TODO: Replace mock data with real backend fetch
-  // useEffect(() => {
-  //   fetch(`${import.meta.env.VITE_API_URL}/api/conversations`)
-  //     .then(res => res.json())
-  //     .then(data => setConversations(data));
-  // }, []);
+  // Detect role + load conversations
+  useEffect(() => {
+    if (!authLoaded || !isSignedIn) return;
+    let cancelled = false;
 
-  const filteredConversations = conversations.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.preview.toLowerCase().includes(searchQuery.toLowerCase())
+    const load = async () => {
+      setLoading(true);
+      try {
+        const token = await getToken();
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Probe role
+        let detectedRole = null;
+        const provRes = await fetch(`${API_URL}/api/providers/me`, { headers });
+        if (provRes.ok) {
+          detectedRole = 'PROVIDER';
+        } else {
+          const offRes = await fetch(`${API_URL}/api/offices/me`, { headers });
+          if (offRes.ok) detectedRole = 'OFFICE';
+        }
+        if (cancelled) return;
+        setRole(detectedRole);
+
+        // Fetch conversations
+        const convRes = await fetch(`${API_URL}/api/messages/conversations`, { headers });
+        if (!convRes.ok) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
+        const data = await convRes.json();
+
+        const mapped = data.map((c) => {
+          let name = '';
+          let avatarUrl = null;
+          let initials = '??';
+
+          if (detectedRole === 'OFFICE') {
+            const first = c.provider?.user?.firstName || '';
+            const last = c.provider?.user?.lastName || '';
+            name = `${first} ${last}`.trim() || 'Provider';
+            avatarUrl = c.provider?.user?.avatarUrl || null;
+            initials = getInitials(name);
+          } else {
+            name = c.office?.name || 'Office';
+            avatarUrl = c.office?.user?.avatarUrl || null;
+            initials = name.slice(0, 2).toUpperCase();
+          }
+
+          return {
+            id: `${c.officeId}-${c.providerId}`,
+            officeId: c.officeId,
+            providerId: c.providerId,
+            name,
+            avatarUrl,
+            initials,
+            lastMsg: c.body || '',
+            time: fmtTime(c.createdAt),
+            unread: c.unreadCount || 0,
+          };
+        });
+
+        if (!cancelled) {
+          setConversations(mapped);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Messages load error:', err);
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoaded, isSignedIn, getToken]);
+
+  const filteredConversations = conversations.filter((c) =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleConversationClick = (convId) => {
@@ -71,8 +151,7 @@ export default function Messages() {
   };
 
   const handleCompose = () => {
-    // TODO: open compose new message flow
-    console.log('Compose new message');
+    alert('Compose new message — coming soon');
   };
 
   return (
@@ -87,25 +166,20 @@ export default function Messages() {
         WebkitFontSmoothing: 'antialiased',
         display: 'flex',
         flexDirection: 'column',
-        paddingBottom: 110, // leave room for the bottom nav
+        paddingBottom: 110,
       }}
     >
-      {/* ============================================================
-          TOP BAR
-          ============================================================ */}
+      {/* TOP BAR */}
       <div
         style={{
           background: COLORS.card,
-          padding: '14px 20px 14px',
+          padding: '18px 20px 14px',
           borderBottom: `1px solid ${COLORS.borderSoft}`,
           position: 'sticky',
           top: 0,
           zIndex: 50,
         }}
       >
-        <div style={{ marginBottom: 10 }}>
-          <BackToDashboard />
-        </div>
         <div
           style={{
             display: 'flex',
@@ -198,9 +272,7 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* ============================================================
-          CONVERSATION LIST
-          ============================================================ */}
+      {/* CONVERSATION LIST */}
       <div
         style={{
           flex: 1,
@@ -208,8 +280,10 @@ export default function Messages() {
           overflowY: 'auto',
         }}
       >
-        {filteredConversations.length === 0 ? (
-          <EmptyState searchQuery={searchQuery} />
+        {loading ? (
+          <SkeletonList />
+        ) : filteredConversations.length === 0 ? (
+          <EmptyState searchQuery={searchQuery} role={role} />
         ) : (
           filteredConversations.map((conv, idx) => (
             <ConversationRow
@@ -221,7 +295,8 @@ export default function Messages() {
           ))
         )}
       </div>
-      <BottomNav />
+
+      {role === 'OFFICE' ? <BottomNav /> : <ProviderBottomNav />}
     </div>
   );
 }
@@ -230,8 +305,7 @@ export default function Messages() {
 // CONVERSATION ROW
 // ============================================================
 function ConversationRow({ conv, gradient, onClick }) {
-  const isUnread = conv.unreadCount > 0;
-  const previewText = conv.sentByMe ? `You: ${conv.preview}` : conv.preview;
+  const isUnread = conv.unread > 0;
 
   return (
     <div
@@ -254,13 +328,8 @@ function ConversationRow({ conv, gradient, onClick }) {
         if (!isUnread) e.currentTarget.style.background = COLORS.card;
       }}
     >
-      {/* Avatar with optional online dot */}
-      <div
-        style={{
-          position: 'relative',
-          flexShrink: 0,
-        }}
-      >
+      {/* Avatar */}
+      <div style={{ position: 'relative', flexShrink: 0 }}>
         {conv.avatarUrl ? (
           <img
             src={conv.avatarUrl}
@@ -285,20 +354,6 @@ function ConversationRow({ conv, gradient, onClick }) {
           >
             {conv.initials}
           </div>
-        )}
-        {conv.isOnline && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: -1,
-              right: -1,
-              width: 12,
-              height: 12,
-              background: COLORS.green,
-              border: `2px solid ${isUnread ? COLORS.greenTint : COLORS.card}`,
-              borderRadius: '50%',
-            }}
-          />
         )}
       </div>
 
@@ -348,7 +403,7 @@ function ConversationRow({ conv, gradient, onClick }) {
             lineHeight: 1.4,
           }}
         >
-          {previewText}
+          {conv.lastMsg}
         </div>
       </div>
 
@@ -371,7 +426,7 @@ function ConversationRow({ conv, gradient, onClick }) {
             textAlign: 'center',
           }}
         >
-          {conv.unreadCount}
+          {conv.unread}
         </div>
       )}
     </div>
@@ -379,9 +434,64 @@ function ConversationRow({ conv, gradient, onClick }) {
 }
 
 // ============================================================
+// SKELETON LOADER
+// ============================================================
+function SkeletonList() {
+  return (
+    <div>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 13,
+            padding: '14px 16px',
+            borderBottom: `1px solid ${COLORS.borderSoft}`,
+          }}
+        >
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 15,
+              background: '#ececec',
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                width: '50%',
+                height: 12,
+                background: '#ececec',
+                borderRadius: 6,
+                marginBottom: 8,
+              }}
+            />
+            <div
+              style={{
+                width: '85%',
+                height: 10,
+                background: '#f3f3f3',
+                borderRadius: 6,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
 // EMPTY STATE
 // ============================================================
-function EmptyState({ searchQuery }) {
+function EmptyState({ searchQuery, role }) {
+  const officeBlurb = 'When providers reach out, your conversations will appear here.';
+  const providerBlurb = 'When offices reach out to you, your conversations will appear here.';
+  const blurb = role === 'OFFICE' ? officeBlurb : providerBlurb;
+
   return (
     <div
       style={{
@@ -431,9 +541,7 @@ function EmptyState({ searchQuery }) {
           lineHeight: 1.5,
         }}
       >
-        {searchQuery
-          ? 'Try a different search term'
-          : 'When you message a professional, your conversations will appear here.'}
+        {searchQuery ? 'Try a different search term' : blurb}
       </div>
     </div>
   );
