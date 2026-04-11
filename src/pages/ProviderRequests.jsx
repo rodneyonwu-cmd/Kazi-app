@@ -125,10 +125,9 @@ export default function ProviderRequests() {
         >
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.text, flex: 1 }}>Requests</div>
           <img
-            src={user?.imageUrl || DEFAULT_USER_PHOTO}
+            src={DEFAULT_USER_PHOTO}
             alt="me"
             style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }}
-            onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
           />
         </div>
 

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser, useAuth, useClerk } from '@clerk/clerk-react'
 import InitialsAvatar from './InitialsAvatar'
+
+const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
@@ -198,11 +200,7 @@ export default function ProviderNav() {
                 {/* Header */}
                 <div className="px-4 py-4 border-b border-[#f3f4f6]">
                   <div className="flex items-center gap-3">
-                    {user?.imageUrl && !avatarFailed ? (
-                      <img src={user.imageUrl} alt={firstName} onError={() => setAvatarFailed(true)} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                    ) : (
-                      <InitialsAvatar name={firstName} size={36} />
-                    )}
+                    <img src={DEFAULT_USER_PHOTO} alt={firstName} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                     <div>
                       <p className="text-[15px] font-semibold text-[#1a1a1a]">{displayName}</p>
                       {email && <p className="text-[11px] text-[#9ca3af] truncate">{email}</p>}
@@ -330,11 +328,7 @@ export default function ProviderNav() {
 
           {/* Profile header */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-[#e5e7eb]">
-            {user?.imageUrl && !avatarFailed ? (
-              <img src={user.imageUrl} alt={firstName} onError={() => setAvatarFailed(true)} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-            ) : (
-              <InitialsAvatar name={firstName} size={44} />
-            )}
+            <img src={DEFAULT_USER_PHOTO} alt={firstName} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
             <div>
               <p className="text-sm font-bold text-[#1a1a1a]">{displayName}</p>
               <p className="text-xs text-[#1a7f5e] font-semibold">

@@ -184,10 +184,9 @@ export default function ProviderDashboard() {
             kazi.
           </div>
           <img
-            src={user?.imageUrl || DEFAULT_USER_PHOTO}
+            src={DEFAULT_USER_PHOTO}
             alt={firstName}
             style={{ width: 40, height: 40, borderRadius: 14, objectFit: 'cover' }}
-            onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
           />
         </div>
 

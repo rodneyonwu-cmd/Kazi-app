@@ -130,10 +130,9 @@ export default function ProviderMyProfile() {
         <div className="hero-top">
           <div className="photo-wrap">
             <img
-              src={user?.imageUrl || DEFAULT_USER_PHOTO}
+              src={DEFAULT_USER_PHOTO}
               alt={displayName}
               className="hero-photo"
-              onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
             />
             <div className="photo-verified">
               <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
