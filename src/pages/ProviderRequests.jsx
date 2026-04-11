@@ -34,6 +34,7 @@ const INCOMING_REQUESTS = [
     name: 'Missouri City Dental',
     rating: '4.9',
     distance: '4.2 mi',
+    rapidFill: true,
     expires: '45m',
     date: 'Today',
     hours: '9am – 5pm',
@@ -47,6 +48,7 @@ const INCOMING_REQUESTS = [
     name: 'Sugarland Premier Dental',
     rating: '4.7',
     distance: '7.8 mi',
+    rapidFill: false,
     expires: '6h 22m',
     date: 'Mon, Apr 14',
     hours: '8am – 4pm',
@@ -60,6 +62,7 @@ const INCOMING_REQUESTS = [
     name: 'Evolve Dentistry',
     rating: '5.0',
     distance: '2.1 mi',
+    rapidFill: true,
     expires: '23h 10m',
     date: 'Wed, Apr 16',
     hours: '8am – 5pm',
@@ -259,12 +262,36 @@ function RequestCard({ req, onOpen, onAccept }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text, lineHeight: 1.2 }}>{req.name}</div>
-          <div style={{ fontSize: 13, color: COLORS.textLight, marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div style={{ fontSize: 13, color: COLORS.textLight, marginTop: 3, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
             <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, fill: COLORS.gold, stroke: COLORS.gold, strokeWidth: 1, flexShrink: 0 }}>
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
             <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: COLORS.text }}>{req.rating}</span>
             <span>· {req.distance}</span>
+            {req.rapidFill && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  background: '#efe8f5',
+                  color: '#7c5aa8',
+                  fontSize: 10,
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: 100,
+                  fontFamily: "'Outfit', sans-serif",
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.4,
+                  marginLeft: 2,
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="#7c5aa8" stroke="#7c5aa8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 9, height: 9 }}>
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                Rapid Fill
+              </span>
+            )}
           </div>
         </div>
         <div style={{ fontSize: 11, fontWeight: 600, color: COLORS.textLight, flexShrink: 0, textAlign: 'right', lineHeight: 1.4 }}>
