@@ -10,6 +10,7 @@ import ShiftDetailsView from '../components/ShiftDetailsView';
 const MOCK_REQUESTS = {
   'req-1': {
     office: {
+      id: 'demo',
       initials: 'MC',
       name: 'Missouri City Dental',
       location: 'Missouri City, TX · 4.2 mi away',
@@ -34,6 +35,7 @@ const MOCK_REQUESTS = {
   },
   'req-2': {
     office: {
+      id: 'demo',
       initials: 'SP',
       name: 'Sugarland Premier Dental',
       location: 'Sugar Land, TX · 7.8 mi away',

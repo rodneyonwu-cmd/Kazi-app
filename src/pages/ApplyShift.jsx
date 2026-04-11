@@ -10,6 +10,7 @@ import ShiftDetailsView from '../components/ShiftDetailsView';
 const MOCK_OPEN_SHIFTS = {
   'shift-pwd': {
     office: {
+      id: 'demo',
       initials: 'PWD',
       name: 'Pearland Wellness Dental',
       location: 'Pearland, TX · 3.1 mi away',
@@ -33,6 +34,7 @@ const MOCK_OPEN_SHIFTS = {
   },
   'shift-mcd': {
     office: {
+      id: 'demo',
       initials: 'MCD',
       name: 'Missouri City Dental',
       location: 'Missouri City, TX · 4.2 mi away',

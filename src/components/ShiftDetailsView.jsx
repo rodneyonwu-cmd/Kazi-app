@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 const DEFAULT_SHIFT = {
   office: {
+    id: 'demo',
     initials: 'SP',
     name: 'Sugarland Premier Dental',
     location: 'Sugar Land, TX · 7.8 mi away',
@@ -116,6 +117,7 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
         {/* Office hero */}
         <div style={{ padding: '24px 20px', textAlign: 'center' }}>
           <div
+            onClick={() => navigate(`/office/${shift.office.id || 'demo'}`)}
             style={{
               width: 72,
               height: 72,
@@ -129,11 +131,15 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
               fontWeight: 700,
               fontSize: 22,
               color: 'white',
+              cursor: 'pointer',
             }}
           >
             {shift.office.initials}
           </div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a1a1a', lineHeight: 1.2 }}>
+          <div
+            onClick={() => navigate(`/office/${shift.office.id || 'demo'}`)}
+            style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a1a1a', lineHeight: 1.2, cursor: 'pointer' }}
+          >
             {shift.office.name}
           </div>
           <div style={{ fontSize: 14, color: '#8a8a8a', marginTop: 4 }}>{shift.office.location}</div>
@@ -198,7 +204,7 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
 
         {/* View Office Profile */}
         <button
-          onClick={() => navigate('/office-profile')}
+          onClick={() => navigate(`/office/${shift.office.id || 'demo'}`)}
           style={{
             display: 'flex',
             alignItems: 'center',

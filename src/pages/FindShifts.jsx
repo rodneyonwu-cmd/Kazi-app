@@ -473,9 +473,15 @@ function PermJobCard({ job, onApply }) {
 }
 
 function CardHeader({ item }) {
+  const navigate = useNavigate();
+  const goOffice = (e) => {
+    e.stopPropagation();
+    navigate(`/office/${item.officeId || item.id || 'demo'}`);
+  };
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
       <div
+        onClick={goOffice}
         style={{
           width: 56,
           height: 56,
@@ -492,12 +498,14 @@ function CardHeader({ item }) {
           letterSpacing: '-0.5px',
           border: '1.5px solid white',
           boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+          cursor: 'pointer',
         }}
       >
         {item.initials}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
+          onClick={goOffice}
           style={{
             fontFamily: "'Outfit', sans-serif",
             fontWeight: 800,
@@ -510,6 +518,7 @@ function CardHeader({ item }) {
             textDecorationColor: COLORS.greenSoft,
             textUnderlineOffset: 4,
             textDecorationThickness: 2,
+            cursor: 'pointer',
           }}
         >
           {item.name}

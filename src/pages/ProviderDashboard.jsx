@@ -546,6 +546,11 @@ function Legend({ color, border, label, off }) {
 }
 
 function ShiftCard({ shift, onClick }) {
+  const navigate = useNavigate();
+  const goOffice = (e) => {
+    e.stopPropagation();
+    navigate(`/office/${shift.officeId || shift.id || 'demo'}`);
+  };
   return (
     <div
       onClick={onClick}
@@ -581,6 +586,7 @@ function ShiftCard({ shift, onClick }) {
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <div
+          onClick={goOffice}
           style={{
             width: 40,
             height: 40,
@@ -595,12 +601,14 @@ function ShiftCard({ shift, onClick }) {
             color: COLORS.green,
             flexShrink: 0,
             letterSpacing: '-0.5px',
+            cursor: 'pointer',
           }}
         >
           {shift.initials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
+            onClick={goOffice}
             style={{
               fontFamily: "'Outfit', sans-serif",
               fontWeight: 800,
@@ -610,6 +618,10 @@ function ShiftCard({ shift, onClick }) {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              textDecorationColor: COLORS.greenSoft,
+              textUnderlineOffset: 3,
             }}
           >
             {shift.name}
