@@ -120,9 +120,9 @@ export default function TopBar({ role = 'provider' }) {
         style={{
           fontFamily: "'Outfit', sans-serif",
           fontWeight: 800,
-          fontSize: 28,
+          fontSize: 36,
           color: COLORS.green,
-          letterSpacing: '-0.8px',
+          letterSpacing: '-1px',
           cursor: 'pointer',
           lineHeight: 1,
         }}
