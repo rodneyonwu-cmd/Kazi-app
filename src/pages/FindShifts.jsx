@@ -21,24 +21,16 @@ const COLORS = {
   gold: '#f4b740',
 };
 
-// Curated dental / medical office photos used as random office logos
-// in mock mode. Real office logos will replace these once API is wired.
-const MOCK_OFFICE_LOGOS = [
-  'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1588776813457-09a4a4e8b6f5?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1641390585625-e2d72d50a8a8?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=200&h=200&fit=crop',
-  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop',
-];
+// Stable random office logos via picsum.photos (seeded so each office
+// always gets the same image). Real office logos will replace these
+// once the API is wired.
+const mockLogo = (seed) => `https://picsum.photos/seed/${seed}/120/120`;
 
 const TEMP_SHIFTS = [
   {
     id: 'shift-pwd',
     initials: 'PWD',
-    logoUrl: MOCK_OFFICE_LOGOS[0],
+    logoUrl: mockLogo('pearland'),
     name: 'Pearland Wellness Dental',
     role: 'Hygienist',
     distance: '3.1 mi · Pearland',
@@ -53,7 +45,7 @@ const TEMP_SHIFTS = [
   {
     id: 'shift-mcd',
     initials: 'MCD',
-    logoUrl: MOCK_OFFICE_LOGOS[1],
+    logoUrl: mockLogo('missouri-city'),
     name: 'Missouri City Dental',
     role: 'Hygienist',
     distance: '4.2 mi · Fort Bend',
@@ -68,7 +60,7 @@ const TEMP_SHIFTS = [
   {
     id: 'shift-hdc',
     initials: 'HDC',
-    logoUrl: MOCK_OFFICE_LOGOS[2],
+    logoUrl: mockLogo('houston-dental'),
     name: 'Houston Dental Care',
     role: 'Hygienist',
     distance: '5.6 mi · Houston',
@@ -83,7 +75,7 @@ const TEMP_SHIFTS = [
   {
     id: 'shift-sbd',
     initials: 'SBD',
-    logoUrl: MOCK_OFFICE_LOGOS[3],
+    logoUrl: mockLogo('sugar-land-bright'),
     name: 'Sugar Land Bright Dental',
     role: 'Hygienist',
     distance: '7.8 mi · Sugar Land',
@@ -101,7 +93,7 @@ const PERM_JOBS = [
   {
     id: 'perm-mcd',
     initials: 'MCD',
-    logoUrl: MOCK_OFFICE_LOGOS[4],
+    logoUrl: mockLogo('missouri-city-perm'),
     name: 'Missouri City Dental',
     role: 'Hygienist',
     distance: '4.2 mi · Fort Bend',
@@ -115,7 +107,7 @@ const PERM_JOBS = [
   {
     id: 'perm-sbd',
     initials: 'SBD',
-    logoUrl: MOCK_OFFICE_LOGOS[5],
+    logoUrl: mockLogo('sugar-land-perm'),
     name: 'Sugar Land Bright Dental',
     role: 'Hygienist',
     distance: '7.8 mi · Sugar Land',
