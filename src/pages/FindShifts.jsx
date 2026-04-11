@@ -491,23 +491,23 @@ function CardHeader({ item }) {
   };
   const initials = getInitials(item.name) || item.initials;
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
       <div
         onClick={goOffice}
         style={{
-          width: 56,
-          height: 56,
-          borderRadius: 16,
-          background: 'linear-gradient(135deg, #5eead4 0%, #6ee7b7 100%)',
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          background: 'linear-gradient(135deg, #99f6e4 0%, #7dd3fc 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: "'Outfit', sans-serif",
           fontWeight: 800,
-          fontSize: 16,
+          fontSize: 13,
           color: 'white',
           flexShrink: 0,
-          letterSpacing: '-0.5px',
+          letterSpacing: '-0.3px',
           border: '1.5px solid white',
           boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
           cursor: 'pointer',
