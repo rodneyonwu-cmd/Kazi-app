@@ -8,13 +8,15 @@ import React, { useEffect } from 'react';
 const COLORS = {
   green: '#1a7f5e',
   greenSoft: '#e8f5f0',
+  red: '#dc2626',
+  redSoft: '#fef2f2',
   card: '#ffffff',
   text: '#1a1a1a',
   textMid: '#5a5a5a',
   border: '#ececec',
 };
 
-export default function SuccessToast({ open, title, subtitle, onClose, autoDismissMs = 2200 }) {
+export default function SuccessToast({ open, title, subtitle, onClose, autoDismissMs = 2200, variant = 'success' }) {
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => { onClose && onClose(); }, autoDismissMs);
@@ -22,6 +24,10 @@ export default function SuccessToast({ open, title, subtitle, onClose, autoDismi
   }, [open, autoDismissMs, onClose]);
 
   if (!open) return null;
+
+  const isError = variant === 'error';
+  const accentColor = isError ? COLORS.red : COLORS.green;
+  const accentSoft = isError ? COLORS.redSoft : COLORS.greenSoft;
 
   return (
     <>
@@ -78,7 +84,7 @@ export default function SuccessToast({ open, title, subtitle, onClose, autoDismi
             width: 56,
             height: 56,
             borderRadius: '50%',
-            background: COLORS.greenSoft,
+            background: accentSoft,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -86,9 +92,16 @@ export default function SuccessToast({ open, title, subtitle, onClose, autoDismi
             animation: 'kaziCheckPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both',
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 26, height: 26 }}>
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          {isError ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 26, height: 26 }}>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 26, height: 26 }}>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
         </div>
         <div
           style={{

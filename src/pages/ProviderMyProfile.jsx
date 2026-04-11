@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
+import SuccessToast from '../components/SuccessToast';
+import ConfirmRemoveModal from '../components/ConfirmRemoveModal';
+import AddChipsSheet from '../components/AddChipsSheet';
+import AddCertificationSheet from '../components/AddCertificationSheet';
+import AddLanguageSheet from '../components/AddLanguageSheet';
 
 const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Hardcoded option lists for the chip pickers (could move to DB later)
+const CERT_OPTIONS = ['BLS CPR', 'ACLS', 'CDA', 'EFDA', 'Radiology', 'Nitrous Oxide', 'CPR', 'First Aid', 'OSHA', 'HIPAA', 'Infection Control'];
+const SKILL_OPTIONS = ['Alginate Impressions', 'Temporary Crowns', 'Bone Grafting', 'Bridges', 'Crowns', 'Digital X-Rays', 'Panoramic X-Rays', 'Sterilization', 'Chairside Assisting', 'Patient Education', 'Sealants', 'Fluoride Treatments', 'Prophy', 'SRP', 'Perio Charting', 'Bilingual', 'Endo Assisting', 'Suture Removal'];
+const EXPERIENCE_OPTIONS = ['Endodontics', 'General Dentistry', 'Oral Surgery', 'Orthodontics', 'Periodontics', 'Prosthodontics', 'Pediatric Dentistry', 'Implantology', 'Cosmetic Dentistry'];
+const LANGUAGE_OPTIONS = ['English', 'Spanish', 'Vietnamese', 'Mandarin', 'Tagalog', 'French', 'Arabic', 'Korean', 'Russian', 'Portuguese', 'Hindi'];
+const LANGUAGE_LEVELS = ['Native', 'Fluent', 'Conversational', 'Basic'];
 
 const styles = `
 .kazi-pmp { --green: #1a7f5e; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --amber-soft: #fef6e4; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; --danger: #ef4444; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 110px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
@@ -97,28 +110,91 @@ const styles = `
 export default function ProviderMyProfile() {
   const navigate = useNavigate();
   const { user } = useUser();
+  const { getToken } = useAuth();
 
-  const firstName = user?.firstName || 'Alexandra';
-  const lastInitial = user?.lastName?.[0] || 'A';
-  const initials = (firstName[0] || 'A') + lastInitial;
+  // Real data from GET /api/providers/me
+  const [provider, setProvider] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  // Chip relations
+  const [certifications, setCertifications] = useState([]); // Credential[]
+  const [skills, setSkills] = useState([]);                 // Skill[]
+  const [experiences, setExperiences] = useState([]);       // Experience[]
+  const [languages, setLanguages] = useState([]);           // Language[]
+
+  // Hourly rate edit
+  const [hourlyRate, setHourlyRate] = useState(0);
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateDraft, setRateDraft] = useState('0');
+
+  // Modals + toasts
+  const [removeTarget, setRemoveTarget] = useState(null);   // { type, id, name }
+  const [addSheet, setAddSheet] = useState(null);           // 'cert' | 'skills' | 'experience' | 'language'
+  const [toast, setToast] = useState(null);                 // { variant, title, subtitle }
+
+  // ── Initial fetch ──
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(`${API_URL}/api/providers/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setProvider(data);
+        setCertifications(data.credentials || []);
+        setSkills(data.providerSkills || []);
+        setExperiences(data.experiences || []);
+        setLanguages(data.languages || []);
+        setHourlyRate(data.hourlyRate || 0);
+        setRateDraft(String(data.hourlyRate || 0));
+      } catch (err) {
+        console.error('[ProviderMyProfile] fetch error', err);
+        if (!cancelled) setLoadError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [getToken]);
+
+  // Display values — fall back to Clerk user info
+  const firstName = provider?.firstName || user?.firstName || 'Alexandra';
+  const lastName = provider?.lastName || user?.lastName || 'A';
+  const lastInitial = (lastName || 'A')[0];
   const displayName = `${firstName} ${lastInitial}.`;
 
-  const [hourlyRate, setHourlyRate] = useState(28);
-  const [editingRate, setEditingRate] = useState(false);
-  const [rateDraft, setRateDraft] = useState(String(hourlyRate));
-
+  // ── Hourly rate ──
   const startEditRate = () => {
     setRateDraft(String(hourlyRate));
     setEditingRate(true);
   };
-  const saveRate = () => {
+  const saveRate = async () => {
     const n = parseFloat(rateDraft);
-    if (!isNaN(n) && n > 0) {
-      setHourlyRate(n);
-      setEditingRate(false);
-      // TODO: PATCH /api/providers/me { hourlyRate: n } once API is wired
-    } else {
-      alert('Enter a valid hourly rate');
+    if (isNaN(n) || n <= 0) {
+      setToast({ variant: 'error', title: 'Invalid rate', subtitle: 'Please enter a number greater than 0.' });
+      return;
+    }
+    const prev = hourlyRate;
+    setHourlyRate(n);
+    setEditingRate(false);
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/providers/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ hourlyRate: n }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setToast({ variant: 'success', title: 'Rate updated', subtitle: `New rate: $${n}/hr` });
+    } catch (err) {
+      console.error('[ProviderMyProfile] save rate error', err);
+      setHourlyRate(prev);
+      setToast({ variant: 'error', title: "Couldn't save rate", subtitle: 'Try again in a moment.' });
     }
   };
   const cancelRate = () => {
@@ -126,7 +202,132 @@ export default function ProviderMyProfile() {
     setEditingRate(false);
   };
 
-  const notImpl = (label) => () => alert(`${label} — coming soon`);
+  // ── Chip CRUD ──
+  // Generic remove with optimistic update + rollback. type ∈ 'cert'|'skill'|'experience'|'language'
+  const handleRemove = async (target) => {
+    setRemoveTarget(null);
+    if (!target) return;
+    const { type, id, name } = target;
+
+    // Optimistic update
+    let prev;
+    if (type === 'cert') { prev = certifications; setCertifications((c) => c.filter((x) => x.id !== id)); }
+    else if (type === 'skill') { prev = skills; setSkills((c) => c.filter((x) => x.id !== id)); }
+    else if (type === 'experience') { prev = experiences; setExperiences((c) => c.filter((x) => x.id !== id)); }
+    else if (type === 'language') { prev = languages; setLanguages((c) => c.filter((x) => x.id !== id)); }
+
+    const path = type === 'cert' ? 'certifications' : type === 'skill' ? 'skills' : type === 'experience' ? 'experience' : 'languages';
+
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/providers/me/${path}/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
+      setToast({ variant: 'success', title: `Removed ${name}` });
+    } catch (err) {
+      console.error('[ProviderMyProfile] remove error', err);
+      // Rollback
+      if (type === 'cert') setCertifications(prev);
+      else if (type === 'skill') setSkills(prev);
+      else if (type === 'experience') setExperiences(prev);
+      else if (type === 'language') setLanguages(prev);
+      setToast({ variant: 'error', title: `Couldn't remove ${name}`, subtitle: 'Try again in a moment.' });
+    }
+  };
+
+  // Add handlers — POST then refresh local state from response
+  const addCertification = useCallback(async ({ name, expirationDate }) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/providers/me/certifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, expirationDate }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updated = await res.json();
+      setCertifications(updated);
+      setAddSheet(null);
+      setToast({ variant: 'success', title: `Added ${name}` });
+    } catch (err) {
+      console.error('[ProviderMyProfile] add cert error', err);
+      setToast({ variant: 'error', title: "Couldn't add certification", subtitle: 'Try again in a moment.' });
+    }
+  }, [getToken]);
+
+  const addSkills = useCallback(async (names) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/providers/me/skills`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ names }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updated = await res.json();
+      setSkills(updated);
+      setAddSheet(null);
+      setToast({ variant: 'success', title: `Added ${names.length} skill${names.length === 1 ? '' : 's'}` });
+    } catch (err) {
+      console.error('[ProviderMyProfile] add skills error', err);
+      setToast({ variant: 'error', title: "Couldn't add skills", subtitle: 'Try again in a moment.' });
+    }
+  }, [getToken]);
+
+  const addExperience = useCallback(async (names) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/providers/me/experience`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ names }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updated = await res.json();
+      setExperiences(updated);
+      setAddSheet(null);
+      setToast({ variant: 'success', title: `Added ${names.length} experience area${names.length === 1 ? '' : 's'}` });
+    } catch (err) {
+      console.error('[ProviderMyProfile] add experience error', err);
+      setToast({ variant: 'error', title: "Couldn't add experience", subtitle: 'Try again in a moment.' });
+    }
+  }, [getToken]);
+
+  const addLanguage = useCallback(async ({ name, level }) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/providers/me/languages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, level }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updated = await res.json();
+      setLanguages(updated);
+      setAddSheet(null);
+      setToast({ variant: 'success', title: `Added ${name}` });
+    } catch (err) {
+      console.error('[ProviderMyProfile] add language error', err);
+      setToast({ variant: 'error', title: "Couldn't add language", subtitle: 'Try again in a moment.' });
+    }
+  }, [getToken]);
+
+  const notImpl = (label) => () => setToast({ variant: 'success', title: `${label} — coming soon` });
+
+  // Use real avatar if uploaded, else fallback
+  const avatarSrc = provider?.avatarUrl
+    ? (provider.avatarUrl.startsWith('http') ? provider.avatarUrl : `${API_URL}${provider.avatarUrl}`)
+    : DEFAULT_USER_PHOTO;
+  const role = provider?.role || 'Dental Assistant';
+  const cityState = [provider?.city, provider?.state].filter(Boolean).join(', ') || 'Houston, TX';
+  const stats = provider?.stats || {};
+  const reliability = stats.reliability != null ? Number(stats.reliability).toFixed(0) : '98';
+  const ratingDisplay = stats.rating != null ? Number(stats.rating).toFixed(1) : '5.0';
+  const reviewCount = provider?.reviewCount ?? 47;
+  const completedShifts = stats.completedShifts ?? 130;
+  const aboutText = provider?.bio || 'Tap Edit to add a short bio about yourself.';
 
   return (
     <div className="kazi-pmp">
@@ -156,9 +357,10 @@ export default function ProviderMyProfile() {
         <div className="hero-top">
           <div className="photo-wrap">
             <img
-              src={DEFAULT_USER_PHOTO}
+              src={avatarSrc}
               alt={displayName}
               className="hero-photo"
+              onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
             />
             <div className="photo-verified">
               <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -172,7 +374,7 @@ export default function ProviderMyProfile() {
               {displayName}
               <svg className="lock-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
             </div>
-            <div className="hero-role">Dental Assistant · Houston, TX</div>
+            <div className="hero-role">{role} · {cityState}</div>
             <div className="hero-rate-row">
               {editingRate ? (
                 <>
@@ -223,16 +425,16 @@ export default function ProviderMyProfile() {
               )}
             </div>
             <div className="hero-stars">
-              <span className="stars-val">★ 5.0</span>
-              <span className="reviews-ct">(47 reviews)</span>
-              <span className="reliability-pill">Excellent · 98%</span>
+              <span className="stars-val">★ {ratingDisplay}</span>
+              <span className="reviews-ct">({reviewCount} reviews)</span>
+              <span className="reliability-pill">Excellent · {reliability}%</span>
             </div>
           </div>
         </div>
         <div className="stat-grid">
-          <div className="stat-tile"><div className="stat-tile-label">Shifts</div><div className="stat-tile-val">130</div></div>
+          <div className="stat-tile"><div className="stat-tile-label">Shifts</div><div className="stat-tile-val">{completedShifts}</div></div>
           <div className="stat-tile"><div className="stat-tile-label">Response</div><div className="stat-tile-val">&lt;1 hr</div></div>
-          <div className="stat-tile"><div className="stat-tile-label">Reliability</div><div className="stat-tile-val gold">98%</div></div>
+          <div className="stat-tile"><div className="stat-tile-label">Reliability</div><div className="stat-tile-val gold">{reliability}%</div></div>
           <div className="stat-tile"><div className="stat-tile-label">Score</div><div className="stat-tile-val green">625</div></div>
         </div>
       </div>
@@ -242,7 +444,7 @@ export default function ProviderMyProfile() {
           <div className="section-title">About</div>
           <button className="edit-btn" onClick={notImpl('Edit about')}>Edit</button>
         </div>
-        <div className="about-text">I am from Colombia, an energetic Dental Assistant enthusiastic about dental health. I earned my license in 2020 and have worked in general practice. I genuinely enjoy my work.</div>
+        <div className="about-text">{aboutText}</div>
       </div>
 
       <div className="section">
@@ -270,41 +472,74 @@ export default function ProviderMyProfile() {
       <div className="section">
         <div className="section-header"><div className="section-title">Certifications</div></div>
         <div className="chip-row">
-          <span className="chip green">BLS CPR <span className="x" onClick={notImpl('Remove cert')}>×</span></span>
-          <span className="chip green">CDA <span className="x" onClick={notImpl('Remove cert')}>×</span></span>
-          <span className="chip">EFDA <span className="x" onClick={notImpl('Remove cert')}>×</span></span>
-          <span className="chip">Radiology <span className="x" onClick={notImpl('Remove cert')}>×</span></span>
-          <button className="chip-add" onClick={notImpl('Add cert')}>+ Add</button>
+          {certifications.length === 0 && !loading && (
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>No certifications yet</span>
+          )}
+          {certifications.map((c) => (
+            <span key={c.id} className="chip green">
+              {c.type}
+              <span className="x" onClick={() => setRemoveTarget({ type: 'cert', id: c.id, name: c.type })}>×</span>
+            </span>
+          ))}
+          <button className="chip-add" onClick={() => setAddSheet('cert')}>+ Add</button>
         </div>
       </div>
 
       <div className="section">
         <div className="section-header"><div className="section-title">Skills</div></div>
         <div className="chip-row">
-          {['Alginate Impressions', 'Bilingual', 'Bone Grafting', 'Bridges', 'Crowns', 'Digital X-Rays'].map((s) => (
-            <span key={s} className="chip">{s} <span className="x" onClick={notImpl('Remove skill')}>×</span></span>
+          {skills.length === 0 && !loading && (
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>No skills yet</span>
+          )}
+          {skills.map((s) => (
+            <span key={s.id} className="chip">
+              {s.name}
+              <span className="x" onClick={() => setRemoveTarget({ type: 'skill', id: s.id, name: s.name })}>×</span>
+            </span>
           ))}
-          <button className="chip-add" onClick={notImpl('Add skill')}>+ Add skill</button>
+          <button className="chip-add" onClick={() => setAddSheet('skills')}>+ Add skill</button>
         </div>
       </div>
 
       <div className="section">
         <div className="section-header"><div className="section-title">Experience Assisting</div></div>
         <div className="chip-row">
-          {['Endodontics', 'General Dentistry', 'Oral Surgery', 'Orthodontics'].map((s) => (
-            <span key={s} className="chip">{s} <span className="x" onClick={notImpl('Remove')}>×</span></span>
+          {experiences.length === 0 && !loading && (
+            <span style={{ fontSize: 12, color: '#9ca3af' }}>No experience areas yet</span>
+          )}
+          {experiences.map((e) => (
+            <span key={e.id} className="chip">
+              {e.name}
+              <span className="x" onClick={() => setRemoveTarget({ type: 'experience', id: e.id, name: e.name })}>×</span>
+            </span>
           ))}
-          <button className="chip-add" onClick={notImpl('Add experience')}>+ Add</button>
+          <button className="chip-add" onClick={() => setAddSheet('experience')}>+ Add</button>
         </div>
       </div>
 
       <div className="section">
         <div className="section-header">
           <div className="section-title">Languages</div>
-          <button className="edit-btn" onClick={notImpl('Add language')}>+ Add</button>
+          <button className="edit-btn" onClick={() => setAddSheet('language')}>+ Add</button>
         </div>
-        <div className="lang-row"><span className="lang-name">Spanish</span><span className="lang-level">Native</span></div>
-        <div className="lang-row"><span className="lang-name">English</span><span className="lang-level">Conversational</span></div>
+        {languages.length === 0 && !loading && (
+          <div style={{ fontSize: 12, color: '#9ca3af', padding: '6px 0' }}>No languages yet</div>
+        )}
+        {languages.map((l) => (
+          <div key={l.id} className="lang-row" style={{ gap: 8 }}>
+            <span className="lang-name">{l.name}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="lang-level">{l.level}</span>
+              <span
+                onClick={() => setRemoveTarget({ type: 'language', id: l.id, name: l.name })}
+                style={{ cursor: 'pointer', color: '#9ca3af', fontSize: 16, lineHeight: 1, padding: '0 4px' }}
+                aria-label="Remove"
+              >
+                ×
+              </span>
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="section">
@@ -337,6 +572,56 @@ export default function ProviderMyProfile() {
       </div>
 
       <ProviderBottomNav />
+
+      {/* Confirm remove modal */}
+      <ConfirmRemoveModal
+        open={!!removeTarget}
+        itemName={removeTarget?.name}
+        onCancel={() => setRemoveTarget(null)}
+        onConfirm={() => handleRemove(removeTarget)}
+      />
+
+      {/* Add modals — bottom sheets, one rendered at a time */}
+      <AddCertificationSheet
+        open={addSheet === 'cert'}
+        options={CERT_OPTIONS}
+        existingNames={certifications.map((c) => c.type)}
+        onClose={() => setAddSheet(null)}
+        onConfirm={addCertification}
+      />
+      <AddChipsSheet
+        open={addSheet === 'skills'}
+        title="Add Skill"
+        options={SKILL_OPTIONS}
+        existingNames={skills.map((s) => s.name)}
+        onClose={() => setAddSheet(null)}
+        onConfirm={addSkills}
+      />
+      <AddChipsSheet
+        open={addSheet === 'experience'}
+        title="Add Experience"
+        options={EXPERIENCE_OPTIONS}
+        existingNames={experiences.map((e) => e.name)}
+        onClose={() => setAddSheet(null)}
+        onConfirm={addExperience}
+      />
+      <AddLanguageSheet
+        open={addSheet === 'language'}
+        options={LANGUAGE_OPTIONS}
+        levels={LANGUAGE_LEVELS}
+        existingNames={languages.map((l) => l.name)}
+        onClose={() => setAddSheet(null)}
+        onConfirm={addLanguage}
+      />
+
+      {/* Success / error toast */}
+      <SuccessToast
+        open={!!toast}
+        variant={toast?.variant}
+        title={toast?.title}
+        subtitle={toast?.subtitle}
+        onClose={() => setToast(null)}
+      />
     </div>
   );
 }

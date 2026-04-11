@@ -14,26 +14,77 @@ const authGuard = (req, res, next) => {
   next();
 };
 
-// GET /api/providers/me – get current user's provider profile with stats
-router.get('/me', authGuard, async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { clerkId: req.auth.userId },
+// Helper: resolve current user's provider, lazy-provisioning a row if missing.
+// Returns the User+Provider as fetched, or throws on no auth.
+async function getOrCreateMyProvider(clerkId) {
+  let user = await prisma.user.findUnique({
+    where: { clerkId },
+    include: {
+      provider: {
+        include: {
+          bookings: { where: { status: 'COMPLETED' } },
+          reviews: true,
+          applications: { where: { status: 'PENDING' } },
+          credentials: { orderBy: { createdAt: 'asc' } },
+          availability: true,
+          providerSkills: { orderBy: { name: 'asc' } },
+          experiences: { orderBy: { name: 'asc' } },
+          languages: { orderBy: { name: 'asc' } },
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    // No User row at all yet — webhook hasn't fired. Create with role PROVIDER.
+    user = await prisma.user.create({
+      data: { clerkId, email: `${clerkId}@placeholder.kazi`, role: 'PROVIDER' },
+      include: {
+        provider: {
+          include: {
+            bookings: true, reviews: true, applications: true,
+            credentials: true, availability: true,
+            providerSkills: true, experiences: true, languages: true,
+          },
+        },
+      },
+    });
+  }
+
+  if (!user.provider) {
+    await prisma.provider.create({
+      data: { userId: user.id, role: 'Dental Professional' },
+    });
+    // Re-fetch with the new provider attached
+    user = await prisma.user.findUnique({
+      where: { clerkId },
       include: {
         provider: {
           include: {
             bookings: { where: { status: 'COMPLETED' } },
             reviews: true,
             applications: { where: { status: 'PENDING' } },
-            credentials: true,
+            credentials: { orderBy: { createdAt: 'asc' } },
             availability: true,
+            providerSkills: { orderBy: { name: 'asc' } },
+            experiences: { orderBy: { name: 'asc' } },
+            languages: { orderBy: { name: 'asc' } },
           },
         },
       },
     });
-    if (!user?.provider) return res.status(404).json({ error: 'Provider not found' });
+  }
 
+  return user;
+}
+
+// GET /api/providers/me – get current user's provider profile with stats
+// Lazy-provisions a Provider row if one doesn't exist yet (no 404).
+router.get('/me', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
     const provider = user.provider;
+
     const completedShifts = provider.bookings.length;
     const pendingRequests = provider.applications.length;
     const avgRating = provider.reviews.length > 0
@@ -53,6 +104,183 @@ router.get('/me', authGuard, async (req, res) => {
         pendingRequests,
       },
     });
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Provider /me chip relations: certifications, skills, experience, languages
+
+// POST /api/providers/me/certifications – add a certification (uses existing Credential model)
+router.post('/me/certifications', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const { name, expirationDate, fileUrl } = req.body || {};
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'name is required' });
+    }
+    await prisma.credential.create({
+      data: {
+        providerId: user.provider.id,
+        type: name.trim(),
+        fileUrl: fileUrl || null,
+        expiresAt: expirationDate ? new Date(expirationDate) : null,
+      },
+    });
+    const credentials = await prisma.credential.findMany({
+      where: { providerId: user.provider.id },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.status(201).json(credentials);
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/providers/me/certifications/:id – remove a certification
+router.delete('/me/certifications/:id', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    // Verify ownership
+    const cred = await prisma.credential.findUnique({ where: { id: req.params.id } });
+    if (!cred || cred.providerId !== user.provider.id) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    await prisma.credential.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/providers/me/skills – add one or more skills (multi-select)
+router.post('/me/skills', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const namesInput = Array.isArray(req.body?.names) ? req.body.names : [];
+    const names = namesInput
+      .map((n) => (typeof n === 'string' ? n.trim() : ''))
+      .filter(Boolean);
+    if (names.length === 0) {
+      return res.status(400).json({ error: 'names array required' });
+    }
+    await prisma.skill.createMany({
+      data: names.map((name) => ({ providerId: user.provider.id, name })),
+      skipDuplicates: true,
+    });
+    const skills = await prisma.skill.findMany({
+      where: { providerId: user.provider.id },
+      orderBy: { name: 'asc' },
+    });
+    res.status(201).json(skills);
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/providers/me/skills/:id – remove a skill
+router.delete('/me/skills/:id', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const row = await prisma.skill.findUnique({ where: { id: req.params.id } });
+    if (!row || row.providerId !== user.provider.id) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    await prisma.skill.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/providers/me/experience – add one or more experience areas
+router.post('/me/experience', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const namesInput = Array.isArray(req.body?.names) ? req.body.names : [];
+    const names = namesInput
+      .map((n) => (typeof n === 'string' ? n.trim() : ''))
+      .filter(Boolean);
+    if (names.length === 0) {
+      return res.status(400).json({ error: 'names array required' });
+    }
+    await prisma.experience.createMany({
+      data: names.map((name) => ({ providerId: user.provider.id, name })),
+      skipDuplicates: true,
+    });
+    const experiences = await prisma.experience.findMany({
+      where: { providerId: user.provider.id },
+      orderBy: { name: 'asc' },
+    });
+    res.status(201).json(experiences);
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/providers/me/experience/:id – remove an experience area
+router.delete('/me/experience/:id', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const row = await prisma.experience.findUnique({ where: { id: req.params.id } });
+    if (!row || row.providerId !== user.provider.id) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    await prisma.experience.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/providers/me/languages – add a language with level
+router.post('/me/languages', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const { name, level } = req.body || {};
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'name is required' });
+    }
+    if (!level || typeof level !== 'string') {
+      return res.status(400).json({ error: 'level is required' });
+    }
+    const allowedLevels = ['Native', 'Fluent', 'Conversational', 'Basic'];
+    if (!allowedLevels.includes(level)) {
+      return res.status(400).json({ error: `level must be one of ${allowedLevels.join(', ')}` });
+    }
+    await prisma.language.upsert({
+      where: { providerId_name: { providerId: user.provider.id, name: name.trim() } },
+      update: { level },
+      create: { providerId: user.provider.id, name: name.trim(), level },
+    });
+    const languages = await prisma.language.findMany({
+      where: { providerId: user.provider.id },
+      orderBy: { name: 'asc' },
+    });
+    res.status(201).json(languages);
+  } catch (err) {
+    console.error('[providers.js]' , err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/providers/me/languages/:id – remove a language
+router.delete('/me/languages/:id', authGuard, async (req, res) => {
+  try {
+    const user = await getOrCreateMyProvider(req.auth.userId);
+    const row = await prisma.language.findUnique({ where: { id: req.params.id } });
+    if (!row || row.providerId !== user.provider.id) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    await prisma.language.delete({ where: { id: req.params.id } });
+    res.status(204).end();
   } catch (err) {
     console.error('[providers.js]' , err);
     res.status(500).json({ error: err.message });

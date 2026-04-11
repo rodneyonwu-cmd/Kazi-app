@@ -89,6 +89,10 @@ model Provider {
   state             String?
   zip               String?
   software          String[]
+  // TODO(provider-chips-migration): legacy free-text array, kept for backwards
+  // compat with the seed data + the /api/providers list filter. New chip data
+  // lives in the providerSkills relation. Once we've migrated the existing
+  // string[] data into Skill rows we can drop this column.
   skills            String[]
   resumeUrl         String?
   resumeName        String?
@@ -108,6 +112,44 @@ model Provider {
   savedOffices      SavedOffice[]
   messages          Message[]
   credentials       Credential[]
+  providerSkills    Skill[]
+  experiences       Experience[]
+  languages         Language[]
+}
+
+// ── PROVIDER CHIPS — relational replacement for free-text arrays ──
+model Skill {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime @default(now())
+
+  @@unique([providerId, name])
+  @@index([providerId])
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime @default(now())
+
+  @@unique([providerId, name])
+  @@index([providerId])
+}
+
+model Language {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name        String
+  level       String   // "Native" | "Fluent" | "Conversational" | "Basic"
+  createdAt   DateTime @default(now())
+
+  @@unique([providerId, name])
+  @@index([providerId])
 }
 
 // ── CREDENTIALS ────────────────────────────────────
