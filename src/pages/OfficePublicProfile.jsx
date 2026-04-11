@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 
 const styles = `
-.kazi-opp { --green: #1a7f5e; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --amber-soft: #fef6e4; --coral: #e8734a; --coral-soft: #fdeee7; --purple: #7c5aa8; --purple-soft: #efe8f5; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 110px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
+.kazi-opp { --green: #1a7f5e; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --amber-soft: #fef6e4; --coral: #e8734a; --coral-soft: #fdeee7; --purple: #7c5aa8; --purple-soft: #efe8f5; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 40px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
 .kazi-opp * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 .kazi-opp button { font-family: inherit; cursor: pointer; }
 .kazi-opp .topbar { position: sticky; top: 0; z-index: 50; background: var(--card); padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-soft); }
@@ -104,11 +104,6 @@ const styles = `
 .kazi-opp .photo.p4 { background: linear-gradient(135deg,#d4a8c8,#b888a8); }
 .kazi-opp .photo.featured { grid-column: span 2; aspect-ratio: 2/1; }
 .kazi-opp .photo-label { position: absolute; bottom: 8px; left: 10px; color: white; font-size: 11px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.3); }
-.kazi-opp .action-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 480px; width: 100%; background: var(--card); padding: 12px 20px 22px; border-top: 1px solid var(--border); display: flex; gap: 12px; z-index: 41; align-items: center; }
-.kazi-opp .next-shift { flex: 1; min-width: 0; }
-.kazi-opp .next-shift-label { font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
-.kazi-opp .next-shift-val { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 800; color: var(--text); }
-.kazi-opp .apply-primary { background: var(--green); color: white; border: none; border-radius: 100px; padding: 13px 22px; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
 `;
 
 const TEMP_SHIFTS = [
@@ -136,7 +131,6 @@ export default function OfficePublicProfile() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [saved, setSaved] = useState(true);
 
-  const handleApply = () => alert('Apply for next open shift');
   const openShift = (shiftId) => navigate(`/shift/${shiftId}`);
   const handleShare = () => {
     if (navigator.share) navigator.share({ url: window.location.href }).catch(() => {});
@@ -308,13 +302,6 @@ export default function OfficePublicProfile() {
         </div>
       )}
 
-      <div className="action-bar">
-        <div className="next-shift">
-          <div className="next-shift-label">Next open shift</div>
-          <div className="next-shift-val">Fri Apr 11 · Hygienist · $55/hr</div>
-        </div>
-        <button className="apply-primary" onClick={handleApply}>Apply</button>
-      </div>
     </div>
   );
 }
