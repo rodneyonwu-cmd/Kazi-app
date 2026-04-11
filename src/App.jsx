@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthenticateWithRedirectCallback, useAuth } from '@clerk/clerk-react'
+import ScrollToTop from './components/ScrollToTop'
 
 function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useAuth()
@@ -62,8 +63,10 @@ import PostPermanentJobWizard from './pages/PostPermanentJobWizard'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" />} />
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
@@ -129,7 +132,8 @@ function App() {
         <Route path="announce" element={<AdminAnnouncements />} />
         <Route path="audit" element={<AdminAudit />} />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   )
 }
 
