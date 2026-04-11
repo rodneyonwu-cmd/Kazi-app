@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
@@ -101,6 +102,29 @@ export default function ProviderMyProfile() {
   const initials = (firstName[0] || 'A') + lastInitial;
   const displayName = `${firstName} ${lastInitial}.`;
 
+  const [hourlyRate, setHourlyRate] = useState(28);
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateDraft, setRateDraft] = useState(String(hourlyRate));
+
+  const startEditRate = () => {
+    setRateDraft(String(hourlyRate));
+    setEditingRate(true);
+  };
+  const saveRate = () => {
+    const n = parseFloat(rateDraft);
+    if (!isNaN(n) && n > 0) {
+      setHourlyRate(n);
+      setEditingRate(false);
+      // TODO: PATCH /api/providers/me { hourlyRate: n } once API is wired
+    } else {
+      alert('Enter a valid hourly rate');
+    }
+  };
+  const cancelRate = () => {
+    setRateDraft(String(hourlyRate));
+    setEditingRate(false);
+  };
+
   const notImpl = (label) => () => alert(`${label} — coming soon`);
 
   return (
@@ -148,8 +172,53 @@ export default function ProviderMyProfile() {
             </div>
             <div className="hero-role">Dental Assistant · Houston, TX</div>
             <div className="hero-rate-row">
-              <span className="hero-rate">$28/hr</span>
-              <button className="rate-edit" onClick={notImpl('Edit rate')}>Edit</button>
+              {editingRate ? (
+                <>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 19, fontWeight: 800, color: '#1a7f5e' }}>$</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.5"
+                    value={rateDraft}
+                    autoFocus
+                    onChange={(e) => setRateDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveRate();
+                      else if (e.key === 'Escape') cancelRate();
+                    }}
+                    style={{
+                      width: 64,
+                      fontFamily: "'Outfit', sans-serif",
+                      fontSize: 19,
+                      fontWeight: 800,
+                      color: '#1a7f5e',
+                      background: '#f1f9f5',
+                      border: '1.5px solid #cfe8de',
+                      borderRadius: 8,
+                      padding: '2px 8px',
+                      outline: 'none',
+                      letterSpacing: '-0.01em',
+                    }}
+                  />
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, color: '#5a5a5a' }}>/hr</span>
+                  <button
+                    className="rate-edit"
+                    onClick={saveRate}
+                    style={{ background: '#1a7f5e', color: 'white', padding: '4px 10px', borderRadius: 100, marginLeft: 4 }}
+                  >
+                    Save
+                  </button>
+                  <button className="rate-edit" onClick={cancelRate} style={{ color: '#8a8a8a' }}>
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="hero-rate">${hourlyRate}/hr</span>
+                  <button className="rate-edit" onClick={startEditRate}>Edit</button>
+                </>
+              )}
             </div>
             <div className="hero-stars">
               <span className="stars-val">★ 5.0</span>
