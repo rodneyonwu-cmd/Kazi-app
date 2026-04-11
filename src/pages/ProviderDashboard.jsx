@@ -4,6 +4,9 @@ import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import BookedShiftModal from './BookedShiftModal';
 
+// Default profile photo for the current user (Rodney) when Clerk has no imageUrl
+const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
+
 // ============================================================
 // KAZI PROVIDER DASHBOARD — Pro home (route: /provider)
 // Locked design system: green/black/gray + gold, mobile-first
@@ -180,27 +183,12 @@ export default function ProviderDashboard() {
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 30, color: COLORS.green, letterSpacing: '-0.8px', flex: 1 }}>
             kazi.
           </div>
-          {user?.imageUrl ? (
-            <img src={user.imageUrl} alt={firstName} style={{ width: 40, height: 40, borderRadius: 14, objectFit: 'cover' }} />
-          ) : (
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 700,
-                fontSize: 14,
-              }}
-            >
-              {initials}
-            </div>
-          )}
+          <img
+            src={user?.imageUrl || DEFAULT_USER_PHOTO}
+            alt={firstName}
+            style={{ width: 40, height: 40, borderRadius: 14, objectFit: 'cover' }}
+            onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
+          />
         </div>
 
         {/* GREETING */}

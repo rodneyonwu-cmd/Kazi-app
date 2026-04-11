@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 
+const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
+
 // ============================================================
 // KAZI PROVIDER REQUESTS — Inbox of incoming invitations
 // Tabs: Incoming / Accepted / Declined / Expired
@@ -122,28 +124,12 @@ export default function ProviderRequests() {
           }}
         >
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.text, flex: 1 }}>Requests</div>
-          {user?.imageUrl ? (
-            <img src={user.imageUrl} alt="me" style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }} />
-          ) : (
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 12,
-                background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 700,
-                fontSize: 12,
-                color: 'white',
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </div>
-          )}
+          <img
+            src={user?.imageUrl || DEFAULT_USER_PHOTO}
+            alt="me"
+            style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }}
+            onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
+          />
         </div>
 
         {/* Tabs */}

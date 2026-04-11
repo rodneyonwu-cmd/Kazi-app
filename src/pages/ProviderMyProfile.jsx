@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 
+const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
+
 const styles = `
 .kazi-pmp { --green: #1a7f5e; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --amber-soft: #fef6e4; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; --danger: #ef4444; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 110px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
 .kazi-pmp * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -127,11 +129,12 @@ export default function ProviderMyProfile() {
       <div className="hero-card">
         <div className="hero-top">
           <div className="photo-wrap">
-            {user?.imageUrl ? (
-              <img src={user.imageUrl} alt={displayName} className="hero-photo" />
-            ) : (
-              <div className="hero-photo">{initials}</div>
-            )}
+            <img
+              src={user?.imageUrl || DEFAULT_USER_PHOTO}
+              alt={displayName}
+              className="hero-photo"
+              onError={(e) => { e.currentTarget.src = DEFAULT_USER_PHOTO; }}
+            />
             <div className="photo-verified">
               <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
             </div>
