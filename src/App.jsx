@@ -31,6 +31,11 @@ import ShiftRequests from './pages/ShiftRequests'
 import ProviderRequests from './pages/ProviderRequests'
 import RequestDetail from './pages/RequestDetail'
 import ApplyShift from './pages/ApplyShift'
+import ProviderMyProfile from './pages/ProviderMyProfile'
+import ProviderProfilePreview from './pages/ProviderProfilePreview'
+import OfficePublicProfile from './pages/OfficePublicProfile'
+import OfficeMyProfile from './pages/OfficeMyProfile'
+import ShiftDetails from './pages/ShiftDetails'
 import ProviderMessages from './pages/ProviderMessages'
 import ProviderEarnings from './pages/ProviderEarnings'
 import ProviderSchedule from './pages/ProviderSchedule'
@@ -102,10 +107,16 @@ function App() {
       <Route path="/provider-favorites" element={<RequireAuth><FavoriteOffices /></RequireAuth>} />
       <Route path="/provider-help" element={<RequireAuth><ProviderHelpCenter /></RequireAuth>} />
       <Route path="/provider-settings" element={<RequireAuth><ProviderSettings /></RequireAuth>} />
-      <Route path="/provider-profile" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
+      <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
+      <Route path="/my-profile" element={<RequireAuth><ProviderMyProfile /></RequireAuth>} />
+      <Route path="/provider-profile-preview" element={<RequireAuth><ProviderProfilePreview /></RequireAuth>} />
+      <Route path="/provider/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
       <Route path="/provider-availability" element={<RequireAuth><ProviderAvailability /></RequireAuth>} />
       <Route path="/office-profile/:id" element={<RequireAuth><OfficeProfile /></RequireAuth>} />
+      <Route path="/office/:id" element={<RequireAuth><OfficePublicProfile /></RequireAuth>} />
+      <Route path="/my-office" element={<RequireAuth><OfficeMyProfile /></RequireAuth>} />
+      <Route path="/shift/:id" element={<RequireAuth><ShiftDetails /></RequireAuth>} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

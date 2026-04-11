@@ -1,974 +1,244 @@
-import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useLocation, useParams } from 'react-router-dom'
-import { useUser, useAuth } from '@clerk/clerk-react'
-import ProviderNav from '../components/ProviderNav'
-import Nav from '../components/Nav'
-import InitialsAvatar from '../components/InitialsAvatar'
-import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const styles = `
+.kazi-pp { --green: #1a7f5e; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 110px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
+.kazi-pp * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+.kazi-pp button { font-family: inherit; cursor: pointer; }
+.kazi-pp .topbar { background: var(--card); padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-soft); position: sticky; top: 0; z-index: 50; }
+.kazi-pp .icon-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.kazi-pp .icon-btn svg { width: 16px; height: 16px; stroke: var(--text); stroke-width: 2; fill: none; }
+.kazi-pp .icon-btn.saved { background: #fdeee7; }
+.kazi-pp .icon-btn.saved svg { stroke: #e8734a; fill: #e8734a; }
+.kazi-pp .topbar-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 18px; flex: 1; letter-spacing: -.01em; }
+.kazi-pp .hero-card { background: var(--card); margin: 14px 20px 0; border-radius: 14px; border: 1.5px solid var(--border); padding: 22px; }
+.kazi-pp .hero-top { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; }
+.kazi-pp .photo-wrap { position: relative; flex-shrink: 0; }
+.kazi-pp .hero-photo { width: 88px; height: 88px; border-radius: 24px; background: linear-gradient(135deg,#a8c9b8,#7ab8a8); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 32px; font-family: 'Outfit', sans-serif; letter-spacing: -.02em; box-shadow: 0 4px 14px rgba(26,127,94,.12); object-fit: cover; }
+.kazi-pp .photo-verified { position: absolute; bottom: -3px; right: -3px; width: 26px; height: 26px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--card); }
+.kazi-pp .photo-verified svg { width: 12px; height: 12px; stroke: white; stroke-width: 3; fill: none; }
+.kazi-pp .hero-info { flex: 1; min-width: 0; }
+.kazi-pp .hero-name { font-family: 'Outfit', sans-serif; font-size: 25px; font-weight: 800; color: var(--text); margin-bottom: 3px; letter-spacing: -.02em; }
+.kazi-pp .hero-role { font-size: 14px; color: var(--text-light); margin-bottom: 6px; }
+.kazi-pp .hero-rate-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.kazi-pp .hero-rate { font-family: 'Outfit', sans-serif; font-size: 19px; font-weight: 800; color: var(--green); letter-spacing: -.01em; }
+.kazi-pp .hero-stars { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.kazi-pp .stars-val { font-size: 16px; font-weight: 800; color: var(--orange); }
+.kazi-pp .reviews-ct { font-size: 13px; color: var(--text-light); }
+.kazi-pp .reliability-pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 100px; background: var(--gold-bg); color: var(--gold-text); }
+.kazi-pp .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+.kazi-pp .stat-tile { background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.kazi-pp .stat-tile-label { font-size: 9px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+.kazi-pp .stat-tile-val { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.01em; }
+.kazi-pp .stat-tile-val.green { color: var(--green); }
+.kazi-pp .stat-tile-val.gold { color: var(--gold-text); }
+.kazi-pp .section { background: var(--card); margin: 14px 20px 0; border-radius: 14px; padding: 20px; border: 1.5px solid var(--border); }
+.kazi-pp .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.kazi-pp .section-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+.kazi-pp .about-text { font-size: 14px; line-height: 1.6; color: var(--text-mid); }
+.kazi-pp .chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.kazi-pp .chip { background: var(--bg); color: var(--text); padding: 6px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border); }
+.kazi-pp .chip.green { background: var(--green-soft); color: var(--green); border-color: var(--green-soft); }
+.kazi-pp .lang-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.kazi-pp .lang-row:last-child { border-bottom: none; }
+.kazi-pp .lang-name { font-size: 14px; font-weight: 600; }
+.kazi-pp .lang-level { font-size: 11px; color: var(--green); background: var(--green-soft); padding: 4px 10px; border-radius: 100px; font-weight: 700; }
+.kazi-pp .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.kazi-pp .cal-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+.kazi-pp .cal-month { font-weight: 700; font-size: 13px; color: var(--text-mid); }
+.kazi-pp .cal-legend { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-light); margin-bottom: 12px; }
+.kazi-pp .cal-legend-sq { width: 12px; height: 12px; border-radius: 4px; background: var(--green-soft); border: 1.5px solid #cfe8de; }
+.kazi-pp .cal-dow { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; margin-bottom: 6px; }
+.kazi-pp .cal-dow-cell { font-size: 10px; font-weight: 800; color: var(--text-light); text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+.kazi-pp .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
+.kazi-pp .cal-cell { aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: var(--text); font-family: 'Outfit', sans-serif; }
+.kazi-pp .cal-cell.empty { background: transparent; }
+.kazi-pp .cal-cell.past { color: #d1d5db; }
+.kazi-pp .cal-cell.unavail { background: var(--bg); border: 1.5px solid var(--border-soft); }
+.kazi-pp .cal-cell.available { background: var(--green-soft); color: var(--green); border: 1.5px solid var(--green-soft); cursor: pointer; }
+.kazi-pp .cal-cell.today { color: var(--green); border: 2px solid var(--green); }
+.kazi-pp .rating-summary { display: flex; gap: 16px; align-items: center; padding: 4px 0 16px; border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; }
+.kazi-pp .rating-big { font-family: 'Outfit', sans-serif; font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.kazi-pp .rating-meta { flex: 1; }
+.kazi-pp .rating-stars { color: var(--orange); font-size: 15px; letter-spacing: 1px; margin-bottom: 3px; }
+.kazi-pp .rating-count { font-size: 12px; color: var(--text-light); font-weight: 600; }
+.kazi-pp .review { padding: 14px 0; border-bottom: 1px solid var(--border-soft); }
+.kazi-pp .review:last-of-type { border-bottom: none; padding-bottom: 0; }
+.kazi-pp .review-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.kazi-pp .reviewer-logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg,#88c9a1,#7ab8d4); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+.kazi-pp .reviewer-info { flex: 1; min-width: 0; }
+.kazi-pp .reviewer-name { font-size: 13px; font-weight: 700; }
+.kazi-pp .review-date { font-size: 11px; color: var(--text-light); margin-top: 1px; }
+.kazi-pp .review-stars { color: var(--orange); font-size: 12px; letter-spacing: .5px; }
+.kazi-pp .review-text { font-size: 13px; line-height: 1.55; color: var(--text-mid); }
+.kazi-pp .see-all { display: block; width: 100%; text-align: center; background: var(--bg); border: 1.5px solid var(--border); border-radius: 100px; padding: 10px; margin-top: 14px; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer; }
+.kazi-pp .action-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); max-width: 480px; width: 100%; background: var(--card); padding: 14px 20px 26px; border-top: 1px solid var(--border); display: flex; gap: 10px; z-index: 41; box-shadow: 0 -4px 20px rgba(0,0,0,.04); }
+.kazi-pp .btn { padding: 13px 18px; border-radius: 100px; border: none; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+.kazi-pp .btn-icon { flex: 0 0 50px; padding: 13px; background: var(--bg); border: 1.5px solid var(--border); color: var(--text); }
+.kazi-pp .btn-icon svg { width: 16px; height: 16px; stroke: var(--text); fill: none; stroke-width: 2; }
+.kazi-pp .btn-icon.saved { background: #fdeee7; border-color: #fdeee7; }
+.kazi-pp .btn-icon.saved svg { stroke: #e8734a; fill: #e8734a; }
+.kazi-pp .btn-primary { background: var(--green); color: white; flex: 2; }
+.kazi-pp .btn-primary svg { width: 15px; height: 15px; stroke: white; fill: none; stroke-width: 2.5; }
+`;
 
-const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
-
-const ROLE_LABELS = {
-  hygienist: 'Dental Hygienist',
-  assistant: 'Dental Assistant',
-  front: 'Front Office',
-  dentist: 'Dentist',
-  specialist: 'Specialist',
-}
-function displayRole(role) {
-  if (!role) return ''
-  return ROLE_LABELS[role] || role
-}
-
-const CheckIcon = () => (
-  <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
-)
+// Mock provider lookup keyed by id
+const MOCK_PROVIDERS = {
+  default: {
+    initials: 'AA',
+    firstName: 'Alexandra',
+    lastInitial: 'A',
+    role: 'Dental Assistant · Houston, TX',
+    rate: '$28/hr',
+    rating: '5.0',
+    reviewCount: 47,
+    reliability: '98%',
+    stats: { shifts: 130, response: '<1 hr', reliability: '98%', score: 625 },
+    about: "I am from Colombia, an energetic Dental Assistant enthusiastic about dental health. I earned my license in 2020 and have worked in general practice. I genuinely enjoy my work.",
+    certs: [{ label: 'BLS CPR', green: true }, { label: 'CDA', green: true }, { label: 'EFDA' }, { label: 'Radiology' }],
+    skills: ['Alginate Impressions', 'Bilingual', 'Bone Grafting', 'Bridges', 'Crowns', 'Digital X-Rays'],
+    experience: ['Endodontics', 'General Dentistry', 'Oral Surgery', 'Orthodontics'],
+    languages: [{ name: 'Spanish', level: 'Native' }, { name: 'English', level: 'Conversational' }],
+  },
+};
 
 export default function ProviderProfile() {
-  const navigate = useNavigate()
-  const { count: unreadMsgCount } = useUnreadMessageCount()
-  const location = useLocation()
-  const { id: providerIdParam } = useParams()
-  const isExternalView = !!providerIdParam
-  const readOnly = isExternalView || location.state?.readOnly === true
-  const { user } = useUser()
-  const { getToken } = useAuth()
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const provider = MOCK_PROVIDERS[id] || MOCK_PROVIDERS.default;
+  const [saved, setSaved] = useState(false);
 
-  const today = new Date()
-  const [monthIdx, setMonthIdx] = useState(today.getMonth())
-  const [year, setYear] = useState(today.getFullYear())
-  const [reviewTab, setReviewTab] = useState('All')
-  const [editingAbout, setEditingAbout] = useState(false)
-  const [editingRate, setEditingRate] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [toast, setToast] = useState(null)
-
-  const [profile, setProfile] = useState(null)
-  const [reviews, setReviews] = useState([])
-  const [credentials, setCreds] = useState([])
-  const [availability, setAvailability] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const [about, setAbout] = useState('')
-  const [rate, setRate] = useState('')
-  const fileInputRef = useRef(null)
-  const credInputRef = useRef(null)
-  const avatarInputRef = useRef(null)
-
-  // Software & Skills modal state
-  const [showSoftwareModal, setShowSoftwareModal] = useState(false)
-  const [showSkillsModal, setShowSkillsModal] = useState(false)
-  const [editSoftware, setEditSoftware] = useState([])
-  const [editSkills, setEditSkills] = useState([])
-
-  // Credential upload state
-  const [credUploadType, setCredUploadType] = useState(null)
-
-  const SOFTWARE_OPTIONS = ['Eaglesoft', 'Dentrix', 'Open Dental', 'Curve Dental', 'Dexis', 'Carestream', 'Dolphin', 'Other']
-
-  const SKILLS_BY_ROLE = {
-    dentist: [
-      'Oral Surgery', 'Molar Root Canal', 'Wisdom Teeth Extractions', 'Veneers', 'Invisalign',
-      'Dental Implants', 'Crowns & Bridges', 'Dentures', 'Teeth Whitening', 'Composite Fillings',
-      'Porcelain Restorations', 'Pediatric Dentistry', 'Endodontics', 'Periodontal Surgery',
-      'Bone Grafting', 'Sinus Lift', 'TMJ Treatment', 'Sleep Apnea Treatment', 'Sedation Dentistry',
-      'Emergency Dental Care', 'Cosmetic Dentistry', 'Full Mouth Reconstruction', 'Digital Smile Design',
-      'Laser Dentistry', 'All-on-4 Implants', 'Occlusal Adjustment', 'Bilingual - Spanish',
-    ],
-    hygienist: [
-      'Prophylaxis', 'Scaling & Root Planing', 'Sealants', 'Fluoride Treatment', 'X-Rays',
-      'Periodontal Charting', 'Coronal Polishing', 'Nitrous Oxide Administration', 'Local Anesthesia',
-      'Impressions', 'Patient Education', 'Infection Control', 'Laser Therapy',
-      'Whitening Treatments', 'Oral Cancer Screening', 'Arestin Placement', 'Desensitizing Treatments',
-      'Temporary Restorations', 'Bilingual - Spanish',
-    ],
-    assistant: [
-      'Chairside Assisting', 'Impressions', 'Temporary Crowns', 'X-Rays', 'Sterilization',
-      'Infection Control', 'Sealants', 'Coronal Polishing', 'Fluoride Treatment', 'Patient Education',
-      'Lab Work', 'Pouring Models', 'Fabricating Trays', 'Suture Removal', 'Four-Handed Dentistry',
-      'Orthodontic Assisting', 'Surgical Assisting', 'EFDA Procedures', 'Bilingual - Spanish',
-    ],
-    front: [
-      'Scheduling', 'Insurance Verification', 'Billing & Coding', 'Patient Check-In/Out',
-      'Treatment Coordination', 'Accounts Receivable', 'Collections', 'Patient Communication',
-      'HIPAA Compliance', 'Office Management', 'Multi-Line Phones', 'Dental Terminology',
-      'Prior Authorizations', 'Recall Management', 'New Patient Intake', 'Bilingual - Spanish',
-    ],
-  }
-
-  const providerRole = profile?.role || ''
-  const SKILLS_OPTIONS = SKILLS_BY_ROLE[providerRole] || [
-    ...new Set(Object.values(SKILLS_BY_ROLE).flat())
-  ].sort()
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const token = await getToken()
-        const headers = { Authorization: `Bearer ${token}` }
-
-        // Fetch profile — by ID if external, or /me for own profile
-        const profileUrl = isExternalView
-          ? `${API_URL}/api/providers/${providerIdParam}`
-          : `${API_URL}/api/providers/me`
-        const profileRes = await fetch(profileUrl, { headers })
-        const profileData = await profileRes.json()
-        setProfile(profileData)
-        setAbout(profileData?.bio || '')
-        setRate(profileData?.hourlyRate ? String(profileData.hourlyRate) : '')
-
-        // Fetch reviews, credentials, availability in parallel
-        const providerId = profileData?.id
-        if (providerId) {
-          const [revRes, credRes, availRes] = await Promise.all([
-            fetch(`${API_URL}/api/reviews?providerId=${providerId}`, { headers }),
-            fetch(`${API_URL}/api/providers/${providerId}/credentials`, { headers }),
-            fetch(`${API_URL}/api/providers/${providerId}/availability`, { headers }),
-          ])
-          const [revData, credData, availData] = await Promise.all([
-            revRes.json(),
-            credRes.json(),
-            availRes.json(),
-          ])
-          setReviews(Array.isArray(revData) ? revData : [])
-          setCreds(Array.isArray(credData) ? credData : [])
-          setAvailability(Array.isArray(availData) ? availData : [])
-        }
-      } catch (err) {
-        console.error('Failed to load profile data:', err)
-      } finally {
-        setLoading(false)
-      }
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: `${provider.firstName} ${provider.lastInitial}.`, url: window.location.href }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(window.location.href);
+      alert('Link copied');
     }
-    fetchData()
-  }, [getToken, providerIdParam])
+  };
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
-
-  const saveProfile = async () => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/providers/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ bio: about, hourlyRate: rate ? parseFloat(rate) : null }),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setProfile(prev => ({ ...prev, bio: updated.bio, hourlyRate: updated.hourlyRate }))
-      }
-      setShowEditModal(false)
-      showToast('Profile updated!')
-    } catch { showToast('Failed to update profile') }
-  }
-
-  const saveRate = async () => {
-    if (!rate) return
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/providers/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ hourlyRate: parseFloat(rate) }),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setProfile(prev => ({ ...prev, hourlyRate: updated.hourlyRate }))
-        setEditingRate(false)
-        showToast('Rate updated!')
-      } else { showToast('Failed to update rate') }
-    } catch { showToast('Failed to update rate') }
-  }
-
-  const saveAbout = async () => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/providers/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ bio: about }),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setProfile(prev => ({ ...prev, bio: updated.bio }))
-      }
-      setEditingAbout(false)
-      showToast('About updated!')
-    } catch { showToast('Failed to update about') }
-  }
-
-  const saveSoftware = async () => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/providers/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ software: editSoftware }),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setProfile(prev => ({ ...prev, software: updated.software }))
-        setShowSoftwareModal(false)
-        showToast('Software updated!')
-      } else { showToast('Failed to update') }
-    } catch { showToast('Failed to update') }
-  }
-
-  const saveSkills = async () => {
-    try {
-      const token = await getToken()
-      const res = await fetch(`${API_URL}/api/providers/me`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ skills: editSkills }),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setProfile(prev => ({ ...prev, skills: updated.skills }))
-        setShowSkillsModal(false)
-        showToast('Skills updated!')
-      } else { showToast('Failed to update') }
-    } catch { showToast('Failed to update') }
-  }
-
-  const uploadCredential = async (type, file) => {
-    try {
-      const token = await getToken()
-      const providerId = profile?.id
-      if (!providerId) return
-      const res = await fetch(`${API_URL}/api/providers/${providerId}/credentials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type, fileUrl: file.name, verified: false }),
-      })
-      if (res.ok) {
-        const cred = await res.json()
-        setCreds(prev => [...prev, cred])
-        showToast(`${type} uploaded!`)
-      } else { showToast('Failed to upload credential') }
-    } catch { showToast('Failed to upload credential') }
-  }
-
-  const changeMonth = (delta) => {
-    let m = monthIdx + delta, y = year
-    if (m > 11) { m = 0; y++ }
-    if (m < 0)  { m = 11; y-- }
-    setMonthIdx(m); setYear(y)
-  }
-
-  const firstDay    = new Date(year, monthIdx, 1).getDay()
-  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
-  const daysInPrev  = new Date(year, monthIdx, 0).getDate()
-  const isCurrent   = today.getFullYear() === year && today.getMonth() === monthIdx
-  const total       = firstDay + daysInMonth
-  const trailing    = total % 7 === 0 ? 0 : 7 - (total % 7)
-
-  // Derive display values from profile
-  const rawFirst    = profile?.firstName || user?.firstName || ''
-  const lastName    = profile?.lastName || user?.lastName || ''
-  const isDentist   = profile?.role === 'dentist'
-  const firstName   = isDentist ? `Dr. ${rawFirst}` : rawFirst
-  const displayName = firstName ? `${firstName} ${lastName ? lastName.charAt(0) + '.' : ''}`.trim() : ''
-  const roleName    = displayRole(profile?.role)
-  const locationStr = profile?.city && profile?.state ? `${profile.city}, ${profile.state}` : ''
-  const softwareList = profile?.software || []
-  const skillsList   = profile?.skills || []
-  const completedShifts = profile?.stats?.completedShifts || 0
-
-  // Compute availability days for the calendar
-  const bookedDays = []
-  const availDays  = []
-  availability.forEach(slot => {
-    if (slot.isException) return
-    if (slot.date) {
-      const d = new Date(slot.date)
-      if (d.getMonth() === monthIdx && d.getFullYear() === year) {
-        const day = d.getDate()
-        if (!availDays.includes(day) && !bookedDays.includes(day)) availDays.push(day)
-      }
-    } else if (slot.dayOfWeek != null) {
-      for (let d = 1; d <= daysInMonth; d++) {
-        if (new Date(year, monthIdx, d).getDay() === slot.dayOfWeek) {
-          if (!availDays.includes(d) && !bookedDays.includes(d)) availDays.push(d)
-        }
-      }
-    }
-  })
-
-  // Reviews
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((s, r) => s + (r.stars || r.rating || 0), 0) / reviews.length).toFixed(1)
-    : '—'
-
-  const filteredReviews = reviews.filter(r =>
-    reviewTab === 'All' || (reviewTab === 'Positive' && (r.stars || r.rating) >= 4) || (reviewTab === 'Critical' && (r.stars || r.rating) < 4)
-  )
-
-  // Profile strength calculation
-  const hasPhoto       = !!(user?.imageUrl || profile?.avatarUrl)
-  const hasAbout       = !!(profile?.bio)
-  const hasRate        = !!(profile?.hourlyRate)
-  const hasCreds       = credentials.length > 0
-  const hasResume      = !!(profile?.resumeUrl)
-  const hasAvailability = availability.length > 0
-  const strengthItems  = [
-    ['Profile photo',       hasPhoto],
-    ['About section',       hasAbout],
-    ['Hourly rate',         hasRate],
-    ['Credentials uploaded', hasCreds],
-    ['Resume uploaded',     hasResume],
-    ['Availability set',    hasAvailability],
-  ]
-  const strengthCount = strengthItems.filter(([, done]) => done).length
-  const strengthPct   = Math.round((strengthCount / strengthItems.length) * 100)
-  const strengthTip   = !hasPhoto ? 'Add a profile photo' : !hasAbout ? 'Write an about section' : !hasRate ? 'Set your hourly rate' : !hasCreds ? 'Upload your credentials' : !hasResume ? 'Add a resume' : !hasAvailability ? 'Set your availability' : 'Looking great!'
-
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December']
-
-  const s = { // shared inline style helpers
-    card: { background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 14, padding: '16px 18px', marginBottom: 14 },
-    sectionLabel: { fontSize: 10, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10, display: 'block' },
-    sideCard: { background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: 16, marginBottom: 14 },
-  }
-
-  if (loading) {
-    return (
-      <div className="overflow-x-hidden w-full" style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif", overflowX: 'hidden', maxWidth: '100vw', width: '100%' }}>
-        {isExternalView ? <Nav /> : <ProviderNav />}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 120 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#1a7f5e', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-            <p style={{ fontSize: 14, color: '#9ca3af', fontWeight: 600 }}>Loading profile...</p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const handleSave = () => setSaved((s) => !s);
+  const handleMessage = () => navigate('/messages');
+  const handleBook = () => alert(`Booking ${provider.firstName}…`);
 
   return (
-    <div className="overflow-x-hidden w-full" style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif", overflowX: 'hidden', maxWidth: '100vw', width: '100%' }}>
-
-      {/* Mobile responsive overrides */}
-      <style>{`
-        @media (max-width: 768px) {
-          .pp-back-wrap { padding: 12px 16px !important; }
-          .pp-content-wrap { padding: 0 16px 96px !important; }
-          .pp-row { flex-direction: column !important; gap: 14px !important; }
-          .pp-sidebar { width: 100% !important; position: static !important; order: 2; }
-          .pp-main { order: 1; width: 100%; }
-          .pp-hero { padding: 18px 16px 16px !important; }
-          .pp-hero-name { font-size: 20px !important; }
-          .pp-stats { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-          .pp-modal-wrap { padding: 0 !important; align-items: stretch !important; }
-          .pp-modal { max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; min-height: 100vh; display: flex; flex-direction: column; }
-          .pp-modal-body { flex: 1; overflow-y: auto; }
-          .pp-modal-input { font-size: 16px !important; }
-        }
-      `}</style>
-
-      {/* TOAST */}
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)', background: '#1a1a1a', color: 'white', fontSize: 13, fontWeight: 600, padding: '10px 18px', borderRadius: 100, zIndex: 600, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(0,0,0,.2)' }}>
-          <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#1a7f5e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CheckIcon /></div>
-          {toast}
-        </div>
-      )}
-
-      {/* EDIT PROFILE MODAL */}
-      {showEditModal && (
-        <div className="pp-modal-wrap" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div className="pp-modal" style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 460, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Edit profile</h2>
-              <button onClick={() => setShowEditModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
-            </div>
-            <input type="file" ref={avatarInputRef} accept="image/*" style={{ display: 'none' }} onChange={async e => {
-              const file = e.target.files[0]
-              if (!file) return
-              try {
-                const token = await getToken()
-                const formData = new FormData()
-                formData.append('file', file)
-                const res = await fetch(`${API_URL}/api/providers/avatar`, {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${token}` },
-                  body: formData,
-                })
-                if (res.ok) {
-                  const data = await res.json()
-                  setProfile(prev => ({ ...prev, avatarUrl: data.avatarUrl }))
-                  showToast('Photo updated!')
-                } else { showToast('Failed to upload photo') }
-              } catch { showToast('Failed to upload photo') }
-              e.target.value = ''
-            }} />
-            <div className="pp-modal-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {(user?.imageUrl || profile?.avatarUrl)
-                  ? <img src={user?.imageUrl || (profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`)} alt="Profile" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
-                  : <InitialsAvatar name={firstName} size={64} />
-                }
-                <button onClick={() => avatarInputRef.current?.click()} style={{ border: '1px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '8px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Change photo</button>
-              </div>
-              {[
-                ['Full name', displayName || '', 'text'],
-                ['Role', roleName || '', 'text'],
-                ['City', locationStr || '', 'text'],
-                ['Hourly rate', rate || '', 'number'],
-                ['Travel radius (miles)', '25', 'number'],
-              ].map(([label, placeholder, type]) => (
-                <div key={label}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>{label}</p>
-                  <input className="pp-modal-input" type={type} placeholder={placeholder} defaultValue={placeholder} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-                </div>
-              ))}
-              <div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>About</p>
-                <textarea className="pp-modal-input" rows={4} defaultValue={about} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '10px 16px', fontSize: 14, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-              </div>
-              <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
-                <button onClick={() => setShowEditModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
-                <button onClick={saveProfile} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save changes</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SOFTWARE MODAL */}
-      {showSoftwareModal && (
-        <div className="pp-modal-wrap" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div className="pp-modal" style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Practice Software</h2>
-              <button onClick={() => setShowSoftwareModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
-            </div>
-            <div style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {SOFTWARE_OPTIONS.map(sw => {
-                const selected = editSoftware.includes(sw)
-                return (
-                  <button key={sw} onClick={() => setEditSoftware(prev => selected ? prev.filter(s => s !== sw) : [...prev, sw])}
-                    style={{ padding: '7px 16px', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: selected ? '1.5px solid #1a7f5e' : '1.5px solid #e5e7eb', background: selected ? '#e8f5f0' : 'white', color: selected ? '#1a7f5e' : '#374151' }}>
-                    {selected ? '✓ ' : ''}{sw}
-                  </button>
-                )
-              })}
-            </div>
-            <div style={{ padding: '16px 24px', display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowSoftwareModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={saveSoftware} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SKILLS MODAL */}
-      {showSkillsModal && (
-        <div className="pp-modal-wrap" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-          <div className="pp-modal" style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,.2)', maxHeight: '80vh', overflowY: 'auto' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontSize: 17, fontWeight: 900, color: '#1a1a1a' }}>Skills & Experience</h2>
-              <button onClick={() => setShowSkillsModal(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>✕</button>
-            </div>
-            <div style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {SKILLS_OPTIONS.map(skill => {
-                const selected = editSkills.includes(skill)
-                return (
-                  <button key={skill} onClick={() => setEditSkills(prev => selected ? prev.filter(s => s !== skill) : [...prev, skill])}
-                    style={{ padding: '7px 16px', borderRadius: 100, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', border: selected ? '1.5px solid #1a7f5e' : '1.5px solid #e5e7eb', background: selected ? '#e8f5f0' : 'white', color: selected ? '#1a7f5e' : '#374151' }}>
-                    {selected ? '✓ ' : ''}{skill}
-                  </button>
-                )
-              })}
-            </div>
-            <div style={{ padding: '16px 24px', display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowSkillsModal(false)} style={{ flex: 1, border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', background: 'white', fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={saveSkills} style={{ flex: 1, background: '#1a7f5e', color: 'white', fontWeight: 700, padding: '10px', borderRadius: 100, fontSize: 14, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isExternalView ? <Nav /> : <ProviderNav />}
-
-      {/* BACK */}
-      <div className="pp-back-wrap" style={{ maxWidth: 900, margin: '0 auto', padding: '16px 32px' }}>
-        <button onClick={() => isExternalView ? navigate(-1) : navigate('/provider-dashboard')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#1a7f5e', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          {isExternalView ? 'Back' : 'Back to dashboard'}
+    <div className="kazi-pp">
+      <style>{styles}</style>
+      <div className="topbar">
+        <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back">
+          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
         </button>
-      </div>
-
-      <div className="pp-content-wrap" style={{ maxWidth: 900, margin: '0 auto', padding: '0 32px 100px' }}>
-        <div className="pp-row" style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-
-          {/* -- MAIN COLUMN -- */}
-          <div className="pp-main" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-
-            {/* HERO */}
-            <div className="pp-hero" style={{ ...s.card, padding: '22px 22px 18px' }}>
-              {!readOnly && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e8f5f0', color: '#1a7f5e', fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 100, marginBottom: 16 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                  Profile visible to offices
-                </div>
-              )}
-              {readOnly && !isExternalView && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e8f5f0', color: '#1a7f5e', fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 100, marginBottom: 16 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                  This is how offices see your profile
-                </div>
-              )}
-              {/* Photo + Info row */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                  {(user?.imageUrl || profile?.avatarUrl)
-                    ? <img src={user?.imageUrl || (profile.avatarUrl.startsWith('http') ? profile.avatarUrl : `${API_URL}${profile.avatarUrl}`)} alt="Profile" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex' }} style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover' }} />
-                    : null}
-                  <div style={{ display: (user?.imageUrl || profile?.avatarUrl) ? 'none' : 'flex' }}><InitialsAvatar name={firstName} size={84} /></div>
-                  {strengthPct === 100 && (
-                    <div style={{ position: 'absolute', bottom: 2, right: 2, width: 26, height: 26, borderRadius: '50%', background: '#7c3aed', border: '2.5px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-                    </div>
-                  )}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Name */}
-                  <div className="pp-hero-name" style={{ fontSize: 24, fontWeight: 900, color: '#1a1a1a', lineHeight: 1.2, marginBottom: 3 }}>
-                    {displayName || 'Complete your profile'}
-                  </div>
-                  {/* Role + location */}
-                  <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 6 }}>
-                    {roleName || 'Set your role'}{locationStr ? ` \u00b7 ${locationStr}` : ''}
-                  </div>
-                  {/* Rate */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    {editingRate
-                      ? <input type="number" value={rate} onChange={e => setRate(e.target.value)} style={{ width: 72, border: '1.5px solid #1a7f5e', borderRadius: 8, padding: '3px 8px', fontSize: 20, fontWeight: 900, color: '#1a7f5e', outline: 'none' }} />
-                      : <span style={{ fontSize: 22, fontWeight: 900, color: '#1a7f5e' }}>${profile?.hourlyRate || '\u2014'}/hr</span>
-                    }
-                    {!readOnly && <button onClick={() => { if (editingRate) { saveRate() } else { setEditingRate(true) } }} style={{ fontSize: 12, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{editingRate ? 'Save' : 'Edit'}</button>}
-                  </div>
-                  {/* Stars + badge */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: '#F97316' }}>{'\u2605'} {profile?.stats?.rating || '\u2014'}</span>
-                    <span style={{ fontSize: 13, color: '#6b7280' }}>({reviews.length} reviews)</span>
-                    {completedShifts > 0 && (
-                      <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100, background: '#dcfce7', color: '#166534' }}>
-                        {(profile?.stats?.reliability || 0) >= 95 ? 'Excellent' : (profile?.stats?.reliability || 0) >= 80 ? 'Good' : 'Building'} {'\u00b7'} {Math.round(profile?.stats?.reliability || 0)}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {/* 4 stat tiles */}
-              <div className="pp-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
-                {[
-                  ['SHIFTS', String(completedShifts), '#1a1a1a'],
-                  ['RESPONSE', '\u2014', '#1a1a1a'],
-                  ['RELIABILITY', completedShifts === 0 ? 'New' : Math.round(profile?.stats?.reliability || 0) + '%', completedShifts === 0 ? '#9ca3af' : '#166534'],
-                  ['SCORE', strengthPct + '%', strengthPct === 100 ? '#7c3aed' : '#1a7f5e'],
-                ].map(([label,val,color]) => (
-                  <div key={label} style={{ background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 5 }}>{label}</div>
-                    <div style={{ fontSize: 16, fontWeight: 900, color }}>{val}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ABOUT */}
-            <div style={s.card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ ...s.sectionLabel, marginBottom: 0 }}>About</span>
-                {!readOnly && <button onClick={() => { if (editingAbout) { saveAbout() } else { setEditingAbout(true) } }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{editingAbout ? 'Save' : 'Edit'}</button>}
-              </div>
-              {editingAbout
-                ? <textarea value={about} onChange={e => setAbout(e.target.value)} rows={5} style={{ width: '100%', background: '#f9f8f6', border: '1px solid #f3f4f6', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#374151', lineHeight: 1.7, outline: 'none', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
-                : about
-                  ? <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{about}</div>
-                  : <div style={{ fontSize: 14, color: '#9ca3af', lineHeight: 1.7, fontStyle: 'italic' }}>Tell offices about yourself {'\u2014'} your experience, specialties, and what makes you a great team member.</div>
-              }
-            </div>
-
-            {/* AVAILABILITY CALENDAR */}
-            <div style={s.card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Availability</span>
-                <button onClick={() => navigate('/provider-availability')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit hours {'\u2192'}</button>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <button onClick={() => changeMonth(-1)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u2039'}</button>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>{months[monthIdx]} {year}</span>
-                <button onClick={() => changeMonth(1)} style={{ background: 'none', border: 'none', fontSize: 20, color: '#6b7280', cursor: 'pointer', padding: '0 6px' }}>{'\u203a'}</button>
-              </div>
-              {/* Legend */}
-              <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
-                {[['#e8f5f0','1.5px solid #1a7f5e','Available'],['#fef3c7','1.5px solid #f59e0b','Booked'],['#f3f4f6','1.5px solid #d1d5db','Unavailable']].map(([bg,border,lbl]) => (
-                  <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280' }}>
-                    <div style={{ width: 9, height: 9, borderRadius: '50%', background: bg, border, boxSizing: 'border-box' }}/>
-                    {lbl}
-                  </div>
-                ))}
-              </div>
-              {/* Day headers */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 4 }}>
-                {DAYS.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: '#9ca3af', padding: '2px' }}>{d}</div>)}
-              </div>
-              {/* Days grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 12 }}>
-                {Array.from({ length: firstDay }, (_, i) => (
-                  <div key={`p${i}`} style={{ textAlign: 'center', fontSize: 11, padding: '8px 2px', color: '#d1d5db' }}>{daysInPrev - firstDay + i + 1}</div>
-                ))}
-                {Array.from({ length: daysInMonth }, (_, i) => {
-                  const d = i + 1
-                  const isToday  = isCurrent && d === today.getDate()
-                  const isBooked = bookedDays.includes(d)
-                  const isAvail  = availDays.includes(d)
-                  let bg = 'transparent', color = '#9ca3af', fw = 600
-                  if (isToday)  { bg = '#1a7f5e'; color = 'white'; fw = 900 }
-                  else if (isBooked) { bg = '#fef3c7'; color = '#d97706'; fw = 700 }
-                  else if (isAvail)  { bg = '#e8f5f0'; color = '#1a7f5e'; fw = 700 }
-                  return (
-                    <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: fw, padding: '8px 2px', borderRadius: 6, background: bg, color, cursor: isAvail ? 'pointer' : 'default' }}>
-                      {d}
-                    </div>
-                  )
-                })}
-                {Array.from({ length: trailing }, (_, i) => (
-                  <div key={`t${i}`} style={{ textAlign: 'center', fontSize: 11, padding: '8px 2px', color: '#d1d5db' }}>{i + 1}</div>
-                ))}
-              </div>
-              {availability.length === 0 && (
-                <p style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>Set your availability to get booked by offices.</p>
-              )}
-              <p style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic' }}>This calendar is visible to offices when they view your profile</p>
-            </div>
-
-            {/* RESUME */}
-            <input type="file" ref={fileInputRef} accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={async e => {
-              const file = e.target.files[0]
-              if (!file) return
-              try {
-                const token = await getToken()
-                const formData = new FormData()
-                formData.append('file', file)
-                const res = await fetch(`${API_URL}/api/providers/resume`, {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${token}` },
-                  body: formData,
-                })
-                if (res.ok) {
-                  const data = await res.json()
-                  setProfile(prev => ({ ...prev, resumeUrl: data.resumeUrl, resumeName: data.resumeName }))
-                  showToast('Resume uploaded!')
-                } else { showToast('Failed to upload resume') }
-              } catch { showToast('Failed to upload resume') }
-              e.target.value = ''
-            }} />
-            <div style={s.card}>
-              <span style={s.sectionLabel}>Resume</span>
-              {profile?.resumeUrl ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '12px 14px' }}>
-                  <div style={{ width: 38, height: 38, background: '#e8f5f0', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a' }}>{profile.resumeName || (firstName ? `${firstName}_Resume.pdf` : 'Resume.pdf')}</div>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>Uploaded</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {!readOnly && <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 12, fontWeight: 700, color: '#374151', border: '1.5px solid #e5e7eb', padding: '6px 12px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Replace</button>}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f9f8f6', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '16px 14px' }}>
-                  <span style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No resume uploaded yet</span>
-                  {!readOnly && (
-                    <button onClick={() => fileInputRef.current?.click()} style={{ fontSize: 12, fontWeight: 700, color: '#1a7f5e', border: '1.5px solid #1a7f5e', padding: '6px 14px', borderRadius: 100, background: 'white', cursor: 'pointer', fontFamily: 'inherit' }}>Upload resume</button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* PRACTICE SOFTWARE */}
-            <div style={s.card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Practice Software</span>
-                {!readOnly && <button onClick={() => { setEditSoftware([...softwareList]); setShowSoftwareModal(true) }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
-              </div>
-              {softwareList.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {softwareList.map(sw => (
-                    <span key={sw} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{sw}</span>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No software added yet</div>
-              )}
-            </div>
-
-            {/* SKILLS */}
-            <div style={s.card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Skills & Experience</span>
-                {!readOnly && <button onClick={() => { setEditSkills([...skillsList]); setShowSkillsModal(true) }} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Edit</button>}
-              </div>
-              {skillsList.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {skillsList.map(skill => (
-                    <span key={skill} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: '#e8f5f0', color: '#0f4d38' }}>{skill}</span>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No skills added yet</div>
-              )}
-            </div>
-
-            {/* CREDENTIALS */}
-            <input type="file" ref={credInputRef} accept=".pdf,.jpg,.png" style={{ display: 'none' }} onChange={async e => {
-              const file = e.target.files[0]
-              if (!file || !credUploadType) return
-              await uploadCredential(credUploadType, file)
-              setCredUploadType(null)
-              e.target.value = ''
-            }} />
-            <div style={s.card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ ...s.sectionLabel, marginBottom: 0 }}>Credentials</span>
-                {!readOnly && <button onClick={() => navigate('/provider-documents')} style={{ fontSize: 13, fontWeight: 600, color: '#1a7f5e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Manage {'\u2192'}</button>}
-              </div>
-              {credentials.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                  {credentials.map(c => (
-                    <span key={c.id || c.label || c.name} style={{ fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 100, background: (c.verified || c.ok) ? '#f3f4f6' : '#fef9c3', color: (c.verified || c.ok) ? '#374151' : '#92400e' }}>
-                      {(c.verified || c.ok) ? '\u2713' : '\u26a0'} {c.label || c.name || c.type}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {!readOnly && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {['License', 'CPR/BLS', 'Local Anesthesia', 'Nitrous Oxide'].filter(t => !credentials.some(c => c.type === t)).map(type => (
-                    <button key={type} onClick={() => { setCredUploadType(type); credInputRef.current?.click() }}
-                      style={{ fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 100, border: '1.5px dashed #d1d5db', background: 'white', color: '#6b7280', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {credentials.length === 0 && readOnly && (
-                <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No credentials uploaded yet</div>
-              )}
-            </div>
-
-            {/* REVIEWS */}
-            <div style={s.card}>
-              <span style={s.sectionLabel}>Reviews ({reviews.length})</span>
-              {reviews.length > 0 ? (
-                <>
-                  {/* Rating summary */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 20, background: '#f9f8f6', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                      <div style={{ fontSize: 40, fontWeight: 900, color: '#1a1a1a', lineHeight: 1 }}>{avgRating}</div>
-                      <div style={{ color: '#F97316', fontSize: 13, margin: '4px 0' }}>{'\u2605\u2605\u2605\u2605\u2605'}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{reviews.length} reviews</div>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      {[5,4,3,2,1].map(star => {
-                        const count = reviews.filter(r => (r.stars || r.rating) === star).length
-                        const pct = Math.round((count / reviews.length) * 100)
-                        return (
-                          <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontSize: 11, color: '#9ca3af', width: 8 }}>{star}</span>
-                            <div style={{ flex: 1, height: 5, background: '#e5e7eb', borderRadius: 100, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${pct}%`, background: '#F97316', borderRadius: 100 }}/>
-                            </div>
-                            <span style={{ fontSize: 11, color: '#9ca3af', width: 28 }}>{pct}%</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  {/* Tabs */}
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                    {['All','Positive','Critical'].map(t => (
-                      <button key={t} onClick={() => setReviewTab(t)} style={{ padding: '6px 16px', borderRadius: 100, fontSize: 12, fontWeight: 600, border: `1.5px solid ${reviewTab === t ? '#1a7f5e' : '#e5e7eb'}`, background: reviewTab === t ? '#1a7f5e' : 'white', color: reviewTab === t ? 'white' : '#6b7280', cursor: 'pointer', fontFamily: 'inherit' }}>{t}</button>
-                    ))}
-                  </div>
-                  {/* Reviews list */}
-                  {filteredReviews.map((r, i) => (
-                    <div key={r.id || i} style={{ borderBottom: i < filteredReviews.length - 1 ? '1px solid #f3f4f6' : 'none', padding: '14px 0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: r.logoBg || '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, color: r.logoColor || '#1a7f5e', flexShrink: 0 }}>{r.initials || (r.office || r.officeName || '?').substring(0, 2).toUpperCase()}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1a1a' }}>{r.office || r.officeName || 'Office'}</div>
-                          <div style={{ fontSize: 11, color: '#9ca3af' }}>{r.date || ''}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 1 }}>
-                          {[1,2,3,4,5].map(sv => <span key={sv} style={{ fontSize: 13, color: sv <= (r.stars || r.rating) ? '#F97316' : '#e5e7eb' }}>{'\u2605'}</span>)}
-                        </div>
-                      </div>
-                      <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>{r.text || r.comment || ''}</p>
-                      {(r.tags || []).length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                          {r.tags.map(tag => <span key={tag} style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: '#f9f8f6', border: '1px solid #e5e7eb', color: '#6b7280' }}>{tag}</span>)}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-                  <p style={{ fontSize: 14, color: '#9ca3af', fontStyle: 'italic' }}>No reviews yet {'\u2014'} complete shifts to earn your first review.</p>
-                </div>
-              )}
-            </div>
-
-          </div>
-
-          {/* -- RIGHT SIDEBAR -- */}
-          {readOnly ? (
-            <div className="pp-sidebar" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
-              <div style={s.sideCard}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Badges</div>
-                {completedShifts > 0 ? (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {[['#0f4d38','#f5c842','star'],['#e8f5f0','#0f4d38','shield'],['#e8f5f0','#0f4d38','bolt'],['#ede9fe','#5b21b6','pulse']].map(([bg,ic,type],i) => (
-                      <div key={i} style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        {type==='star' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
-                        {type==='shield' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-                        {type==='bolt' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
-                        {type==='pulse' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Complete shifts to earn badges</div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="pp-sidebar" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 88, display: 'flex', flexDirection: 'column' }}>
-              {/* Edit actions */}
-              <div style={s.sideCard}>
-                <button onClick={() => setShowEditModal(true)} style={{ width: '100%', background: '#1a7f5e', color: 'white', border: 'none', fontWeight: 800, padding: '11px 16px', borderRadius: 100, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginBottom: 8 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  Edit profile
-                </button>
-                <button onClick={() => navigate('/provider-documents')} style={{ width: '100%', background: 'white', border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 8 }}>Manage credentials</button>
-                <button onClick={() => navigate('/provider-availability')} style={{ width: '100%', background: 'white', border: '1.5px solid #e5e7eb', color: '#374151', fontWeight: 700, padding: '10px 16px', borderRadius: 100, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Edit availability
-                </button>
-              </div>
-
-              {/* Profile strength */}
-              <div style={s.sideCard}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Profile strength</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <div style={{ flex: 1, height: 8, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${strengthPct}%`, background: '#1a7f5e', borderRadius: 100 }}/>
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: '#1a7f5e' }}>{strengthPct}%</span>
-                </div>
-                <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 12 }}>{strengthPct < 100 ? strengthTip + ' to improve' : 'Your profile is complete!'}</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {strengthItems.map(([label, done]) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <div style={{ width: 16, height: 16, borderRadius: '50%', background: done ? '#1a7f5e' : 'white', border: done ? 'none' : '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {done && <CheckIcon />}
-                      </div>
-                      <span style={{ fontSize: 12, color: done ? '#374151' : '#9ca3af' }}>{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Badges */}
-              <div style={s.sideCard}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Badges</div>
-                {completedShifts > 0 ? (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {[['#0f4d38','#f5c842','star'],['#e8f5f0','#0f4d38','shield'],['#e8f5f0','#0f4d38','bolt'],['#ede9fe','#5b21b6','pulse']].map(([bg,ic,type],i) => (
-                      <div key={i} style={{ width: 40, height: 40, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        {type==='star' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
-                        {type==='shield' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-                        {type==='bolt' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>}
-                        {type==='pulse' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={ic} strokeWidth="2.5" strokeLinecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>Complete shifts to earn badges</div>
-                )}
-              </div>
-
-              {/* Verifications */}
-              <div style={s.sideCard}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 12 }}>Verifications</div>
-                {credentials.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {credentials.map((c, i) => (
-                      <div key={c.id || i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: i < credentials.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                        <span style={{ fontSize: 12, color: '#6b7280' }}>{c.label || c.name || c.type}</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: (c.verified || c.ok) ? '#1a7f5e' : '#92400e' }}>
-                          {(c.verified || c.ok) ? '\u2713 Verified' : '\u26a0 Pending'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: 13, color: '#9ca3af', fontStyle: 'italic' }}>No verifications yet</div>
-                )}
-              </div>
-
-              {/* Response time - only show if provider has completed shifts */}
-              {completedShifts > 0 && (
-                <div style={s.sideCard}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a1a', marginBottom: 8 }}>Response time</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a7f5e' }}/>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: '#1a1a1a' }}>&lt; 2 hours</span>
-                  </div>
-                  <p style={{ fontSize: 11, color: '#9ca3af' }}>Average response to invites</p>
-                </div>
-              )}
-
-            </div>
-          )}
+        <div className="topbar-title">Profile</div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="icon-btn" onClick={handleShare} aria-label="Share">
+            <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+          </button>
+          <button className={`icon-btn ${saved ? 'saved' : ''}`} onClick={handleSave} aria-label="Save">
+            <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+          </button>
         </div>
       </div>
 
-      {/* MOBILE TOOLBAR */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e7eb] flex md:hidden z-50">
-        {[
-          { label: 'Home',        path: '/provider-dashboard',   icon: <HomeIcon /> },
-          { label: 'Requests',    path: '/provider-requests',    icon: <ReqIcon /> },
-          { label: 'Find Shifts', path: '/provider-find-shifts', icon: <SearchIcon /> },
-          { label: 'Messages',    path: '/provider-messages',    icon: <MsgIcon />, badge: unreadMsgCount },
-          { label: 'Earnings',    path: '/provider-earnings',    icon: <EarnIcon /> },
-        ].map(({ label, path, icon, badge }) => (
-          <div key={label} onClick={() => navigate(path)} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 cursor-pointer">
-            <div className="relative">
-              <span className="text-[#9ca3af]">{icon}</span>
-              {badge > 0 && <span className="absolute -top-1 -right-1.5 bg-[#ef4444] text-white text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">{badge}</span>}
+      <div className="hero-card">
+        <div className="hero-top">
+          <div className="photo-wrap">
+            <div className="hero-photo">{provider.initials}</div>
+            <div className="photo-verified">
+              <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
             </div>
-            <span className="text-[10px] font-semibold text-[#9ca3af]">{label}</span>
           </div>
+          <div className="hero-info">
+            <div className="hero-name">{provider.firstName} {provider.lastInitial}.</div>
+            <div className="hero-role">{provider.role}</div>
+            <div className="hero-rate-row"><span className="hero-rate">{provider.rate}</span></div>
+            <div className="hero-stars">
+              <span className="stars-val">★ {provider.rating}</span>
+              <span className="reviews-ct">({provider.reviewCount} reviews)</span>
+              <span className="reliability-pill">Excellent · {provider.reliability}</span>
+            </div>
+          </div>
+        </div>
+        <div className="stat-grid">
+          <div className="stat-tile"><div className="stat-tile-label">Shifts</div><div className="stat-tile-val">{provider.stats.shifts}</div></div>
+          <div className="stat-tile"><div className="stat-tile-label">Response</div><div className="stat-tile-val">{provider.stats.response}</div></div>
+          <div className="stat-tile"><div className="stat-tile-label">Reliability</div><div className="stat-tile-val gold">{provider.stats.reliability}</div></div>
+          <div className="stat-tile"><div className="stat-tile-label">Score</div><div className="stat-tile-val green">{provider.stats.score}</div></div>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-header"><div className="section-title">About</div></div>
+        <div className="about-text">{provider.about}</div>
+      </div>
+
+      <div className="section">
+        <div className="cal-header"><div className="cal-title">Availability</div><div className="cal-month">April 2026</div></div>
+        <div className="cal-legend"><div className="cal-legend-sq" />Tap an available day to book</div>
+        <div className="cal-dow">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => <div key={d} className="cal-dow-cell">{d}</div>)}</div>
+        <div className="cal-grid">
+          <div className="cal-cell empty" /><div className="cal-cell empty" /><div className="cal-cell empty" />
+          <div className="cal-cell past">1</div><div className="cal-cell past">2</div><div className="cal-cell past">3</div><div className="cal-cell past">4</div>
+          <div className="cal-cell past">5</div><div className="cal-cell past">6</div><div className="cal-cell past">7</div><div className="cal-cell past">8</div><div className="cal-cell past">9</div><div className="cal-cell past">10</div><div className="cal-cell today">11</div>
+          <div className="cal-cell unavail">12</div><div className="cal-cell available">13</div><div className="cal-cell available">14</div><div className="cal-cell available">15</div><div className="cal-cell available">16</div><div className="cal-cell available">17</div><div className="cal-cell unavail">18</div>
+          <div className="cal-cell unavail">19</div><div className="cal-cell available">20</div><div className="cal-cell available">21</div><div className="cal-cell available">22</div><div className="cal-cell available">23</div><div className="cal-cell available">24</div><div className="cal-cell unavail">25</div>
+          <div className="cal-cell unavail">26</div><div className="cal-cell available">27</div><div className="cal-cell available">28</div><div className="cal-cell available">29</div><div className="cal-cell available">30</div>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-header"><div className="section-title">Certifications</div></div>
+        <div className="chip-row">{provider.certs.map((c, i) => <span key={i} className={`chip ${c.green ? 'green' : ''}`}>{c.label}</span>)}</div>
+      </div>
+      <div className="section">
+        <div className="section-header"><div className="section-title">Skills</div></div>
+        <div className="chip-row">{provider.skills.map((s) => <span key={s} className="chip">{s}</span>)}</div>
+      </div>
+      <div className="section">
+        <div className="section-header"><div className="section-title">Experience Assisting</div></div>
+        <div className="chip-row">{provider.experience.map((s) => <span key={s} className="chip">{s}</span>)}</div>
+      </div>
+      <div className="section">
+        <div className="section-header"><div className="section-title">Languages</div></div>
+        {provider.languages.map((l) => (
+          <div key={l.name} className="lang-row"><span className="lang-name">{l.name}</span><span className="lang-level">{l.level}</span></div>
         ))}
       </div>
 
-    </div>
-  )
-}
+      <div className="section">
+        <div className="section-header"><div className="section-title">Reviews</div></div>
+        <div className="rating-summary">
+          <div className="rating-big">{provider.rating}</div>
+          <div className="rating-meta"><div className="rating-stars">★★★★★</div><div className="rating-count">Based on {provider.reviewCount} reviews</div></div>
+        </div>
+        {[
+          { logo: 'SD', name: 'Sugar Land Family Dental', when: '2 weeks ago', text: `${provider.firstName} was fantastic. Showed up early, jumped right in, and our hygienists loved working with her. Spanish-speaking patients were thrilled. Will definitely book again.` },
+          { logo: 'BD', name: 'Bellaire Dental Group', when: '1 month ago', text: 'Professional, punctual, and great chairside manner. Handled a heavy day of crown preps without missing a beat. Highly recommend.' },
+          { logo: 'MC', name: 'Memorial City Dental', when: '2 months ago', text: 'Excellent EFDA skills and very reliable. Now on our preferred list.' },
+        ].map((r) => (
+          <div className="review" key={r.logo}>
+            <div className="review-head">
+              <div className="reviewer-logo">{r.logo}</div>
+              <div className="reviewer-info"><div className="reviewer-name">{r.name}</div><div className="review-date">{r.when}</div></div>
+              <div className="review-stars">★★★★★</div>
+            </div>
+            <div className="review-text">{r.text}</div>
+          </div>
+        ))}
+        <button className="see-all">See all {provider.reviewCount} reviews</button>
+      </div>
 
-function HomeIcon()   { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> }
-function ReqIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> }
-function SearchIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> }
-function MsgIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> }
-function EarnIcon()   { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> }
+      <div className="action-bar">
+        <button className={`btn btn-icon ${saved ? 'saved' : ''}`} onClick={handleSave} aria-label="Save">
+          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+        </button>
+        <button className="btn btn-icon" onClick={handleMessage} aria-label="Message">
+          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+        </button>
+        <button className="btn btn-primary" onClick={handleBook}>
+          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+          Book {provider.firstName}
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderNav from '../components/ProviderNav'
 import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
+import BookedShiftModal from './BookedShiftModal'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -609,38 +610,27 @@ export default function ProviderAvailability() {
         </div>
       )}
 
-      {/* BOOKED DAY MODAL */}
+      {/* BOOKED DAY MODAL — new BookedShiftModal component */}
       {modal === 'booked' && bookedDayData && (
-        <div style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:380,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
-          <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-            <div>
-              <div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>{MONTHS[monthIdx]} {bookedDayData.day}, {year}</div>
-              <div style={{ fontSize:11,color:'#f59e0b',fontWeight:600,marginTop:2 }}>&#9679; Booked shift</div>
-            </div>
-            <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
-          </div>
-          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
-            <div style={{ display:'flex',alignItems:'center',gap:12,background:'#f9f8f6',border:'1.5px solid #e5e7eb',borderRadius:10,padding:'12px 14px',marginBottom:16 }}>
-              <div style={{ width:40,height:40,background:'#e8f5f0',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              </div>
-              <div>
-                <div style={{ fontSize:15,fontWeight:800,color:'#1a1a1a' }}>{bookedDayData.office}</div>
-                <div style={{ fontSize:12,color:'#6b7280',marginTop:2 }}>{bookedDayData.time}</div>
-              </div>
-            </div>
-            <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
-              <button onClick={()=>{closeModal();showToast('Opening messages...')}} style={{ width:'100%',background:'white',border:'1.5px solid #e5e7eb',color:'#374151',fontWeight:700,padding:'11px 16px',borderRadius:100,fontSize:13,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Message office
-              </button>
-              <button onClick={()=>{closeModal();showToast('Booking cancelled')}} style={{ width:'100%',background:'white',border:'1.5px solid #fca5a5',color:'#dc2626',fontWeight:700,padding:'11px 16px',borderRadius:100,fontSize:13,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancel booking
-              </button>
-            </div>
-          </div>
-        </div>
+        <BookedShiftModal
+          shift={{
+            officeName: bookedDayData.office,
+            officeInitials: (bookedDayData.office || 'OF').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+            officeRating: '4.9',
+            officeBookingCount: 12,
+            dateTime: `${MONTHS[monthIdx]} ${bookedDayData.day}, ${year} · ${bookedDayData.time}`,
+            duration: '8 hours',
+            role: 'Booked Shift',
+            roleSub: 'Tap Message to reach the office',
+            payTotal: 0,
+            paySub: 'See details in confirmation email',
+            address: bookedDayData.office,
+            distance: '',
+          }}
+          onClose={closeModal}
+          onCancelShift={() => { closeModal(); showToast('Booking cancelled') }}
+          onMessageOffice={() => { closeModal(); navigate('/messages') }}
+        />
       )}
 
       {/* Mobile toolbar */}
