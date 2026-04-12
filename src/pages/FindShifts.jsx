@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
+import PermanentJobModal from '../components/PermanentJobModal';
 
 // ============================================================
 // KAZI FIND SHIFTS — Browse open shifts (route: /find-shifts)
@@ -151,6 +152,7 @@ export default function FindShifts() {
   const location = useLocation();
   const [workType, setWorkType] = useState('temp');
   const [view, setView] = useState('list');
+  const [selectedPermJob, setSelectedPermJob] = useState(null);
 
   // Date filter from calendar tap on dashboard
   const params = new URLSearchParams(location.search);
@@ -371,10 +373,11 @@ export default function FindShifts() {
                 return shift.when.includes(`${mo} ${day}`);
               })
               .map((shift) => <TempShiftCard key={shift.id} shift={shift} onApply={() => navigate(`/find-shifts/${shift.id}`)} />)
-          : PERM_JOBS.map((job) => <PermJobCard key={job.id} job={job} onApply={() => navigate(`/find-shifts/${job.id}`)} />)}
+          : PERM_JOBS.map((job) => <PermJobCard key={job.id} job={job} onTap={() => setSelectedPermJob(job)} />)}
 
         <ProviderBottomNav />
       </div>
+      <PermanentJobModal open={!!selectedPermJob} job={selectedPermJob} onClose={() => setSelectedPermJob(null)} />
     </>
   );
 }
@@ -515,9 +518,10 @@ function TempShiftCard({ shift, onApply }) {
   );
 }
 
-function PermJobCard({ job, onApply }) {
+function PermJobCard({ job, onTap }) {
   return (
     <div
+      onClick={onTap}
       style={{
         background: COLORS.card,
         border: `1px solid ${COLORS.borderSoft}`,
@@ -525,20 +529,22 @@ function PermJobCard({ job, onApply }) {
         padding: 18,
         margin: '14px 16px 0',
         position: 'relative',
+        cursor: 'pointer',
       }}
     >
       <CardHeader item={job} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+      {/* Tags row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         {job.tags.map((t, i) => (
           <span
             key={i}
             style={{
-              background: t.gray ? COLORS.bg : COLORS.greenTint,
-              color: t.gray ? COLORS.textMid : COLORS.green,
-              border: `1px solid ${t.gray ? COLORS.border : COLORS.greenSoft}`,
-              padding: '6px 12px',
+              background: t.gray ? COLORS.bg : '#f3ecfd',
+              color: t.gray ? COLORS.textMid : '#5b21b6',
+              border: `1px solid ${t.gray ? COLORS.border : '#d9c7f5'}`,
+              padding: '4px 10px',
               borderRadius: 100,
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 700,
               fontFamily: "'Outfit', sans-serif",
             }}
@@ -547,7 +553,18 @@ function PermJobCard({ job, onApply }) {
           </span>
         ))}
       </div>
-      <CardFooter payRange={job.payRange} payUnit={job.payUnit} onApply={onApply} />
+      {/* Salary + view details */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.green, lineHeight: 1, fontSize: 18 }}>
+          {job.payRange}
+          <span style={{ display: 'block', fontSize: 11, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>
+            {job.payUnit}
+          </span>
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed' }}>
+          View details →
+        </div>
+      </div>
     </div>
   );
 }
