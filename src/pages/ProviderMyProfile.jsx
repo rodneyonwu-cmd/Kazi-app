@@ -12,11 +12,39 @@ import AddLanguageSheet from '../components/AddLanguageSheet';
 const DEFAULT_USER_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-// Hardcoded option lists for the chip pickers (could move to DB later)
-const CERT_OPTIONS = ['BLS CPR', 'ACLS', 'CDA', 'EFDA', 'Radiology', 'Nitrous Oxide', 'CPR', 'First Aid', 'OSHA', 'HIPAA', 'Infection Control'];
-const SKILL_OPTIONS = ['Alginate Impressions', 'Temporary Crowns', 'Bone Grafting', 'Bridges', 'Crowns', 'Digital X-Rays', 'Panoramic X-Rays', 'Sterilization', 'Chairside Assisting', 'Patient Education', 'Sealants', 'Fluoride Treatments', 'Prophy', 'SRP', 'Perio Charting', 'Bilingual', 'Endo Assisting', 'Suture Removal'];
-const EXPERIENCE_OPTIONS = ['Endodontics', 'General Dentistry', 'Oral Surgery', 'Orthodontics', 'Periodontics', 'Prosthodontics', 'Pediatric Dentistry', 'Implantology', 'Cosmetic Dentistry'];
-const LANGUAGE_OPTIONS = ['English', 'Spanish', 'Vietnamese', 'Mandarin', 'Tagalog', 'French', 'Arabic', 'Korean', 'Russian', 'Portuguese', 'Hindi'];
+// Role-keyed certification options
+const CERT_OPTIONS_BY_ROLE = {
+  ASSISTANT: ['BLS CPR', 'CDA', 'EFDA', 'RDA', 'Radiology/X-Ray', 'Nitrous Oxide', 'Coronal Polishing', 'Sealants', 'OSHA', 'HIPAA', 'Infection Control'],
+  HYGIENIST: ['BLS CPR', 'RDH License', 'Local Anesthesia', 'Nitrous Oxide', 'Laser Certification', 'OSHA', 'HIPAA', 'Periodontal Therapy'],
+  FRONT_DESK: ['HIPAA', 'OSHA', 'Dental Software (Dentrix)', 'Dental Software (Eaglesoft)', 'Dental Software (Open Dental)', 'Medical Billing', 'Insurance Coding'],
+  DENTIST: ['DDS/DMD License', 'BLS CPR', 'ACLS', 'DEA Registration', 'State Dental License', 'Oral Conscious Sedation', 'IV Sedation', 'Nitrous Oxide', 'Laser Certification', 'Invisalign Certified', 'Implantology Certification', 'Endodontics Certification', 'Orthodontics Certification', 'Oral Surgery Certification', 'Pediatric Dentistry Certification', 'OSHA', 'HIPAA', 'Infection Control'],
+};
+const ALL_CERT_OPTIONS = [...new Set(Object.values(CERT_OPTIONS_BY_ROLE).flat())].sort();
+
+// Role-keyed skill options
+const SKILL_OPTIONS_BY_ROLE = {
+  ASSISTANT: ['Alginate Impressions', 'Temporary Crowns', 'Bone Grafting', 'Chairside Assisting', 'Coronal Polishing', 'Digital X-Rays', 'Panoramic X-Rays', 'Patient Education', 'Sealants', 'Sterilization', 'Suturing', 'Topical Anesthetic', 'Tray Setup'],
+  HYGIENIST: ['Prophylaxis (Prophy)', 'SRP (Scaling & Root Planing)', 'Perio Charting', 'Fluoride Treatments', 'Sealants', 'Local Anesthesia', 'Digital X-Rays', 'Panoramic X-Rays', 'Patient Education', 'Ultrasonic Scaling', 'Oral Cancer Screening'],
+  FRONT_DESK: ['Dentrix', 'Eaglesoft', 'Open Dental', 'Insurance Verification', 'Claims Processing', 'Patient Scheduling', 'Collections', 'Treatment Planning', 'Phone Etiquette', 'Medical Billing', 'Office Management', 'Staff Training', 'Financial Operations', 'HR Compliance', 'Inventory Management'],
+  DENTIST: ['Crowns & Bridges', 'Root Canals', 'Extractions', 'Dental Implants', 'Cosmetic Veneers', 'Teeth Whitening', 'Dentures', 'Fillings (Composite & Amalgam)', 'Oral Surgery', 'Pediatric Dentistry', 'Orthodontics', 'Invisalign', 'Periodontal Surgery', 'Endodontics', 'Bone Grafting', 'Sinus Lifts', 'Full Mouth Reconstruction', 'Digital Impressions (iTero/3Shape)', 'CEREC Same-Day Crowns', 'Oral Cancer Screening', 'Botox / Dermal Fillers', 'Sleep Apnea Appliances'],
+};
+const ALL_SKILL_OPTIONS = [...new Set(Object.values(SKILL_OPTIONS_BY_ROLE).flat())].sort();
+
+function detectRoleKey(roleStr) {
+  if (!roleStr) return null;
+  const r = roleStr.toLowerCase();
+  if (r.includes('dentist') || r.includes('dds') || r.includes('dmd')) return 'DENTIST';
+  if (r.includes('hygien')) return 'HYGIENIST';
+  if (r.includes('assistant')) return 'ASSISTANT';
+  if (r.includes('front') || r.includes('admin') || r.includes('reception')) return 'FRONT_DESK';
+  return null;
+}
+const LANGUAGE_OPTIONS = [
+  'English', 'Spanish', 'Chinese (Mandarin)', 'Tagalog', 'Vietnamese',
+  'Arabic', 'French', 'Korean', 'Russian', 'Haitian Creole',
+  'Portuguese', 'Hindi', 'Polish', 'German', 'Italian',
+  'Japanese', 'Persian (Farsi)', 'Urdu', 'Gujarati', 'Telugu',
+];
 const LANGUAGE_LEVELS = ['Native', 'Fluent', 'Conversational', 'Basic'];
 
 const styles = `
@@ -130,8 +158,22 @@ export default function ProviderMyProfile() {
 
   // Modals + toasts
   const [removeTarget, setRemoveTarget] = useState(null);   // { type, id, name }
-  const [addSheet, setAddSheet] = useState(null);           // 'cert' | 'skills' | 'experience' | 'language'
+  const [addSheet, setAddSheet] = useState(null);           // 'cert' | 'skills' | 'language'
   const [toast, setToast] = useState(null);                 // { variant, title, subtitle }
+
+  // Edit About sheet
+  const [editAboutOpen, setEditAboutOpen] = useState(false);
+  const [aboutDraft, setAboutDraft] = useState('');
+
+  // Lock body scroll when edit-about sheet is open
+  useEffect(() => {
+    if (editAboutOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleEsc = (e) => { if (e.key === 'Escape') setEditAboutOpen(false); };
+      document.addEventListener('keydown', handleEsc);
+      return () => { document.body.style.overflow = ''; document.removeEventListener('keydown', handleEsc); };
+    }
+  }, [editAboutOpen]);
 
   // ── Initial fetch ──
   useEffect(() => {
@@ -273,25 +315,6 @@ export default function ProviderMyProfile() {
     } catch (err) {
       console.error('[ProviderMyProfile] add skills error', err);
       setToast({ variant: 'error', title: "Couldn't add skills", subtitle: 'Try again in a moment.' });
-    }
-  }, [getToken]);
-
-  const addExperience = useCallback(async (names) => {
-    try {
-      const token = await getToken();
-      const res = await fetch(`${API_URL}/api/providers/me/experience`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ names }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const updated = await res.json();
-      setExperiences(updated);
-      setAddSheet(null);
-      setToast({ variant: 'success', title: `Added ${names.length} experience area${names.length === 1 ? '' : 's'}` });
-    } catch (err) {
-      console.error('[ProviderMyProfile] add experience error', err);
-      setToast({ variant: 'error', title: "Couldn't add experience", subtitle: 'Try again in a moment.' });
     }
   }, [getToken]);
 
@@ -442,7 +465,7 @@ export default function ProviderMyProfile() {
       <div className="section">
         <div className="section-header">
           <div className="section-title">About</div>
-          <button className="edit-btn" onClick={notImpl('Edit about')}>Edit</button>
+          <button className="edit-btn" onClick={() => { setAboutDraft(aboutText); setEditAboutOpen(true); }}>Edit</button>
         </div>
         <div className="about-text">{aboutText}</div>
       </div>
@@ -502,18 +525,23 @@ export default function ProviderMyProfile() {
       </div>
 
       <div className="section">
-        <div className="section-header"><div className="section-title">Experience Assisting</div></div>
-        <div className="chip-row">
-          {experiences.length === 0 && !loading && (
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>No experience areas yet</span>
-          )}
-          {experiences.map((e) => (
-            <span key={e.id} className="chip">
-              {e.name}
-              <span className="x" onClick={() => setRemoveTarget({ type: 'experience', id: e.id, name: e.name })}>×</span>
-            </span>
-          ))}
-          <button className="chip-add" onClick={() => setAddSheet('experience')}>+ Add</button>
+        <div className="section-header">
+          <div className="section-title">Years of Experience</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: '#f1f9f5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: '#1a1a1a' }}>{'\u2014'}</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>Set during onboarding</div>
+          </div>
         </div>
       </div>
 
@@ -571,6 +599,83 @@ export default function ProviderMyProfile() {
         <button className="see-all" onClick={notImpl('See all reviews')}>See all 47 reviews</button>
       </div>
 
+      {/* Edit About bottom sheet */}
+      {editAboutOpen && (
+        <>
+          <div
+            onClick={() => setEditAboutOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', zIndex: 998,
+            }}
+            onKeyDown={(e) => { if (e.key === 'Escape') setEditAboutOpen(false); }}
+          />
+          <div
+            style={{
+              position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+              maxWidth: 480, width: '100%', background: '#fff', borderRadius: '20px 20px 0 0',
+              padding: '14px 20px 28px', zIndex: 999, boxShadow: '0 -8px 30px rgba(0,0,0,.12)',
+            }}
+            onKeyDown={(e) => { if (e.key === 'Escape') setEditAboutOpen(false); }}
+          >
+            {/* Drag handle */}
+            <div style={{ width: 36, height: 4, borderRadius: 100, background: '#d1d5db', margin: '0 auto 14px' }} />
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18 }}>Edit About</div>
+              <button
+                onClick={() => setEditAboutOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, lineHeight: 1, fontSize: 20, color: '#6b7280' }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            {/* Textarea */}
+            <textarea
+              value={aboutDraft}
+              onChange={(e) => { if (e.target.value.length <= 500) setAboutDraft(e.target.value); }}
+              maxLength={500}
+              rows={5}
+              style={{
+                width: '100%', fontFamily: "'DM Sans', sans-serif", fontSize: 14, lineHeight: 1.6,
+                color: '#1a1a1a', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '12px 14px',
+                resize: 'vertical', outline: 'none',
+              }}
+              onFocus={(e) => { e.target.style.borderColor = '#1a7f5e'; }}
+              onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; }}
+            />
+            <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'right', marginTop: 4 }}>{aboutDraft.length} / 500</div>
+            {/* Save button */}
+            <button
+              onClick={async () => {
+                try {
+                  const token = await getToken();
+                  const res = await fetch(`${API_URL}/api/providers/me`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ bio: aboutDraft }),
+                  });
+                  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                  setProvider(prev => ({ ...prev, bio: aboutDraft }));
+                  setEditAboutOpen(false);
+                  setToast({ variant: 'success', title: 'About updated' });
+                } catch (err) {
+                  console.error('[ProviderMyProfile] save about error', err);
+                  setToast({ variant: 'error', title: "Couldn't save", subtitle: 'Try again.' });
+                }
+              }}
+              style={{
+                width: '100%', padding: '14px 0', borderRadius: 100, border: 'none',
+                background: '#1a7f5e', color: 'white', fontFamily: "'Outfit', sans-serif",
+                fontWeight: 700, fontSize: 15, cursor: 'pointer', marginTop: 10,
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </>
+      )}
+
       <ProviderBottomNav />
 
       {/* Confirm remove modal */}
@@ -584,7 +689,7 @@ export default function ProviderMyProfile() {
       {/* Add modals — bottom sheets, one rendered at a time */}
       <AddCertificationSheet
         open={addSheet === 'cert'}
-        options={CERT_OPTIONS}
+        options={CERT_OPTIONS_BY_ROLE[detectRoleKey(provider?.role)] || ALL_CERT_OPTIONS}
         existingNames={certifications.map((c) => c.type)}
         onClose={() => setAddSheet(null)}
         onConfirm={addCertification}
@@ -592,18 +697,10 @@ export default function ProviderMyProfile() {
       <AddChipsSheet
         open={addSheet === 'skills'}
         title="Add Skill"
-        options={SKILL_OPTIONS}
+        options={SKILL_OPTIONS_BY_ROLE[detectRoleKey(provider?.role)] || ALL_SKILL_OPTIONS}
         existingNames={skills.map((s) => s.name)}
         onClose={() => setAddSheet(null)}
         onConfirm={addSkills}
-      />
-      <AddChipsSheet
-        open={addSheet === 'experience'}
-        title="Add Experience"
-        options={EXPERIENCE_OPTIONS}
-        existingNames={experiences.map((e) => e.name)}
-        onClose={() => setAddSheet(null)}
-        onConfirm={addExperience}
       />
       <AddLanguageSheet
         open={addSheet === 'language'}

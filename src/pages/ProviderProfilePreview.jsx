@@ -166,8 +166,24 @@ export default function ProviderProfilePreview() {
         <div className="chip-row">{['Alginate Impressions', 'Bilingual', 'Bone Grafting', 'Bridges', 'Crowns', 'Digital X-Rays'].map((s) => <span key={s} className="chip">{s}</span>)}</div>
       </div>
       <div className="section">
-        <div className="section-header"><div className="section-title">Experience Assisting</div></div>
-        <div className="chip-row">{['Endodontics', 'General Dentistry', 'Oral Surgery', 'Orthodontics'].map((s) => <span key={s} className="chip">{s}</span>)}</div>
+        <div className="section-header">
+          <div className="section-title">Years of Experience</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: '#f1f9f5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: '#1a1a1a' }}>{'\u2014'}</div>
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>Set during onboarding</div>
+          </div>
+        </div>
       </div>
       <div className="section">
         <div className="section-header"><div className="section-title">Languages</div></div>

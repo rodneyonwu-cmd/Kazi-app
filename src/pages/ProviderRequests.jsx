@@ -69,11 +69,6 @@ const INCOMING_REQUESTS = [
   },
 ];
 
-const RECENT = [
-  { id: 'past-1', initials: 'HF', name: 'Houston Family Dental', meta: 'Apr 5 · 8am – 4pm · $50/hr', status: 'Accepted' },
-  { id: 'past-2', initials: 'KD', name: 'Katy Dental Associates', meta: 'Apr 3 · 9am – 5pm · $45/hr', status: 'Declined' },
-  { id: 'past-3', initials: 'RD', name: 'Richmond Dental Care', meta: 'Apr 1 · 8am – 3pm · $52/hr', status: 'Expired' },
-];
 
 const TABS = [
   { id: 'incoming', label: 'Incoming', count: 3 },
@@ -188,18 +183,6 @@ export default function ProviderRequests() {
         )}
         {activeTab !== 'incoming' && (
           <div style={{ padding: '40px 32px', textAlign: 'center', color: COLORS.textLight, fontSize: 13 }}>No {activeTab} requests yet.</div>
-        )}
-
-        {/* Recently resolved */}
-        {activeTab === 'incoming' && (
-          <>
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: COLORS.textLight, padding: '6px 20px 12px' }}>
-              Recently resolved
-            </div>
-            {RECENT.map((p) => (
-              <PastCard key={p.id} past={p} />
-            ))}
-          </>
         )}
 
         <ProviderBottomNav />
@@ -398,57 +381,3 @@ function Divider() {
   return <div style={{ width: 1, height: 32, background: COLORS.borderSoft, flexShrink: 0 }} />;
 }
 
-function PastCard({ past }) {
-  const isAccepted = past.status === 'Accepted';
-  return (
-    <div
-      style={{
-        background: COLORS.card,
-        borderRadius: 16,
-        border: `1px solid ${COLORS.borderSoft}`,
-        padding: '14px 16px',
-        margin: '0 16px 10px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 12,
-          background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          fontFamily: "'Outfit', sans-serif",
-          fontWeight: 700,
-          fontSize: 11,
-          color: 'white',
-        }}
-      >
-        {past.initials}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: COLORS.text }}>{past.name}</div>
-        <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>{past.meta}</div>
-      </div>
-      <div
-        style={{
-          flexShrink: 0,
-          fontSize: 11,
-          fontWeight: 700,
-          padding: '5px 10px',
-          borderRadius: 100,
-          background: isAccepted ? COLORS.greenTint : COLORS.bg,
-          color: isAccepted ? COLORS.green : COLORS.textLight,
-          border: `1px solid ${isAccepted ? COLORS.greenSoft : COLORS.borderSoft}`,
-        }}
-      >
-        {past.status}
-      </div>
-    </div>
-  );
-}

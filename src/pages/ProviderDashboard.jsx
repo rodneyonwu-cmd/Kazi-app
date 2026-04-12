@@ -142,6 +142,11 @@ export default function ProviderDashboard() {
     if (data) setBookedShift(data);
   };
 
+  const openFindForDate = (dayNum) => {
+    const d = String(dayNum).padStart(2, '0');
+    navigate(`/find-shifts?date=2026-04-${d}`);
+  };
+
   return (
     <>
       <style>{`
@@ -294,11 +299,11 @@ export default function ProviderDashboard() {
           {scheduleView === 'week' ? (
             <div className="scroll-x" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 4px', margin: '0 -16px' }}>
               {WEEK_DAYS.map((day) => (
-                <DayCard key={day.num} day={day} onOpenBooked={() => openBooked(day.num)} />
+                <DayCard key={day.num} day={day} onOpenBooked={() => openBooked(day.num)} onOpenFind={() => openFindForDate(day.num)} />
               ))}
             </div>
           ) : (
-            <MonthGrid onOpenBooked={openBooked} />
+            <MonthGrid onOpenBooked={openBooked} onOpenFind={openFindForDate} />
           )}
         </div>
 
@@ -416,20 +421,22 @@ function ToggleButton({ active, onClick, children }) {
   );
 }
 
-function DayCard({ day, onOpenBooked }) {
+function DayCard({ day, onOpenBooked, onOpenFind }) {
   const isToday = day.status === 'today';
   const isBooked = day.status === 'booked';
   const isOff = day.status === 'off';
+  const isOpen = day.status === 'open' || (!isToday && !isBooked && !isOff);
   const bg = isToday ? COLORS.green : isBooked ? COLORS.greenTint : isOff ? COLORS.bg : COLORS.card;
   const borderColor = isToday ? COLORS.green : isBooked ? COLORS.greenSoft : COLORS.borderSoft;
   const opacity = isOff ? 0.55 : 1;
   const nameColor = isToday ? 'rgba(255,255,255,0.85)' : isBooked ? COLORS.green : COLORS.textLight;
   const numColor = isToday ? 'white' : isBooked ? COLORS.green : COLORS.text;
   const statusColor = isToday ? 'rgba(255,255,255,0.95)' : isBooked ? COLORS.green : COLORS.textLight;
+  const tappable = isBooked || isOpen || isToday;
 
   return (
     <div
-      onClick={isBooked ? onOpenBooked : undefined}
+      onClick={isBooked ? onOpenBooked : (isOpen || isToday) ? onOpenFind : undefined}
       style={{
         flexShrink: 0,
         width: 72,
@@ -438,7 +445,7 @@ function DayCard({ day, onOpenBooked }) {
         borderRadius: 16,
         padding: '12px 8px',
         textAlign: 'center',
-        cursor: isBooked ? 'pointer' : 'default',
+        cursor: tappable ? 'pointer' : 'default',
         opacity,
       }}
     >
@@ -463,7 +470,7 @@ function DayCard({ day, onOpenBooked }) {
   );
 }
 
-function MonthGrid({ onOpenBooked }) {
+function MonthGrid({ onOpenBooked, onOpenFind }) {
   return (
     <div
       style={{
@@ -486,7 +493,7 @@ function MonthGrid({ onOpenBooked }) {
           </div>
         ))}
         {MONTH_CELLS.map((cell, i) => (
-          <MonthCell key={i} cell={cell} onOpenBooked={cell?.s === 'booked' ? () => onOpenBooked(cell.d) : undefined} />
+          <MonthCell key={i} cell={cell} onOpenBooked={cell?.s === 'booked' ? () => onOpenBooked(cell.d) : undefined} onOpenFind={cell && !cell.s || cell?.s === 'today' ? () => onOpenFind(cell.d) : undefined} />
         ))}
       </div>
       <div
@@ -528,16 +535,19 @@ function NavBtn({ dir }) {
   );
 }
 
-function MonthCell({ cell, onOpenBooked }) {
+function MonthCell({ cell, onOpenBooked, onOpenFind }) {
   if (!cell) return <div style={{ aspectRatio: '1' }} />;
   const isToday = cell.s === 'today';
   const isBooked = cell.s === 'booked';
   const isOff = cell.s === 'off';
+  const isOpen = !cell.s;
   const bg = isToday ? COLORS.green : isBooked ? COLORS.greenTint : 'transparent';
   const color = isToday ? 'white' : isBooked ? COLORS.green : COLORS.text;
+  const tappable = isBooked || isOpen || isToday;
+  const handleClick = isBooked && onOpenBooked ? onOpenBooked : (isOpen || isToday) && onOpenFind ? onOpenFind : undefined;
   return (
     <div
-      onClick={isBooked && onOpenBooked ? onOpenBooked : undefined}
+      onClick={handleClick}
       style={{
         aspectRatio: '1',
         display: 'flex',
@@ -549,7 +559,7 @@ function MonthCell({ cell, onOpenBooked }) {
         color,
         background: bg,
         borderRadius: 10,
-        cursor: isBooked ? 'pointer' : 'default',
+        cursor: tappable ? 'pointer' : 'default',
         position: 'relative',
         opacity: isOff ? 0.55 : 1,
         textDecoration: isOff ? 'line-through' : 'none',

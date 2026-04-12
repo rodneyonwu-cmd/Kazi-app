@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
+import ShiftDetailModal from '../components/ShiftDetailModal';
+import PermanentJobModal from '../components/PermanentJobModal';
 
 const styles = `
 .kazi-opp { --green: #1a7f5e; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --amber-soft: #fef6e4; --coral: #e8734a; --coral-soft: #fdeee7; --purple: #7c5aa8; --purple-soft: #efe8f5; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 40px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
@@ -68,14 +70,11 @@ const styles = `
 .kazi-opp .perm-card { background: linear-gradient(135deg,#faf7fc,#ffffff); border: 1.5px solid var(--purple-soft); border-radius: 14px; padding: 16px; margin-bottom: 10px; position: relative; }
 .kazi-opp .perm-card:last-child { margin-bottom: 0; }
 .kazi-opp .perm-badge { position: absolute; top: 12px; right: 12px; background: var(--purple); color: white; font-size: 9px; font-weight: 800; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: .4px; }
-.kazi-opp .perm-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--purple-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-.kazi-opp .perm-icon svg { width: 16px; height: 16px; stroke: var(--purple); fill: none; stroke-width: 2; }
 .kazi-opp .perm-title { font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 3px; letter-spacing: -.01em; }
 .kazi-opp .perm-type { font-size: 11px; color: var(--text-light); font-weight: 600; margin-bottom: 10px; }
 .kazi-opp .perm-salary { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 800; color: var(--green); margin-bottom: 10px; }
 .kazi-opp .perm-benefits { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
 .kazi-opp .benefit { background: var(--card); border: 1px solid var(--border); color: var(--text-mid); font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 100px; }
-.kazi-opp .perm-apply { width: 100%; background: var(--purple); color: white; border: none; border-radius: 100px; padding: 10px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .kazi-opp .rating-summary { display: flex; gap: 16px; align-items: center; padding: 4px 0 16px; border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; }
 .kazi-opp .rating-big { font-family: 'Outfit', sans-serif; font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
 .kazi-opp .rating-meta { flex: 1; }
@@ -130,8 +129,9 @@ export default function OfficePublicProfile() {
   const [activeSub, setActiveSub] = useState('temp');
   const [aboutOpen, setAboutOpen] = useState(false);
   const [saved, setSaved] = useState(true);
+  const [selectedTempShift, setSelectedTempShift] = useState(null);
+  const [selectedPermJob, setSelectedPermJob] = useState(null);
 
-  const openShift = (shiftId) => navigate(`/shift/${shiftId}`);
   const handleShare = () => {
     if (navigator.share) navigator.share({ url: window.location.href }).catch(() => {});
     else { navigator.clipboard?.writeText(window.location.href); alert('Link copied'); }
@@ -219,7 +219,7 @@ export default function OfficePublicProfile() {
             </button>
           </div>
           {activeSub === 'temp' && TEMP_SHIFTS.map((s) => (
-            <div key={s.id} className="shift-item" onClick={() => openShift(s.id)}>
+            <div key={s.id} className="shift-item" onClick={() => setSelectedTempShift(s)}>
               <div className={`shift-date ${s.gold ? 'gold' : ''}`}>
                 <div className="shift-day-num">{s.day}</div>
                 <div className="shift-day-name">{s.name}</div>
@@ -239,16 +239,15 @@ export default function OfficePublicProfile() {
             </div>
           ))}
           {activeSub === 'perm' && PERM_JOBS.map((j) => (
-            <div key={j.id} className="perm-card">
+            <div key={j.id} className="perm-card" onClick={() => setSelectedPermJob(j)} style={{ cursor: 'pointer' }}>
               <span className="perm-badge">{j.badge}</span>
-              <div className="perm-icon">
-                <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
-              </div>
               <div className="perm-title">{j.title}</div>
               <div className="perm-type">{j.type}</div>
               <div className="perm-salary">{j.salary}</div>
               <div className="perm-benefits">{j.benefits.map((b) => <span key={b} className="benefit">{b}</span>)}</div>
-              <button className="perm-apply" onClick={() => openShift(j.id)}>View & Apply</button>
+              <div style={{ textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#7c5aa8', marginTop: 4 }}>
+                View details →
+              </div>
             </div>
           ))}
         </div>
@@ -302,6 +301,8 @@ export default function OfficePublicProfile() {
         </div>
       )}
 
+      <ShiftDetailModal open={!!selectedTempShift} shift={selectedTempShift} onClose={() => setSelectedTempShift(null)} />
+      <PermanentJobModal open={!!selectedPermJob} job={selectedPermJob} onClose={() => setSelectedPermJob(null)} />
     </div>
   );
 }

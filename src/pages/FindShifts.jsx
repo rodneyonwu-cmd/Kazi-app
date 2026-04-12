@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
 
@@ -137,10 +137,29 @@ const PERM_FILTERS = [
   { label: 'Start date', value: 'Any' },
 ];
 
+// Format a YYYY-MM-DD date string to a human-readable label
+function fmtDateLabel(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  } catch { return dateStr; }
+}
+
 export default function FindShifts() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [workType, setWorkType] = useState('temp');
   const [view, setView] = useState('list');
+
+  // Date filter from calendar tap on dashboard
+  const params = new URLSearchParams(location.search);
+  const [dateFilter, setDateFilter] = useState(params.get('date') || '');
+
+  const clearDateFilter = () => {
+    setDateFilter('');
+    navigate('/find-shifts', { replace: true });
+  };
 
   const isTemp = workType === 'temp';
   const filters = isTemp ? TEMP_FILTERS : PERM_FILTERS;
@@ -298,12 +317,60 @@ export default function FindShifts() {
           </button>
         </div>
 
+        {/* DATE FILTER BANNER */}
+        {dateFilter && (
+          <div
+            style={{
+              margin: '10px 16px 0',
+              padding: '10px 14px',
+              background: COLORS.greenTint,
+              border: `1px solid ${COLORS.greenSoft}`,
+              borderRadius: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.green }}>
+              Showing shifts for {fmtDateLabel(dateFilter)}
+            </div>
+            <button
+              onClick={clearDateFilter}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-label="Clear date filter"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {/* MAP VIEW (temp only) */}
         {isTemp && view === 'map' && <MapView />}
 
-        {/* CARDS */}
+        {/* CARDS — filtered by date if a dateFilter is active */}
         {isTemp
-          ? TEMP_SHIFTS.map((shift) => <TempShiftCard key={shift.id} shift={shift} onApply={() => navigate(`/find-shifts/${shift.id}`)} />)
+          ? TEMP_SHIFTS
+              .filter((shift) => {
+                if (!dateFilter) return true;
+                // dateFilter = "2026-04-11" → extract "Apr 11"
+                const d = new Date(dateFilter + 'T12:00:00');
+                const mo = d.toLocaleDateString('en-US', { month: 'short' });
+                const day = d.getDate();
+                return shift.when.includes(`${mo} ${day}`);
+              })
+              .map((shift) => <TempShiftCard key={shift.id} shift={shift} onApply={() => navigate(`/find-shifts/${shift.id}`)} />)
           : PERM_JOBS.map((job) => <PermJobCard key={job.id} job={job} onApply={() => navigate(`/find-shifts/${job.id}`)} />)}
 
         <ProviderBottomNav />
