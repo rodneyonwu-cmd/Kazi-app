@@ -31,6 +31,7 @@ const MOCK_REQUESTS = {
     rate: '$55/hr',
     role: 'Dental Hygienist',
     earnings: 440,
+    isRapidFill: true,
     note: 'Please wear navy scrubs. Park in lot B and check in at the front desk. Lunch will be provided.',
     expiresIn: '45m',
   },

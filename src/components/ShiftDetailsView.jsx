@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SuccessToast from './SuccessToast';
+import RapidFillBanner from './RapidFillBanner';
 
 // ============================================================
 // KAZI SHIFT DETAILS VIEW — Shared detail screen
@@ -40,11 +41,11 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
   const [toast, setToast] = useState(null); // { title, subtitle, then }
 
   const handlePrimary = () => {
-    if (isInvite) {
+    if (isInvite || shift.isRapidFill) {
       setToast({
         title: 'Shift accepted',
-        subtitle: `${shift.office.name} has been notified. See you on ${shift.date}.`,
-        then: onAccept,
+        subtitle: `You're confirmed at ${shift.office.name} on ${shift.date}. See you there!`,
+        then: isInvite ? onAccept : onApply,
       });
     } else {
       setToast({
@@ -186,6 +187,8 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
             <span style={{ fontSize: 12, color: '#8a8a8a', fontWeight: 600 }}>({shift.office.reviewCount} reviews)</span>
           </div>
         </div>
+
+        {shift.isRapidFill && <RapidFillBanner />}
 
         {/* Earnings banner */}
         <div
@@ -343,7 +346,7 @@ export default function ShiftDetailsView({ mode = 'invite', shift = DEFAULT_SHIF
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            {isInvite ? `Accept Shift · $${shift.earnings}` : `Apply for Shift · $${shift.earnings}`}
+            {(isInvite || shift.isRapidFill) ? `Accept Shift · $${shift.earnings}` : `Apply for Shift · $${shift.earnings}`}
           </button>
           <button
             onClick={isInvite ? onDecline : onSave}
