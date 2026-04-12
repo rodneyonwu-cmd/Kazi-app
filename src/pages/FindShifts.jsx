@@ -532,9 +532,18 @@ function PermJobCard({ job, onTap }) {
         cursor: 'pointer',
       }}
     >
+      {/* Salary — top right */}
+      <div style={{ position: 'absolute', top: 16, right: 18, textAlign: 'right' }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.green, fontSize: 17, lineHeight: 1 }}>
+          {job.payRange}
+        </div>
+        <div style={{ fontSize: 10, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>
+          {job.payUnit}
+        </div>
+      </div>
       <CardHeader item={job} />
       {/* Tags row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         {job.tags.map((t, i) => (
           <span
             key={i}
@@ -552,18 +561,6 @@ function PermJobCard({ job, onTap }) {
             {t.label}
           </span>
         ))}
-      </div>
-      {/* Salary + view details */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.green, lineHeight: 1, fontSize: 18 }}>
-          {job.payRange}
-          <span style={{ display: 'block', fontSize: 11, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>
-            {job.payUnit}
-          </span>
-        </div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed' }}>
-          View details →
-        </div>
       </div>
     </div>
   );
