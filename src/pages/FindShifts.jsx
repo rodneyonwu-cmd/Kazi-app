@@ -514,6 +514,12 @@ function TempShiftCard({ shift, onApply }) {
         position: 'relative',
       }}
     >
+      {/* Hourly rate — top right, same style as perm salary */}
+      <div style={{ position: 'absolute', top: 18, right: 18, textAlign: 'right' }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 13, lineHeight: 1 }}>
+          ${shift.pay}/hr
+        </div>
+      </div>
       <CardHeader item={shift} />
       <div
         style={{
@@ -538,11 +544,35 @@ function TempShiftCard({ shift, onApply }) {
         </svg>
         {shift.when}
       </div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+      {/* Lunch + software + Apply on the same row */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <ExtraChip>{shift.lunch}</ExtraChip>
         <ExtraChip>{shift.software}</ExtraChip>
+        <button
+          onClick={onApply}
+          style={{
+            background: COLORS.green,
+            color: 'white',
+            border: 'none',
+            borderRadius: 100,
+            padding: '7px 14px',
+            fontSize: 11,
+            fontWeight: 700,
+            fontFamily: 'inherit',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            cursor: 'pointer',
+            marginLeft: 'auto',
+          }}
+        >
+          Apply
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </button>
       </div>
-      <CardFooter pay={shift.pay} payUnit="/hr" onApply={onApply} />
     </div>
   );
 }

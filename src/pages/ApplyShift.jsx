@@ -31,7 +31,6 @@ const MOCK_OPEN_SHIFTS = {
     rate: '$62/hr',
     role: 'Dental Hygienist',
     earnings: 527,
-    isRapidFill: true,
     note: 'Need someone fast — our regular hygienist called out. Easy patient day, mostly recalls.',
   },
   'shift-mcd': {
