@@ -1,31 +1,36 @@
 import { useEffect } from 'react';
-import RapidFillBanner from './RapidFillBanner';
+import { useNavigate } from 'react-router-dom';
 
 export default function ShiftDetailModal({ open, shift, onClose }) {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (open) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
   if (!open || !shift) return null;
 
-  // Normalize data from both OfficePublicProfile (day/name/meta/pay-string)
-  // and FindShifts (when/pay-number/lunch/software) shapes
+  // Normalize data from both OfficePublicProfile and FindShifts shapes
   const officeName = shift.officeName || shift.name || 'Office';
   const officeInitials = shift.officeInitials || shift.initials || officeName.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
   const payDisplay = typeof shift.pay === 'number' ? `$${shift.pay}` : (shift.pay || '$0').replace('/hr', '');
   const payRate = typeof shift.pay === 'number' ? `$${shift.pay}/hr` : (shift.pay || '$0/hr');
   const dateDisplay = shift.when || (shift.name && shift.day ? `${shift.name}, ${shift.day}th` : '—');
   const hoursDisplay = shift.meta || shift.hours || '—';
-  const lunchDisplay = shift.lunch || 'Provided';
+  const lunchDisplay = shift.lunch || '45 min';
   const roleDisplay = shift.role || '—';
-  const location = shift.distance || shift.location || '';
+  const location = shift.distance || shift.location || 'Houston, TX';
   const rating = shift.rating || '4.8';
   const reviewCount = shift.reviewCount || 0;
+  const note = shift.note || 'Please arrive 10 minutes early. Check in at the front desk. Scrubs provided.';
+  const officeId = shift.officeId || shift.id || 'demo';
+
+  const handleViewOffice = () => {
+    onClose();
+    navigate(`/office/${officeId}`);
+  };
 
   return (
     <div
@@ -48,6 +53,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
           background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480,
           maxHeight: '92vh', overflowY: 'auto', position: 'relative',
           animation: 'sdm-slide .3s ease', WebkitOverflowScrolling: 'touch',
+          paddingBottom: 100,
         }}
       >
         {/* Handle bar */}
@@ -73,78 +79,177 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
         {/* Office hero */}
         <div style={{ textAlign: 'center', padding: '16px 20px 20px' }}>
           <div style={{
-            width: 64, height: 64, borderRadius: 18,
-            background: 'linear-gradient(135deg,#a8c9b8,#7ab8a8)',
+            width: 72, height: 72, borderRadius: 22,
+            background: 'linear-gradient(135deg,#7ab8d4,#88c9a1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20,
-            margin: '0 auto 12px', boxShadow: '0 4px 14px rgba(26,127,94,.12)',
+            color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22,
+            margin: '0 auto 14px',
           }}>{officeInitials}</div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: '-.02em', marginBottom: 4 }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a1a1a', lineHeight: 1.2 }}>
             {officeName}
           </div>
-          {location && <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 6 }}>{location}</div>}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700 }}>
-            <span style={{ color: '#f4b740', fontSize: 14 }}>★</span>
-            <span>{rating}</span>
-            {reviewCount > 0 && <span style={{ color: '#9ca3af', fontWeight: 500 }}>({reviewCount} reviews)</span>}
+          <div style={{ fontSize: 14, color: '#8a8a8a', marginTop: 4 }}>{location}</div>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10,
+            background: '#ffffff', border: '1px solid #f3f3f3', padding: '7px 14px', borderRadius: 100,
+          }}>
+            <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, fill: '#f4b740', stroke: '#f4b740', strokeWidth: 1 }}>
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 15, color: '#1a1a1a' }}>{rating}</span>
+            {reviewCount > 0 && <span style={{ fontSize: 12, color: '#8a8a8a', fontWeight: 600 }}>({reviewCount} reviews)</span>}
           </div>
         </div>
-
-        {shift.isRapidFill && <RapidFillBanner />}
 
         {/* Earnings banner */}
         <div style={{
-          margin: '0 20px 16px', background: '#e8f5f0', borderRadius: 14, padding: '14px 18px',
-          textAlign: 'center', border: '1.5px solid #cfe8de',
+          margin: '0 16px 12px', background: '#f1f9f5', borderRadius: 16,
+          padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <div style={{ fontSize: 13, color: '#1a7f5e', fontWeight: 600, marginBottom: 2 }}>You'll earn</div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 28, color: '#1a7f5e', letterSpacing: '-.02em' }}>
-            {payDisplay}
-            <span style={{ fontSize: 14, fontWeight: 600 }}> /hr</span>
+          <div style={{ fontSize: 14, color: '#5a5a5a', fontWeight: 600 }}>You'll earn</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: '#1a7f5e' }}>{payDisplay}/hr</div>
+        </div>
+
+        {/* Shift details card */}
+        <div style={{ background: '#ffffff', margin: '0 16px 12px', borderRadius: 20, border: '1px solid #f3f3f3', overflow: 'hidden' }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: '#1a1a1a', padding: '16px 18px 0' }}>Shift details</div>
+          <div style={{ padding: '14px 18px 16px' }}>
+            {[
+              { icon: 'cal', label: 'Date', value: dateDisplay },
+              { icon: 'clock', label: 'Hours', value: hoursDisplay },
+              { icon: 'lunch', label: 'Lunch break', value: lunchDisplay },
+              { icon: 'dollar', label: 'Your rate', value: payRate, green: true },
+              { icon: 'user', label: 'Role requested', value: roleDisplay },
+            ].map((row) => (
+              <div key={row.label} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 0', borderBottom: '1px solid #f3f3f3',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: '#f9f8f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <DetailIcon name={row.icon} />
+                  </div>
+                  <div style={{ fontSize: 13, color: '#8a8a8a' }}>{row.label}</div>
+                </div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: row.green ? '#1a7f5e' : '#1a1a1a', textAlign: 'right' }}>
+                  {row.value}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Detail rows */}
-        <div style={{ margin: '0 20px', background: '#f9f8f6', borderRadius: 14, padding: '4px 18px', border: '1.5px solid #e5e7eb' }}>
-          {[
-            { label: 'Date', value: dateDisplay },
-            { label: 'Hours', value: hoursDisplay },
-            { label: 'Lunch', value: lunchDisplay },
-            { label: 'Rate', value: payRate },
-            { label: 'Role', value: roleDisplay },
-          ].map((row, i, arr) => (
-            <div key={row.label} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '13px 0', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none',
-              fontSize: 13,
-            }}>
-              <span style={{ color: '#6b7280', fontWeight: 500 }}>{row.label}</span>
-              <span style={{ fontWeight: 700, color: row.label === 'Rate' ? '#1a7f5e' : '#1a1a1a' }}>{row.value}</span>
-            </div>
-          ))}
+        {/* Note from office */}
+        <div style={{ background: '#ffffff', margin: '0 16px 12px', borderRadius: 20, border: '1px solid #f3f3f3', padding: 18 }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: '#1a1a1a', marginBottom: 10 }}>Note from office</div>
+          <div style={{ fontSize: 14, color: '#5a5a5a', lineHeight: 1.6 }}>{note}</div>
         </div>
 
-        {/* Spacer for sticky button */}
-        <div style={{ height: 80 }} />
+        {/* View Office Profile */}
+        <button
+          onClick={handleViewOffice}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            width: '100%', margin: '0 0 12px', padding: 18,
+            background: '#ffffff', border: 'none',
+            borderTop: '1px solid #f3f3f3', borderBottom: '1px solid #f3f3f3',
+            borderRadius: 0, fontSize: 15, fontWeight: 700, color: '#1a7f5e',
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}
+        >
+          View Office Profile
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
+        {/* About the office */}
+        <div style={{ background: '#ffffff', margin: '0 16px 12px', borderRadius: 20, border: '1px solid #f3f3f3', overflow: 'hidden' }}>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: '#1a1a1a', padding: '16px 18px 0' }}>About the office</div>
+          <div style={{ padding: '14px 18px 16px' }}>
+            {[
+              { label: 'Practice type', value: 'General Dentistry' },
+              { label: 'Software', value: shift.software || 'Dentrix' },
+              { label: 'Team size', value: '8 staff' },
+              { label: 'Parking', value: 'Free on-site' },
+              { label: 'Dress code', value: 'Scrubs provided' },
+            ].map((row) => (
+              <div key={row.label} style={{
+                display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f3f3f3',
+              }}>
+                <div style={{ fontSize: 13, color: '#8a8a8a', flex: 1 }}>{row.label}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', textAlign: 'right' }}>{row.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Map / Address */}
+        <div style={{ margin: '0 16px 12px', background: '#ffffff', borderRadius: 20, border: '1px solid #f3f3f3', overflow: 'hidden' }}>
+          <div style={{
+            width: '100%', height: 140,
+            background: 'linear-gradient(135deg, #e8f0e4 0%, #d4e4dc 50%, #e0ead8 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: 36, height: 36, background: '#1a7f5e',
+              borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 3px 12px rgba(26,127,94,0.3)',
+            }}>
+              <div style={{ width: 12, height: 12, background: 'white', borderRadius: '50%', transform: 'rotate(45deg)' }} />
+            </div>
+          </div>
+          <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 13, color: '#5a5a5a', lineHeight: 1.4 }}>4820 Westheimer Rd{'\n'}Houston, TX 77056</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#1a7f5e', flexShrink: 0, marginLeft: 12 }}>3.1 mi</div>
+          </div>
+        </div>
 
         {/* Sticky apply button */}
         <div style={{
-          position: 'sticky', bottom: 0, padding: '14px 20px', paddingBottom: 28,
-          background: 'linear-gradient(transparent, #fff 12px)', zIndex: 2,
+          position: 'sticky', bottom: 0, padding: '14px 16px 28px',
+          paddingBottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
+          background: '#ffffff', borderTop: '1px solid #ececec', zIndex: 2,
+          display: 'flex', gap: 10,
         }}>
           <button
-            onClick={() => alert('Applied!')}
+            onClick={() => alert('Application submitted!')}
             style={{
-              width: '100%', padding: '16px', border: 'none', borderRadius: 100,
-              background: '#1a7f5e', color: 'white', fontFamily: "'DM Sans', sans-serif",
-              fontSize: 15, fontWeight: 700, cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(26,127,94,.25)',
+              flex: 1, padding: 15, borderRadius: 100, fontSize: 15, fontWeight: 700,
+              background: '#1a7f5e', color: 'white', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              cursor: 'pointer',
             }}
           >
-            Apply for Shift
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Apply for Shift · {payDisplay}/hr
+          </button>
+          <button
+            style={{
+              padding: '15px 22px', borderRadius: 100, fontSize: 15, fontWeight: 700,
+              background: '#f9f8f6', color: '#5a5a5a', border: '1px solid #ececec',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Save
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+function DetailIcon({ name }) {
+  const props = { viewBox: '0 0 24 24', fill: 'none', stroke: '#5a5a5a', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round', style: { width: 14, height: 14 } };
+  switch (name) {
+    case 'cal': return (<svg {...props}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>);
+    case 'clock': return (<svg {...props}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>);
+    case 'lunch': return (<svg {...props}><path d="M17 8h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2" /><path d="M7 8H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><rect x="7" y="4" width="10" height="16" rx="1" /></svg>);
+    case 'dollar': return (<svg {...props}><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>);
+    case 'user': return (<svg {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /></svg>);
+    default: return null;
+  }
 }
