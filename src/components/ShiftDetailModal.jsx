@@ -13,6 +13,20 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
 
   if (!open || !shift) return null;
 
+  // Normalize data from both OfficePublicProfile (day/name/meta/pay-string)
+  // and FindShifts (when/pay-number/lunch/software) shapes
+  const officeName = shift.officeName || shift.name || 'Office';
+  const officeInitials = shift.officeInitials || shift.initials || officeName.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
+  const payDisplay = typeof shift.pay === 'number' ? `$${shift.pay}` : (shift.pay || '$0').replace('/hr', '');
+  const payRate = typeof shift.pay === 'number' ? `$${shift.pay}/hr` : (shift.pay || '$0/hr');
+  const dateDisplay = shift.when || (shift.name && shift.day ? `${shift.name}, ${shift.day}th` : '—');
+  const hoursDisplay = shift.meta || shift.hours || '—';
+  const lunchDisplay = shift.lunch || 'Provided';
+  const roleDisplay = shift.role || '—';
+  const location = shift.distance || shift.location || '';
+  const rating = shift.rating || '4.8';
+  const reviewCount = shift.reviewCount || 0;
+
   return (
     <div
       onClick={onClose}
@@ -62,17 +76,17 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
             width: 64, height: 64, borderRadius: 18,
             background: 'linear-gradient(135deg,#a8c9b8,#7ab8a8)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22,
+            color: 'white', fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20,
             margin: '0 auto 12px', boxShadow: '0 4px 14px rgba(26,127,94,.12)',
-          }}>BS</div>
+          }}>{officeInitials}</div>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: '-.02em', marginBottom: 4 }}>
-            Bright Smile Dental
+            {officeName}
           </div>
-          <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 6 }}>Houston, TX · Galleria area</div>
+          {location && <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 6 }}>{location}</div>}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700 }}>
             <span style={{ color: '#f4b740', fontSize: 14 }}>★</span>
-            <span>4.8</span>
-            <span style={{ color: '#9ca3af', fontWeight: 500 }}>(18 reviews)</span>
+            <span>{rating}</span>
+            {reviewCount > 0 && <span style={{ color: '#9ca3af', fontWeight: 500 }}>({reviewCount} reviews)</span>}
           </div>
         </div>
 
@@ -85,7 +99,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
         }}>
           <div style={{ fontSize: 13, color: '#1a7f5e', fontWeight: 600, marginBottom: 2 }}>You'll earn</div>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 28, color: '#1a7f5e', letterSpacing: '-.02em' }}>
-            {shift.pay ? shift.pay.replace('/hr', '') : '$0'}
+            {payDisplay}
             <span style={{ fontSize: 14, fontWeight: 600 }}> /hr</span>
           </div>
         </div>
@@ -93,11 +107,11 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
         {/* Detail rows */}
         <div style={{ margin: '0 20px', background: '#f9f8f6', borderRadius: 14, padding: '4px 18px', border: '1.5px solid #e5e7eb' }}>
           {[
-            { label: 'Date', value: `${shift.name}, ${shift.day}th` },
-            { label: 'Hours', value: shift.meta },
-            { label: 'Lunch', value: 'Provided' },
-            { label: 'Rate', value: shift.pay },
-            { label: 'Role', value: shift.role },
+            { label: 'Date', value: dateDisplay },
+            { label: 'Hours', value: hoursDisplay },
+            { label: 'Lunch', value: lunchDisplay },
+            { label: 'Rate', value: payRate },
+            { label: 'Role', value: roleDisplay },
           ].map((row, i, arr) => (
             <div key={row.label} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -105,7 +119,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
               fontSize: 13,
             }}>
               <span style={{ color: '#6b7280', fontWeight: 500 }}>{row.label}</span>
-              <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{row.value}</span>
+              <span style={{ fontWeight: 700, color: row.label === 'Rate' ? '#1a7f5e' : '#1a1a1a' }}>{row.value}</span>
             </div>
           ))}
         </div>
@@ -127,7 +141,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
               boxShadow: '0 4px 14px rgba(26,127,94,.25)',
             }}
           >
-            {shift.isRapidFill ? 'Accept Shift' : 'Apply for Shift'}
+            Apply for Shift
           </button>
         </div>
       </div>
