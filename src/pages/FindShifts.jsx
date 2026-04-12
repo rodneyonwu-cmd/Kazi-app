@@ -97,28 +97,57 @@ const PERM_JOBS = [
     initials: 'MCD',
     logoUrl: mockLogo('missouri-city-perm'),
     name: 'Missouri City Dental',
-    role: 'Hygienist',
+    role: 'Dental Hygienist',
     distance: '4.2 mi · Fort Bend',
     rating: '4.9',
     reviewCount: 124,
     applied: 12,
     tags: [{ label: 'Full-time' }, { label: 'Mon–Fri', gray: true }, { label: 'Starts ASAP', gray: true }],
-    payRange: '$48 – $62',
-    payUnit: 'per hour',
+    benefits: ['Health', 'Dental', '401(k)', 'PTO', 'CE Allowance'],
+    payRange: '$75K – $92K',
+    payUnit: 'per year',
+    badge: 'Full-Time',
+    title: 'Dental Hygienist',
+    type: 'Full-Time · Starts ASAP',
+    salary: '$75K – $92K / year',
   },
   {
     id: 'perm-sbd',
     initials: 'SBD',
     logoUrl: mockLogo('sugar-land-perm'),
     name: 'Sugar Land Bright Dental',
-    role: 'Hygienist',
+    role: 'Dental Hygienist',
     distance: '7.8 mi · Sugar Land',
     rating: '4.6',
     reviewCount: 43,
     applied: 5,
     tags: [{ label: 'Full-time' }, { label: 'Tue–Sat', gray: true }, { label: 'Within 3 mo', gray: true }],
+    benefits: ['Health', 'Vision', 'PTO', 'Paid Holidays'],
     payRange: '$95K – $115K',
     payUnit: 'per year',
+    badge: 'Full-Time',
+    title: 'Dental Hygienist',
+    type: 'Full-Time · Start within 3 months',
+    salary: '$95K – $115K / year',
+  },
+  {
+    id: 'perm-pwd',
+    initials: 'PWD',
+    logoUrl: mockLogo('pearland-perm'),
+    name: 'Pearland Wellness Dental',
+    role: 'Dental Assistant',
+    distance: '3.1 mi · Pearland',
+    rating: '4.7',
+    reviewCount: 58,
+    applied: 8,
+    tags: [{ label: 'Part-time' }, { label: 'Mon, Wed, Fri', gray: true }, { label: 'Starts ASAP', gray: true }],
+    benefits: ['Flexible Hours', 'PTO', 'CE Allowance'],
+    payRange: '$24 – $30',
+    payUnit: 'per hour',
+    badge: 'Part-Time',
+    title: 'Dental Assistant',
+    type: 'Part-Time · 3 days/week · Starts ASAP',
+    salary: '$24 – $30 / hour',
   },
 ];
 
@@ -543,7 +572,7 @@ function PermJobCard({ job, onTap }) {
       </div>
       <CardHeader item={job} />
       {/* Tags row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: job.benefits?.length ? 10 : 0 }}>
         {job.tags.map((t, i) => (
           <span
             key={i}
@@ -562,6 +591,27 @@ function PermJobCard({ job, onTap }) {
           </span>
         ))}
       </div>
+      {/* Benefits row */}
+      {job.benefits?.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          {job.benefits.map((b) => (
+            <span
+              key={b}
+              style={{
+                background: COLORS.bg,
+                color: COLORS.textLight,
+                border: `1px solid ${COLORS.borderSoft}`,
+                padding: '3px 8px',
+                borderRadius: 100,
+                fontSize: 9,
+                fontWeight: 700,
+              }}
+            >
+              {b}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
