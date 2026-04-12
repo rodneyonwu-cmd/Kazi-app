@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import RapidFillBanner from './RapidFillBanner';
 
 export default function ShiftDetailModal({ open, shift, onClose }) {
   useEffect(() => {
@@ -75,6 +76,8 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
           </div>
         </div>
 
+        {shift.isRapidFill && <RapidFillBanner />}
+
         {/* Earnings banner */}
         <div style={{
           margin: '0 20px 16px', background: '#e8f5f0', borderRadius: 14, padding: '14px 18px',
@@ -124,7 +127,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
               boxShadow: '0 4px 14px rgba(26,127,94,.25)',
             }}
           >
-            Apply for Shift
+            {shift.isRapidFill ? 'Accept Shift' : 'Apply for Shift'}
           </button>
         </div>
       </div>

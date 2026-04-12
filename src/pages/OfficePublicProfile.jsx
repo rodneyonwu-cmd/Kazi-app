@@ -106,7 +106,7 @@ const styles = `
 `;
 
 const TEMP_SHIFTS = [
-  { id: 'sh-11', day: 11, name: 'Fri', gold: true, role: 'Dental Hygienist', meta: '8:00 AM – 5:00 PM · 8 hrs', pay: '$55/hr', applicants: 8 },
+  { id: 'sh-11', day: 11, name: 'Fri', gold: true, role: 'Dental Hygienist', meta: '8:00 AM – 5:00 PM · 8 hrs', pay: '$55/hr', applicants: 8, isRapidFill: true },
   { id: 'sh-14', day: 14, name: 'Mon', role: 'Dental Assistant', meta: '8:00 AM – 4:00 PM · 7 hrs', pay: '$28/hr', applicants: 3 },
   { id: 'sh-17', day: 17, name: 'Thu', role: 'Front Desk', meta: '9:00 AM – 5:00 PM · 7 hrs', pay: '$22/hr', applicants: 0 },
 ];

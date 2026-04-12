@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import SuccessToast from '../components/SuccessToast';
+import RapidFillBanner from '../components/RapidFillBanner';
 
 const styles = `
 .kazi-shift * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -74,6 +75,7 @@ const MOCK = {
     lunch: '45 min',
     rate: '$58/hr',
     role: 'Dental Hygienist',
+    isRapidFill: true,
   },
 };
 
@@ -116,6 +118,8 @@ export default function ShiftDetails() {
           <span className="count">({shift.reviewCount} reviews)</span>
         </div>
       </div>
+
+      {shift.isRapidFill && <RapidFillBanner />}
 
       <div className="earn-banner">
         <div className="earn-label">You'll earn</div>
@@ -166,14 +170,16 @@ export default function ShiftDetails() {
       <div className="action-bar">
         <button className="btn-apply" onClick={handleApply}>
           <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-          Apply for Shift · ${shift.earnings}
+          {shift.isRapidFill ? `Accept Shift · $${shift.earnings}` : `Apply for Shift · $${shift.earnings}`}
         </button>
         <button className="btn-save" onClick={handleSave}>Save</button>
       </div>
       <SuccessToast
         open={toastOpen}
-        title="Application sent"
-        subtitle={`${shift.officeName} will review your application and get back to you shortly.`}
+        title={shift.isRapidFill ? 'Shift accepted' : 'Application sent'}
+        subtitle={shift.isRapidFill
+          ? `You're confirmed for ${shift.date} at ${shift.officeName}. See you there!`
+          : `${shift.officeName} will review your application and get back to you shortly.`}
         onClose={closeToast}
       />
     </div>
