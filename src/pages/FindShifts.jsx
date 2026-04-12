@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
 import PermanentJobModal from '../components/PermanentJobModal';
+import ShiftDetailModal from '../components/ShiftDetailModal';
 
 // ============================================================
 // KAZI FIND SHIFTS — Browse open shifts (route: /find-shifts)
@@ -182,6 +183,7 @@ export default function FindShifts() {
   const [workType, setWorkType] = useState('temp');
   const [view, setView] = useState('list');
   const [selectedPermJob, setSelectedPermJob] = useState(null);
+  const [selectedTempShift, setSelectedTempShift] = useState(null);
 
   // Date filter from calendar tap on dashboard
   const params = new URLSearchParams(location.search);
@@ -401,11 +403,12 @@ export default function FindShifts() {
                 const day = d.getDate();
                 return shift.when.includes(`${mo} ${day}`);
               })
-              .map((shift) => <TempShiftCard key={shift.id} shift={shift} onApply={() => navigate(`/find-shifts/${shift.id}`)} />)
+              .map((shift) => <TempShiftCard key={shift.id} shift={shift} onApply={() => setSelectedTempShift(shift)} />)
           : PERM_JOBS.map((job) => <PermJobCard key={job.id} job={job} onTap={() => setSelectedPermJob(job)} />)}
 
         <ProviderBottomNav />
       </div>
+      <ShiftDetailModal open={!!selectedTempShift} shift={selectedTempShift} onClose={() => setSelectedTempShift(null)} />
       <PermanentJobModal open={!!selectedPermJob} job={selectedPermJob} onClose={() => setSelectedPermJob(null)} />
     </>
   );
@@ -555,19 +558,19 @@ function TempShiftCard({ shift, onApply }) {
             color: 'white',
             border: 'none',
             borderRadius: 100,
-            padding: '7px 14px',
-            fontSize: 11,
+            padding: '7px 22px',
+            fontSize: 12,
             fontWeight: 700,
             fontFamily: 'inherit',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 5,
+            gap: 6,
             cursor: 'pointer',
             marginLeft: 'auto',
           }}
         >
           Apply
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
           </svg>
