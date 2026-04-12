@@ -533,11 +533,11 @@ function PermJobCard({ job, onTap }) {
       }}
     >
       {/* Salary — top right */}
-      <div style={{ position: 'absolute', top: 16, right: 18, textAlign: 'right' }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.green, fontSize: 17, lineHeight: 1 }}>
+      <div style={{ position: 'absolute', top: 18, right: 18, textAlign: 'right' }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 13, lineHeight: 1 }}>
           {job.payRange}
         </div>
-        <div style={{ fontSize: 10, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>
+        <div style={{ fontSize: 9, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>
           {job.payUnit}
         </div>
       </div>
