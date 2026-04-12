@@ -591,20 +591,21 @@ function PermJobCard({ job, onTap }) {
           </span>
         ))}
       </div>
-      {/* Benefits row */}
+      {/* Benefits row — same style as gray tags */}
       {job.benefits?.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {job.benefits.map((b) => (
             <span
               key={b}
               style={{
                 background: COLORS.bg,
-                color: COLORS.textLight,
-                border: `1px solid ${COLORS.borderSoft}`,
-                padding: '3px 8px',
+                color: COLORS.textMid,
+                border: `1px solid ${COLORS.border}`,
+                padding: '4px 10px',
                 borderRadius: 100,
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: 700,
+                fontFamily: "'Outfit', sans-serif",
               }}
             >
               {b}
