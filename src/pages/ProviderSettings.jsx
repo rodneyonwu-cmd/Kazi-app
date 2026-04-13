@@ -1,137 +1,558 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useUser, useClerk } from '@clerk/clerk-react'
-import ProviderBottomNav from '../components/ProviderBottomNav'
-import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
-import TopBar from '../components/TopBar'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import TopBar from '../components/TopBar';
+import ProviderBottomNav from '../components/ProviderBottomNav';
+
+const styles = `
+  .kazi-settings {
+    min-height: 100vh;
+    background: #f9f8f6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding-bottom: 80px;
+  }
+
+  .kazi-settings .container {
+    max-width: 672px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    width: 100%;
+  }
+
+  .kazi-settings .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9ca3af;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: color 0.2s;
+    font-family: inherit;
+    padding: 0;
+  }
+
+  .kazi-settings .back-btn:hover {
+    color: #374151;
+  }
+
+  .kazi-settings .page-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .kazi-settings .page-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 0;
+  }
+
+  .kazi-settings .header {
+    margin-bottom: 24px;
+  }
+
+  .kazi-settings .card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .kazi-settings .card-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+  }
+
+  .kazi-settings .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+  }
+
+  .kazi-settings .setting-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .kazi-settings .setting-sub {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  .kazi-settings .divider {
+    height: 1px;
+    background: #f3f4f6;
+    margin: 16px 0;
+  }
+
+  .kazi-settings .toggle {
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    position: relative;
+    background: #1a7f5e;
+  }
+
+  .kazi-settings .toggle.off {
+    background: #d1d5db;
+  }
+
+  .kazi-settings .toggle-knob {
+    position: absolute;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: left 0.2s;
+    left: 20px;
+  }
+
+  .kazi-settings .toggle.off .toggle-knob {
+    left: 2px;
+  }
+
+  {/* Account section - no padding card */}
+  .kazi-settings .account-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .kazi-settings .account-header {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a1a1a;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .kazi-settings .account-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .kazi-settings .account-row:hover {
+    background: #f9f8f6;
+  }
+
+  .kazi-settings .account-row + .account-row {
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .kazi-settings .account-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .kazi-settings .account-sub {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  {/* Danger zone */}
+  .kazi-settings .danger-card {
+    background: #fff;
+    border: 1px solid #fee2e2;
+    border-radius: 18px;
+    padding: 16px 20px;
+  }
+
+  .kazi-settings .danger-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .kazi-settings .danger-sub {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 16px;
+  }
+
+  .kazi-settings .danger-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .kazi-settings .btn-deactivate {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-weight: 700;
+    padding: 12px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .kazi-settings .btn-deactivate:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+
+  .kazi-settings .btn-delete {
+    width: 100%;
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 700;
+    padding: 12px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+  }
+
+  .kazi-settings .btn-delete:hover {
+    background: #fecaca;
+  }
+
+  {/* Toast */}
+  .kazi-settings .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 999px;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    white-space: nowrap;
+  }
+
+  .kazi-settings .toast-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #1a7f5e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  {/* Modal */}
+  .kazi-settings .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 40;
+  }
+
+  .kazi-settings .modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    width: calc(100% - 32px);
+    max-width: 340px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 50;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+  }
+
+  .kazi-settings .modal-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .kazi-settings .modal-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 20px;
+  }
+
+  .kazi-settings .modal-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .kazi-settings .btn-cancel {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-weight: 700;
+    padding: 12px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .kazi-settings .btn-confirm-delete {
+    flex: 1;
+    background: #ef4444;
+    color: #fff;
+    font-weight: 700;
+    padding: 12px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  @media (max-width: 480px) {
+    .kazi-settings .container {
+      padding: 16px 14px;
+    }
+    .kazi-settings .card {
+      padding: 16px;
+    }
+  }
+`;
 
 export default function ProviderSettings() {
-  const navigate = useNavigate()
-  const { count: unreadMsgCount } = useUnreadMessageCount()
-  const { user } = useUser()
-  const { openUserProfile } = useClerk()
-  const userEmail = user?.primaryEmailAddress?.emailAddress || ''
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const { openUserProfile, signOut } = useClerk();
+  const userEmail = user?.primaryEmailAddress?.emailAddress || 'provider@email.com';
 
-  const [notifs, setNotifs] = useState({
-    shiftInvites: true,
-    rapidFill: true,
-    messages: true,
-    reminders: true,
-    marketing: false,
-    payouts: true,
-  })
+  /* Notification channel toggles */
+  const [pushNotif, setPushNotif] = useState(true);
+  const [emailNotif, setEmailNotif] = useState(true);
+  const [smsNotif, setSmsNotif] = useState(true);
 
+  /* Notification type toggles */
+  const [shiftInvites, setShiftInvites] = useState(true);
+  const [rapidFill, setRapidFill] = useState(true);
+  const [messages, setMessages] = useState(true);
+  const [reminders, setReminders] = useState(true);
+  const [payouts, setPayouts] = useState(true);
+  const [marketing, setMarketing] = useState(false);
 
-  const [pushEnabled, setPushEnabled] = useState(true)
-  const [emailEnabled, setEmailEnabled] = useState(true)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [toast, setToast] = useState(null)
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
+  /* Privacy toggles */
+  const [profileVisible, setProfileVisible] = useState(true);
+  const [showRatings, setShowRatings] = useState(true);
+  const [weekendAvail, setWeekendAvail] = useState(false);
 
-  const Toggle = ({ value, onChange }) => (
-    <div onClick={() => onChange(!value)} className={`w-11 h-6 rounded-full cursor-pointer transition-colors flex-shrink-0 relative ${value ? 'bg-[#1a7f5e]' : 'bg-[#d1d5db]'}`}>
-      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${value ? 'left-5' : 'left-0.5'}`} />
-    </div>
-  )
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [toast, setToast] = useState(null);
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+  const notifTypes = [
+    { label: 'Shift invitations', sub: 'When an office invites you to a shift', value: shiftInvites, set: setShiftInvites },
+    { label: 'Rapid Fill alerts', sub: 'Urgent shift openings near you', value: rapidFill, set: setRapidFill },
+    { label: 'New messages', sub: 'When an office sends you a message', value: messages, set: setMessages },
+    { label: 'Shift reminders', sub: '24 hours before your confirmed shift', value: reminders, set: setReminders },
+    { label: 'Payout updates', sub: 'When your earnings are processed', value: payouts, set: setPayouts },
+    { label: 'Tips & updates', sub: 'Product news and platform updates', value: marketing, set: setMarketing },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+    <div className="kazi-settings">
+      <style>{styles}</style>
       <TopBar role="provider" />
 
+      {/* Toast notification */}
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[12px] font-semibold px-4 py-2.5 rounded-full z-[300] flex items-center gap-2 shadow-xl whitespace-nowrap">
-          <div className="w-4 h-4 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
+        <div className="toast">
+          <div className="toast-check">
             <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
           </div>
           {toast}
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 py-6 w-full">
-        <div className="mb-6">
-          <button onClick={() => navigate('/provider-dashboard')} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#9ca3af] hover:text-[#374151] mb-4 transition">
+      <div className="container">
+        <div className="header">
+          <button className="back-btn" onClick={() => navigate(-1)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             Back
           </button>
-          <h1 className="text-[22px] font-black text-[#1a1a1a] mb-1">Settings</h1>
-          <p className="text-[13px] text-[#9ca3af]">Manage your account preferences</p>
+          <h1 className="page-title">Settings</h1>
+          <p className="page-sub">Manage your account preferences</p>
         </div>
 
-        {/* Notification channels */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 md:p-5 mb-4">
-          <p className="text-[15px] font-black text-[#1a1a1a] mb-4">Notification channels</p>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[14px] font-semibold text-[#1a1a1a]">Push notifications</p>
-                <p className="text-[12px] text-[#9ca3af]">Receive alerts on your device</p>
-              </div>
-              <Toggle value={pushEnabled} onChange={setPushEnabled} />
+        {/* Notification Channels */}
+        <div className="card">
+          <div className="card-title">Notification channels</div>
+
+          <div className="setting-row">
+            <div>
+              <div className="setting-label">Push notifications</div>
+              <div className="setting-sub">Receive alerts on your device</div>
             </div>
-            <div className="h-px bg-[#f3f4f6]" />
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[14px] font-semibold text-[#1a1a1a]">Email notifications</p>
-                <p className="text-[12px] text-[#9ca3af]">{userEmail}</p>
-              </div>
-              <Toggle value={emailEnabled} onChange={setEmailEnabled} />
+            <div className={`toggle ${pushNotif ? '' : 'off'}`} onClick={() => setPushNotif(!pushNotif)}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="setting-row">
+            <div>
+              <div className="setting-label">Email notifications</div>
+              <div className="setting-sub">{userEmail}</div>
+            </div>
+            <div className={`toggle ${emailNotif ? '' : 'off'}`} onClick={() => setEmailNotif(!emailNotif)}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="setting-row">
+            <div>
+              <div className="setting-label">SMS notifications</div>
+              <div className="setting-sub">Text alerts for urgent shifts</div>
+            </div>
+            <div className={`toggle ${smsNotif ? '' : 'off'}`} onClick={() => setSmsNotif(!smsNotif)}>
+              <div className="toggle-knob" />
             </div>
           </div>
         </div>
 
-        {/* Notification types */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] p-4 md:p-5 mb-4">
-          <p className="text-[15px] font-black text-[#1a1a1a] mb-4">Notification types</p>
-          <div className="flex flex-col gap-4">
-            {[
-              { key: 'shiftInvites', label: 'Shift invitations', sub: 'When an office invites you to a shift' },
-              { key: 'rapidFill', label: 'Rapid Fill alerts', sub: 'Urgent shift openings near you' },
-              { key: 'messages', label: 'New messages', sub: 'When an office sends you a message' },
-              { key: 'reminders', label: 'Shift reminders', sub: '24 hours before your confirmed shift' },
-              { key: 'payouts', label: 'Payout updates', sub: 'When your earnings are processed' },
-              { key: 'marketing', label: 'Tips & updates', sub: 'Product news and platform updates' },
-            ].map(({ key, label, sub }, i, arr) => (
-              <div key={key}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#1a1a1a]">{label}</p>
-                    <p className="text-[12px] text-[#9ca3af]">{sub}</p>
-                  </div>
-                  <Toggle value={notifs[key]} onChange={v => setNotifs(prev => ({ ...prev, [key]: v }))} />
+        {/* Notification Types */}
+        <div className="card">
+          <div className="card-title">Notification types</div>
+          {notifTypes.map(({ label, sub, value, set }, i) => (
+            <div key={label}>
+              <div className="setting-row">
+                <div>
+                  <div className="setting-label">{label}</div>
+                  <div className="setting-sub">{sub}</div>
                 </div>
-                {i < arr.length - 1 && <div className="h-px bg-[#f3f4f6] mt-4" />}
+                <div className={`toggle ${value ? '' : 'off'}`} onClick={() => set(!value)}>
+                  <div className="toggle-knob" />
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Account */}
-        <div className="bg-white border border-[#e5e7eb] rounded-[18px] overflow-hidden mb-4">
-          <p className="text-[15px] font-black text-[#1a1a1a] px-5 py-4 border-b border-[#f3f4f6]">Account</p>
-          {[
-            { label: 'Change email', sub: userEmail, onClick: () => openUserProfile() },
-            { label: 'Change password', sub: 'Update your password', onClick: () => openUserProfile() },
-            { label: 'Linked accounts', sub: 'Google', onClick: () => openUserProfile() },
-          ].map(({ label, sub, onClick }, i, arr) => (
-            <div key={label} onClick={onClick} className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[#f9f8f6] transition ${i < arr.length - 1 ? 'border-b border-[#f3f4f6]' : ''}`}>
-              <div>
-                <p className="text-[14px] font-semibold text-[#1a1a1a]">{label}</p>
-                <p className="text-[12px] text-[#9ca3af]">{sub}</p>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+              {i < notifTypes.length - 1 && <div className="divider" />}
             </div>
           ))}
         </div>
 
-        {/* Danger zone */}
-        <div className="bg-white border border-[#fee2e2] rounded-[18px] p-4 md:p-5">
-          <p className="text-[15px] font-black text-[#1a1a1a] mb-1">Danger zone</p>
-          <p className="text-[12px] text-[#9ca3af] mb-4">These actions are permanent and cannot be undone.</p>
-          <div className="flex flex-col gap-2">
-            <button onClick={() => showToast('Account deactivation coming soon')} className="w-full border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:border-[#ef4444] hover:text-[#ef4444] transition">
+        {/* Privacy Preferences */}
+        <div className="card">
+          <div className="card-title">Privacy</div>
+
+          <div className="setting-row">
+            <div>
+              <div className="setting-label">Profile visible to offices</div>
+              <div className="setting-sub">Allow offices to discover your profile</div>
+            </div>
+            <div className={`toggle ${profileVisible ? '' : 'off'}`} onClick={() => setProfileVisible(!profileVisible)}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="setting-row">
+            <div>
+              <div className="setting-label">Show ratings on profile</div>
+              <div className="setting-sub">Display your rating to offices</div>
+            </div>
+            <div className={`toggle ${showRatings ? '' : 'off'}`} onClick={() => setShowRatings(!showRatings)}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="setting-row">
+            <div>
+              <div className="setting-label">Weekend availability</div>
+              <div className="setting-sub">Show you are available on weekends</div>
+            </div>
+            <div className={`toggle ${weekendAvail ? '' : 'off'}`} onClick={() => setWeekendAvail(!weekendAvail)}>
+              <div className="toggle-knob" />
+            </div>
+          </div>
+        </div>
+
+        {/* Account */}
+        <div className="account-card">
+          <div className="account-header">Account</div>
+
+          <div className="account-row" onClick={() => openUserProfile()}>
+            <div>
+              <div className="account-label">Change email</div>
+              <div className="account-sub">{userEmail}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div className="account-row" onClick={() => openUserProfile()}>
+            <div>
+              <div className="account-label">Change password</div>
+              <div className="account-sub">Update your password</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div className="account-row" onClick={() => openUserProfile()}>
+            <div>
+              <div className="account-label">Linked accounts</div>
+              <div className="account-sub">Google</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+
+          <div className="account-row" onClick={async () => { await signOut(); navigate('/login'); }}>
+            <div>
+              <div className="account-label" style={{ color: '#ef4444' }}>Sign out</div>
+              <div className="account-sub">Log out of your account</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="danger-card">
+          <div className="danger-title">Danger zone</div>
+          <div className="danger-sub">These actions are permanent and cannot be undone.</div>
+          <div className="danger-buttons">
+            <button className="btn-deactivate" onClick={() => showToast('Account deactivation coming soon')}>
               Deactivate account
             </button>
-            <button onClick={() => setShowDeleteConfirm(true)} className="w-full bg-[#fee2e2] text-[#991b1b] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:bg-[#fecaca] transition">
+            <button className="btn-delete" onClick={() => setShowDeleteConfirm(true)}>
               Delete account
             </button>
           </div>
@@ -141,13 +562,13 @@ export default function ProviderSettings() {
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setShowDeleteConfirm(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-[20px] p-6 w-[calc(100%-32px)] max-w-[340px] max-h-[90vh] overflow-y-auto z-50 shadow-2xl">
-            <p className="text-[18px] font-black text-[#1a1a1a] mb-1">Delete account?</p>
-            <p className="text-[13px] text-[#9ca3af] mb-5">This will permanently delete your profile, history, and all data. This cannot be undone.</p>
-            <div className="flex gap-2">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px]">Cancel</button>
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 bg-[#ef4444] text-white font-bold py-3 min-h-[44px] rounded-full text-[13px]">Delete</button>
+          <div className="modal-backdrop" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="modal">
+            <div className="modal-title">Delete account?</div>
+            <div className="modal-desc">This will permanently delete your profile, history, and all data. This cannot be undone.</div>
+            <div className="modal-buttons">
+              <button className="btn-cancel" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+              <button className="btn-confirm-delete" onClick={() => setShowDeleteConfirm(false)}>Delete</button>
             </div>
           </div>
         </>
@@ -155,11 +576,5 @@ export default function ProviderSettings() {
 
       <ProviderBottomNav />
     </div>
-  )
+  );
 }
-
-function HomeIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> }
-function ReqIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> }
-function SearchIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> }
-function MsgIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> }
-function EarnIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> }

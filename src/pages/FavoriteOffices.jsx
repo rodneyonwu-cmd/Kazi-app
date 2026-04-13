@@ -1,160 +1,405 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@clerk/clerk-react'
-import ProviderBottomNav from '../components/ProviderBottomNav'
-import useUnreadMessageCount from '../hooks/useUnreadMessageCount'
-import TopBar from '../components/TopBar'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import TopBar from '../components/TopBar';
+import ProviderBottomNav from '../components/ProviderBottomNav';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const styles = `
+  .kazi-favorites {
+    min-height: 100vh;
+    background: #f9f8f6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding-bottom: 80px;
+  }
+
+  .kazi-favorites .container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 96px;
+  }
+
+  .kazi-favorites .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9ca3af;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: color 0.2s;
+    font-family: inherit;
+    padding: 0;
+  }
+
+  .kazi-favorites .back-btn:hover {
+    color: #374151;
+  }
+
+  .kazi-favorites .page-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+
+  .kazi-favorites .page-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 16px;
+  }
+
+  .kazi-favorites .office-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .kazi-favorites .office-card:hover {
+    border-color: #1a7f5e;
+  }
+
+  .kazi-favorites .office-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  .kazi-favorites .office-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .kazi-favorites .office-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+
+  .kazi-favorites .office-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #6b7280;
+  }
+
+  .kazi-favorites .dot {
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #d1d5db;
+  }
+
+  .kazi-favorites .star {
+    font-weight: 600;
+    color: #F97316;
+  }
+
+  .kazi-favorites .bookmark-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #ef4444;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .kazi-favorites .bookmark-btn:hover {
+    border-color: #ef4444;
+  }
+
+  .kazi-favorites .office-rate {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a7f5e;
+    flex-shrink: 0;
+  }
+
+  {/* Confirmation modal */}
+  .kazi-favorites .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+  }
+
+  .kazi-favorites .modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    width: calc(100% - 32px);
+    max-width: 340px;
+    z-index: 210;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+
+  .kazi-favorites .modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .kazi-favorites .modal-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .kazi-favorites .modal-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 20px;
+  }
+
+  .kazi-favorites .modal-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .kazi-favorites .btn-cancel {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-weight: 700;
+    padding: 12px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .kazi-favorites .btn-remove {
+    flex: 1;
+    background: #ef4444;
+    color: #fff;
+    font-weight: 700;
+    padding: 12px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .kazi-favorites .btn-remove:hover {
+    background: #dc2626;
+  }
+
+  {/* Empty state */}
+  .kazi-favorites .empty-state {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .kazi-favorites .empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e8f5f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .kazi-favorites .empty-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .kazi-favorites .empty-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    max-width: 260px;
+    margin: 0 auto 16px;
+  }
+
+  @media (max-width: 480px) {
+    .kazi-favorites .container {
+      padding: 16px 14px 96px;
+    }
+  }
+`;
+
+const mockOffices = [
+  {
+    id: 'bs',
+    name: 'Bright Smile Dental',
+    initials: 'BS',
+    type: 'General',
+    distance: '3.2 mi',
+    rating: '4.9',
+    rate: '$55/hr',
+    bg: '#e8f5f0',
+    color: '#1a7f5e',
+  },
+  {
+    id: 'mc',
+    name: 'Missouri City Dental',
+    initials: 'MC',
+    type: 'Pediatric',
+    distance: '5.1 mi',
+    rating: '4.7',
+    rate: '$50/hr',
+    bg: '#ede9fe',
+    color: '#7c3aed',
+  },
+  {
+    id: 'bd',
+    name: 'Bellaire Dental Group',
+    initials: 'BD',
+    type: 'Orthodontics',
+    distance: '2.8 mi',
+    rating: '4.8',
+    rate: '$60/hr',
+    bg: '#fef3c7',
+    color: '#d97706',
+  },
+  {
+    id: 'sl',
+    name: 'Sugar Land Family Dental',
+    initials: 'SL',
+    type: 'Family',
+    distance: '7.4 mi',
+    rating: '4.6',
+    rate: '$48/hr',
+    bg: '#dbeafe',
+    color: '#2563eb',
+  },
+];
 
 export default function FavoriteOffices() {
-  const navigate = useNavigate()
-  const { getToken } = useAuth()
-  const { count: unreadMsgCount } = useUnreadMessageCount()
-  const [favs, setFavs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState(null)
-  const [toast, setToast] = useState(null)
-
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      try {
-        const token = await getToken()
-        // First get the provider profile to get providerId
-        const meRes = await fetch(`${API_URL}/api/providers/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (meRes.ok) {
-          const profile = await meRes.json()
-          const res = await fetch(`${API_URL}/api/providers/${profile.id}/saved-offices`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          if (res.ok) setFavs(await res.json())
-        }
-      } catch {}
-      setLoading(false)
-    }
-    fetchFavorites()
-  }, [getToken])
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
-  const toggleExpand = (id) => setExpanded(prev => prev === id ? null : id)
-  const removeFav = (e, id) => { e.stopPropagation(); setFavs(prev => prev.filter(f => f.id !== id)); showToast('Removed from favorites') }
+  const navigate = useNavigate();
+  const [confirmOffice, setConfirmOffice] = useState(null);
 
   return (
-    <div className="min-h-screen bg-[#f9f8f6] pb-24 md:pb-8">
+    <div className="kazi-favorites">
+      <style>{styles}</style>
       <TopBar role="provider" />
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[12px] font-semibold px-4 py-2.5 rounded-full z-[300] flex items-center gap-2 shadow-xl whitespace-nowrap">
-          <div className="w-4 h-4 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
-            <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
-          </div>
-          {toast}
-        </div>
-      )}
 
-      <div className="max-w-[520px] mx-auto px-4 md:px-3.5 py-5 pb-24">
-        <h1 className="text-[20px] font-black text-[#1a1a1a] mb-0.5">Favorite Offices</h1>
-        <p className="text-[13px] text-[#9ca3af] mb-4">{loading ? '...' : `${favs.length} saved office${favs.length !== 1 ? 's' : ''}`}</p>
+      <div className="container">
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back
+        </button>
 
-        {loading ? (
-          <div className="space-y-1.5">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="bg-white border border-[#e5e7eb] rounded-[10px] px-3 py-2.5 flex items-center gap-2.5 animate-pulse">
-                <div className="w-[38px] h-[38px] rounded-[9px] bg-[#f3f4f6] flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="h-3.5 bg-[#f3f4f6] rounded w-3/4 mb-1.5" />
-                  <div className="h-2.5 bg-[#f3f4f6] rounded w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : favs.length === 0 ? (
-          <div className="bg-white border border-[#e5e7eb] rounded-[16px] p-10 text-center">
-            <div className="w-14 h-14 rounded-full bg-[#e8f5f0] flex items-center justify-center mx-auto mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <h1 className="page-title">Favorite Offices</h1>
+        <p className="page-sub">{mockOffices.length} saved office{mockOffices.length !== 1 ? 's' : ''}</p>
+
+        {/* Office Cards */}
+        {mockOffices.map((office) => (
+          <div
+            key={office.id}
+            className="office-card"
+            onClick={() => navigate('/office/demo')}
+          >
+            <div
+              className="office-avatar"
+              style={{ background: office.bg, color: office.color }}
+            >
+              {office.initials}
             </div>
-            <p className="text-[16px] font-bold text-[#1a1a1a] mb-1">No favorite offices yet</p>
-            <p className="text-[13px] text-[#9ca3af] mb-4 max-w-[260px] mx-auto">Save offices you love to quickly find and rebook them later.</p>
-            <button onClick={() => navigate('/provider-find-shifts')} className="bg-[#1a7f5e] text-white font-bold px-5 py-3 min-h-[44px] rounded-full text-[13px] hover:bg-[#156649] transition border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Browse shifts</button>
-          </div>
-        ) : (
-          favs.map(office => (
-            <div key={office.id} className={`bg-white border rounded-[10px] mb-1.5 overflow-hidden transition-all ${expanded === office.id ? 'border-[#1a7f5e]' : 'border-[#e5e7eb]'}`}>
-
-              {/* COLLAPSED ROW */}
-              <div className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer" onClick={() => toggleExpand(office.id)}>
-                <div className="w-[38px] h-[38px] rounded-[9px] flex items-center justify-center text-[10px] font-black flex-shrink-0" style={{ background: office.bg, color: office.color }}>{office.initials}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-extrabold text-[#1a1a1a] truncate mb-0.5">{office.name}</div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-[#6b7280]">{office.type}</span>
-                    <div className="w-[2px] h-[2px] rounded-full bg-[#d1d5db]"/>
-                    <span className="text-[11px] text-[#6b7280]">{office.distance}</span>
-                    <div className="w-[2px] h-[2px] rounded-full bg-[#d1d5db]"/>
-                    <span className="text-[11px] font-semibold text-[#F97316]">★ {office.stars}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <button onClick={(e) => removeFav(e, office.id)} className="w-[26px] h-[26px] rounded-full flex items-center justify-center border border-[#e5e7eb] hover:border-[#ef4444] hover:text-[#ef4444] transition text-[#ef4444] bg-white cursor-pointer">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                  </button>
-                  <div className={`w-[20px] h-[20px] rounded-full bg-[#f3f4f6] flex items-center justify-center transition-transform duration-200 ${expanded === office.id ? 'rotate-180' : ''}`}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-                  </div>
-                </div>
+            <div className="office-info">
+              <div className="office-name">{office.name}</div>
+              <div className="office-meta">
+                <span>{office.type}</span>
+                <span className="dot" />
+                <span>{office.distance}</span>
+                <span className="dot" />
+                <span className="star">&#9733; {office.rating}</span>
               </div>
-
-              {/* EXPANDED DETAIL */}
-              {expanded === office.id && (
-                <div className="border-t border-[#f3f4f6] px-3 py-3">
-                  {/* Stats row */}
-                  <div className="grid grid-cols-3 gap-1.5 mb-3">
-                    {[
-                      { label: 'Shifts worked', val: office.shifts },
-                      { label: 'Last worked',   val: office.lastWorked },
-                      { label: 'Software',      val: office.software },
-                    ].map(s => (
-                      <div key={s.label} className="bg-[#f9f8f6] rounded-[8px] px-2.5 py-2 text-center">
-                        <div className="text-[12px] font-bold text-[#1a1a1a] mb-0.5">{s.val}</div>
-                        <div className="text-[10px] text-[#9ca3af]">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => navigate('/provider-messages')}
-                      className="flex-1 flex items-center justify-center gap-1.5 border border-[#e5e7eb] text-[#374151] font-bold py-2 rounded-full text-[11px] hover:border-[#1a7f5e] transition cursor-pointer bg-white"
-                      style={{ fontFamily: 'inherit' }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                      Message
-                    </button>
-                    <button
-                      onClick={() => navigate('/provider-find-shifts')}
-                      className="flex-1 bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold py-2 rounded-full text-[11px] transition border-none cursor-pointer"
-                      style={{ fontFamily: 'inherit' }}
-                    >
-                      View shifts
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
-          ))
-        )}
+            <span className="office-rate">{office.rate}</span>
+            <button
+              className="bookmark-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmOffice({ name: office.name, id: office.id });
+              }}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+          </div>
+        ))}
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmOffice !== null && (
+        <>
+          <div className="modal-backdrop" onClick={() => setConfirmOffice(null)} />
+          <div className="modal">
+            <div className="modal-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <div className="modal-title">Remove from favorites?</div>
+            <div className="modal-desc">
+              Are you sure you want to remove <strong>{confirmOffice.name}</strong> from your favorite offices?
+            </div>
+            <div className="modal-buttons">
+              <button className="btn-cancel" onClick={() => setConfirmOffice(null)}>Cancel</button>
+              <button
+                className="btn-remove"
+                onClick={() => {
+                  /* TODO: API delete call */
+                  setConfirmOffice(null);
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <ProviderBottomNav />
     </div>
-  )
+  );
 }
-
-function HomeIcon()   { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> }
-function ReqIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> }
-function SearchIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> }
-function MsgIcon()    { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> }
-function EarnIcon()   { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> }

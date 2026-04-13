@@ -40,6 +40,7 @@ import ProviderSchedule from './pages/ProviderSchedule'
 import ProviderDocuments from './pages/ProviderDocuments'
 import TaxInformation from './pages/TaxInformation'
 import FavoriteOffices from './pages/FavoriteOffices'
+import ProviderFinance from './pages/ProviderFinance'
 import ProviderHelpCenter from './pages/ProviderHelpCenter'
 import ProviderSettings from './pages/ProviderSettings'
 import ProviderProfile from './pages/ProviderProfile'
@@ -100,11 +101,13 @@ function App() {
       <Route path="/requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
       <Route path="/provider-requests" element={<Navigate to="/requests" replace />} />
       <Route path="/provider-messages" element={<Navigate to="/messages" replace />} />
-      <Route path="/provider-earnings" element={<RequireAuth><ProviderEarnings /></RequireAuth>} />
+      <Route path="/finance" element={<RequireAuth><ProviderFinance /></RequireAuth>} />
+      <Route path="/provider-earnings" element={<Navigate to="/finance" replace />} />
       <Route path="/provider-schedule" element={<RequireAuth><ProviderSchedule /></RequireAuth>} />
       <Route path="/provider-documents" element={<RequireAuth><ProviderDocuments /></RequireAuth>} />
       <Route path="/provider-tax" element={<RequireAuth><TaxInformation /></RequireAuth>} />
-      <Route path="/provider-favorites" element={<RequireAuth><FavoriteOffices /></RequireAuth>} />
+      <Route path="/favorites" element={<RequireAuth><FavoriteOffices /></RequireAuth>} />
+      <Route path="/provider-favorites" element={<Navigate to="/favorites" replace />} />
       <Route path="/provider-help" element={<RequireAuth><ProviderHelpCenter /></RequireAuth>} />
       <Route path="/provider-settings" element={<RequireAuth><ProviderSettings /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />

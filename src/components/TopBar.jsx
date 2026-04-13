@@ -28,8 +28,8 @@ const PROVIDER_ITEMS = {
     { icon: 'eye', label: 'How offices view me', path: '/provider-profile-preview' },
     { icon: 'doc', label: 'Documents & Credentials', path: '/provider-documents' },
     { icon: 'cal', label: 'Availability', path: '/provider-availability' },
-    { icon: 'dollar', label: 'Finance', path: '/provider-earnings' },
-    { icon: 'heart', label: 'Favorite Offices', path: '/provider-favorites' },
+    { icon: 'dollar', label: 'Finance', path: '/finance' },
+    { icon: 'heart', label: 'Favorite Offices', path: '/favorites' },
   ],
   support: [
     { icon: 'gear', label: 'Settings', path: '/provider-settings' },
