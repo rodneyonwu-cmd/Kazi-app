@@ -159,21 +159,14 @@ const PERM_JOBS = [
 const AVAILABLE_SHIFT_DATES = [11, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24, 27, 28, 29, 30];
 
 const DISTANCE_OPTIONS = [
-  { label: '5 miles', value: '5' },
-  { label: '10 miles', value: '10' },
-  { label: '15 miles', value: '15' },
-  { label: '25 miles', value: '25' },
-  { label: '50 miles', value: '50' },
+  { label: 'Less than 5 miles', value: '5' },
+  { label: 'Less than 10 miles', value: '10' },
+  { label: 'Less than 15 miles', value: '15' },
+  { label: 'Less than 25 miles', value: '25' },
+  { label: 'Less than 50 miles', value: '50' },
 ];
 
-const MIN_PAY_OPTIONS = [
-  { label: 'Any', value: '0' },
-  { label: '$30/hr+', value: '30' },
-  { label: '$40/hr+', value: '40' },
-  { label: '$50/hr+', value: '50' },
-  { label: '$60/hr+', value: '60' },
-  { label: '$70/hr+', value: '70' },
-];
+const MIN_PAY_RANGE = { min: 15, max: 100 };
 
 const POSTED_OPTIONS = [
   { label: 'Last 24 hours', value: '1' },
@@ -181,6 +174,7 @@ const POSTED_OPTIONS = [
   { label: 'Last 7 days', value: '7' },
   { label: 'Last 14 days', value: '14' },
   { label: 'Last 30 days', value: '30' },
+  { label: '30+ days', value: '999' },
 ];
 
 function fmtDateLabel(dateStr) {
@@ -459,12 +453,10 @@ export default function FindShifts() {
         onSelect={(v) => setDistanceFilter(v)}
         onClose={() => setOpenFilter(null)}
       />
-      <FilterPickerSheet
+      <MinPaySliderSheet
         open={openFilter === 'minpay'}
-        title="Minimum Pay"
-        options={MIN_PAY_OPTIONS}
-        selected={minPayFilter}
-        onSelect={(v) => setMinPayFilter(v)}
+        value={parseInt(minPayFilter) || 0}
+        onApply={(v) => { setMinPayFilter(String(v)); setOpenFilter(null); }}
         onClose={() => setOpenFilter(null)}
       />
       <FilterPickerSheet
@@ -976,5 +968,94 @@ function Pin({ top, left, pay, selected }) {
         {pay}
       </div>
     </div>
+  );
+}
+
+function MinPaySliderSheet({ open, value, onApply, onClose }) {
+  const [draft, setDraft] = React.useState(value);
+
+  React.useEffect(() => { if (open) setDraft(value); }, [open, value]);
+  React.useEffect(() => {
+    if (open) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+
+  const pct = ((draft - MIN_PAY_RANGE.min) / (MIN_PAY_RANGE.max - MIN_PAY_RANGE.min)) * 100;
+
+  return (
+    <>
+      <style>{`
+        @keyframes mpFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes mpSlide { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+        .kazi-mp-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 100px; outline: none; cursor: pointer; }
+        .kazi-mp-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1a7f5e; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: pointer; }
+        .kazi-mp-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1a7f5e; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.18); cursor: pointer; }
+      `}</style>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)', zIndex: 200, animation: 'mpFade .22s ease-out' }} />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'fixed', left: '50%', bottom: 0, transform: 'translate(-50%, 0)',
+          width: '100%', maxWidth: 480, background: '#fff',
+          borderRadius: '28px 28px 0 0', zIndex: 201,
+          fontFamily: "'DM Sans', sans-serif", padding: '12px 20px 28px',
+          paddingBottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
+          boxShadow: '0 -16px 48px rgba(0,0,0,0.2)',
+          animation: 'mpSlide .36s cubic-bezier(0.32, 0.72, 0, 1) both',
+        }}
+      >
+        <div style={{ width: 40, height: 4, background: '#e5e7eb', borderRadius: 100, margin: '0 auto 14px' }} />
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: '#1a1a1a', marginBottom: 6 }}>Minimum Pay</div>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 28, color: '#1a7f5e', marginBottom: 20 }}>
+          {draft === 0 ? 'Any' : `$${draft}/hr+`}
+        </div>
+
+        <input
+          type="range"
+          className="kazi-mp-slider"
+          min={MIN_PAY_RANGE.min}
+          max={MIN_PAY_RANGE.max}
+          step={5}
+          value={draft || MIN_PAY_RANGE.min}
+          onChange={(e) => setDraft(parseInt(e.target.value))}
+          style={{
+            background: `linear-gradient(to right, #1a7f5e ${pct}%, #e5e7eb ${pct}%)`,
+            marginBottom: 8,
+          }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9ca3af', fontWeight: 600, marginBottom: 20 }}>
+          <span>${MIN_PAY_RANGE.min}</span>
+          <span>${MIN_PAY_RANGE.max}+</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={() => { onApply(0); }}
+            style={{
+              flex: 1, padding: 14, borderRadius: 100,
+              background: '#f9f8f6', border: '1.5px solid #e5e7eb',
+              fontFamily: 'inherit', fontSize: 14, fontWeight: 700, color: '#1a1a1a',
+              cursor: 'pointer',
+            }}
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => onApply(draft)}
+            style={{
+              flex: 1, padding: 14, borderRadius: 100,
+              background: '#1a7f5e', border: 'none',
+              fontFamily: 'inherit', fontSize: 14, fontWeight: 800, color: 'white',
+              cursor: 'pointer',
+            }}
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
