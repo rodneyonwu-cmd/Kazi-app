@@ -51,11 +51,14 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480,
-          maxHeight: '92vh', overflowY: 'auto', position: 'relative',
-          animation: 'sdm-slide .3s ease', WebkitOverflowScrolling: 'touch',
-          paddingBottom: 140,
+          maxHeight: '92vh', position: 'relative',
+          animation: 'sdm-slide .3s ease',
+          display: 'flex', flexDirection: 'column',
         }}
       >
+        {/* Scrollable content area */}
+        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+
         {/* Handle bar */}
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
           <div style={{ width: 40, height: 4, borderRadius: 100, background: '#d1d5db' }} />
@@ -206,11 +209,13 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
           </div>
         </div>
 
-        {/* Sticky apply button */}
+        </div>{/* end scrollable content */}
+
+        {/* Fixed apply button bar — outside the scroll area */}
         <div style={{
-          position: 'sticky', bottom: 0, padding: '14px 16px 28px',
+          flexShrink: 0, padding: '14px 16px 28px',
           paddingBottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',
-          background: '#ffffff', borderTop: '1px solid #ececec', zIndex: 2,
+          background: '#ffffff', borderTop: '1px solid #ececec',
           display: 'flex', gap: 10,
         }}>
           <button
