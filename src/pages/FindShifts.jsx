@@ -4,6 +4,9 @@ import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
 import PermanentJobModal from '../components/PermanentJobModal';
 import ShiftDetailModal from '../components/ShiftDetailModal';
+import DatePickerSheet from '../components/DatePickerSheet';
+import FilterPickerSheet from '../components/FilterPickerSheet';
+import ZipInputSheet from '../components/ZipInputSheet';
 
 // ============================================================
 // KAZI FIND SHIFTS — Browse open shifts (route: /find-shifts)
@@ -152,28 +155,39 @@ const PERM_JOBS = [
   },
 ];
 
-const TEMP_FILTERS = [
-  { label: 'Date', value: 'Apr 9–15', active: true },
-  { label: 'Zip', value: '77459' },
-  { label: 'Distance', value: '10mi' },
-  { label: 'Min pay', value: '$50/hr' },
-  { label: 'Posted', value: '7d' },
+// Dates with available shifts (mock — would come from API)
+const AVAILABLE_SHIFT_DATES = [11, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24, 27, 28, 29, 30];
+
+const DISTANCE_OPTIONS = [
+  { label: '5 miles', value: '5' },
+  { label: '10 miles', value: '10' },
+  { label: '15 miles', value: '15' },
+  { label: '25 miles', value: '25' },
+  { label: '50 miles', value: '50' },
 ];
 
-const PERM_FILTERS = [
-  { label: 'Type', value: 'Full-time', active: true },
-  { label: 'Zip', value: '77459' },
-  { label: 'Distance', value: '10mi' },
-  { label: 'Min pay', value: '$50/hr' },
-  { label: 'Start date', value: 'Any' },
+const MIN_PAY_OPTIONS = [
+  { label: 'Any', value: '0' },
+  { label: '$30/hr+', value: '30' },
+  { label: '$40/hr+', value: '40' },
+  { label: '$50/hr+', value: '50' },
+  { label: '$60/hr+', value: '60' },
+  { label: '$70/hr+', value: '70' },
 ];
 
-// Format a YYYY-MM-DD date string to a human-readable label
+const POSTED_OPTIONS = [
+  { label: 'Last 24 hours', value: '1' },
+  { label: 'Last 3 days', value: '3' },
+  { label: 'Last 7 days', value: '7' },
+  { label: 'Last 14 days', value: '14' },
+  { label: 'Last 30 days', value: '30' },
+];
+
 function fmtDateLabel(dateStr) {
   if (!dateStr) return '';
   try {
     const d = new Date(dateStr + 'T12:00:00');
-    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   } catch { return dateStr; }
 }
 
@@ -185,9 +199,16 @@ export default function FindShifts() {
   const [selectedPermJob, setSelectedPermJob] = useState(null);
   const [selectedTempShift, setSelectedTempShift] = useState(null);
 
-  // Date filter from calendar tap on dashboard
+  // Filter state
   const params = new URLSearchParams(location.search);
   const [dateFilter, setDateFilter] = useState(params.get('date') || '');
+  const [zipFilter, setZipFilter] = useState('77459');
+  const [distanceFilter, setDistanceFilter] = useState('10');
+  const [minPayFilter, setMinPayFilter] = useState('0');
+  const [postedFilter, setPostedFilter] = useState('7');
+
+  // Which filter sheet is open
+  const [openFilter, setOpenFilter] = useState(null); // 'date' | 'zip' | 'distance' | 'minpay' | 'posted'
 
   const clearDateFilter = () => {
     setDateFilter('');
@@ -195,7 +216,6 @@ export default function FindShifts() {
   };
 
   const isTemp = workType === 'temp';
-  const filters = isTemp ? TEMP_FILTERS : PERM_FILTERS;
 
   return (
     <>
@@ -315,7 +335,7 @@ export default function FindShifts() {
           </SegBtn>
         </div>
 
-        {/* FILTERS */}
+        {/* FILTERS — functional */}
         <div
           className="scroll-x"
           style={{
@@ -329,9 +349,11 @@ export default function FindShifts() {
             marginTop: 14,
           }}
         >
-          {filters.map((f) => (
-            <FilterChip key={f.label} {...f} />
-          ))}
+          <FilterChip label="Date" value={dateFilter ? fmtDateLabel(dateFilter) : 'Any'} active={!!dateFilter} onClick={() => setOpenFilter('date')} />
+          <FilterChip label="Zip" value={zipFilter} active={zipFilter !== '77459'} onClick={() => setOpenFilter('zip')} />
+          <FilterChip label="Distance" value={`${distanceFilter}mi`} active={distanceFilter !== '10'} onClick={() => setOpenFilter('distance')} />
+          <FilterChip label="Min pay" value={minPayFilter === '0' ? 'Any' : `$${minPayFilter}/hr`} active={minPayFilter !== '0'} onClick={() => setOpenFilter('minpay')} />
+          <FilterChip label="Posted" value={`${postedFilter}d`} active={postedFilter !== '7'} onClick={() => setOpenFilter('posted')} />
         </div>
 
         {/* RESULT BAR */}
@@ -392,16 +414,20 @@ export default function FindShifts() {
         {/* MAP VIEW (temp only) */}
         {isTemp && view === 'map' && <MapView />}
 
-        {/* CARDS — filtered by date if a dateFilter is active */}
+        {/* CARDS — filtered by all active filters */}
         {isTemp
           ? TEMP_SHIFTS
               .filter((shift) => {
-                if (!dateFilter) return true;
-                // dateFilter = "2026-04-11" → extract "Apr 11"
-                const d = new Date(dateFilter + 'T12:00:00');
-                const mo = d.toLocaleDateString('en-US', { month: 'short' });
-                const day = d.getDate();
-                return shift.when.includes(`${mo} ${day}`);
+                // Date filter
+                if (dateFilter) {
+                  const d = new Date(dateFilter + 'T12:00:00');
+                  const mo = d.toLocaleDateString('en-US', { month: 'short' });
+                  const day = d.getDate();
+                  if (!shift.when.includes(`${mo} ${day}`)) return false;
+                }
+                // Min pay filter
+                if (minPayFilter !== '0' && shift.pay < parseInt(minPayFilter)) return false;
+                return true;
               })
               .map((shift) => <TempShiftCard key={shift.id} shift={shift} onApply={() => setSelectedTempShift(shift)} />)
           : PERM_JOBS.map((job) => <PermJobCard key={job.id} job={job} onTap={() => setSelectedPermJob(job)} />)}
@@ -410,6 +436,45 @@ export default function FindShifts() {
       </div>
       <ShiftDetailModal open={!!selectedTempShift} shift={selectedTempShift} onClose={() => setSelectedTempShift(null)} />
       <PermanentJobModal open={!!selectedPermJob} job={selectedPermJob} onClose={() => setSelectedPermJob(null)} />
+
+      {/* Filter modals */}
+      <DatePickerSheet
+        open={openFilter === 'date'}
+        selectedDate={dateFilter}
+        availableDates={AVAILABLE_SHIFT_DATES}
+        onSelect={(d) => { setDateFilter(d); if (d) navigate(`/find-shifts?date=${d}`, { replace: true }); else navigate('/find-shifts', { replace: true }); }}
+        onClose={() => setOpenFilter(null)}
+      />
+      <ZipInputSheet
+        open={openFilter === 'zip'}
+        currentZip={zipFilter}
+        onApply={(z) => setZipFilter(z)}
+        onClose={() => setOpenFilter(null)}
+      />
+      <FilterPickerSheet
+        open={openFilter === 'distance'}
+        title="Distance"
+        options={DISTANCE_OPTIONS}
+        selected={distanceFilter}
+        onSelect={(v) => setDistanceFilter(v)}
+        onClose={() => setOpenFilter(null)}
+      />
+      <FilterPickerSheet
+        open={openFilter === 'minpay'}
+        title="Minimum Pay"
+        options={MIN_PAY_OPTIONS}
+        selected={minPayFilter}
+        onSelect={(v) => setMinPayFilter(v)}
+        onClose={() => setOpenFilter(null)}
+      />
+      <FilterPickerSheet
+        open={openFilter === 'posted'}
+        title="Posted Within"
+        options={POSTED_OPTIONS}
+        selected={postedFilter}
+        onSelect={(v) => setPostedFilter(v)}
+        onClose={() => setOpenFilter(null)}
+      />
     </>
   );
 }
@@ -480,9 +545,10 @@ function SegBtn({ active, onClick, count, children }) {
   );
 }
 
-function FilterChip({ label, value, active }) {
+function FilterChip({ label, value, active, onClick }) {
   return (
     <button
+      onClick={onClick}
       style={{
         flexShrink: 0,
         background: active ? COLORS.greenTint : COLORS.bg,
@@ -495,9 +561,10 @@ function FilterChip({ label, value, active }) {
         display: 'flex',
         alignItems: 'center',
         gap: 6,
+        cursor: 'pointer',
       }}
     >
-      {label} <span style={{ color: COLORS.textLight, fontWeight: 600 }}>{value}</span>
+      {label} <span style={{ color: active ? COLORS.green : COLORS.textLight, fontWeight: 600 }}>{value}</span>
       <svg viewBox="0 0 24 24" fill="none" stroke={active ? COLORS.green : COLORS.textLight} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
         <polyline points="6 9 12 15 18 9" />
       </svg>
