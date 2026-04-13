@@ -15,8 +15,8 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
   // Normalize data from both OfficePublicProfile and FindShifts shapes
   const officeName = shift.officeName || shift.name || 'Office';
   const officeInitials = shift.officeInitials || shift.initials || officeName.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
-  const payDisplay = typeof shift.pay === 'number' ? `$${shift.pay}` : (shift.pay || '$0').replace('/hr', '');
-  const payRate = typeof shift.pay === 'number' ? `$${shift.pay}/hr` : (shift.pay || '$0/hr');
+  const hourlyRate = typeof shift.pay === 'number' ? shift.pay : parseFloat((shift.pay || '0').replace(/[^0-9.]/g, '')) || 0;
+  const payRate = `$${hourlyRate}/hr`;
   const dateDisplay = shift.when || (shift.name && shift.day ? `${shift.name}, ${shift.day}th` : '—');
   const hoursDisplay = shift.meta || shift.hours || '—';
   const lunchDisplay = shift.lunch || '45 min';
@@ -26,6 +26,12 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
   const reviewCount = shift.reviewCount || 0;
   const note = shift.note || 'Please arrive 10 minutes early. Check in at the front desk. Scrubs provided.';
   const officeId = shift.officeId || shift.id || 'demo';
+
+  // Estimate total earnings: extract hours from meta ("8 hrs") or time range, minus lunch
+  const hrsMatch = (shift.meta || '').match(/(\d+)\s*hrs?/i);
+  const paidHours = hrsMatch ? parseInt(hrsMatch[1]) : (shift.earnings ? Math.round(shift.earnings / hourlyRate) : 8);
+  const lunchMinutes = parseInt((lunchDisplay.match(/(\d+)/) || [])[1] || '0');
+  const estimatedEarnings = shift.earnings || Math.round(hourlyRate * (paidHours - lunchMinutes / 60));
 
   const handleViewOffice = () => {
     onClose();
@@ -110,7 +116,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
           padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div style={{ fontSize: 14, color: '#5a5a5a', fontWeight: 600 }}>You'll earn</div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: '#1a7f5e' }}>{payDisplay}/hr</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: '#1a7f5e' }}>${estimatedEarnings}</div>
         </div>
 
         {/* Shift details card */}
@@ -230,7 +236,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            Apply for Shift · {payDisplay}/hr
+            Apply for Shift · ${estimatedEarnings}
           </button>
           <button
             style={{
