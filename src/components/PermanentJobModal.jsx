@@ -35,6 +35,7 @@ export default function PermanentJobModal({ open, job, onClose }) {
           background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480,
           maxHeight: '92vh', overflowY: 'auto', position: 'relative',
           animation: 'pjm-slide .3s ease', WebkitOverflowScrolling: 'touch',
+          paddingBottom: 140,
         }}
       >
         {/* Handle bar */}
@@ -123,8 +124,6 @@ export default function PermanentJobModal({ open, job, onClose }) {
           </div>
         </div>
 
-        {/* Spacer for sticky button */}
-        <div style={{ height: 80 }} />
 
         {/* Sticky apply button */}
         <div style={{

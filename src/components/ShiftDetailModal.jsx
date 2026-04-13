@@ -53,7 +53,7 @@ export default function ShiftDetailModal({ open, shift, onClose }) {
           background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480,
           maxHeight: '92vh', overflowY: 'auto', position: 'relative',
           animation: 'sdm-slide .3s ease', WebkitOverflowScrolling: 'touch',
-          paddingBottom: 100,
+          paddingBottom: 140,
         }}
       >
         {/* Handle bar */}
