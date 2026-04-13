@@ -1,578 +1,200 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useClerk } from '@clerk/clerk-react';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 
 const styles = `
-  .kazi-settings {
-    min-height: 100vh;
-    background: #f9f8f6;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    padding-bottom: 80px;
-  }
-
-  .kazi-settings .container {
-    max-width: 672px;
-    margin: 0 auto;
-    padding: 24px 16px;
-    width: 100%;
-  }
-
-  .kazi-settings .back-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #9ca3af;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 16px;
-    transition: color 0.2s;
-    font-family: inherit;
-    padding: 0;
-  }
-
-  .kazi-settings .back-btn:hover {
-    color: #374151;
-  }
-
-  .kazi-settings .page-title {
-    font-size: 22px;
-    font-weight: 900;
-    color: #1a1a1a;
-    margin-bottom: 4px;
-  }
-
-  .kazi-settings .page-sub {
-    font-size: 13px;
-    color: #9ca3af;
-    margin-bottom: 0;
-  }
-
-  .kazi-settings .header {
-    margin-bottom: 24px;
-  }
-
-  .kazi-settings .card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
-  }
-
-  .kazi-settings .card-title {
-    font-size: 15px;
-    font-weight: 900;
-    color: #1a1a1a;
-    margin-bottom: 16px;
-  }
-
-  .kazi-settings .setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-  }
-
-  .kazi-settings .setting-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
-  }
-
-  .kazi-settings .setting-sub {
-    font-size: 12px;
-    color: #9ca3af;
-  }
-
-  .kazi-settings .divider {
-    height: 1px;
-    background: #f3f4f6;
-    margin: 16px 0;
-  }
-
-  .kazi-settings .toggle {
-    width: 44px;
-    height: 24px;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.2s;
-    flex-shrink: 0;
-    position: relative;
-    background: #1a7f5e;
-  }
-
-  .kazi-settings .toggle.off {
-    background: #d1d5db;
-  }
-
-  .kazi-settings .toggle-knob {
-    position: absolute;
-    top: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    transition: left 0.2s;
-    left: 20px;
-  }
-
-  .kazi-settings .toggle.off .toggle-knob {
-    left: 2px;
-  }
-
-  {/* Account section - no padding card */}
-  .kazi-settings .account-card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    overflow: hidden;
-    margin-bottom: 16px;
-  }
-
-  .kazi-settings .account-header {
-    font-size: 15px;
-    font-weight: 900;
-    color: #1a1a1a;
-    padding: 16px 20px;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  .kazi-settings .account-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .kazi-settings .account-row:hover {
-    background: #f9f8f6;
-  }
-
-  .kazi-settings .account-row + .account-row {
-    border-top: 1px solid #f3f4f6;
-  }
-
-  .kazi-settings .account-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1a1a1a;
-  }
-
-  .kazi-settings .account-sub {
-    font-size: 12px;
-    color: #9ca3af;
-  }
-
-  {/* Danger zone */}
-  .kazi-settings .danger-card {
-    background: #fff;
-    border: 1px solid #fee2e2;
-    border-radius: 18px;
-    padding: 16px 20px;
-  }
-
-  .kazi-settings .danger-title {
-    font-size: 15px;
-    font-weight: 900;
-    color: #1a1a1a;
-    margin-bottom: 4px;
-  }
-
-  .kazi-settings .danger-sub {
-    font-size: 12px;
-    color: #9ca3af;
-    margin-bottom: 16px;
-  }
-
-  .kazi-settings .danger-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .kazi-settings .btn-deactivate {
-    width: 100%;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #374151;
-    font-weight: 700;
-    padding: 12px;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-
-  .kazi-settings .btn-deactivate:hover {
-    border-color: #ef4444;
-    color: #ef4444;
-  }
-
-  .kazi-settings .btn-delete {
-    width: 100%;
-    background: #fee2e2;
-    color: #991b1b;
-    font-weight: 700;
-    padding: 12px;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 13px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-family: inherit;
-  }
-
-  .kazi-settings .btn-delete:hover {
-    background: #fecaca;
-  }
-
-  {/* Toast */}
-  .kazi-settings .toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1a1a1a;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 10px 16px;
-    border-radius: 999px;
-    z-index: 300;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    white-space: nowrap;
-  }
-
-  .kazi-settings .toast-check {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #1a7f5e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  {/* Modal */}
-  .kazi-settings .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 40;
-  }
-
-  .kazi-settings .modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    border-radius: 20px;
-    padding: 24px;
-    width: calc(100% - 32px);
-    max-width: 340px;
-    max-height: 90vh;
-    overflow-y: auto;
-    z-index: 50;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-  }
-
-  .kazi-settings .modal-title {
-    font-size: 18px;
-    font-weight: 900;
-    color: #1a1a1a;
-    margin-bottom: 4px;
-  }
-
-  .kazi-settings .modal-desc {
-    font-size: 13px;
-    color: #9ca3af;
-    margin-bottom: 20px;
-  }
-
-  .kazi-settings .modal-buttons {
-    display: flex;
-    gap: 8px;
-  }
-
-  .kazi-settings .btn-cancel {
-    flex: 1;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #374151;
-    font-weight: 700;
-    padding: 12px;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .kazi-settings .btn-confirm-delete {
-    flex: 1;
-    background: #ef4444;
-    color: #fff;
-    font-weight: 700;
-    padding: 12px;
-    min-height: 44px;
-    border-radius: 999px;
-    font-size: 13px;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  @media (max-width: 480px) {
-    .kazi-settings .container {
-      padding: 16px 14px;
-    }
-    .kazi-settings .card {
-      padding: 16px;
-    }
-  }
+.kazi-settings{--green:#1a7f5e;--green-soft:#e8f5f0;--coral:#e8734a;--coral-soft:#fdeee7;--amber:#f4b740;--amber-soft:#fef6e4;--bg:#f9f8f6;--card:#fff;--text:#1a1a1a;--text-mid:#6b7280;--text-light:#9ca3af;--border:#e5e7eb;--border-soft:#f3f4f6;--danger:#d64545;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:100px;max-width:480px;margin:0 auto;min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.06)}
+.kazi-settings .topbar{position:sticky;top:0;z-index:30;background:var(--card);padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-soft)}
+.kazi-settings .icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.kazi-settings .icon-btn svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none}
+.kazi-settings .topbar-title{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;flex:1;letter-spacing:-.01em}
+.kazi-settings .search-wrap{padding:14px 20px 0;position:relative}
+.kazi-settings .search-input{width:100%;padding:12px 16px 12px 42px;background:var(--card);border:1.5px solid var(--border);border-radius:100px;font-family:inherit;font-size:13px;outline:none;font-weight:500}
+.kazi-settings .search-input:focus{border-color:var(--green)}
+.kazi-settings .search-input::placeholder{color:var(--text-light)}
+.kazi-settings .search-icon{position:absolute;left:36px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--text-light);fill:none;stroke-width:2.2}
+.kazi-settings .section-label{font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;margin:22px 24px 8px}
+.kazi-settings .card{background:var(--card);margin:0 20px;border-radius:14px;border:1.5px solid var(--border);overflow:hidden}
+.kazi-settings .row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border-soft);cursor:pointer;min-height:56px}
+.kazi-settings .row:last-child{border-bottom:none}
+.kazi-settings .row-icon{width:34px;height:34px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kazi-settings .row-icon svg{width:15px;height:15px;stroke:var(--text-mid);stroke-width:2;fill:none}
+.kazi-settings .row-body{flex:1;min-width:0}
+.kazi-settings .row-label{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.kazi-settings .row-sub{font-size:11px;color:var(--text-light);margin-top:2px}
+.kazi-settings .row-value{font-size:12px;color:var(--text-mid);font-weight:600;text-align:right}
+.kazi-settings .row-chev{width:14px;height:14px;stroke:var(--text-light);stroke-width:2;fill:none;flex-shrink:0}
+.kazi-settings .toggle{width:38px;height:22px;background:var(--green);border-radius:100px;position:relative;cursor:pointer;flex-shrink:0}
+.kazi-settings .toggle::after{content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;background:white;border-radius:50%}
+.kazi-settings .toggle.off{background:var(--border)}
+.kazi-settings .toggle.off::after{right:auto;left:3px}
+.kazi-settings .profile-row{display:flex;align-items:center;gap:14px;padding:18px;border-bottom:1px solid var(--border-soft);cursor:pointer}
+.kazi-settings .profile-avatar{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#a8c9b8,#7ab8a8);display:flex;align-items:center;justify-content:center;color:white;font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;position:relative;flex-shrink:0}
+.kazi-settings .profile-avatar .cam{position:absolute;bottom:-3px;right:-3px;width:22px;height:22px;background:var(--text);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid var(--card)}
+.kazi-settings .profile-avatar .cam svg{width:10px;height:10px;stroke:white;stroke-width:2.5;fill:none}
+.kazi-settings .profile-info{flex:1;min-width:0}
+.kazi-settings .profile-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-bottom:2px;letter-spacing:-.01em}
+.kazi-settings .profile-email{font-size:12px;color:var(--text-light)}
+.kazi-settings .row.danger .row-label{color:var(--danger)}
+.kazi-settings .row.danger .row-icon{background:#fef0f0}
+.kazi-settings .row.danger .row-icon svg{stroke:var(--danger)}
+.kazi-settings .row.master{background:var(--green-soft)}
+.kazi-settings .row.master .row-icon{background:var(--card)}
+.kazi-settings .row.master .row-icon svg{stroke:var(--green)}
+.kazi-settings .row.master .row-label{font-weight:700;color:var(--green)}
+.kazi-settings .app-footer{padding:30px 20px 20px;text-align:center}
+.kazi-settings .app-logo{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--green);letter-spacing:-.02em;margin-bottom:4px}
+.kazi-settings .app-version{font-size:10px;color:var(--text-light);font-weight:600}
 `;
+
+const ChevRight = () => <svg className="row-chev" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>;
 
 export default function ProviderSettings() {
   const navigate = useNavigate();
-  const { user } = useUser();
-  const { openUserProfile, signOut } = useClerk();
-  const userEmail = user?.primaryEmailAddress?.emailAddress || 'provider@email.com';
+  const { signOut } = useClerk();
 
-  /* Notification channel toggles */
+  const [rapidFill, setRapidFill] = useState(true);
+  const [weekendAvail, setWeekendAvail] = useState(false);
   const [pushNotif, setPushNotif] = useState(true);
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(true);
+  const [rapidFillNotif, setRapidFillNotif] = useState(true);
+  const [acceptedNotif, setAcceptedNotif] = useState(true);
+  const [declinedNotif, setDeclinedNotif] = useState(true);
+  const [reminderNotif, setReminderNotif] = useState(true);
+  const [msgNotif, setMsgNotif] = useState(true);
+  const [paymentNotif, setPaymentNotif] = useState(true);
+  const [reviewNotif, setReviewNotif] = useState(true);
+  const [weeklyNotif, setWeeklyNotif] = useState(false);
+  const [newOfficeNotif, setNewOfficeNotif] = useState(false);
+  const [kaziNotif, setKaziNotif] = useState(false);
+  const [showFullName, setShowFullName] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(true);
+  const [allowMsg, setAllowMsg] = useState(true);
 
-  /* Notification type toggles */
-  const [shiftInvites, setShiftInvites] = useState(true);
-  const [rapidFill, setRapidFill] = useState(true);
-  const [messages, setMessages] = useState(true);
-  const [reminders, setReminders] = useState(true);
-  const [payouts, setPayouts] = useState(true);
-  const [marketing, setMarketing] = useState(false);
-
-  /* Privacy toggles */
-  const [profileVisible, setProfileVisible] = useState(true);
-  const [showRatings, setShowRatings] = useState(true);
-  const [weekendAvail, setWeekendAvail] = useState(false);
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [toast, setToast] = useState(null);
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
-
-  const notifTypes = [
-    { label: 'Shift invitations', sub: 'When an office invites you to a shift', value: shiftInvites, set: setShiftInvites },
-    { label: 'Rapid Fill alerts', sub: 'Urgent shift openings near you', value: rapidFill, set: setRapidFill },
-    { label: 'New messages', sub: 'When an office sends you a message', value: messages, set: setMessages },
-    { label: 'Shift reminders', sub: '24 hours before your confirmed shift', value: reminders, set: setReminders },
-    { label: 'Payout updates', sub: 'When your earnings are processed', value: payouts, set: setPayouts },
-    { label: 'Tips & updates', sub: 'Product news and platform updates', value: marketing, set: setMarketing },
-  ];
+  const handleSignOut = async () => { await signOut(); navigate('/login'); };
 
   return (
     <div className="kazi-settings">
       <style>{styles}</style>
       <TopBar role="provider" />
 
-      {/* Toast notification */}
-      {toast && (
-        <div className="toast">
-          <div className="toast-check">
-            <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
-          </div>
-          {toast}
-        </div>
-      )}
-
-      <div className="container">
-        <div className="header">
-          <button className="back-btn" onClick={() => navigate(-1)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Back
-          </button>
-          <h1 className="page-title">Settings</h1>
-          <p className="page-sub">Manage your account preferences</p>
-        </div>
-
-        {/* Notification Channels */}
-        <div className="card">
-          <div className="card-title">Notification channels</div>
-
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Push notifications</div>
-              <div className="setting-sub">Receive alerts on your device</div>
-            </div>
-            <div className={`toggle ${pushNotif ? '' : 'off'}`} onClick={() => setPushNotif(!pushNotif)}>
-              <div className="toggle-knob" />
-            </div>
-          </div>
-
-          <div className="divider" />
-
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Email notifications</div>
-              <div className="setting-sub">{userEmail}</div>
-            </div>
-            <div className={`toggle ${emailNotif ? '' : 'off'}`} onClick={() => setEmailNotif(!emailNotif)}>
-              <div className="toggle-knob" />
-            </div>
-          </div>
-
-          <div className="divider" />
-
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">SMS notifications</div>
-              <div className="setting-sub">Text alerts for urgent shifts</div>
-            </div>
-            <div className={`toggle ${smsNotif ? '' : 'off'}`} onClick={() => setSmsNotif(!smsNotif)}>
-              <div className="toggle-knob" />
-            </div>
-          </div>
-        </div>
-
-        {/* Notification Types */}
-        <div className="card">
-          <div className="card-title">Notification types</div>
-          {notifTypes.map(({ label, sub, value, set }, i) => (
-            <div key={label}>
-              <div className="setting-row">
-                <div>
-                  <div className="setting-label">{label}</div>
-                  <div className="setting-sub">{sub}</div>
-                </div>
-                <div className={`toggle ${value ? '' : 'off'}`} onClick={() => set(!value)}>
-                  <div className="toggle-knob" />
-                </div>
-              </div>
-              {i < notifTypes.length - 1 && <div className="divider" />}
-            </div>
-          ))}
-        </div>
-
-        {/* Privacy Preferences */}
-        <div className="card">
-          <div className="card-title">Privacy</div>
-
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Profile visible to offices</div>
-              <div className="setting-sub">Allow offices to discover your profile</div>
-            </div>
-            <div className={`toggle ${profileVisible ? '' : 'off'}`} onClick={() => setProfileVisible(!profileVisible)}>
-              <div className="toggle-knob" />
-            </div>
-          </div>
-
-          <div className="divider" />
-
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Show ratings on profile</div>
-              <div className="setting-sub">Display your rating to offices</div>
-            </div>
-            <div className={`toggle ${showRatings ? '' : 'off'}`} onClick={() => setShowRatings(!showRatings)}>
-              <div className="toggle-knob" />
-            </div>
-          </div>
-
-          <div className="divider" />
-
-          <div className="setting-row">
-            <div>
-              <div className="setting-label">Weekend availability</div>
-              <div className="setting-sub">Show you are available on weekends</div>
-            </div>
-            <div className={`toggle ${weekendAvail ? '' : 'off'}`} onClick={() => setWeekendAvail(!weekendAvail)}>
-              <div className="toggle-knob" />
-            </div>
-          </div>
-        </div>
-
-        {/* Account */}
-        <div className="account-card">
-          <div className="account-header">Account</div>
-
-          <div className="account-row" onClick={() => openUserProfile()}>
-            <div>
-              <div className="account-label">Change email</div>
-              <div className="account-sub">{userEmail}</div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
-
-          <div className="account-row" onClick={() => openUserProfile()}>
-            <div>
-              <div className="account-label">Change password</div>
-              <div className="account-sub">Update your password</div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
-
-          <div className="account-row" onClick={() => openUserProfile()}>
-            <div>
-              <div className="account-label">Linked accounts</div>
-              <div className="account-sub">Google</div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
-
-          <div className="account-row" onClick={async () => { await signOut(); navigate('/login'); }}>
-            <div>
-              <div className="account-label" style={{ color: '#ef4444' }}>Sign out</div>
-              <div className="account-sub">Log out of your account</div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          </div>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="danger-card">
-          <div className="danger-title">Danger zone</div>
-          <div className="danger-sub">These actions are permanent and cannot be undone.</div>
-          <div className="danger-buttons">
-            <button className="btn-deactivate" onClick={() => showToast('Account deactivation coming soon')}>
-              Deactivate account
-            </button>
-            <button className="btn-delete" onClick={() => setShowDeleteConfirm(true)}>
-              Delete account
-            </button>
-          </div>
-        </div>
+      <div className="topbar">
+        <button className="icon-btn" onClick={() => navigate(-1)}><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg></button>
+        <div className="topbar-title">Settings</div>
       </div>
 
-      {/* Delete confirmation modal */}
-      {showDeleteConfirm && (
-        <>
-          <div className="modal-backdrop" onClick={() => setShowDeleteConfirm(false)} />
-          <div className="modal">
-            <div className="modal-title">Delete account?</div>
-            <div className="modal-desc">This will permanently delete your profile, history, and all data. This cannot be undone.</div>
-            <div className="modal-buttons">
-              <button className="btn-cancel" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className="btn-confirm-delete" onClick={() => setShowDeleteConfirm(false)}>Delete</button>
-            </div>
-          </div>
-        </>
-      )}
+      <div className="search-wrap">
+        <svg className="search-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <input className="search-input" placeholder="Search settings" />
+      </div>
+
+      {/* ACCOUNT */}
+      <div className="section-label">Account</div>
+      <div className="card">
+        <div className="profile-row">
+          <div className="profile-avatar">AA<div className="cam"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg></div></div>
+          <div className="profile-info"><div className="profile-name">Alexandra A.</div><div className="profile-email">provider@email.com</div></div>
+          <ChevRight />
+        </div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .37 1.97.72 2.88a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.88.59 2.88.72A2 2 0 0 1 22 16.92z" /></svg></div><div className="row-body"><div className="row-label">Phone number</div><div className="row-sub">(713) 555-0142 · Verified</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg></div><div className="row-body"><div className="row-label">Date of birth</div></div><span className="row-value">Mar 14, 1995</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg></div><div className="row-body"><div className="row-label">Home address</div><div className="row-sub">Houston, TX 77056</div></div><ChevRight /></div>
+      </div>
+
+      {/* PROFESSIONAL */}
+      <div className="section-label">Professional</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div><div className="row-body"><div className="row-label">Primary role</div></div><span className="row-value">Dental Assistant</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div><div className="row-body"><div className="row-label">Years of experience</div></div><span className="row-value">5 yrs</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></div><div className="row-body"><div className="row-label">Hourly rate</div></div><span className="row-value" style={{color:'var(--green)',fontWeight:800}}>$28/hr</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg></div><div className="row-body"><div className="row-label">Travel radius</div></div><span className="row-value">15 miles</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /></svg></div><div className="row-body"><div className="row-label">Minimum shift length</div></div><span className="row-value">4 hours</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg></div><div className="row-body"><div className="row-label">Rapid Fill eligible</div><div className="row-sub">Accept same-day invitations</div></div><div className={`toggle ${rapidFill ? '' : 'off'}`} onClick={() => setRapidFill(!rapidFill)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /></svg></div><div className="row-body"><div className="row-label">Weekend availability</div></div><div className={`toggle ${weekendAvail ? '' : 'off'}`} onClick={() => setWeekendAvail(!weekendAvail)} /></div>
+      </div>
+
+      {/* NOTIFICATIONS */}
+      <div className="section-label">Notifications</div>
+      <div className="card">
+        <div className="row master"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></div><div className="row-body"><div className="row-label">Push notifications</div></div><div className={`toggle ${pushNotif ? '' : 'off'}`} onClick={() => setPushNotif(!pushNotif)} /></div>
+        <div className="row master"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg></div><div className="row-body"><div className="row-label">Email notifications</div></div><div className={`toggle ${emailNotif ? '' : 'off'}`} onClick={() => setEmailNotif(!emailNotif)} /></div>
+        <div className="row master"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></div><div className="row-body"><div className="row-label">SMS notifications</div></div><div className={`toggle ${smsNotif ? '' : 'off'}`} onClick={() => setSmsNotif(!smsNotif)} /></div>
+      </div>
+
+      <div className="section-label">What to notify me about</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg></div><div className="row-body"><div className="row-label">Rapid Fill invitations</div><div className="row-sub">Same-day shift invites</div></div><div className={`toggle ${rapidFillNotif ? '' : 'off'}`} onClick={() => setRapidFillNotif(!rapidFillNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div><div className="row-body"><div className="row-label">Shift request accepted</div></div><div className={`toggle ${acceptedNotif ? '' : 'off'}`} onClick={() => setAcceptedNotif(!acceptedNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg></div><div className="row-body"><div className="row-label">Shift request declined</div></div><div className={`toggle ${declinedNotif ? '' : 'off'}`} onClick={() => setDeclinedNotif(!declinedNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div><div className="row-body"><div className="row-label">Shift reminders</div><div className="row-sub">24 hours and 1 hour before</div></div><div className={`toggle ${reminderNotif ? '' : 'off'}`} onClick={() => setReminderNotif(!reminderNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></div><div className="row-body"><div className="row-label">Messages from offices</div></div><div className={`toggle ${msgNotif ? '' : 'off'}`} onClick={() => setMsgNotif(!msgNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></div><div className="row-body"><div className="row-label">Payment received</div></div><div className={`toggle ${paymentNotif ? '' : 'off'}`} onClick={() => setPaymentNotif(!paymentNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div><div className="row-body"><div className="row-label">Reviews received</div></div><div className={`toggle ${reviewNotif ? '' : 'off'}`} onClick={() => setReviewNotif(!reviewNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg></div><div className="row-body"><div className="row-label">Weekly earnings summary</div></div><div className={`toggle ${weeklyNotif ? '' : 'off'}`} onClick={() => setWeeklyNotif(!weeklyNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg></div><div className="row-body"><div className="row-label">New offices in your area</div></div><div className={`toggle ${newOfficeNotif ? '' : 'off'}`} onClick={() => setNewOfficeNotif(!newOfficeNotif)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg></div><div className="row-body"><div className="row-label">Kazi product updates</div></div><div className={`toggle ${kaziNotif ? '' : 'off'}`} onClick={() => setKaziNotif(!kaziNotif)} /></div>
+      </div>
+
+      {/* PRIVACY */}
+      <div className="section-label">Privacy</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div><div className="row-body"><div className="row-label">Show full name to offices</div><div className="row-sub">Otherwise shows as &quot;Alexandra A.&quot;</div></div><div className={`toggle ${showFullName ? '' : 'off'}`} onClick={() => setShowFullName(!showFullName)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg></div><div className="row-body"><div className="row-label">Show profile photo</div></div><div className={`toggle ${showPhoto ? '' : 'off'}`} onClick={() => setShowPhoto(!showPhoto)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></div><div className="row-body"><div className="row-label">Allow messages before booking</div></div><div className={`toggle ${allowMsg ? '' : 'off'}`} onClick={() => setAllowMsg(!allowMsg)} /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg></div><div className="row-body"><div className="row-label">Profile visibility</div></div><span className="row-value">Public</span><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg></div><div className="row-body"><div className="row-label">Blocked offices</div></div><span className="row-value">0</span><ChevRight /></div>
+      </div>
+
+      {/* PAYMENTS & TAX */}
+      <div className="section-label">Payments &amp; Tax</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18" /><path d="M3 10h18" /><path d="M5 6l7-3 7 3" /><path d="M4 10v11" /><path d="M20 10v11" /></svg></div><div className="row-body"><div className="row-label">Payout method</div><div className="row-sub">Chase ••4521</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></div><div className="row-body"><div className="row-label">Tax information</div><div className="row-sub">W-9 on file</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg></div><div className="row-body"><div className="row-label">Transaction history</div></div><ChevRight /></div>
+      </div>
+
+      {/* SECURITY */}
+      <div className="section-label">Security</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></div><div className="row-body"><div className="row-label">Change password</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" /></svg></div><div className="row-body"><div className="row-label">Two-factor authentication</div><div className="row-sub">Off · via Clerk</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg></div><div className="row-body"><div className="row-label">Active sessions</div><div className="row-sub">2 devices</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg></div><div className="row-body"><div className="row-label">Sign out all other devices</div></div><ChevRight /></div>
+      </div>
+
+      {/* SUPPORT */}
+      <div className="section-label">Support</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg></div><div className="row-body"><div className="row-label">Help center</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></div><div className="row-body"><div className="row-label">Contact support</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg></div><div className="row-body"><div className="row-label">Report a problem</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div><div className="row-body"><div className="row-label">Rate Kazi on the App Store</div></div><ChevRight /></div>
+      </div>
+
+      {/* LEGAL */}
+      <div className="section-label">Legal</div>
+      <div className="card">
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></div><div className="row-body"><div className="row-label">Terms of Service</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></div><div className="row-body"><div className="row-label">Privacy Policy</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div><div className="row-body"><div className="row-label">Community Guidelines</div></div><ChevRight /></div>
+        <div className="row"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg></div><div className="row-body"><div className="row-label">Open source licenses</div></div><ChevRight /></div>
+      </div>
+
+      {/* DANGER ZONE */}
+      <div className="section-label">Danger zone</div>
+      <div className="card">
+        <div className="row danger"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg></div><div className="row-body"><div className="row-label">Deactivate account</div><div className="row-sub">Pause temporarily</div></div><ChevRight /></div>
+        <div className="row danger"><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg></div><div className="row-body"><div className="row-label">Delete account</div><div className="row-sub">Permanent — cannot be undone</div></div><ChevRight /></div>
+        <div className="row danger" onClick={handleSignOut}><div className="row-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg></div><div className="row-body"><div className="row-label">Sign out</div></div></div>
+      </div>
+
+      <div className="app-footer">
+        <div className="app-logo">kazi.</div>
+        <div className="app-version">Version 1.0.0 · Build 142</div>
+      </div>
 
       <ProviderBottomNav />
     </div>
