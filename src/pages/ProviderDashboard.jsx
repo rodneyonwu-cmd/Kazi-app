@@ -176,7 +176,7 @@ export default function ProviderDashboard() {
         {/* GREETING */}
         <div style={{ padding: '22px 20px 8px' }}>
           <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, color: COLORS.text, lineHeight: 1.15 }}>
-            Good morning, {firstName}
+            Hello, {firstName}
           </div>
           <div style={{ fontSize: 13, color: COLORS.textLight, marginTop: 4 }}>Tuesday, April 9 · Houston, TX</div>
         </div>
