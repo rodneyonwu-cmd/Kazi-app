@@ -530,12 +530,7 @@ export default function ProviderAvailability() {
     return cells
   }
 
-  const isException = (dayName) => {
-    const defaults = { Mon: '8:00 AM-5:00 PM', Tue: '8:00 AM-5:00 PM', Wed: '8:00 AM-5:00 PM', Thu: '8:00 AM-5:00 PM', Fri: '8:00 AM-5:00 PM' }
-    if (!schedule[dayName].on) return false
-    const current = `${schedule[dayName].start}-${schedule[dayName].end}`
-    return defaults[dayName] && current !== defaults[dayName]
-  }
+
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
@@ -652,7 +647,6 @@ export default function ProviderAvailability() {
                           <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.start}</span>
                           <span className="pa-hours-dash">–</span>
                           <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.end}</span>
-                          {isException(day) && <span className="pa-exception-tag">Exception</span>}
                         </>
                       ) : (
                         <span className="pa-hours-pill pa-off">Off</span>
