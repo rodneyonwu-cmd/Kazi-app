@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/clerk-react'
 import ProviderBottomNav from '../components/ProviderBottomNav'
@@ -8,30 +8,222 @@ import BookedShiftModal from './BookedShiftModal'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-const DAYS = ['SU','MO','TU','WE','TH','FR','SA']
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+const SCHED_DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+const DOW_MAP = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 }
 
-const CheckIcon = () => <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
+function buildTimeOptions() {
+  const opts = []
+  for (let h = 5; h < 23; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      const ap = h < 12 ? 'AM' : 'PM'
+      const dh = h === 0 ? 12 : h > 12 ? h - 12 : h
+      const label = dh + ':' + String(m).padStart(2, '0') + ' ' + ap
+      const value = h + ':' + String(m).padStart(2, '0')
+      opts.push({ label, value })
+    }
+  }
+  return opts
+}
+const TIME_OPTIONS = buildTimeOptions()
 
-function Toggle({ on, onToggle }) {
-  return (
-    <div onClick={onToggle} style={{ width:36,height:20,borderRadius:100,cursor:'pointer',position:'relative',transition:'background .2s',flexShrink:0,background:on?'#1a7f5e':'#e5e7eb' }}>
-      <div style={{ position:'absolute',top:2,width:16,height:16,borderRadius:'50%',background:'white',transition:'left .2s',boxShadow:'0 1px 2px rgba(0,0,0,.15)',left:on?18:2 }}/>
-    </div>
-  )
+function formatTimeValue(val) {
+  const [hStr, mStr] = val.split(':')
+  const h = parseInt(hStr), m = parseInt(mStr)
+  const ap = h < 12 ? 'AM' : 'PM'
+  const dh = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return dh + ':' + String(m).padStart(2, '0') + ' ' + ap
 }
 
-function TypeOption({ icon, label, selected, color, onClick }) {
-  const borderColor = selected ? color : '#e5e7eb'
-  const bg = selected ? (color === '#1a7f5e' ? '#f0faf5' : '#f5f3ff') : 'white'
-  const labelColor = selected ? color : '#374151'
-  return (
-    <div onClick={onClick} style={{ border:`1.5px solid ${borderColor}`,borderRadius:9,padding:'8px 6px',textAlign:'center',cursor:'pointer',background:bg,transition:'all .15s' }}>
-      <div style={{ display:'flex',alignItems:'center',justifyContent:'center',height:22,marginBottom:4 }}>{icon}</div>
-      <div style={{ fontSize:10,fontWeight:700,color:labelColor }}>{label}</div>
-    </div>
-  )
+function shortFormat(timeStr) {
+  const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i)
+  if (!match) return timeStr
+  const h = parseInt(match[1])
+  const min = parseInt(match[2])
+  const suffix = match[3].toLowerCase().charAt(0)
+  return min > 0 ? h + ':' + String(min).padStart(2, '0') + suffix : h + suffix
 }
+
+function calcHours(startVal, endVal) {
+  const [sh, sm] = startVal.split(':').map(Number)
+  const [eh, em] = endVal.split(':').map(Number)
+  const diff = (eh * 60 + em) - (sh * 60 + sm)
+  if (diff <= 0) return '--'
+  const hrs = Math.floor(diff / 60)
+  const mins = diff % 60
+  return mins > 0 ? hrs + 'h ' + mins + 'm' : hrs + ' hours'
+}
+
+function parseTimeTo24(txt) {
+  const match = txt.trim().match(/(\d+):(\d+)\s*(AM|PM)/i)
+  if (!match) return { h: 8, m: 0 }
+  let h = parseInt(match[1])
+  const m = parseInt(match[2])
+  const ap = match[3].toUpperCase()
+  if (ap === 'PM' && h < 12) h += 12
+  if (ap === 'AM' && h === 12) h = 0
+  return { h, m }
+}
+
+function timeToValue(txt) {
+  const { h, m } = parseTimeTo24(txt)
+  return h + ':' + String(m).padStart(2, '0')
+}
+
+const styles = `
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--green:#1a7f5e;--green-soft:#e8f5f0;--green-d:#156649;--gold:#f4b740;--gold-bg:#fef6e4;--gold-text:#8b6914;--purple:#7c3aed;--purple-soft:#f3ecfd;--coral:#e8734a;--bg:#f9f8f6;--card:#fff;--text:#1a1a1a;--text-mid:#6b7280;--text-light:#9ca3af;--border:#e5e7eb;--border-soft:#f3f4f6;--danger:#d64545}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+.pa-intro-card{background:linear-gradient(135deg,#e8f5f0 0%,#d4ede2 100%);margin:16px 20px 0;border-radius:18px;padding:20px;color:var(--text);border:1.5px solid rgba(26,127,94,.15);position:relative;overflow:hidden}
+.pa-intro-card::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(26,127,94,.08),transparent 70%);border-radius:50%}
+.pa-intro-inner{position:relative}
+.pa-intro-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--green)}
+.pa-intro-body{font-size:13px;color:var(--text-mid);line-height:1.5;margin-bottom:14px}
+.pa-intro-steps{display:flex;gap:10px}
+.pa-intro-step{flex:1;background:white;border-radius:12px;padding:10px;text-align:center;border:1.5px solid rgba(26,127,94,.12)}
+.pa-intro-step-num{font-family:'Outfit',sans-serif;font-size:18px;font-weight:900;margin-bottom:2px;color:var(--green)}
+.pa-intro-step-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;color:var(--text-mid)}
+.pa-intro-dismiss{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:rgba(26,127,94,.1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pa-intro-dismiss svg{width:10px;height:10px;stroke:var(--green);stroke-width:3;fill:none}
+
+.pa-confirm-banner{margin:14px 20px 0;border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;border:1.5px solid rgba(124,58,237,.2);transition:all .3s}
+.pa-confirm-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s}
+.pa-confirm-icon svg{width:16px;height:16px;stroke:white;stroke-width:2.2;fill:none}
+.pa-confirm-body{flex:1}
+.pa-confirm-btn{color:white;font-family:inherit;font-size:12px;font-weight:800;border:none;border-radius:100px;padding:9px 16px;cursor:pointer;flex-shrink:0;transition:background .3s}
+
+.pa-section-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 6px}
+.pa-section-label{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.pa-section-help{font-size:11px;color:var(--green);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px}
+.pa-section-help svg{width:12px;height:12px;stroke:var(--green);stroke-width:2.5;fill:none}
+
+.pa-cal-wrap{background:var(--card);margin:0 20px;border-radius:18px;border:1.5px solid var(--border);overflow:hidden}
+.pa-cal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border-soft)}
+.pa-cal-month{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800}
+.pa-cal-nav{display:flex;gap:6px}
+.pa-cal-nav button{width:32px;height:32px;border-radius:50%;background:var(--bg);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pa-cal-nav button:disabled{opacity:.3;cursor:default}
+.pa-cal-nav button svg{width:14px;height:14px;stroke:var(--text);stroke-width:2.5;fill:none}
+.pa-cal-body{padding:14px 14px 10px}
+.pa-cal-days{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px}
+.pa-cal-day-label{font-size:10px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;padding-bottom:8px}
+.pa-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+
+.pa-cal-cell{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:all .15s;border:none;background:none;font-family:inherit;padding:0}
+.pa-cal-cell .pa-day-num{font-size:14px;font-weight:700;line-height:1}
+.pa-cal-cell .pa-cal-time{font-size:7.5px;font-weight:700;margin-top:2px;letter-spacing:.2px}
+.pa-cal-cell.pa-empty{cursor:default}
+.pa-cal-cell.pa-today{box-shadow:inset 0 0 0 2.5px var(--green)}
+.pa-cal-cell.pa-available{background:var(--green-soft);color:var(--green)}
+.pa-cal-cell.pa-available .pa-cal-time{color:var(--green)}
+.pa-cal-cell.pa-booked{background:var(--gold-bg);color:var(--gold-text)}
+.pa-cal-cell.pa-booked .pa-cal-time{color:var(--gold-text)}
+.pa-cal-cell.pa-unavailable{background:var(--bg);color:var(--text-light)}
+.pa-cal-cell:active:not(.pa-empty):not(.pa-booked){transform:scale(.92)}
+
+.pa-cal-legend{display:flex;gap:14px;justify-content:center;padding:8px 14px;border-top:1px solid var(--border-soft)}
+.pa-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-mid);font-weight:700}
+.pa-legend-dot{width:10px;height:10px;border-radius:4px}
+.pa-legend-dot.pa-green{background:var(--green-soft);border:1.5px solid var(--green)}
+.pa-legend-dot.pa-gold{background:var(--gold-bg);border:1.5px solid var(--gold)}
+.pa-legend-dot.pa-gray{background:var(--bg);border:1.5px solid var(--border)}
+
+.pa-sched-card{background:var(--card);margin:0 20px;border-radius:16px;border:1.5px solid var(--border);overflow:hidden}
+.pa-sched-header{padding:16px 18px;border-bottom:1px solid var(--border-soft);display:flex;justify-content:space-between;align-items:center}
+.pa-sched-title{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800}
+.pa-sched-badge{font-size:9px;font-weight:800;color:var(--green);background:var(--green-soft);padding:3px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.3px}
+
+.pa-day-row{display:flex;align-items:center;padding:0 18px;min-height:52px;border-bottom:1px solid var(--border-soft)}
+.pa-day-row:last-child{border-bottom:none}
+.pa-day-name{font-size:13px;font-weight:800;width:40px;flex-shrink:0;color:var(--text)}
+.pa-day-name.pa-off{color:var(--text-light)}
+.pa-day-hours{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+.pa-hours-pill{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--green);background:var(--green-soft);padding:6px 12px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all .15s;white-space:nowrap}
+.pa-hours-pill:hover{border-color:var(--green)}
+.pa-hours-pill.pa-off{background:var(--bg);color:var(--text-light);cursor:default}
+.pa-hours-pill.pa-off:hover{border-color:transparent}
+.pa-hours-dash{color:var(--text-light);font-size:11px}
+.pa-exception-tag{font-size:9px;font-weight:800;color:var(--coral);background:rgba(232,115,74,.1);padding:2px 7px;border-radius:100px;margin-left:4px}
+.pa-day-toggle{width:36px;height:20px;background:var(--green);border-radius:100px;position:relative;cursor:pointer;flex-shrink:0;margin-left:12px;transition:background .2s;border:none}
+.pa-day-toggle::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;background:white;border-radius:50%;transition:all .2s}
+.pa-day-toggle.pa-off{background:var(--border)}
+.pa-day-toggle.pa-off::after{right:auto;left:2px}
+
+.pa-quick-grid{margin:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pa-quick-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px}
+.pa-quick-card:hover{border-color:var(--green);background:var(--green-soft)}
+.pa-quick-card:active{transform:scale(.97)}
+.pa-quick-icon{width:36px;height:36px;border-radius:10px;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pa-quick-icon svg{width:16px;height:16px;stroke:var(--green);stroke-width:2.2;fill:none}
+.pa-quick-icon.pa-purple{background:var(--purple-soft)}
+.pa-quick-icon.pa-purple svg{stroke:var(--purple)}
+.pa-quick-icon.pa-red{background:#fef0f0}
+.pa-quick-icon.pa-red svg{stroke:var(--danger)}
+.pa-quick-body h4{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em;margin-bottom:2px}
+.pa-quick-body p{font-size:10.5px;color:var(--text-mid);line-height:1.35;margin:0}
+
+.pa-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.pa-modal-sheet{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px 24px 32px;animation:pa-slideUp .25s ease-out}
+@keyframes pa-slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.pa-modal-handle{width:40px;height:4px;background:var(--border);border-radius:100px;margin:0 auto 18px}
+.pa-modal-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px}
+.pa-modal-sub{font-size:13px;color:var(--text-mid);margin-bottom:20px;line-height:1.5}
+.pa-modal-actions{display:flex;gap:10px;margin-top:20px}
+.pa-modal-btn{flex:1;padding:14px;border-radius:100px;border:none;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer}
+.pa-modal-btn-cancel{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
+.pa-modal-btn-confirm{background:var(--green);color:white}
+.pa-modal-btn-danger{background:var(--danger);color:white}
+
+.pa-tp-custom-label{font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.pa-tp-row{display:flex;align-items:center;gap:10px}
+.pa-tp-select{flex:1;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--text);appearance:none;cursor:pointer;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.pa-tp-select:focus{border-color:var(--green)}
+.pa-tp-dash{font-size:16px;color:var(--text-light);font-weight:800}
+.pa-tp-preview{background:var(--green-soft);border-radius:14px;padding:14px;text-align:center;margin-top:16px}
+.pa-tp-preview-big{font-family:'Outfit',sans-serif;font-size:24px;font-weight:900;color:var(--green)}
+.pa-tp-preview-sub{font-size:11px;color:var(--green-d);font-weight:700;margin-top:3px}
+
+.pa-week-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;margin-bottom:8px}
+.pa-week-opt:hover,.pa-week-opt.pa-selected{border-color:var(--green);background:var(--green-soft)}
+.pa-week-opt-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pa-week-opt.pa-selected .pa-week-opt-radio{border-color:var(--green);background:var(--green)}
+.pa-week-opt.pa-selected .pa-week-opt-radio::after{content:'';width:6px;height:6px;background:white;border-radius:50%}
+.pa-week-opt-label{font-size:13px;font-weight:700;flex:1}
+.pa-week-opt-dates{font-size:11px;color:var(--text-light)}
+
+.pa-clear-warn{background:#fef0f0;border:1.5px solid #f5c6c6;border-radius:12px;padding:14px;margin-bottom:4px;font-size:12px;color:#7f1d1d;line-height:1.5}
+.pa-clear-warn b{font-weight:800}
+
+.pa-copy-list{margin-bottom:4px}
+.pa-copy-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:13px}
+.pa-copy-row:last-child{border-bottom:none}
+.pa-copy-row svg{width:14px;height:14px;stroke:var(--green);stroke-width:2;fill:none;flex-shrink:0}
+.pa-copy-row-label{font-weight:700;flex:1}
+.pa-copy-row-badge{font-size:9px;font-weight:800;color:var(--green);background:var(--green-soft);padding:2px 8px;border-radius:100px}
+.pa-copy-row-sub{font-size:10px;color:var(--text-light)}
+
+.pa-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:12px 22px;border-radius:100px;font-size:13px;font-weight:800;z-index:70;box-shadow:0 10px 30px rgba(0,0,0,.2);white-space:nowrap;animation:pa-fadeUp .3s ease-out}
+@keyframes pa-fadeUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.pa-page-content{max-width:800px;margin:0 auto;padding:0 0 100px}
+
+@media(min-width:900px){
+  .pa-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 20px}
+  .pa-two-col>.pa-col-left,.pa-two-col>.pa-col-right{margin:0}
+  .pa-cal-wrap,.pa-sched-card{margin:0}
+  .pa-quick-grid{margin:0 20px;grid-template-columns:repeat(4,1fr)}
+  .pa-intro-card,.pa-confirm-banner{margin-left:20px;margin-right:20px}
+  .pa-section-head{padding-left:20px;padding-right:20px}
+}
+@media(min-width:600px) and (max-width:899px){
+  .pa-quick-grid{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:599px){
+  .pa-quick-grid{grid-template-columns:1fr 1fr}
+}
+`
 
 export default function ProviderAvailability() {
   const navigate = useNavigate()
@@ -39,44 +231,47 @@ export default function ProviderAvailability() {
   const { count: unreadMsgCount } = useUnreadMessageCount()
   const today = new Date()
 
-  const [monthIdx, setMonthIdx] = useState(today.getMonth())
-  const [year, setYear] = useState(today.getFullYear())
-  const [view, setView] = useState('cal')
-  const [toast, setToast] = useState(null)
   const [providerId, setProviderId] = useState(null)
-  const [availability, setAvailability] = useState([])
+  const [apiAvailability, setApiAvailability] = useState([])
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Schedule toggles
+  // UI state
+  const [showIntro, setShowIntro] = useState(true)
+  const [confirmed, setConfirmed] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [calMonth, setCalMonth] = useState('april') // 'april' | 'may'
+  const [activeModal, setActiveModal] = useState(null) // 'time' | 'weekdays' | 'block' | 'copy' | 'clear' | 'booked'
+
+  // Weekly schedule state
   const [schedule, setSchedule] = useState({
-    Mon: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Tue: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Wed: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Thu: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Fri: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Sat: { on:false, start:'8:00 AM', end:'5:00 PM' },
-    Sun: { on:false, start:'8:00 AM', end:'5:00 PM' },
+    Mon: { on: true, start: '8:00 AM', end: '5:00 PM' },
+    Tue: { on: true, start: '8:00 AM', end: '5:00 PM' },
+    Wed: { on: true, start: '8:00 AM', end: '5:00 PM' },
+    Thu: { on: true, start: '8:00 AM', end: '5:00 PM' },
+    Fri: { on: true, start: '9:00 AM', end: '3:00 PM' },
+    Sat: { on: false, start: '8:00 AM', end: '5:00 PM' },
+    Sun: { on: false, start: '8:00 AM', end: '5:00 PM' },
   })
 
-  // Modals
-  const [modal, setModal] = useState(null) // 'add-exc' | 'block' | 'day' | 'booked'
-  const [activeDayNum, setActiveDayNum] = useState(null)
+  // Calendar day overrides: { [key: "apr-6"]: { status: 'available'|'unavailable'|'booked', time?: string } }
+  const [dayOverrides, setDayOverrides] = useState({})
+
+  // Time picker state
+  const [tpDay, setTpDay] = useState(null) // day name for modal title
+  const [tpStart, setTpStart] = useState('8:00')
+  const [tpEnd, setTpEnd] = useState('17:00')
+
+  // Block week state
+  const [selectedWeek, setSelectedWeek] = useState(null)
+
+  // Booked shift modal
   const [bookedDayData, setBookedDayData] = useState(null)
-  const [excType, setExcType] = useState('custom')
-  const [dayType, setDayType] = useState('available')
-  const [excDate, setExcDate] = useState('')
-  const [excNote, setExcNote] = useState('')
-  const [blockStart, setBlockStart] = useState('')
-  const [blockEnd, setBlockEnd] = useState('')
-  const [blockReason, setBlockReason] = useState('')
-  const [dayStart, setDayStart] = useState('8:00 AM')
-  const [dayEnd, setDayEnd] = useState('5:00 PM')
-  const [dayNote, setDayNote] = useState('')
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
-  const closeModal = () => setModal(null)
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600) }
+  const closeModal = () => { setActiveModal(null); setTpDay(null); setSelectedWeek(null) }
 
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -92,13 +287,11 @@ export default function ProviderAvailability() {
           ])
           if (availRes.ok) {
             const slots = await availRes.json()
-            setAvailability(slots)
-            // Seed schedule toggles from dayOfWeek-based slots
-            const dowNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+            setApiAvailability(slots)
             const updates = {}
             slots.forEach(slot => {
               if (slot.dayOfWeek != null && !slot.date) {
-                const name = dowNames[slot.dayOfWeek]
+                const name = DOW_NAMES[slot.dayOfWeek]
                 if (name) updates[name] = { on: true, start: slot.startTime, end: slot.endTime }
               }
             })
@@ -121,87 +314,27 @@ export default function ProviderAvailability() {
       const res = await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      if (res.ok) setAvailability(await res.json())
+      if (res.ok) setApiAvailability(await res.json())
     } catch {}
   }
 
-  const changeMonth = (delta) => {
-    let m = monthIdx + delta, y = year
-    if (m > 11) { m = 0; y++ }
-    if (m < 0) { m = 11; y-- }
-    setMonthIdx(m); setYear(y)
-  }
-
-  // Build calendar lookup
-  const availMap = {}
-  const excMap = {}
-  const shortTime = (t) => t.replace(':00 ', '').replace('AM', 'AM').replace('PM', 'PM')
-  const schedDayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
-  const daysInView = new Date(year, monthIdx + 1, 0).getDate()
-
-  // 1. Weekly schedule toggles are the source of truth for recurring days
-  for (const [day, val] of Object.entries(schedule)) {
-    if (val.on) {
-      const dow = schedDayMap[day]
-      for (let d = 1; d <= daysInView; d++) {
-        if (new Date(year, monthIdx, d).getDay() === dow) {
-          availMap[d] = { time: `${shortTime(val.start)}\u2013${shortTime(val.end)}`, id: null }
-        }
-      }
-    }
-  }
-  // 2. Date-specific slots from API (override weekly schedule for that date)
-  availability.forEach(slot => {
-    if (slot.date) {
-      const d = new Date(slot.date)
-      if (d.getFullYear() === year && d.getMonth() === monthIdx) {
-        const day = d.getDate()
-        if (slot.isException) {
-          excMap[day] = { sub: `${slot.startTime}\u2013${slot.endTime}`, id: slot.id }
-          delete availMap[day] // exception overrides weekly schedule
-        } else {
-          availMap[day] = { time: `${slot.startTime}\u2013${slot.endTime}`, id: slot.id }
-        }
-      }
-    }
-  })
-  // Build booked days from bookings
-  const bookedMap = {}
-  bookings.forEach(b => {
-    if (b.shift) {
-      const d = new Date(b.shift.date)
-      if (d.getFullYear() === year && d.getMonth() === monthIdx) {
-        const day = d.getDate()
-        bookedMap[day] = { office: b.office?.name || 'Office', time: `${b.shift.startTime}\u2013${b.shift.endTime}`, id: b.id }
-        // Booked days override available days
-        delete availMap[day]
-      }
-    }
-  })
-
-  const availCount = Object.keys(availMap).length + Object.keys(excMap).length
-  const bookedCount = Object.keys(bookedMap).length
-
-  // Save weekly schedule
+  // Save weekly schedule to API
   const saveSchedule = async () => {
     if (!providerId) return
     try {
       const token = await getToken()
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 }
-      // Delete all existing dayOfWeek-based slots first to avoid duplicates
-      const existingWeeklySlots = availability.filter(s => s.dayOfWeek != null && !s.date)
+      const existingWeeklySlots = apiAvailability.filter(s => s.dayOfWeek != null && !s.date)
       for (const slot of existingWeeklySlots) {
         await fetch(`${API_URL}/api/providers/${providerId}/availability/${slot.id}`, {
           method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
         })
       }
-      // Create new slots for toggled-on days
       for (const [day, val] of Object.entries(schedule)) {
         if (val.on) {
           await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
             method: 'POST', headers,
-            body: JSON.stringify({ dayOfWeek: dayMap[day], startTime: val.start, endTime: val.end }),
+            body: JSON.stringify({ dayOfWeek: DOW_MAP[day], startTime: val.start, endTime: val.end }),
           })
         }
       }
@@ -210,416 +343,506 @@ export default function ProviderAvailability() {
     } catch { showToast('Failed to save schedule') }
   }
 
-  // Save exception
-  const saveException = async () => {
-    if (!providerId || !excDate) { showToast('Please select a date'); return }
-    try {
-      const token = await getToken()
-      await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ date: new Date(excDate).toISOString(), startTime: '8:00 AM', endTime: '5:00 PM', isException: true, note: excNote || null }),
-      })
-      closeModal()
-      showToast('Exception saved!')
-      await refreshAvailability()
-    } catch { showToast('Failed to save exception') }
-  }
+  // Compute calendar cell status for a given date
+  const getCellStatus = (dateNum, month) => {
+    const key = `${month}-${dateNum}`
+    const override = dayOverrides[key]
+    if (override) return override
 
-  // Block dates
-  const saveBlockDates = async (startDate, endDate, reason) => {
-    if (!providerId || !startDate || !endDate) { showToast('Please select dates'); return }
-    try {
-      const token = await getToken()
-      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      const start = new Date(startDate)
-      const end = new Date(endDate)
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
-          method: 'POST', headers,
-          body: JSON.stringify({ date: new Date(d).toISOString(), startTime: '12:00 AM', endTime: '12:00 AM', isException: true, note: reason || 'Blocked' }),
-        })
+    // Check API bookings
+    const monthIdx = month === 'april' ? 3 : 4
+    const year = 2026
+    for (const b of bookings) {
+      if (b.shift) {
+        const d = new Date(b.shift.date)
+        if (d.getFullYear() === year && d.getMonth() === monthIdx && d.getDate() === dateNum) {
+          return { status: 'booked', time: `${shortFormat(b.shift.startTime)}-${shortFormat(b.shift.endTime)}`, booking: b }
+        }
       }
-      closeModal()
-      showToast('Dates blocked!')
-      await refreshAvailability()
-    } catch { showToast('Failed to block dates') }
-  }
-
-  // Save day edit (DELETE old + POST new)
-  const saveDayEdit = async (dayStart, dayEnd, dayNote) => {
-    if (!providerId || !activeDayNum) return
-    try {
-      const token = await getToken()
-      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      // Delete existing slot if any
-      const existingSlot = availMap[activeDayNum] || excMap[activeDayNum]
-      if (existingSlot && existingSlot.id) {
-        await fetch(`${API_URL}/api/providers/${providerId}/availability/${existingSlot.id}`, {
-          method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-        })
-      }
-      // Create new slot
-      const date = new Date(year, monthIdx, activeDayNum)
-      await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ date: date.toISOString(), startTime: dayStart, endTime: dayEnd, isException: dayType === 'custom', note: dayNote || null }),
-      })
-      closeModal()
-      showToast('Day updated!')
-      await refreshAvailability()
-    } catch { showToast('Failed to update day') }
-  }
-
-  // Copy to next month
-  const copyToNextMonth = async () => {
-    if (!providerId) return
-    try {
-      const token = await getToken()
-      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-      const currentSlots = availability.filter(slot => {
-        if (!slot.date) return false
-        const d = new Date(slot.date)
-        return d.getFullYear() === year && d.getMonth() === monthIdx
-      })
-      let nextMonth = monthIdx + 1, nextYear = year
-      if (nextMonth > 11) { nextMonth = 0; nextYear++ }
-      for (const slot of currentSlots) {
-        const oldDate = new Date(slot.date)
-        const newDate = new Date(nextYear, nextMonth, oldDate.getDate())
-        if (newDate.getMonth() !== nextMonth) continue // skip invalid dates (e.g. 31st)
-        await fetch(`${API_URL}/api/providers/${providerId}/availability`, {
-          method: 'POST', headers,
-          body: JSON.stringify({ date: newDate.toISOString(), startTime: slot.startTime, endTime: slot.endTime, isException: slot.isException || false, note: slot.note || null }),
-        })
-      }
-      showToast('Copied to next month!')
-      await refreshAvailability()
-    } catch { showToast('Failed to copy to next month') }
-  }
-
-  const firstDay = new Date(year, monthIdx, 1).getDay()
-  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate()
-  const daysInPrev = new Date(year, monthIdx, 0).getDate()
-  const total = firstDay + daysInMonth
-  const trailing = total % 7 === 0 ? 0 : 7 - (total % 7)
-  const isCurrent = today.getFullYear() === year && today.getMonth() === monthIdx
-
-  const s = {
-    card: { background:'white',border:'1.5px solid #e5e7eb',borderRadius:14,padding:16 },
-    label: { fontSize:10,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:6,display:'block' },
-    input: { width:'100%',border:'1.5px solid #e5e7eb',borderRadius:9,padding:'8px 11px',fontSize:13,fontFamily:'inherit',outline:'none',color:'#374151',background:'white',marginBottom:12,boxSizing:'border-box' },
-    modalBtn: { flex:1,background:'#1a7f5e',color:'white',border:'none',fontWeight:700,padding:10,borderRadius:100,fontSize:13,cursor:'pointer',fontFamily:'inherit' },
-    cancelBtn: { flex:1,border:'1.5px solid #e5e7eb',color:'#374151',fontWeight:700,padding:10,borderRadius:100,fontSize:13,cursor:'pointer',fontFamily:'inherit',background:'white' },
-  }
-
-  const times = ['6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM','9:00 AM','9:30 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','5:30 PM','6:00 PM']
-
-  const CalendarIcon = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-  const ListIcon = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-  const ClockIcon = ({ color='#374151' }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-  const BlockIcon = ({ color='#374151' }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-  const AvailIcon = ({ color='#374151' }) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
-
-  // Render calendar days
-  const renderDays = () => {
-    const days = []
-    // Empty cells
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`e${i}`} style={{ height:46 }}/>)
     }
+
+    // Fall back to weekly schedule
+    const firstDow = month === 'april' ? 3 : 5 // Apr 1 2026 = Wed, May 1 2026 = Fri
+    const dow = (firstDow + dateNum - 1) % 7
+    const dayName = DOW_NAMES[dow]
+    const sched = schedule[dayName]
+    if (sched && sched.on) {
+      return { status: 'available', time: `${shortFormat(sched.start)}-${shortFormat(sched.end)}` }
+    }
+    return { status: 'unavailable' }
+  }
+
+  // Toggle individual calendar cell
+  const toggleCell = (dateNum, month) => {
+    const key = `${month}-${dateNum}`
+    const current = getCellStatus(dateNum, month)
+    if (current.status === 'booked') return // can't toggle booked
+    setDayOverrides(prev => {
+      const next = { ...prev }
+      if (current.status === 'available') {
+        next[key] = { status: 'unavailable' }
+      } else {
+        next[key] = { status: 'available', time: '8-5' }
+      }
+      return next
+    })
+  }
+
+  // Toggle day on/off in schedule
+  const toggleDay = (dayName) => {
+    setSchedule(prev => ({
+      ...prev,
+      [dayName]: { ...prev[dayName], on: !prev[dayName].on }
+    }))
+  }
+
+  // Open time picker for a day
+  const openTimePicker = (dayName) => {
+    const sched = schedule[dayName]
+    const startParsed = parseTimeTo24(sched.start)
+    const endParsed = parseTimeTo24(sched.end)
+    setTpDay(dayName)
+    setTpStart(startParsed.h + ':' + String(startParsed.m).padStart(2, '0'))
+    setTpEnd(endParsed.h + ':' + String(endParsed.m).padStart(2, '0'))
+    setActiveModal('time')
+  }
+
+  // Save time picker
+  const saveTime = () => {
+    if (!tpDay) return
+    const startText = formatTimeValue(tpStart)
+    const endText = formatTimeValue(tpEnd)
+    setSchedule(prev => ({
+      ...prev,
+      [tpDay]: { on: true, start: startText, end: endText }
+    }))
+    closeModal()
+    showToast('Hours updated')
+  }
+
+  // Apply weekdays (sync schedule to calendar by clearing overrides)
+  const applyWeekdays = () => {
+    // Clear all day overrides so schedule takes effect
+    setDayOverrides({})
+    closeModal()
+    showToast('Weekdays set to available')
+  }
+
+  // Block selected week
+  const blockSelectedWeek = () => {
+    if (!selectedWeek) { showToast('Select a week first'); return }
+    const ranges = WEEK_OPTIONS[selectedWeek].ranges
+    const newOverrides = { ...dayOverrides }
+    ranges.forEach(r => {
+      const month = r.month
+      for (let d = r.start; d <= r.end; d++) {
+        const key = `${month}-${d}`
+        const current = getCellStatus(d, month)
+        if (current.status !== 'booked') {
+          newOverrides[key] = { status: 'unavailable' }
+        }
+      }
+    })
+    setDayOverrides(newOverrides)
+    closeModal()
+    showToast('Week blocked')
+  }
+
+  // Clear month
+  const clearMonth = () => {
+    const monthKey = calMonth
+    const daysInMonth = monthKey === 'april' ? 30 : 31
+    const newOverrides = { ...dayOverrides }
     for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = isCurrent && d === today.getDate()
-      const isBooked = bookedMap[d]
-      const isExc = excMap[d]
-      const isAvail = availMap[d]
-      let bg = 'transparent', color = '#d1d5db', sub = '', cursor = 'default', onClick = null, border = '1.5px solid transparent'
+      const current = getCellStatus(d, monthKey)
+      if (current.status === 'available') {
+        newOverrides[`${monthKey}-${d}`] = { status: 'unavailable' }
+      }
+    }
+    setDayOverrides(newOverrides)
+    showToast(monthKey === 'april' ? 'April cleared' : 'May cleared')
+  }
 
-      if (isToday) { bg='#1a7f5e'; color='white'; sub='Today'; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('available');setDayStart('8:00 AM');setDayEnd('5:00 PM');setDayNote('');setModal('day')} }
-      else if (isBooked) { bg='#fef3c7'; color='#92400e'; sub=isBooked.office.split(' ')[0]; cursor='pointer'; onClick=()=>{setBookedDayData({...isBooked,day:d});setModal('booked')} }
-      else if (isExc) { bg='#e8f5f0'; color='#166534'; sub=isExc.sub; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('custom');setDayStart('8:00 AM');setDayEnd('5:00 PM');setDayNote('');setModal('day')} }
-      else if (isAvail) { bg='#e8f5f0'; color='#166534'; sub=isAvail.time; cursor='pointer'; onClick=()=>{setActiveDayNum(d);setDayType('available');setDayStart('8:00 AM');setDayEnd('5:00 PM');setDayNote('');setModal('day')} }
+  // Copy forward
+  const copyForward = () => {
+    setDayOverrides({})
+    closeModal()
+    showToast('Schedule copied to next 4 weeks')
+  }
 
-      days.push(
-        <div key={d} onClick={onClick} style={{ height:46,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:12,fontWeight:600,background:bg,color,cursor,border,gap:1,transition:'all .15s' }}
-          onMouseEnter={e=>{ if(onClick) e.currentTarget.style.opacity='.8' }}
-          onMouseLeave={e=>{ e.currentTarget.style.opacity='1' }}>
-          <span>{d}</span>
-          {sub && <span style={{ fontSize:8,fontWeight:700,opacity:.9,lineHeight:1 }}>{sub}</span>}
-        </div>
+  // Confirm schedule
+  const confirmSchedule = () => {
+    setConfirmed(true)
+    showToast('Availability confirmed')
+    saveSchedule()
+  }
+
+  // Render calendar grid for a month
+  const renderCalendar = (month) => {
+    const daysInMonth = month === 'april' ? 30 : 31
+    const firstDow = month === 'april' ? 3 : 5
+    const cells = []
+
+    // Empty leading cells
+    for (let i = 0; i < firstDow; i++) {
+      cells.push(<div key={`e${i}`} className="pa-cal-cell pa-empty" />)
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = getCellStatus(d, month)
+      const isToday = month === 'april' && d === today.getDate() && today.getMonth() === 3 && today.getFullYear() === 2026
+      let className = 'pa-cal-cell'
+      if (cell.status === 'available') className += ' pa-available'
+      else if (cell.status === 'booked') className += ' pa-booked'
+      else className += ' pa-unavailable'
+      if (isToday) className += ' pa-today'
+
+      const handleClick = () => {
+        if (cell.status === 'booked' && cell.booking) {
+          setBookedDayData({
+            office: cell.booking.office?.name || 'Office',
+            time: cell.time,
+            day: d,
+            id: cell.booking.id,
+          })
+          setActiveModal('booked')
+        } else {
+          toggleCell(d, month)
+        }
+      }
+
+      cells.push(
+        <button key={d} className={className} onClick={handleClick}>
+          <span className="pa-day-num">{d}</span>
+          {cell.status !== 'unavailable' && cell.time && (
+            <span className="pa-cal-time">{cell.time}</span>
+          )}
+        </button>
       )
     }
+
+    // Trailing empty cells
+    const total = firstDow + daysInMonth
+    const trailing = total % 7 === 0 ? 0 : 7 - (total % 7)
     for (let i = 0; i < trailing; i++) {
-      days.push(<div key={`t${i}`} style={{ height:46 }}/>)
+      cells.push(<div key={`t${i}`} className="pa-cal-cell pa-empty" />)
     }
-    return days
+    return cells
+  }
+
+  const isException = (dayName) => {
+    const defaults = { Mon: '8:00 AM-5:00 PM', Tue: '8:00 AM-5:00 PM', Wed: '8:00 AM-5:00 PM', Thu: '8:00 AM-5:00 PM', Fri: '8:00 AM-5:00 PM' }
+    if (!schedule[dayName].on) return false
+    const current = `${schedule[dayName].start}-${schedule[dayName].end}`
+    return defaults[dayName] && current !== defaults[dayName]
   }
 
   return (
-    <div style={{ minHeight:'100vh',background:'#f9f8f6',fontFamily:"'DM Sans',-apple-system,sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#f9f8f6', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+      <style>{styles}</style>
       <TopBar role="provider" />
-      <style>{`
-        @media (max-width: 768px) {
-          .pa-container { padding: 16px 16px 96px !important; max-width: 100% !important; }
-          .pa-header-row { flex-direction: column !important; align-items: stretch !important; gap: 12px; }
-          .pa-header-title { font-size: 22px !important; }
-          .pa-add-exc-btn { align-self: flex-start; }
-          .pa-grid { grid-template-columns: 1fr !important; }
-          .pa-modal { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; transform: none !important; width: 100% !important; max-width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; display: flex; flex-direction: column; }
-          .pa-modal-body { flex: 1; overflow-y: auto; }
-          .pa-modal-input { font-size: 16px !important; }
-        }
-      `}</style>
 
-      {/* Toast */}
-      {toast && (
-        <div style={{ position:'fixed',bottom:90,left:'50%',transform:'translateX(-50%)',background:'#1a1a1a',color:'white',fontSize:13,fontWeight:600,padding:'10px 18px',borderRadius:100,zIndex:600,display:'flex',alignItems:'center',gap:8,whiteSpace:'nowrap',boxShadow:'0 4px 20px rgba(0,0,0,.2)' }}>
-          <div style={{ width:17,height:17,borderRadius:'50%',background:'#1a7f5e',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}><CheckIcon /></div>
-          {toast}
-        </div>
-      )}
+      <div className="pa-page-content">
 
-      {/* Overlay */}
-      {modal && <div onClick={closeModal} style={{ position:'fixed',inset:0,background:'rgba(0,0,0,.45)',zIndex:300 }}/>}
-
-      <div className="pa-container" style={{ maxWidth:1000,margin:'0 auto',padding:'24px 32px 100px' }}>
-
-        {/* Back + Header */}
-        <button onClick={() => navigate('/provider-profile')} style={{ display:'inline-flex',alignItems:'center',gap:5,fontSize:13,fontWeight:600,color:'#1a7f5e',cursor:'pointer',background:'none',border:'none',fontFamily:'inherit',marginBottom:6 }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          Back to profile
-        </button>
-        <div className="pa-header-row" style={{ display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:18 }}>
-          <div>
-            <div className="pa-header-title" style={{ fontSize:24,fontWeight:900,color:'#1a1a1a',marginBottom:3 }}>Availability</div>
-            <div style={{ fontSize:13,color:'#9ca3af' }}>Manage your schedule and set exceptions for specific dates</div>
+        {/* Intro card */}
+        {showIntro && (
+          <div className="pa-intro-card">
+            <button className="pa-intro-dismiss" onClick={() => setShowIntro(false)}>
+              <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+            <div className="pa-intro-inner">
+              <div className="pa-intro-title">Tell offices when you can work</div>
+              <div className="pa-intro-body">Set your weekly schedule once — then fine-tune individual days. Offices only send you shifts when you are available.</div>
+              <div className="pa-intro-steps">
+                <div className="pa-intro-step"><div className="pa-intro-step-num">1</div><div className="pa-intro-step-label">Set weekly hours</div></div>
+                <div className="pa-intro-step"><div className="pa-intro-step-num">2</div><div className="pa-intro-step-label">Adjust any day</div></div>
+                <div className="pa-intro-step"><div className="pa-intro-step-num">3</div><div className="pa-intro-step-label">Confirm biweekly</div></div>
+              </div>
+            </div>
           </div>
-          <button className="pa-add-exc-btn" onClick={() => { setExcDate(''); setExcNote(''); setExcType('custom'); setModal('add-exc') }} style={{ background:'#1a7f5e',color:'white',border:'none',fontWeight:700,padding:'10px 14px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,minHeight:44 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add exception
+        )}
+
+        {/* Confirm banner */}
+        <div
+          className="pa-confirm-banner"
+          style={{
+            background: confirmed ? 'var(--green-soft)' : 'var(--purple-soft)',
+            borderColor: confirmed ? 'var(--green)' : 'rgba(124,58,237,.2)',
+          }}
+        >
+          <div className="pa-confirm-icon" style={{ background: confirmed ? 'var(--green)' : 'var(--purple)' }}>
+            <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+          <div className="pa-confirm-body">
+            <div style={{ fontSize: 13, fontWeight: 800, color: confirmed ? 'var(--green)' : '#5b21b6' }}>
+              {confirmed ? 'Schedule confirmed' : 'Confirm your schedule'}
+            </div>
+            <div style={{ fontSize: 11, color: confirmed ? 'var(--green-d)' : '#7c3aed', marginTop: 1 }}>
+              {confirmed ? 'Next review in 2 weeks' : 'Review the next 2 weeks'}
+            </div>
+          </div>
+          <button
+            className="pa-confirm-btn"
+            style={{ background: confirmed ? 'var(--green)' : 'var(--purple)' }}
+            disabled={confirmed}
+            onClick={confirmSchedule}
+          >
+            {confirmed ? 'Done' : 'Confirm'}
           </button>
         </div>
 
-        {/* Stats */}
-        <div style={{ display:'flex',gap:10,marginBottom:20 }}>
-          <div style={{ background:'white',border:'1.5px solid #e5e7eb',borderRadius:12,padding:'12px 18px',flex:1,textAlign:'center' }}>
-            <div style={{ fontSize:20,fontWeight:900,color:'#1a7f5e',lineHeight:1,marginBottom:3 }}>{availCount}</div>
-            <div style={{ fontSize:11,color:'#9ca3af',fontWeight:600 }}>Available days this month</div>
-          </div>
-          <div style={{ background:'white',border:'1.5px solid #e5e7eb',borderRadius:12,padding:'12px 18px',flex:1,textAlign:'center' }}>
-            <div style={{ fontSize:20,fontWeight:900,color:'#F97316',lineHeight:1,marginBottom:3 }}>{bookedCount}</div>
-            <div style={{ fontSize:11,color:'#9ca3af',fontWeight:600 }}>Booked shifts this month</div>
-          </div>
-        </div>
-
-        {/* Main grid */}
-        <div className="pa-grid" style={{ display:'grid',gridTemplateColumns:'1fr 280px',gap:16,alignItems:'start' }}>
-
-          {/* Calendar card */}
-          <div style={s.card}>
-            {/* View toggle */}
-            <div style={{ display:'flex',background:'#f3f4f6',borderRadius:9,padding:3,gap:2,marginBottom:14 }}>
-              {[['cal','Calendar',<CalendarIcon/>],['list','List',<ListIcon/>]].map(([v,lbl,icon])=>(
-                <button key={v} onClick={()=>setView(v)} style={{ flex:1,padding:'6px 10px',borderRadius:7,border:'none',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',color:view===v?'#1a1a1a':'#9ca3af',background:view===v?'white':'transparent',boxShadow:view===v?'0 1px 3px rgba(0,0,0,.08)':'none',display:'flex',alignItems:'center',justifyContent:'center',gap:5,transition:'all .15s' }}>
-                  {icon}{lbl}
-                </button>
-              ))}
-            </div>
-
-            {/* Calendar */}
-            {view === 'cal' && (
-              <div>
-                <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12 }}>
-                  <button onClick={()=>changeMonth(-1)} style={{ background:'none',border:'1.5px solid #e5e7eb',borderRadius:8,width:28,height:28,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,color:'#6b7280' }}>&#8249;</button>
-                  <span style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>{MONTHS[monthIdx]} {year}</span>
-                  <button onClick={()=>changeMonth(1)} style={{ background:'none',border:'1.5px solid #e5e7eb',borderRadius:8,width:28,height:28,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,color:'#6b7280' }}>&#8250;</button>
-                </div>
-                <div style={{ display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4 }}>
-                  {DAYS.map(d=><div key={d} style={{ textAlign:'center',fontSize:10,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',padding:'2px 0' }}>{d}</div>)}
-                </div>
-                <div style={{ display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:3,marginBottom:12 }}>
-                  {renderDays()}
-                </div>
-                <div style={{ display:'flex',flexWrap:'wrap',gap:10 }}>
-                  {[['#e8f5f0','#1a7f5e','Available'],['#fef3c7','#f59e0b','Booked']].map(([bg,bd,lbl])=>(
-                    <div key={lbl} style={{ display:'flex',alignItems:'center',gap:4,fontSize:11,color:'#6b7280' }}>
-                      <div style={{ width:9,height:9,borderRadius:2,background:bg,border:`1px solid ${bd}` }}/>
-                      {lbl}
-                    </div>
-                  ))}
-                </div>
+        {/* Two column layout */}
+        <div className="pa-two-col">
+          <div className="pa-col-left">
+            {/* Weekly Schedule */}
+            <div className="pa-section-head">
+              <div className="pa-section-label">Weekly Schedule</div>
+              <div className="pa-section-help">
+                <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                Tap hours to edit
               </div>
-            )}
-
-            {/* List view */}
-            {view === 'list' && (
-              <div>
-                {availCount === 0 && bookedCount === 0 ? (
-                  <div style={{ textAlign:'center', padding:'40px 20px' }}>
-                    <div style={{ width:48, height:48, borderRadius:'50%', background:'#e8f5f0', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div className="pa-sched-card">
+              <div className="pa-sched-header">
+                <div className="pa-sched-title">Your default hours</div>
+                <div className="pa-sched-badge">Repeats weekly</div>
+              </div>
+              {SCHED_DAYS.map(day => {
+                const val = schedule[day]
+                return (
+                  <div key={day} className="pa-day-row">
+                    <div className={`pa-day-name${val.on ? '' : ' pa-off'}`}>{day}</div>
+                    <div className="pa-day-hours">
+                      {val.on ? (
+                        <>
+                          <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.start}</span>
+                          <span className="pa-hours-dash">–</span>
+                          <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.end}</span>
+                          {isException(day) && <span className="pa-exception-tag">Exception</span>}
+                        </>
+                      ) : (
+                        <span className="pa-hours-pill pa-off">Off</span>
+                      )}
                     </div>
-                    <div style={{ fontSize:15, fontWeight:700, color:'#1a1a1a', marginBottom:4 }}>No availability set yet</div>
-                    <div style={{ fontSize:13, color:'#9ca3af', maxWidth:260, margin:'0 auto' }}>Set your weekly schedule or add specific dates to let offices know when you're available.</div>
+                    <button
+                      className={`pa-day-toggle${val.on ? '' : ' pa-off'}`}
+                      onClick={() => toggleDay(day)}
+                    />
                   </div>
-                ) : (
-                  [
-                    ...Object.entries(availMap).map(([day, val]) => ({ type:'available', day:Number(day), date:`${MONTHS[monthIdx]} ${day}`, time:val.time, note:null, id:val.id })),
-                    ...Object.entries(excMap).map(([day, val]) => ({ type:'exception', day:Number(day), date:`${MONTHS[monthIdx]} ${day}`, time:val.sub, note:'Exception', id:val.id })),
-                    ...Object.entries(bookedMap).map(([day, val]) => ({ type:'booked', day:Number(day), date:`${MONTHS[monthIdx]} ${day}`, time:val.time, office:val.office, id:val.id })),
-                  ].sort((a,b) => a.day - b.day).map((row,i)=>{
-                    const isBooked = row.type === 'booked'
-                    const bg = isBooked ? '#fffbeb' : '#f0faf5'
-                    const borderColor = isBooked ? '#fde68a' : '#d1fae5'
-                    const dotColor = isBooked ? '#f59e0b' : '#1a7f5e'
-                    const timeColor = isBooked ? '#92400e' : '#1a7f5e'
-                    return (
-                      <div key={i} onClick={()=>{if(isBooked){setBookedDayData({...row,day:row.day});setModal('booked')}else{setActiveDayNum(row.day);setDayType(row.type==='exception'?'custom':'available');setModal('day')}}} style={{ display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:9,marginBottom:4,border:`1.5px solid ${borderColor}`,background:bg,cursor:'pointer',transition:'all .15s' }}>
-                        <div style={{ width:7,height:7,borderRadius:'50%',background:dotColor,flexShrink:0 }}/>
-                        <div style={{ fontSize:12,fontWeight:800,color:'#1a1a1a',width:80,flexShrink:0 }}>{row.date}</div>
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontSize:12,fontWeight:700,color:timeColor }}>{isBooked ? row.office : row.time}</div>
-                          <div style={{ fontSize:10,color:'#9ca3af',marginTop:1 }}>{isBooked ? row.time : (row.note || 'General schedule')}</div>
-                        </div>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-                      </div>
-                    )
-                  })
-                )}
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="pa-col-right" style={{ marginTop: 16 }}>
+            {/* Calendar - April */}
+            {calMonth === 'april' && (
+              <div className="pa-cal-wrap">
+                <div className="pa-cal-header">
+                  <div className="pa-cal-month">April 2026</div>
+                  <div className="pa-cal-nav">
+                    <button disabled><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg></button>
+                    <button onClick={() => setCalMonth('may')}><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg></button>
+                  </div>
+                </div>
+                <div className="pa-cal-body">
+                  <div className="pa-cal-days">
+                    {['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="pa-cal-day-label">{d}</div>)}
+                  </div>
+                  <div className="pa-cal-grid">{renderCalendar('april')}</div>
+                </div>
+                <div className="pa-cal-legend">
+                  <div className="pa-legend-item"><div className="pa-legend-dot pa-green" />Available</div>
+                  <div className="pa-legend-item"><div className="pa-legend-dot pa-gold" />Booked</div>
+                  <div className="pa-legend-item"><div className="pa-legend-dot pa-gray" />Off</div>
+                </div>
+              </div>
+            )}
+
+            {/* Calendar - May */}
+            {calMonth === 'may' && (
+              <div className="pa-cal-wrap">
+                <div className="pa-cal-header">
+                  <div className="pa-cal-month">May 2026</div>
+                  <div className="pa-cal-nav">
+                    <button onClick={() => setCalMonth('april')}><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg></button>
+                    <button disabled><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg></button>
+                  </div>
+                </div>
+                <div className="pa-cal-body">
+                  <div className="pa-cal-days">
+                    {['S','M','T','W','T','F','S'].map((d,i) => <div key={i} className="pa-cal-day-label">{d}</div>)}
+                  </div>
+                  <div className="pa-cal-grid">{renderCalendar('may')}</div>
+                </div>
+                <div className="pa-cal-legend">
+                  <div className="pa-legend-item"><div className="pa-legend-dot pa-green" />Available</div>
+                  <div className="pa-legend-item"><div className="pa-legend-dot pa-gold" />Booked</div>
+                  <div className="pa-legend-item"><div className="pa-legend-dot pa-gray" />Off</div>
+                </div>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Weekly schedule */}
-          <div style={s.card}>
-            <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14 }}>
-              <span style={{ fontSize:13,fontWeight:800,color:'#1a1a1a' }}>Weekly schedule</span>
-              <button onClick={saveSchedule} style={{ background:'white',color:'#1a7f5e',border:'1.5px solid #1a7f5e',fontWeight:700,padding:'5px 12px',borderRadius:100,fontSize:11,cursor:'pointer',fontFamily:'inherit' }}>Save</button>
-            </div>
-            {Object.entries(schedule).map(([day, val]) => (
-              <div key={day} style={{ display:'flex',alignItems:'center',gap:8,padding:'7px 0',borderBottom:'1px solid #f3f4f6' }}>
-                <Toggle on={val.on} onToggle={()=>setSchedule(prev=>({...prev,[day]:{...prev[day],on:!prev[day].on}}))} />
-                <span style={{ fontSize:12,fontWeight:700,color:val.on?'#1a1a1a':'#9ca3af',width:28,flexShrink:0 }}>{day}</span>
-                <select value={val.start} onChange={e=>setSchedule(prev=>({...prev,[day]:{...prev[day],start:e.target.value}}))} disabled={!val.on} style={{ border:'1.5px solid #e5e7eb',borderRadius:7,padding:'4px 4px',fontSize:11,fontFamily:'inherit',outline:'none',color:'#374151',background:'white',cursor:val.on?'pointer':'default',flex:1,minWidth:0,opacity:val.on?1:.35 }}>
-                  {times.map(t=><option key={t}>{t}</option>)}
-                </select>
-                <span style={{ fontSize:10,color:'#d1d5db',flexShrink:0 }}>–</span>
-                <select value={val.end} onChange={e=>setSchedule(prev=>({...prev,[day]:{...prev[day],end:e.target.value}}))} disabled={!val.on} style={{ border:'1.5px solid #e5e7eb',borderRadius:7,padding:'4px 4px',fontSize:11,fontFamily:'inherit',outline:'none',color:'#374151',background:'white',cursor:val.on?'pointer':'default',flex:1,minWidth:0,opacity:val.on?1:.35 }}>
-                  {times.map(t=><option key={t}>{t}</option>)}
-                </select>
-              </div>
-            ))}
-            <div style={{ marginTop:10,background:'#f9f8f6',borderRadius:8,padding:'8px 10px',fontSize:11,color:'#9ca3af',lineHeight:1.5 }}>
-              Default schedule. Use exceptions to override specific dates.
-            </div>
-            <div style={{ marginTop:12,borderTop:'1px solid #f3f4f6',paddingTop:12 }}>
-              <span style={{ fontSize:10,fontWeight:800,color:'#9ca3af',textTransform:'uppercase',letterSpacing:'.08em',marginBottom:8,display:'block' }}>Quick actions</span>
-              <button onClick={()=>{setBlockStart('');setBlockEnd('');setBlockReason('');setModal('block')}} style={{ background:'white',color:'#374151',border:'1.5px solid #e5e7eb',fontWeight:700,padding:'7px 12px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,width:'100%',marginBottom:6 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                Block off dates
-              </button>
-              <button onClick={copyToNextMonth} style={{ background:'white',color:'#374151',border:'1.5px solid #e5e7eb',fontWeight:700,padding:'7px 12px',borderRadius:100,fontSize:12,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:5,width:'100%' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copy to next month
-              </button>
-            </div>
+        {/* Quick Actions */}
+        <div className="pa-section-head" style={{ paddingTop: 0, paddingBottom: 4, marginTop: -8 }}>
+          <div className="pa-section-label">Quick Actions</div>
+        </div>
+        <div className="pa-quick-grid">
+          <div className="pa-quick-card" onClick={() => setActiveModal('weekdays')}>
+            <div className="pa-quick-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div>
+            <div className="pa-quick-body"><h4>Set weekdays</h4><p>Apply default hours to Mon–Fri</p></div>
+          </div>
+          <div className="pa-quick-card" onClick={() => setActiveModal('block')}>
+            <div className="pa-quick-icon pa-purple"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="9" y1="10" x2="15" y2="16" /><line x1="15" y1="10" x2="9" y2="16" /></svg></div>
+            <div className="pa-quick-body"><h4>Block a week</h4><p>Mark a full week as off</p></div>
+          </div>
+          <div className="pa-quick-card" onClick={() => setActiveModal('copy')}>
+            <div className="pa-quick-icon"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /></svg></div>
+            <div className="pa-quick-body"><h4>Copy 4 weeks</h4><p>Duplicate this week forward</p></div>
+          </div>
+          <div className="pa-quick-card" onClick={() => setActiveModal('clear')}>
+            <div className="pa-quick-icon pa-red"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg></div>
+            <div className="pa-quick-body"><h4>Clear month</h4><p>Reset to all off</p></div>
           </div>
         </div>
+
       </div>
 
-      {/* ADD EXCEPTION MODAL */}
-      {modal === 'add-exc' && (
-        <div className="pa-modal" style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
-          <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-            <div><div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>Add exception</div><div style={{ fontSize:11,color:'#9ca3af',marginTop:2 }}>Set custom hours or block a date</div></div>
-            <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
-          </div>
-          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
-            <label style={s.label}>Date</label>
-            <input type="date" value={excDate} onChange={e=>setExcDate(e.target.value)} style={s.input}/>
-            <label style={{ ...s.label, marginBottom:8 }}>Exception type</label>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12 }}>
-              <TypeOption icon={<ClockIcon color={excType==='custom'?'#7c3aed':'#374151'}/>} label="Custom hours" selected={excType==='custom'} color="#7c3aed" onClick={()=>setExcType('custom')}/>
-              <TypeOption icon={<AvailIcon color={excType==='available'?'#1a7f5e':'#374151'}/>} label="Make available" selected={excType==='available'} color="#1a7f5e" onClick={()=>setExcType('available')}/>
+      {/* Toast */}
+      {toast && <div className="pa-toast">{toast}</div>}
+
+      {/* MODALS */}
+
+      {/* Time picker modal */}
+      {activeModal === 'time' && (
+        <div className="pa-modal-bg" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
+          <div className="pa-modal-sheet">
+            <div className="pa-modal-handle" />
+            <div className="pa-modal-title">Set hours for {tpDay}</div>
+            <div className="pa-modal-sub">Choose when you are available on {tpDay}s</div>
+            <div>
+              <div className="pa-tp-custom-label">Set your hours</div>
+              <div className="pa-tp-row">
+                <select className="pa-tp-select" value={tpStart} onChange={e => setTpStart(e.target.value)}>
+                  {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                <span className="pa-tp-dash">–</span>
+                <select className="pa-tp-select" value={tpEnd} onChange={e => setTpEnd(e.target.value)}>
+                  {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
             </div>
-            {excType !== 'block' && (
-              <>
-                <label style={s.label}>Hours</label>
-                <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12 }}>
-                  <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>Start</div><select style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
-                  <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>End</div><select style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
+            <div className="pa-tp-preview">
+              <div className="pa-tp-preview-big">{formatTimeValue(tpStart)} – {formatTimeValue(tpEnd)}</div>
+              <div className="pa-tp-preview-sub">{calcHours(tpStart, tpEnd)}</div>
+            </div>
+            <div className="pa-modal-actions">
+              <button className="pa-modal-btn pa-modal-btn-cancel" onClick={closeModal}>Cancel</button>
+              <button className="pa-modal-btn pa-modal-btn-confirm" onClick={saveTime}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set weekdays modal */}
+      {activeModal === 'weekdays' && (
+        <div className="pa-modal-bg" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
+          <div className="pa-modal-sheet">
+            <div className="pa-modal-handle" />
+            <div className="pa-modal-title">Set all weekdays</div>
+            <div className="pa-modal-sub">Apply your default Mon–Fri hours to the calendar.</div>
+            <div className="pa-modal-actions">
+              <button className="pa-modal-btn pa-modal-btn-cancel" onClick={closeModal}>Cancel</button>
+              <button className="pa-modal-btn pa-modal-btn-confirm" onClick={applyWeekdays}>Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Block a week modal */}
+      {activeModal === 'block' && (
+        <div className="pa-modal-bg" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
+          <div className="pa-modal-sheet">
+            <div className="pa-modal-handle" />
+            <div className="pa-modal-title">Block a week</div>
+            <div className="pa-modal-sub">Select a week to mark as unavailable.</div>
+            {WEEK_OPTIONS.map((w, i) => (
+              <div
+                key={i}
+                className={`pa-week-opt${selectedWeek === i ? ' pa-selected' : ''}`}
+                onClick={() => setSelectedWeek(i)}
+              >
+                <div className="pa-week-opt-radio" />
+                <div className="pa-week-opt-label">{w.label}</div>
+                {w.tag && <div className="pa-week-opt-dates">{w.tag}</div>}
+              </div>
+            ))}
+            <div className="pa-modal-actions">
+              <button className="pa-modal-btn pa-modal-btn-cancel" onClick={closeModal}>Cancel</button>
+              <button className="pa-modal-btn pa-modal-btn-confirm" onClick={blockSelectedWeek}>Block</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Copy 4 weeks modal */}
+      {activeModal === 'copy' && (
+        <div className="pa-modal-bg" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
+          <div className="pa-modal-sheet">
+            <div className="pa-modal-handle" />
+            <div className="pa-modal-title">Copy to next 4 weeks</div>
+            <div className="pa-modal-sub">This week's schedule will be applied forward.</div>
+            <div className="pa-copy-list">
+              <div className="pa-copy-row">
+                <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /></svg>
+                <div className="pa-copy-row-label">Apr 13 – 19</div>
+                <div className="pa-copy-row-badge">SOURCE</div>
+              </div>
+              {['Apr 20 – 26','Apr 27 – May 3','May 4 – 10','May 11 – 17'].map(label => (
+                <div key={label} className="pa-copy-row">
+                  <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /></svg>
+                  <div className="pa-copy-row-label">{label}</div>
+                  <div className="pa-copy-row-sub">Overwrite</div>
                 </div>
-              </>
-            )}
-            <label style={s.label}>Note (optional)</label>
-            <input type="text" value={excNote} onChange={e=>setExcNote(e.target.value)} placeholder="e.g. Half day, CE course" style={s.input}/>
-            <div style={{ display:'flex',gap:8 }}>
-              <button onClick={closeModal} style={s.cancelBtn}>Cancel</button>
-              <button onClick={saveException} style={{ ...s.modalBtn,background:'#7c3aed' }}>Save exception</button>
+              ))}
+            </div>
+            <div className="pa-modal-actions">
+              <button className="pa-modal-btn pa-modal-btn-cancel" onClick={closeModal}>Cancel</button>
+              <button className="pa-modal-btn pa-modal-btn-confirm" onClick={copyForward}>Copy</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* BLOCK DATES MODAL */}
-      {modal === 'block' && (
-        <div className="pa-modal" style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
-          <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-            <div><div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>Block off dates</div><div style={{ fontSize:11,color:'#9ca3af',marginTop:2 }}>Mark a date range as unavailable</div></div>
-            <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
-          </div>
-          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8 }}>
-              <div><label style={s.label}>Start date</label><input type="date" value={blockStart} onChange={e=>setBlockStart(e.target.value)} style={s.input}/></div>
-              <div><label style={s.label}>End date</label><input type="date" value={blockEnd} onChange={e=>setBlockEnd(e.target.value)} style={s.input}/></div>
-            </div>
-            <label style={s.label}>Reason (optional)</label>
-            <input type="text" value={blockReason} onChange={e=>setBlockReason(e.target.value)} placeholder="e.g. Vacation, continuing education" style={s.input}/>
-            <div style={{ display:'flex',gap:8 }}>
-              <button onClick={closeModal} style={s.cancelBtn}>Cancel</button>
-              <button onClick={()=>saveBlockDates(blockStart,blockEnd,blockReason)} style={s.modalBtn}>Block dates</button>
+      {/* Clear month modal */}
+      {activeModal === 'clear' && (
+        <div className="pa-modal-bg" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
+          <div className="pa-modal-sheet">
+            <div className="pa-modal-handle" />
+            <div className="pa-modal-title">Clear {calMonth === 'april' ? 'April' : 'May'}</div>
+            <div className="pa-modal-sub">Reset all availability for this month.</div>
+            <div className="pa-clear-warn"><b>This cannot be undone.</b> All available days will be set to off. Booked shifts stay unchanged.</div>
+            <div className="pa-modal-actions">
+              <button className="pa-modal-btn pa-modal-btn-cancel" onClick={closeModal}>Keep</button>
+              <button className="pa-modal-btn pa-modal-btn-danger" onClick={() => { closeModal(); clearMonth() }}>Clear {calMonth === 'april' ? 'April' : 'May'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* DAY EDIT MODAL */}
-      {modal === 'day' && (
-        <div className="pa-modal" style={{ position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:'white',borderRadius:18,width:'calc(100% - 32px)',maxWidth:400,zIndex:500,boxShadow:'0 20px 50px rgba(0,0,0,.2)',overflow:'hidden' }}>
-          <div style={{ background:'#f9f8f6',borderBottom:'1px solid #e5e7eb',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
-            <div><div style={{ fontSize:15,fontWeight:900,color:'#1a1a1a' }}>{MONTHS[monthIdx]} {activeDayNum}</div><div style={{ fontSize:11,color:'#9ca3af',marginTop:2 }}>Edit availability for this day</div></div>
-            <button onClick={closeModal} style={{ background:'none',border:'none',color:'#9ca3af',fontSize:18,cursor:'pointer' }}>✕</button>
-          </div>
-          <div className="pa-modal-body" style={{ padding:'16px 18px' }}>
-            <label style={{ ...s.label,marginBottom:8 }}>Status</label>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:12 }}>
-              <TypeOption icon={<AvailIcon color={dayType==='available'?'#1a7f5e':'#374151'}/>} label="Available" selected={dayType==='available'} color="#1a7f5e" onClick={()=>setDayType('available')}/>
-              <TypeOption icon={<ClockIcon color={dayType==='custom'?'#7c3aed':'#374151'}/>} label="Custom hours" selected={dayType==='custom'} color="#7c3aed" onClick={()=>setDayType('custom')}/>
-            </div>
-            <label style={s.label}>Hours</label>
-            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12 }}>
-              <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>Start</div><select value={dayStart} onChange={e=>setDayStart(e.target.value)} style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
-              <div><div style={{ fontSize:10,color:'#9ca3af',marginBottom:4 }}>End</div><select value={dayEnd} onChange={e=>setDayEnd(e.target.value)} style={{ ...s.input,marginBottom:0 }}>{times.map(t=><option key={t}>{t}</option>)}</select></div>
-            </div>
-            <label style={s.label}>Note (optional)</label>
-            <input type="text" value={dayNote} onChange={e=>setDayNote(e.target.value)} placeholder="Add a note for this day" style={s.input}/>
-            <div style={{ display:'flex',gap:8 }}>
-              <button onClick={closeModal} style={s.cancelBtn}>Cancel</button>
-              <button onClick={()=>saveDayEdit(dayStart,dayEnd,dayNote)} style={s.modalBtn}>Save changes</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* BOOKED DAY MODAL — new BookedShiftModal component */}
-      {modal === 'booked' && bookedDayData && (
+      {/* Booked shift modal */}
+      {activeModal === 'booked' && bookedDayData && (
         <BookedShiftModal
           shift={{
             officeName: bookedDayData.office,
             officeInitials: (bookedDayData.office || 'OF').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
             officeRating: '4.9',
             officeBookingCount: 12,
-            dateTime: `${MONTHS[monthIdx]} ${bookedDayData.day}, ${year} · ${bookedDayData.time}`,
+            dateTime: `April ${bookedDayData.day}, 2026 · ${bookedDayData.time}`,
             duration: '8 hours',
             role: 'Booked Shift',
             roleSub: 'Tap Message to reach the office',
@@ -638,3 +861,13 @@ export default function ProviderAvailability() {
     </div>
   )
 }
+
+const WEEK_OPTIONS = [
+  { label: 'Apr 13 – 19', tag: 'This week', ranges: [{ month: 'april', start: 13, end: 19 }] },
+  { label: 'Apr 20 – 26', tag: null, ranges: [{ month: 'april', start: 20, end: 26 }] },
+  { label: 'Apr 27 – May 3', tag: null, ranges: [{ month: 'april', start: 27, end: 30 }, { month: 'may', start: 1, end: 3 }] },
+  { label: 'May 4 – 10', tag: null, ranges: [{ month: 'may', start: 4, end: 10 }] },
+  { label: 'May 11 – 17', tag: null, ranges: [{ month: 'may', start: 11, end: 17 }] },
+  { label: 'May 18 – 24', tag: null, ranges: [{ month: 'may', start: 18, end: 24 }] },
+  { label: 'May 25 – 31', tag: null, ranges: [{ month: 'may', start: 25, end: 31 }] },
+]
