@@ -1,705 +1,423 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
-import ProviderBottomNav from '../components/ProviderBottomNav';
-import BookedShiftModal from './BookedShiftModal';
 import TopBar from '../components/TopBar';
+import ProviderBottomNav from '../components/ProviderBottomNav';
 
-// ============================================================
-// KAZI PROVIDER DASHBOARD — Pro home (route: /provider)
-// Locked design system: green/black/gray + gold, mobile-first
-// ============================================================
+/**
+ * ProviderDashboard
+ * -----------------
+ * Content-only dashboard. The parent layout shell renders:
+ *   - Kazi topbar (logo + notifications + avatar)
+ *   - Bottom navigation (Home / Find Shifts / Requests / Messages / Profile)
+ *
+ * Data: mocked inline for now. Wire to API later (see TODO comments).
+ * Design tokens follow Kazi's locked system:
+ *   - Primary green #1a7f5e · background #f9f8f6 · coral #e8734a · gold #f4b740
+ *   - Sage gradient avatars (#a8c9b8 → #7ab8a8)
+ *   - DM Sans body · Outfit headings · 16px card radius · 100px pill buttons
+ */
 
-const COLORS = {
-  green: '#1a7f5e',
-  greenSoft: '#e8f3ee',
-  greenTint: '#f1f9f5',
-  coral: '#e8734a',
-  coralSoft: '#fdeee7',
-  bg: '#f9f8f6',
-  card: '#ffffff',
-  text: '#1a1a1a',
-  textMid: '#5a5a5a',
-  textLight: '#8a8a8a',
-  border: '#ececec',
-  borderSoft: '#f3f3f3',
-  gold: '#f4b740',
+// ── Mock data (replace with API response later) ──────────────
+const mockProvider = {
+  firstName: 'Rodney',
+  date: 'Tuesday, April 9',
+  location: 'Houston, TX',
+  stats: {
+    rating: 4.9,
+    reliability: 98,
+    profileScore: 650,
+    shiftsCompleted: 42,
+  },
+  todayShift: null, // null = empty state. Populate this object when provider is booked today.
+  // todayShift example when booked:
+  // {
+  //   officeInitials: 'MCD',
+  //   officeName: 'Missouri City Dental',
+  //   startTime: '8:00 AM',
+  //   endTime: '5:00 PM',
+  //   distanceMiles: 2.3,
+  // },
+  week: [
+    { dow: 'Tue', date: 9, status: 'today' },
+    { dow: 'Wed', date: 10, status: 'booked' },
+    { dow: 'Thu', date: 11, status: 'open' },
+    { dow: 'Fri', date: 12, status: 'off' },
+    { dow: 'Sat', date: 13, status: 'open' },
+    { dow: 'Sun', date: 14, status: 'off' },
+    { dow: 'Mon', date: 15, status: 'open' },
+  ],
+  nearbyShifts: [
+    {
+      id: 'shift_1',
+      officeInitials: 'SD',
+      officeName: 'Sugar Land Dental',
+      date: 'Thu, Apr 11',
+      timeRange: '8A–5P',
+      role: 'RDH',
+      distanceMiles: 4.2,
+      ratePerHour: 42,
+    },
+    {
+      id: 'shift_2',
+      officeInitials: 'BF',
+      officeName: 'Bellaire Family Dental',
+      date: 'Sat, Apr 13',
+      timeRange: '9A–3P',
+      role: 'RDH',
+      distanceMiles: 6.8,
+      ratePerHour: 45,
+    },
+    {
+      id: 'shift_3',
+      officeInitials: 'PD',
+      officeName: 'Pearland Dental Care',
+      date: 'Mon, Apr 15',
+      timeRange: '7A–4P',
+      role: 'RDH',
+      distanceMiles: 9.1,
+      ratePerHour: 40,
+    },
+  ],
 };
 
-// Mock data
-const NEARBY_SHIFTS = [
-  {
-    id: 'shift-pwd',
-    initials: 'PWD',
-    name: 'Pearland Wellness Dental',
-    distance: '3.1 mi away',
-    role: 'Hygienist',
-    when: 'Thu, Apr 11 · 8a–5p · RDH',
-    pay: 62,
-    urgent: true,
-  },
-  {
-    id: 'shift-hdc',
-    initials: 'HDC',
-    name: 'Houston Dental Care',
-    distance: '5.6 mi away',
-    role: 'Hygienist',
-    when: 'Sat, Apr 13 · 9a–3p · RDH',
-    pay: 60,
-  },
-  {
-    id: 'shift-kfd',
-    initials: 'KFD',
-    name: 'Katy Family Dental',
-    distance: '12.4 mi away',
-    role: 'Hygienist',
-    when: 'Tue, Apr 16 · 8a–5p · RDH',
-    pay: 58,
-  },
-];
-
-const WEEK_DAYS = [
-  { name: 'Tue', num: 9, status: 'today', label: 'Today' },
-  { name: 'Wed', num: 10, status: 'booked', label: 'MCD\n8a–5p' },
-  { name: 'Thu', num: 11, status: 'open', label: 'Open' },
-  { name: 'Fri', num: 12, status: 'off', label: 'Off' },
-  { name: 'Sat', num: 13, status: 'open', label: 'Open' },
-  { name: 'Sun', num: 14, status: 'off', label: 'Off' },
-  { name: 'Mon', num: 15, status: 'booked', label: 'SBD\n9a–4p' },
-];
-
-// Mock booked shifts keyed by day-of-month for April 2026
-const BOOKED_SHIFTS = {
-  10: {
-    officeName: 'Missouri City Dental',
-    officeInitials: 'MCD',
-    officeRating: '4.9',
-    officeBookingCount: 12,
-    priorBookings: 3,
-    dateTime: 'Wednesday, April 10 · 8:00 AM – 5:00 PM',
-    duration: '9 hours · 1 hour lunch break',
-    role: 'Dental Hygienist (RDH)',
-    roleSub: 'General dentistry · Adult prophy + perio',
-    payTotal: 464,
-    paySub: '$58/hr × 8 paid hours',
-    address: '7890 Highway 6, Missouri City, TX',
-    distance: '4.2 miles · ~14 min drive',
-  },
-  14: {
-    officeName: 'Sugar Land Bright Dental',
-    officeInitials: 'SBD',
-    officeRating: '4.6',
-    officeBookingCount: 8,
-    priorBookings: 1,
-    dateTime: 'Monday, April 14 · 9:00 AM – 4:00 PM',
-    duration: '7 hours · 30 min lunch break',
-    role: 'Dental Hygienist (RDH)',
-    roleSub: 'Cosmetic + general · Hygiene focus',
-    payTotal: 385,
-    paySub: '$55/hr × 7 paid hours',
-    address: '4500 Highway 6, Sugar Land, TX',
-    distance: '7.8 miles · ~22 min drive',
-  },
-  15: {
-    officeName: 'Sugar Land Bright Dental',
-    officeInitials: 'SBD',
-    officeRating: '4.6',
-    officeBookingCount: 8,
-    priorBookings: 1,
-    dateTime: 'Tuesday, April 15 · 9:00 AM – 4:00 PM',
-    duration: '7 hours · 30 min lunch break',
-    role: 'Dental Hygienist (RDH)',
-    roleSub: 'Cosmetic + general · Hygiene focus',
-    payTotal: 385,
-    paySub: '$55/hr × 7 paid hours',
-    address: '4500 Highway 6, Sugar Land, TX',
-    distance: '7.8 miles · ~22 min drive',
-  },
-  20: { officeName: 'Pearland Wellness Dental', officeInitials: 'PWD', officeRating: '4.7', officeBookingCount: 6, dateTime: 'Sunday, April 20 · 8:00 AM – 5:00 PM', duration: '9 hours · 1 hour lunch break', role: 'Dental Hygienist (RDH)', payTotal: 558, paySub: '$62/hr × 9 paid hours', address: '4500 Broadway St, Pearland, TX', distance: '3.1 miles · ~11 min drive' },
-  23: { officeName: 'Houston Dental Care', officeInitials: 'HDC', officeRating: '4.8', officeBookingCount: 9, dateTime: 'Wednesday, April 23 · 9:00 AM – 3:00 PM', duration: '6 hours · 30 min lunch break', role: 'Dental Hygienist (RDH)', payTotal: 330, paySub: '$60/hr × 5.5 paid hours', address: '1234 Main St, Houston, TX', distance: '5.6 miles · ~18 min drive' },
-  28: { officeName: 'Missouri City Dental', officeInitials: 'MCD', officeRating: '4.9', officeBookingCount: 12, priorBookings: 3, dateTime: 'Monday, April 28 · 8:00 AM – 5:00 PM', duration: '9 hours · 1 hour lunch break', role: 'Dental Hygienist (RDH)', payTotal: 464, paySub: '$58/hr × 8 paid hours', address: '7890 Highway 6, Missouri City, TX', distance: '4.2 miles · ~14 min drive' },
+// ── Helpers ──────────────────────────────────────────────────
+const reliabilityClass = (score) => {
+  if (score >= 95) return 'text-[#1a7f5e]';
+  if (score >= 85) return 'text-[#c98b16]';
+  return 'text-[#e8734a]';
 };
 
-// April 2026 — starts on Wednesday
-const MONTH_CELLS = [
-  null, null, null, { d: 1 }, { d: 2 }, { d: 3, s: 'off' }, { d: 4, s: 'off' },
-  { d: 5 }, { d: 6 }, { d: 7 }, { d: 8 }, { d: 9, s: 'today' }, { d: 10, s: 'booked' }, { d: 11, s: 'off' },
-  { d: 12, s: 'off' }, { d: 13 }, { d: 14, s: 'booked' }, { d: 15, s: 'booked' }, { d: 16 }, { d: 17, s: 'off' }, { d: 18, s: 'off' },
-  { d: 19 }, { d: 20, s: 'booked' }, { d: 21 }, { d: 22 }, { d: 23, s: 'booked' }, { d: 24, s: 'off' }, { d: 25, s: 'off' },
-  { d: 26 }, { d: 27 }, { d: 28, s: 'booked' }, { d: 29 }, { d: 30 }, null, null,
-];
-
+// ── Component ────────────────────────────────────────────────
 export default function ProviderDashboard() {
   const navigate = useNavigate();
-  const { user } = useUser();
-  const [scheduleView, setScheduleView] = useState('week');
-  const [bookedShift, setBookedShift] = useState(null);
+  // TODO: replace mock with API call
+  // const { data: provider, isLoading } = useProviderDashboard();
+  const provider = mockProvider;
 
-  const firstName = user?.firstName || 'Sarah';
-
-  const openBooked = (dayNum) => {
-    const data = BOOKED_SHIFTS[dayNum];
-    if (data) setBookedShift(data);
+  const handleFindShifts = () => {
+    navigate('/find-shifts');
   };
 
-  const openFindForDate = (dayNum) => {
-    const d = String(dayNum).padStart(2, '0');
-    navigate(`/find-shifts?date=2026-04-${d}`);
+  const handleOpenShift = (shiftId) => {
+    navigate(`/find-shifts/${shiftId}`);
+  };
+
+  const handleDayTap = (day) => {
+    const d = String(day.date).padStart(2, '0');
+    navigate(`/provider-availability?date=2026-04-${d}`);
   };
 
   return (
-    <>
-      <style>{`
-        .kazi-pro-dash * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        .kazi-pro-dash button { font-family: inherit; cursor: pointer; }
-        .kazi-pro-dash .scroll-x { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-        .kazi-pro-dash .scroll-x::-webkit-scrollbar { display: none; }
-      `}</style>
+    <div
+      style={{
+        background: '#f9f8f6',
+        maxWidth: 480,
+        margin: '0 auto',
+        minHeight: '100vh',
+        boxShadow: '0 0 40px rgba(0,0,0,0.06)',
+        position: 'relative',
+        paddingBottom: 100,
+      }}
+    >
+      <TopBar role="provider" />
 
-      <div
-        className="kazi-pro-dash"
-        style={{
-          background: COLORS.bg,
-          color: COLORS.text,
-          fontFamily: "'DM Sans', sans-serif",
-          WebkitFontSmoothing: 'antialiased',
-          paddingBottom: 100,
-          maxWidth: 480,
-          margin: '0 auto',
-          minHeight: '100vh',
-          boxShadow: '0 0 40px rgba(0,0,0,0.06)',
-          position: 'relative',
-        }}
-      >
-        <TopBar role="provider" />
-
-        {/* GREETING */}
-        <div style={{ padding: '22px 20px 8px' }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, color: COLORS.text, lineHeight: 1.15 }}>
-            Hello, {firstName}
+      <div className="bg-[#f9f8f6] min-h-full pb-6">
+        {/* Greeting */}
+        <section className="px-5 pt-4 pb-6">
+          <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
+            Hello, {provider.firstName} 👋
+          </h1>
+          <div className="text-[14px] font-medium text-[#6b7875]">
+            {provider.date} · {provider.location}
           </div>
-          <div style={{ fontSize: 13, color: COLORS.textLight, marginTop: 4 }}>Tuesday, April 9 · Houston, TX</div>
-        </div>
+        </section>
 
-        {/* HERO CTA */}
-        <div
-          onClick={() => navigate('/find-shifts')}
-          style={{
-            margin: '18px 16px 8px',
-            borderRadius: 24,
-            padding: 22,
-            background: '#fdfaf3',
-            border: '1.5px solid #f0e9d6',
-            color: COLORS.text,
-            position: 'relative',
-            overflow: 'hidden',
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{ position: 'relative' }}>
-            <div
-              style={{
-                display: 'inline-block',
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                background: COLORS.green,
-                color: 'white',
-                padding: '5px 11px',
-                borderRadius: 100,
-                marginBottom: 14,
-              }}
-            >
-              Quick Find
-            </div>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, lineHeight: 1.2, marginBottom: 6, color: COLORS.text }}>
-              Looking for work?
-              <br />
-              Find shifts near you.
-            </div>
-            <div style={{ fontSize: 13, color: COLORS.textMid, marginBottom: 18, maxWidth: 280 }}>
-              Browse open shifts from top-rated Houston dental offices.
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate('/find-shifts');
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: COLORS.green,
-                color: 'white',
-                padding: '12px 20px',
-                borderRadius: 100,
-                fontSize: 14,
-                fontWeight: 700,
-                border: 'none',
-              }}
-            >
-              Find Work
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* Stats strip */}
+        <StatsStrip stats={provider.stats} />
 
-        {/* QUICK ACTIONS */}
-        <div style={{ padding: '22px 16px 0' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <QuickTile
-              onClick={() => navigate('/find-shifts')}
-              tone="green"
-              label="Find Work"
-              icon={
-                <>
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </>
-              }
-            />
-            <QuickTile
-              onClick={() => navigate('/requests')}
-              tone="coral"
-              label="Job Requests"
-              badge={2}
-              icon={
-                <>
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </>
-              }
-            />
-          </div>
-        </div>
+        {/* Today card */}
+        {provider.todayShift ? (
+          <TodayShiftCard shift={provider.todayShift} />
+        ) : (
+          <TodayEmptyCard onFindShifts={handleFindShifts} />
+        )}
 
-        {/* SCHEDULE / AVAILABILITY */}
-        <div style={{ padding: '22px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text }}>Availability</div>
-            <div
-              style={{
-                display: 'inline-flex',
-                background: COLORS.bg,
-                border: `1px solid ${COLORS.borderSoft}`,
-                borderRadius: 100,
-                padding: 3,
-                gap: 2,
-              }}
-            >
-              <ToggleButton active={scheduleView === 'week'} onClick={() => setScheduleView('week')}>Week</ToggleButton>
-              <ToggleButton active={scheduleView === 'month'} onClick={() => setScheduleView('month')}>Month</ToggleButton>
-            </div>
-          </div>
+        {/* Your week */}
+        <YourWeekSection week={provider.week} onDayTap={handleDayTap} />
 
-          {scheduleView === 'week' ? (
-            <div className="scroll-x" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px 4px', margin: '0 -16px' }}>
-              {WEEK_DAYS.map((day) => (
-                <DayCard key={day.num} day={day} onOpenBooked={() => openBooked(day.num)} onOpenFind={() => openFindForDate(day.num)} />
-              ))}
-            </div>
-          ) : (
-            <MonthGrid onOpenBooked={openBooked} onOpenFind={openFindForDate} />
-          )}
-        </div>
-
-        {/* SHIFTS NEARBY */}
-        <div style={{ padding: '22px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text }}>Shifts in your area</div>
-            <button
-              onClick={() => navigate('/find-shifts')}
-              style={{ fontSize: 12, fontWeight: 700, color: COLORS.green, background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 3 }}
-            >
-              See all
-              <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-          </div>
-          <div className="scroll-x" style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px', margin: '0 -16px' }}>
-            {NEARBY_SHIFTS.map((shift) => (
-              <ShiftCard key={shift.id} shift={shift} onClick={() => navigate(`/find-shifts/${shift.id}`)} />
-            ))}
-          </div>
-        </div>
-
-        <ProviderBottomNav />
-      </div>
-      {bookedShift && (
-        <BookedShiftModal
-          shift={bookedShift}
-          onClose={() => setBookedShift(null)}
-          onCancelShift={() => setBookedShift(null)}
-          onMessageOffice={() => { setBookedShift(null); navigate('/provider-messages'); }}
+        {/* Shifts near you */}
+        <ShiftsNearYouSection
+          shifts={provider.nearbyShifts}
+          onShiftTap={handleOpenShift}
+          onSeeAll={handleFindShifts}
         />
-      )}
+      </div>
+
+      <ProviderBottomNav />
+    </div>
+  );
+}
+
+// ── Stats strip ──────────────────────────────────────────────
+function StatsStrip({ stats }) {
+  return (
+    <div className="mx-4 mb-[14px] bg-white border border-[#e8e6e1] rounded-[18px] py-4 px-1 flex items-stretch">
+      {/* Rating */}
+      <div className="flex-1 min-w-0 flex flex-col items-center justify-center gap-[6px] cursor-pointer">
+        <div className="font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] text-[#0f1a16] inline-flex items-center gap-[3px]">
+          <svg className="w-[15px] h-[15px]" viewBox="0 0 24 24" fill="#f4b740">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+          {stats.rating.toFixed(1)}
+        </div>
+        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Rating</div>
+      </div>
+
+      <div className="w-px bg-[#efede8] my-1" />
+
+      {/* Reliability */}
+      <div className="flex-1 min-w-0 flex flex-col items-center justify-center gap-[6px] cursor-pointer">
+        <div className={`font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] ${reliabilityClass(stats.reliability)}`}>
+          {stats.reliability}%
+        </div>
+        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Reliability</div>
+      </div>
+
+      <div className="w-px bg-[#efede8] my-1" />
+
+      {/* Profile score */}
+      <div className="flex-1 min-w-0 flex flex-col items-center justify-center gap-[6px] cursor-pointer">
+        <div className="font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] text-[#0f1a16]">
+          {stats.profileScore}
+        </div>
+        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Profile</div>
+      </div>
+
+      <div className="w-px bg-[#efede8] my-1" />
+
+      {/* Shifts */}
+      <div className="flex-1 min-w-0 flex flex-col items-center justify-center gap-[6px] cursor-pointer">
+        <div className="font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] text-[#0f1a16]">
+          {stats.shiftsCompleted}
+        </div>
+        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Shifts</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Today card (empty state — no shift booked) ───────────────
+function TodayEmptyCard({ onFindShifts }) {
+  return (
+    <div className="mx-4 bg-[#e8f2ed] border border-[#d4e7dd] rounded-[20px] p-[18px] relative overflow-hidden">
+      <div className="flex items-center justify-between mb-[14px]">
+        <span className="inline-flex items-center gap-[6px] text-[11.5px] font-bold tracking-[0.06em] uppercase text-[#6b7875]">
+          <span className="w-[6px] h-[6px] rounded-full bg-[#9aa5a1]" />
+          Today
+        </span>
+      </div>
+
+      <div className="flex gap-[14px] items-center">
+        <div className="w-14 h-14 rounded-[16px] bg-white border border-[#d4e7dd] grid place-items-center flex-shrink-0">
+          <svg className="w-6 h-6 stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-[Outfit] font-bold text-[17px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
+            No shift today
+          </div>
+          <div className="text-[13px] font-medium text-[#6b7875] leading-[1.35]">
+            Browse open shifts from Houston offices.
+          </div>
+        </div>
+      </div>
+
+      <div className="h-px bg-[#efede8] my-[14px]" />
+
+      <button
+        onClick={onFindShifts}
+        className="w-full px-[14px] py-[11px] rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-[#1a7f5e] text-white inline-flex items-center justify-center gap-[6px]"
+      >
+        <svg className="w-[14px] h-[14px] stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        Find Shifts
+      </button>
+    </div>
+  );
+}
+
+// ── Today card (populated — provider has a shift today) ──────
+function TodayShiftCard({ shift }) {
+  return (
+    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] p-[18px] relative overflow-hidden">
+      {/* Left accent bar */}
+      <div className="absolute top-0 left-0 w-1 h-full bg-[#1a7f5e]" />
+
+      <div className="flex items-center justify-between mb-[14px]">
+        <span className="inline-flex items-center gap-[6px] text-[11.5px] font-bold tracking-[0.06em] uppercase text-[#1a7f5e]">
+          <span className="w-[6px] h-[6px] rounded-full bg-[#1a7f5e]" />
+          Today's shift
+        </span>
+      </div>
+
+      <div className="flex gap-[14px] items-center">
+        <div className="w-14 h-14 rounded-[16px] text-white font-[Outfit] font-bold text-[15px] grid place-items-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
+        >
+          {shift.officeInitials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-[Outfit] font-bold text-[17px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
+            {shift.officeName}
+          </div>
+          <div className="text-[13.5px] font-medium text-[#6b7875]">
+            {shift.startTime} – {shift.endTime} · {shift.distanceMiles} mi
+          </div>
+        </div>
+      </div>
+
+      <div className="h-px bg-[#efede8] my-[14px]" />
+
+      <button className="w-full px-[14px] py-[11px] rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-white text-[#1a7f5e] border border-[#d4e7dd] inline-flex items-center justify-center gap-[6px]">
+        <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+        Directions
+      </button>
+    </div>
+  );
+}
+
+// ── Your week (day rail) ─────────────────────────────────────
+function YourWeekSection({ week, onDayTap }) {
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+          Your week
+        </h3>
+        <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
+          <button className="border-none bg-[#1a7f5e] text-white font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+            Week
+          </button>
+          <button className="border-none bg-transparent text-[#6b7875] font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+            Month
+          </button>
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
+        {week.map((day) => (
+          <DayCard key={day.date} day={day} onTap={() => onDayTap(day)} />
+        ))}
+      </div>
     </>
   );
 }
 
-// ============================================================
-// SUB-COMPONENTS
-// ============================================================
+function DayCard({ day, onTap }) {
+  const baseClasses = 'flex-shrink-0 w-[76px] h-[110px] rounded-[16px] p-[10px_8px_10px] flex flex-col items-center justify-center text-center cursor-pointer border';
 
-function QuickTile({ icon, tone, label, badge, onClick }) {
-  const bg = tone === 'green' ? COLORS.greenTint : COLORS.coralSoft;
-  const stroke = tone === 'green' ? COLORS.green : COLORS.coral;
+  let classes = baseClasses;
+  let dowColor = 'text-[#9aa5a1]';
+  let numColor = 'text-[#0f1a16]';
+  let statusColor = 'text-[#9aa5a1]';
+  let statusText = 'Open';
+
+  if (day.status === 'today') {
+    classes += ' bg-[#1a7f5e] border-[#1a7f5e]';
+    dowColor = 'text-white/80';
+    numColor = 'text-white';
+    statusColor = 'text-white/90';
+    statusText = 'Today';
+  } else if (day.status === 'booked') {
+    classes += ' bg-[#f5faf7] border-[#dcebe3]';
+    dowColor = 'text-[#146449]';
+    numColor = 'text-[#146449]';
+    statusColor = 'text-[#1a7f5e]';
+    statusText = 'Booked';
+  } else if (day.status === 'off') {
+    classes += ' bg-white border-[#e8e6e1]';
+    statusText = 'Off';
+  } else {
+    classes += ' bg-white border-[#e8e6e1]';
+    statusText = 'Open';
+  }
+
+  return (
+    <div className={classes} onClick={onTap}>
+      <div className={`text-[10.5px] font-bold uppercase tracking-[0.06em] ${dowColor} mb-1`}>
+        {day.dow}
+      </div>
+      <div className={`font-[Outfit] font-bold text-[22px] leading-none tracking-[-0.02em] ${numColor} mb-2`}>
+        {day.date}
+      </div>
+      <div className={`text-[10.5px] font-semibold uppercase tracking-[0.04em] ${statusColor}`}>
+        {statusText}
+      </div>
+    </div>
+  );
+}
+
+// ── Shifts near you ──────────────────────────────────────────
+function ShiftsNearYouSection({ shifts, onShiftTap, onSeeAll }) {
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+          Shifts near you
+        </h3>
+        <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
+          See all
+        </button>
+      </div>
+
+      <div className="px-4 flex flex-col gap-[10px]">
+        {shifts.map((shift) => (
+          <ShiftCard key={shift.id} shift={shift} onTap={() => onShiftTap(shift.id)} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function ShiftCard({ shift, onTap }) {
   return (
     <div
-      onClick={onClick}
-      style={{
-        background: COLORS.card,
-        border: `1px solid ${COLORS.borderSoft}`,
-        borderRadius: 18,
-        padding: 16,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        position: 'relative',
-      }}
+      onClick={onTap}
+      className="bg-white border border-[#e8e6e1] rounded-[16px] p-[14px] flex items-center gap-3 cursor-pointer"
     >
       <div
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 12,
-          background: bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
+        className="w-12 h-12 rounded-[14px] text-white font-[Outfit] font-bold text-[14px] grid place-items-center flex-shrink-0"
+        style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17 }}>
-          {icon}
-        </svg>
+        {shift.officeInitials}
       </div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13, color: COLORS.text, lineHeight: 1.2, flex: 1 }}>{label}</div>
-      {badge != null && (
-        <div
-          style={{
-            background: COLORS.coral,
-            color: 'white',
-            fontSize: 10,
-            fontWeight: 800,
-            padding: '3px 8px',
-            borderRadius: 100,
-            minWidth: 22,
-            textAlign: 'center',
-          }}
-        >
-          {badge}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-[6px] mb-[2px]">
+          <span className="text-[14.5px] font-semibold text-[#0f1a16] truncate">
+            {shift.officeName}
+          </span>
         </div>
-      )}
-    </div>
-  );
-}
-
-function ToggleButton({ active, onClick, children }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background: active ? COLORS.green : 'none',
-        border: 'none',
-        fontSize: 11,
-        fontWeight: 700,
-        color: active ? 'white' : COLORS.textLight,
-        padding: '6px 14px',
-        borderRadius: 100,
-        transition: 'all 0.2s',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function DayCard({ day, onOpenBooked, onOpenFind }) {
-  const isToday = day.status === 'today';
-  const isBooked = day.status === 'booked';
-  const isOff = day.status === 'off';
-  const isOpen = day.status === 'open' || (!isToday && !isBooked && !isOff);
-  const bg = isToday ? COLORS.green : isBooked ? COLORS.greenTint : isOff ? COLORS.bg : COLORS.card;
-  const borderColor = isToday ? COLORS.green : isBooked ? COLORS.greenSoft : COLORS.borderSoft;
-  const opacity = isOff ? 0.55 : 1;
-  const nameColor = isToday ? 'rgba(255,255,255,0.85)' : isBooked ? COLORS.green : COLORS.textLight;
-  const numColor = isToday ? 'white' : isBooked ? COLORS.green : COLORS.text;
-  const statusColor = isToday ? 'rgba(255,255,255,0.95)' : isBooked ? COLORS.green : COLORS.textLight;
-  const tappable = isBooked || isOpen || isToday;
-
-  return (
-    <div
-      onClick={isBooked ? onOpenBooked : (isOpen || isToday) ? onOpenFind : undefined}
-      style={{
-        flexShrink: 0,
-        width: 72,
-        background: bg,
-        border: `1px solid ${borderColor}`,
-        borderRadius: 16,
-        padding: '12px 8px',
-        textAlign: 'center',
-        cursor: tappable ? 'pointer' : 'default',
-        opacity,
-      }}
-    >
-      <div style={{ fontSize: 10, fontWeight: 700, color: nameColor, textTransform: 'uppercase', letterSpacing: 0.5 }}>{day.name}</div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: numColor, marginTop: 4, lineHeight: 1 }}>{day.num}</div>
-      <div
-        style={{
-          fontSize: 9,
-          marginTop: 6,
-          fontWeight: 700,
-          color: statusColor,
-          textTransform: 'uppercase',
-          letterSpacing: 0.3,
-          lineHeight: 1.2,
-          minHeight: 22,
-          whiteSpace: 'pre-line',
-        }}
-      >
-        {day.label}
+        <div className="text-[12.5px] font-medium text-[#6b7875] mb-1">
+          {shift.date} · {shift.timeRange} · {shift.role} · {shift.distanceMiles} mi
+        </div>
+        <div className="text-[12.5px] font-bold text-[#1a7f5e]">
+          ${shift.ratePerHour}/hr
+        </div>
       </div>
-    </div>
-  );
-}
 
-function MonthGrid({ onOpenBooked, onOpenFind }) {
-  return (
-    <div
-      style={{
-        background: COLORS.card,
-        border: `1px solid ${COLORS.borderSoft}`,
-        borderRadius: 20,
-        padding: '18px 16px 14px',
-        margin: '0 4px',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, padding: '0 4px' }}>
-        <NavBtn dir="left" />
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text }}>April 2026</div>
-        <NavBtn dir="right" />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 }}>
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: COLORS.textLight, textTransform: 'uppercase', padding: '4px 0 6px' }}>
-            {d}
-          </div>
-        ))}
-        {MONTH_CELLS.map((cell, i) => (
-          <MonthCell key={i} cell={cell} onOpenBooked={cell?.s === 'booked' ? () => onOpenBooked(cell.d) : undefined} onOpenFind={cell && !cell.s || cell?.s === 'today' ? () => onOpenFind(cell.d) : undefined} />
-        ))}
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          gap: 14,
-          justifyContent: 'center',
-          padding: '14px 4px 4px',
-          borderTop: `1px solid ${COLORS.borderSoft}`,
-          marginTop: 12,
-        }}
-      >
-        <Legend color={COLORS.green} label="Today" />
-        <Legend color={COLORS.greenTint} border={COLORS.greenSoft} label="Booked" />
-        <Legend color="white" border={COLORS.border} label="Off" off />
-      </div>
-    </div>
-  );
-}
-
-function NavBtn({ dir }) {
-  return (
-    <button
-      style={{
-        width: 30,
-        height: 30,
-        borderRadius: '50%',
-        background: COLORS.bg,
-        border: `1px solid ${COLORS.borderSoft}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
-        {dir === 'left' ? <polyline points="15 18 9 12 15 6" /> : <polyline points="9 18 15 12 9 6" />}
+      <svg className="w-[18px] h-[18px] stroke-[#9aa5a1] flex-shrink-0" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6" />
       </svg>
-    </button>
-  );
-}
-
-function MonthCell({ cell, onOpenBooked, onOpenFind }) {
-  if (!cell) return <div style={{ aspectRatio: '1' }} />;
-  const isToday = cell.s === 'today';
-  const isBooked = cell.s === 'booked';
-  const isOff = cell.s === 'off';
-  const isOpen = !cell.s;
-  const bg = isToday ? COLORS.green : isBooked ? COLORS.greenTint : 'transparent';
-  const color = isToday ? 'white' : isBooked ? COLORS.green : COLORS.text;
-  const tappable = isBooked || isOpen || isToday;
-  const handleClick = isBooked && onOpenBooked ? onOpenBooked : (isOpen || isToday) && onOpenFind ? onOpenFind : undefined;
-  return (
-    <div
-      onClick={handleClick}
-      style={{
-        aspectRatio: '1',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: "'Outfit', sans-serif",
-        fontSize: 13,
-        fontWeight: isToday || isBooked ? 700 : 600,
-        color,
-        background: bg,
-        borderRadius: 10,
-        cursor: tappable ? 'pointer' : 'default',
-        position: 'relative',
-        opacity: isOff ? 0.55 : 1,
-        textDecoration: isOff ? 'line-through' : 'none',
-      }}
-    >
-      {cell.d}
-    </div>
-  );
-}
-
-function Legend({ color, border, label, off }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: COLORS.textLight, fontWeight: 600 }}>
-      <span
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 3,
-          background: color,
-          border: border ? `1px solid ${border}` : 'none',
-          position: 'relative',
-          textDecoration: off ? 'line-through' : 'none',
-        }}
-      />
-      {label}
-    </div>
-  );
-}
-
-function ShiftCard({ shift, onClick }) {
-  const navigate = useNavigate();
-  const goOffice = (e) => {
-    e.stopPropagation();
-    navigate(`/office/${shift.officeId || shift.id || 'demo'}`);
-  };
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        flexShrink: 0,
-        width: 260,
-        background: COLORS.card,
-        border: `1px solid ${COLORS.borderSoft}`,
-        borderRadius: 20,
-        padding: 16,
-        cursor: 'pointer',
-        position: 'relative',
-      }}
-    >
-      {shift.urgent && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            background: COLORS.coral,
-            color: 'white',
-            fontSize: 9,
-            fontWeight: 800,
-            padding: '3px 8px',
-            borderRadius: 100,
-            textTransform: 'uppercase',
-            letterSpacing: 0.4,
-          }}
-        >
-          Urgent
-        </div>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div
-          onClick={goOffice}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, #f1f9f5 0%, #d4ead9 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: "'Outfit', sans-serif",
-            fontWeight: 800,
-            fontSize: 13,
-            color: COLORS.green,
-            flexShrink: 0,
-            letterSpacing: '-0.5px',
-            cursor: 'pointer',
-          }}
-        >
-          {shift.initials}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            onClick={goOffice}
-            style={{
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 13,
-              color: COLORS.text,
-              lineHeight: 1.2,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              textDecorationColor: COLORS.greenSoft,
-              textUnderlineOffset: 3,
-            }}
-          >
-            {shift.name}
-          </div>
-          <div style={{ fontSize: 10, color: COLORS.textLight, marginTop: 2, fontWeight: 600 }}>{shift.distance}</div>
-        </div>
-      </div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17, color: COLORS.text, lineHeight: 1.2, marginBottom: 8 }}>
-        {shift.role}
-      </div>
-      <div style={{ fontSize: 11, color: COLORS.textMid, fontWeight: 600, marginBottom: 14 }}>{shift.when}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.green, lineHeight: 1 }}>
-          ${shift.pay}
-          <span style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginLeft: 2 }}>/hr</span>
-        </div>
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: COLORS.green,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </div>
     </div>
   );
 }
