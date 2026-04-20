@@ -578,47 +578,6 @@ export default function ProviderAvailability() {
         {/* Two column layout */}
         <div className="pa-two-col">
           <div className="pa-col-left">
-            {/* Weekly Schedule */}
-            <div className="pa-section-head">
-              <div className="pa-section-label">Weekly Schedule</div>
-              <div className="pa-section-help">
-                <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                Tap hours to edit
-              </div>
-            </div>
-            <div className="pa-sched-card">
-              <div className="pa-sched-header">
-                <div className="pa-sched-title">Your default hours</div>
-                <div className="pa-sched-badge">Repeats weekly</div>
-              </div>
-              {SCHED_DAYS.map(day => {
-                const val = schedule[day]
-                return (
-                  <div key={day} className="pa-day-row">
-                    <div className={`pa-day-name${val.on ? '' : ' pa-off'}`}>{day}</div>
-                    <div className="pa-day-hours">
-                      {val.on ? (
-                        <>
-                          <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.start}</span>
-                          <span className="pa-hours-dash">–</span>
-                          <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.end}</span>
-                          {isException(day) && <span className="pa-exception-tag">Exception</span>}
-                        </>
-                      ) : (
-                        <span className="pa-hours-pill pa-off">Off</span>
-                      )}
-                    </div>
-                    <button
-                      className={`pa-day-toggle${val.on ? '' : ' pa-off'}`}
-                      onClick={() => toggleDay(day)}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="pa-col-right" style={{ marginTop: 16 }}>
             {/* Calendar - April */}
             {calMonth === 'april' && (
               <div className="pa-cal-wrap">
@@ -666,6 +625,47 @@ export default function ProviderAvailability() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="pa-col-right" style={{ marginTop: 16 }}>
+            {/* Weekly Schedule */}
+            <div className="pa-section-head">
+              <div className="pa-section-label">Weekly Schedule</div>
+              <div className="pa-section-help">
+                <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                Tap hours to edit
+              </div>
+            </div>
+            <div className="pa-sched-card">
+              <div className="pa-sched-header">
+                <div className="pa-sched-title">Your default hours</div>
+                <div className="pa-sched-badge">Repeats weekly</div>
+              </div>
+              {SCHED_DAYS.map(day => {
+                const val = schedule[day]
+                return (
+                  <div key={day} className="pa-day-row">
+                    <div className={`pa-day-name${val.on ? '' : ' pa-off'}`}>{day}</div>
+                    <div className="pa-day-hours">
+                      {val.on ? (
+                        <>
+                          <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.start}</span>
+                          <span className="pa-hours-dash">–</span>
+                          <span className="pa-hours-pill" onClick={() => openTimePicker(day)}>{val.end}</span>
+                          {isException(day) && <span className="pa-exception-tag">Exception</span>}
+                        </>
+                      ) : (
+                        <span className="pa-hours-pill pa-off">Off</span>
+                      )}
+                    </div>
+                    <button
+                      className={`pa-day-toggle${val.on ? '' : ' pa-off'}`}
+                      onClick={() => toggleDay(day)}
+                    />
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 
