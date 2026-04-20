@@ -544,24 +544,6 @@ export default function ProviderAvailability() {
 
       <div className="pa-page-content">
 
-        {/* Intro card */}
-        {showIntro && (
-          <div className="pa-intro-card">
-            <button className="pa-intro-dismiss" onClick={() => setShowIntro(false)}>
-              <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-            <div className="pa-intro-inner">
-              <div className="pa-intro-title">Tell offices when you can work</div>
-              <div className="pa-intro-body">Set your weekly schedule once — then fine-tune individual days. Offices only send you shifts when you are available.</div>
-              <div className="pa-intro-steps">
-                <div className="pa-intro-step"><div className="pa-intro-step-num">1</div><div className="pa-intro-step-label">Set weekly hours</div></div>
-                <div className="pa-intro-step"><div className="pa-intro-step-num">2</div><div className="pa-intro-step-label">Adjust any day</div></div>
-                <div className="pa-intro-step"><div className="pa-intro-step-num">3</div><div className="pa-intro-step-label">Confirm biweekly</div></div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Confirm banner */}
         <div
           className="pa-confirm-banner"
@@ -688,7 +670,7 @@ export default function ProviderAvailability() {
         </div>
 
         {/* Quick Actions */}
-        <div className="pa-section-head" style={{ paddingTop: 0, paddingBottom: 4, marginTop: -8 }}>
+        <div className="pa-section-head" style={{ paddingTop: 20, paddingBottom: 4 }}>
           <div className="pa-section-label">Quick Actions</div>
         </div>
         <div className="pa-quick-grid">
