@@ -99,18 +99,21 @@ function TrustBadgesRow({ proId, rating, reliability }) {
   const keys = getBadgesForPro(proId, { rating, reliability });
   if (keys.length === 0) return null;
   return (
-    <div className="flex items-center gap-2.5 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
+    <div className="flex items-start gap-3 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
       {keys.map((k) => {
         const meta = BADGE_META[k];
         return (
-          <div
-            key={k}
-            title={meta.label}
-            aria-label={meta.label}
-            className="w-10 h-10 rounded-full flex items-center justify-center border"
-            style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
-          >
-            {BADGE_ICONS[k]}
+          <div key={k} className="flex flex-col items-center gap-1 w-[60px]">
+            <div
+              aria-label={meta.label}
+              className="w-10 h-10 rounded-full flex items-center justify-center border"
+              style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
+            >
+              {BADGE_ICONS[k]}
+            </div>
+            <span className="text-[10px] font-semibold text-center leading-tight text-[#5a5a5a]">
+              {meta.label}
+            </span>
           </div>
         );
       })}
