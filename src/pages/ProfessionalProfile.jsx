@@ -65,14 +65,14 @@ const IconCalendarSmall = () => (
 // Cross-trained. Colors are pulled from the existing Kazi palette.
 const BADGE_ICONS = {
   check: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-[11px] h-[11px]">
-      <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.18" stroke="currentColor" />
-      <polyline points="9 12 11 14 15 10" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+      <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.15" />
+      <polyline points="8.5 12.5 11 15 15.5 10.5" />
     </svg>
   ),
   trophy: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[11px] h-[11px]">
-      <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fillOpacity="0.18" stroke="currentColor" />
       <path d="M17 5h2a2 2 0 0 1 0 4h-2" />
       <path d="M7 5H5a2 2 0 0 0 0 4h2" />
       <line x1="9" y1="19" x2="15" y2="19" />
@@ -80,12 +80,12 @@ const BADGE_ICONS = {
     </svg>
   ),
   bolt: (
-    <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" className="w-[11px] h-[11px]">
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
       <polygon points="13 2 4 14 11 14 10 22 20 10 13 10 13 2" />
     </svg>
   ),
   shuffle: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[11px] h-[11px]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
       <polyline points="16 3 21 3 21 8" />
       <line x1="4" y1="20" x2="21" y2="3" />
       <polyline points="21 16 21 21 16 21" />
@@ -96,24 +96,30 @@ const BADGE_ICONS = {
 };
 
 const BADGES = [
-  { icon: 'check',   label: 'Background checked', bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' },
-  { icon: 'trophy',  label: 'Top 5%',             bg: '#fef6e4', color: '#c98b16', border: '#f7e6bd' },
-  { icon: 'bolt',    label: 'Rapid responder',    bg: '#fdeee7', color: '#e8734a', border: '#fad9c9' },
-  { icon: 'shuffle', label: 'Cross-trained',      bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' },
+  { icon: 'check',   label: 'Background\nchecked', bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' },
+  { icon: 'trophy',  label: 'Top 5%',              bg: '#fef6e4', color: '#c98b16', border: '#f7e6bd' },
+  { icon: 'bolt',    label: 'Rapid\nresponder',    bg: '#fdeee7', color: '#e8734a', border: '#fad9c9' },
+  { icon: 'shuffle', label: 'Cross-\ntrained',     bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' },
 ];
 
 function TrustBadges() {
   return (
-    <div className="flex flex-wrap gap-1.5 mt-3">
+    <div className="flex items-start gap-4 mt-4">
       {BADGES.map((b) => (
-        <span
-          key={b.label}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border"
-          style={{ background: b.bg, color: b.color, borderColor: b.border }}
-        >
-          <span style={{ color: b.color, display: 'inline-flex' }}>{BADGE_ICONS[b.icon]}</span>
-          {b.label}
-        </span>
+        <div key={b.label} className="flex flex-col items-center text-center flex-1">
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center border"
+            style={{ background: b.bg, borderColor: b.border, color: b.color }}
+          >
+            {BADGE_ICONS[b.icon]}
+          </div>
+          <div
+            className="mt-1.5 text-[10.5px] font-bold leading-[1.2] whitespace-pre-line"
+            style={{ color: b.color }}
+          >
+            {b.label}
+          </div>
+        </div>
       ))}
     </div>
   );
