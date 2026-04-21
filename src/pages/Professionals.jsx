@@ -28,6 +28,96 @@ const COLORS = {
 
 const ROLE_FILTERS = ['All Roles', 'Dental Assistant', 'Hygienist', 'Front Desk', 'Dentist', 'Student Extern'];
 
+// ============ Trust badges (matches ProfessionalProfile) ============
+// Four Kazi credibility chips rendered on every pro card. The set
+// each provider gets is deterministic from their id, so it stays
+// consistent across renders but varies across pros.
+const BADGE_ICONS = {
+  check: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+      <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.15" />
+      <polyline points="8.5 12.5 11 15 15.5 10.5" />
+    </svg>
+  ),
+  trophy: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fillOpacity="0.18" stroke="currentColor" />
+      <path d="M17 5h2a2 2 0 0 1 0 4h-2" />
+      <path d="M7 5H5a2 2 0 0 0 0 4h2" />
+      <line x1="9" y1="19" x2="15" y2="19" />
+      <line x1="12" y1="15" x2="12" y2="19" />
+    </svg>
+  ),
+  bolt: (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
+      <polygon points="13 2 4 14 11 14 10 22 20 10 13 10 13 2" />
+    </svg>
+  ),
+  shuffle: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+      <polyline points="16 3 21 3 21 8" />
+      <line x1="4" y1="20" x2="21" y2="3" />
+      <polyline points="21 16 21 21 16 21" />
+      <line x1="15" y1="15" x2="21" y2="21" />
+      <line x1="4" y1="4" x2="9" y2="9" />
+    </svg>
+  ),
+};
+
+const BADGE_META = {
+  check:   { label: 'Background checked', bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' },
+  trophy:  { label: 'Top 5%',              bg: '#fef6e4', color: '#c98b16', border: '#f7e6bd' },
+  bolt:    { label: 'Rapid responder',     bg: '#fdeee7', color: '#e8734a', border: '#fad9c9' },
+  shuffle: { label: 'Cross-trained',       bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' },
+};
+
+// Deterministic string hash → stable per-provider selection.
+function hashId(id) {
+  let h = 2166136261;
+  const s = String(id || 'default');
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// Picks a realistic subset of badges for a provider. Background is
+// near-universal, Top 5% is rare, Rapid responder is common,
+// Cross-trained is moderately common.
+function getBadgesForPro(id, { rating = 0, reliability = 0 } = {}) {
+  const h = hashId(id);
+  const list = [];
+  if (h % 10 !== 0) list.push('check');              // ~90%
+  if (rating >= 4.85 && reliability >= 95 && h % 4 === 0) list.push('trophy'); // rare
+  if (h % 2 === 0) list.push('bolt');                // ~50%
+  if (h % 3 !== 0) list.push('shuffle');             // ~67%
+  return list;
+}
+
+function TrustBadgesRow({ proId, rating, reliability }) {
+  const keys = getBadgesForPro(proId, { rating, reliability });
+  if (keys.length === 0) return null;
+  return (
+    <div className="flex items-center gap-2.5 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
+      {keys.map((k) => {
+        const meta = BADGE_META[k];
+        return (
+          <div
+            key={k}
+            title={meta.label}
+            aria-label={meta.label}
+            className="w-10 h-10 rounded-full flex items-center justify-center border"
+            style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
+          >
+            {BADGE_ICONS[k]}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ============ Reliability tier helper ============
 const getReliabilityTier = (pct) => {
   if (pct >= 95) return { className: 'rel-excellent', bg: COLORS.greenTint, color: COLORS.green, border: COLORS.greenSoft };
@@ -139,6 +229,9 @@ function ProCard({ pro, onClick, onSave, onBook }) {
           </div>
         </div>
       </div>
+
+      {/* Trust badges — randomized realistic mix per pro */}
+      <TrustBadgesRow proId={pro.id} rating={pro.rating} reliability={pro.reliability} />
 
       {/* About section — only renders if pro has a bio */}
       {pro.bio && pro.bio.trim() && (
