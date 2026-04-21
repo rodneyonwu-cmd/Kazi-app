@@ -63,7 +63,10 @@ import PostTempShiftWizard from './pages/PostTempShiftWizard'
 import PostPermanentJobWizard from './pages/PostPermanentJobWizard'
 import ProviderAccountMenu from './pages/ProviderAccountMenu'
 import ProviderPersonalSettings from './pages/ProviderPersonalSettings'
-import ProviderSettingStub from './pages/ProviderSettingStub'
+import ProviderHourlyRate from './pages/ProviderHourlyRate'
+import ProviderTravelRadius from './pages/ProviderTravelRadius'
+import ProviderMinimumShift from './pages/ProviderMinimumShift'
+import ProviderLegalDoc from './pages/ProviderLegalDoc'
 
 function App() {
   return (
@@ -115,7 +118,10 @@ function App() {
       <Route path="/provider-settings" element={<RequireAuth><ProviderSettings /></RequireAuth>} />
       <Route path="/account" element={<RequireAuth><ProviderAccountMenu /></RequireAuth>} />
       <Route path="/account/personal" element={<RequireAuth><ProviderPersonalSettings /></RequireAuth>} />
-      <Route path="/account/setting" element={<RequireAuth><ProviderSettingStub /></RequireAuth>} />
+      <Route path="/account/hourly-rate" element={<RequireAuth><ProviderHourlyRate /></RequireAuth>} />
+      <Route path="/account/travel-radius" element={<RequireAuth><ProviderTravelRadius /></RequireAuth>} />
+      <Route path="/account/minimum-shift" element={<RequireAuth><ProviderMinimumShift /></RequireAuth>} />
+      <Route path="/legal/:slug" element={<RequireAuth><ProviderLegalDoc /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
       <Route path="/my-profile" element={<RequireAuth><ProviderMyProfile /></RequireAuth>} />
