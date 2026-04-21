@@ -404,10 +404,6 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
               <InfoRow label="Hours" value={shift.hours.toString()} />
               <InfoRow label="Hourly rate" value={`$${shift.hourlyRate}/hr`} valueColor={COLORS.green} valueLarge />
               <InfoRow label="Est. total" value={`$${shift.hourlyRate * shift.hours}`} valueColor={COLORS.green} valueLarge />
-              <SectionTitle text="About applicant" />
-              <InfoRow label="Distance" value={data.dist} />
-              <InfoRow label="Rating" value={`${data.stars} ★ (${data.reviews})`} />
-              <InfoRow label="Requested rate" value={`$${data.rate}/hr`} />
             </>
           ) : (
             <>
@@ -424,9 +420,6 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
               <InfoRow label="Type" value={job.type} />
               <InfoRow label="Salary" value={job.salary} valueColor={COLORS.purple} />
               <InfoRow label="Posted" value={job.posted} />
-              <SectionTitle text="About applicant" />
-              <InfoRow label="Distance" value={data.dist} />
-              <InfoRow label="Rating" value={`${data.stars} ★ (${data.reviews})`} />
             </>
           )}
         </div>
