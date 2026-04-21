@@ -38,18 +38,31 @@ const COLORS = {
 // ============================================================
 // MOCK DATA — replace with API fetches
 // ============================================================
+const AVATARS = {
+  MG: 'https://randomuser.me/api/portraits/women/90.jpg',
+  JL: 'https://randomuser.me/api/portraits/men/22.jpg',
+  TP: 'https://randomuser.me/api/portraits/women/52.jpg',
+  SK: 'https://randomuser.me/api/portraits/women/68.jpg',
+  DW: 'https://randomuser.me/api/portraits/men/47.jpg',
+  JS: 'https://randomuser.me/api/portraits/women/31.jpg',
+  RN: 'https://randomuser.me/api/portraits/women/76.jpg',
+  KM: 'https://randomuser.me/api/portraits/women/82.jpg',
+  SN: 'https://randomuser.me/api/portraits/women/14.jpg',
+  FM: 'https://randomuser.me/api/portraits/women/25.jpg',
+};
+
 const MOCK_TEMP_SHIFTS = [
   { id: 's1', role: 'Dental Hygienist', date: 'Monday, April 14', dateShort: 'Mon, Apr 14', month: 'APR', day: 14, time: '8:00 AM - 5:00 PM', timeShort: '8a-5p', hours: 8.5, hourlyRate: 58,
     applicants: [
-      { id: 'a1', name: 'Maria G.', initials: 'MG', cred: 'RDH', rate: 58, dist: '5.3 mi', stars: '4.7', reviews: 45, status: 'new', appliedAgo: '2 hours ago' },
-      { id: 'a2', name: 'Julian L.', initials: 'JL', cred: 'RDH', rate: 52, dist: '8.1 mi', stars: '4.5', reviews: 31, status: 'new', appliedAgo: '4 hours ago' },
-      { id: 'a3', name: 'Tara P.', initials: 'TP', cred: 'RDH', rate: 60, dist: '12 mi', stars: '4.3', reviews: 18, status: 'new', appliedAgo: '6 hours ago' },
-      { id: 'a4', name: 'Sarah K.', initials: 'SK', cred: 'RDH', rate: 55, dist: '2.1 mi', stars: '4.9', reviews: 82, status: 'new', appliedAgo: '8 hours ago' },
+      { id: 'a1', name: 'Maria G.', initials: 'MG', avatarUrl: AVATARS.MG, cred: 'RDH', rate: 58, dist: '5.3 mi', stars: '4.7', reviews: 45, status: 'new', appliedAgo: '2 hours ago' },
+      { id: 'a2', name: 'Julian L.', initials: 'JL', avatarUrl: AVATARS.JL, cred: 'RDH', rate: 52, dist: '8.1 mi', stars: '4.5', reviews: 31, status: 'new', appliedAgo: '4 hours ago' },
+      { id: 'a3', name: 'Tara P.', initials: 'TP', avatarUrl: AVATARS.TP, cred: 'RDH', rate: 60, dist: '12 mi', stars: '4.3', reviews: 18, status: 'new', appliedAgo: '6 hours ago' },
+      { id: 'a4', name: 'Sarah K.', initials: 'SK', avatarUrl: AVATARS.SK, cred: 'RDH', rate: 55, dist: '2.1 mi', stars: '4.9', reviews: 82, status: 'new', appliedAgo: '8 hours ago' },
     ],
   },
   { id: 's2', role: 'Dental Assistant', date: 'Wednesday, April 16', dateShort: 'Wed, Apr 16', month: 'APR', day: 16, time: '9:00 AM - 5:00 PM', timeShort: '9a-5p', hours: 8, hourlyRate: 28,
     applicants: [
-      { id: 'a5', name: 'David W.', initials: 'DW', cred: 'CDA', rate: 26, dist: '6.4 mi', stars: '4.6', reviews: 24, status: 'new', appliedAgo: '1 hour ago' },
+      { id: 'a5', name: 'David W.', initials: 'DW', avatarUrl: AVATARS.DW, cred: 'CDA', rate: 26, dist: '6.4 mi', stars: '4.6', reviews: 24, status: 'new', appliedAgo: '1 hour ago' },
     ],
   },
   { id: 's3', role: 'Front Desk', date: 'Friday, April 18', dateShort: 'Fri, Apr 18', month: 'APR', day: 18, time: '8:00 AM - 4:00 PM', timeShort: '8a-4p', hours: 7.5, hourlyRate: 22, applicants: [] },
@@ -58,15 +71,15 @@ const MOCK_TEMP_SHIFTS = [
 const MOCK_PERM_JOBS = [
   { id: 'p1', title: 'Full-Time Dental Hygienist', salary: '$75k-$90k/yr', type: 'Full-Time', posted: 'Apr 5',
     applicants: [
-      { id: 'pa1', name: 'Jessica S.', initials: 'JS', cred: 'RDH', exp: '6 yrs', stars: '4.9', reviews: 82, dist: '4.2 mi', stage: 'applied', appliedAgo: '2 days ago' },
-      { id: 'pa2', name: 'Rachel N.', initials: 'RN', cred: 'RDH', exp: '3 yrs', stars: '4.7', reviews: 45, dist: '8.1 mi', stage: 'reviewing', appliedAgo: '3 days ago' },
-      { id: 'pa3', name: 'Karen M.', initials: 'KM', cred: 'RDH', exp: '10+ yrs', stars: '5.0', reviews: 127, dist: '3.8 mi', stage: 'interview', appliedAgo: '5 days ago' },
+      { id: 'pa1', name: 'Jessica S.', initials: 'JS', avatarUrl: AVATARS.JS, cred: 'RDH', exp: '6 yrs', stars: '4.9', reviews: 82, dist: '4.2 mi', stage: 'applied', appliedAgo: '2 days ago' },
+      { id: 'pa2', name: 'Rachel N.', initials: 'RN', avatarUrl: AVATARS.RN, cred: 'RDH', exp: '3 yrs', stars: '4.7', reviews: 45, dist: '8.1 mi', stage: 'reviewing', appliedAgo: '3 days ago' },
+      { id: 'pa3', name: 'Karen M.', initials: 'KM', avatarUrl: AVATARS.KM, cred: 'RDH', exp: '10+ yrs', stars: '5.0', reviews: 127, dist: '3.8 mi', stage: 'interview', appliedAgo: '5 days ago' },
     ],
   },
   { id: 'p2', title: 'Part-Time Dental Assistant', salary: '$38k-$45k/yr', type: 'Part-Time', posted: 'Apr 8',
     applicants: [
-      { id: 'pa4', name: 'Serena N.', initials: 'SN', cred: 'RDA', exp: '2 yrs', stars: '4.8', reviews: 34, dist: '5.6 mi', stage: 'applied', appliedAgo: '1 day ago' },
-      { id: 'pa5', name: 'Florence M.', initials: 'FM', cred: 'CDA', exp: '1 yr', stars: '4.5', reviews: 12, dist: '9.3 mi', stage: 'applied', appliedAgo: '1 day ago' },
+      { id: 'pa4', name: 'Serena N.', initials: 'SN', avatarUrl: AVATARS.SN, cred: 'RDA', exp: '2 yrs', stars: '4.8', reviews: 34, dist: '5.6 mi', stage: 'applied', appliedAgo: '1 day ago' },
+      { id: 'pa5', name: 'Florence M.', initials: 'FM', avatarUrl: AVATARS.FM, cred: 'CDA', exp: '1 yr', stars: '4.5', reviews: 12, dist: '9.3 mi', stage: 'applied', appliedAgo: '1 day ago' },
     ],
   },
 ];
@@ -313,11 +326,18 @@ function TempShiftCard({ shift, filter, isCollapsed, onToggle, onAccept, onDecli
           )}
           {filtered.map(a => (
             <div key={a.id} onClick={() => onOpenDetail(a)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
-              <Initials text={a.initials} />
+              <Initials text={a.initials} url={a.avatarUrl} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, letterSpacing: '-0.2px', marginBottom: 2 }}>{a.name}</div>
-                <div style={{ fontSize: 11, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                  {a.cred} <Sep /> <span style={{ color: COLORS.gold, fontWeight: 700 }}>★</span> <span style={{ color: COLORS.text, fontWeight: 700 }}>{a.stars}</span> <Sep /> {a.dist}
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: '-0.2px', lineHeight: 1.15, marginBottom: 2 }}>{a.name}</div>
+                <div style={{ fontSize: 12, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span>{a.cred}</span>
+                  <Sep />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ color: COLORS.gold, fontSize: 15, lineHeight: 1 }}>★</span>
+                    <span style={{ color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13 }}>{a.stars}</span>
+                  </span>
+                  <Sep />
+                  <span>{a.dist}</span>
                 </div>
               </div>
               {a.status === 'new' && (
@@ -362,10 +382,19 @@ function PermJobCard({ job, filter, isCollapsed, onToggle, onOpenDetail, onOpenP
           )}
           {filtered.map(a => (
             <div key={a.id} onClick={() => onOpenDetail(a)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
-              <Initials text={a.initials} />
+              <Initials text={a.initials} url={a.avatarUrl} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, marginBottom: 2 }}>{a.name}</div>
-                <div style={{ fontSize: 11, color: COLORS.textLight }}>{a.cred} · {a.exp} <Sep /> {a.dist}</div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: '-0.2px', lineHeight: 1.15, marginBottom: 2 }}>{a.name}</div>
+                <div style={{ fontSize: 12, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span>{a.cred} · {a.exp}</span>
+                  <Sep />
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ color: COLORS.gold, fontSize: 15, lineHeight: 1 }}>★</span>
+                    <span style={{ color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13 }}>{a.stars}</span>
+                  </span>
+                  <Sep />
+                  <span>{a.dist}</span>
+                </div>
               </div>
               <button onClick={(e) => { e.stopPropagation(); onOpenPipeline(a); }} style={{ fontSize: 9, fontWeight: 800, padding: '5px 11px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: 0.3, background: STAGE_BG[a.stage], color: STAGE_COLOR[a.stage], border: 'none', cursor: 'pointer' }}>{STAGE_LABELS[a.stage]}</button>
             </div>
@@ -521,9 +550,12 @@ function DateBlock({ month, day }) {
   );
 }
 
-function Initials({ text }) {
+function Initials({ text, url, size = 42 }) {
+  if (url) {
+    return <img src={url} alt={text} style={{ width: size, height: size, borderRadius: 12, objectFit: 'cover', border: `1px solid ${COLORS.borderSoft}`, flexShrink: 0 }} />;
+  }
   return (
-    <div style={{ width: 42, height: 42, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{text}</div>
+    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{text}</div>
   );
 }
 
@@ -605,16 +637,23 @@ function ApplicantStrip({ applicant, subLine }) {
   const navigate = useNavigate();
   return (
     <div onClick={() => navigate(`/professionals/${applicant.id}`)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
-      <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, flexShrink: 0, letterSpacing: '-0.3px' }}>
-        {applicant.initials}
-      </div>
+      {applicant.avatarUrl ? (
+        <img src={applicant.avatarUrl} alt={applicant.name} style={{ width: 50, height: 50, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
+      ) : (
+        <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, flexShrink: 0, letterSpacing: '-0.3px' }}>
+          {applicant.initials}
+        </div>
+      )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.3px', marginBottom: 3 }}>{applicant.name}</div>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.3px', marginBottom: 4 }}>{applicant.name}</div>
         <div style={{ fontSize: 12, color: COLORS.textMid, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span>{subLine}</span>
-          <span style={{ color: COLORS.gold }}>★</span>
-          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.text }}>{applicant.stars}</span>
-          <span style={{ color: COLORS.textLight }}>({applicant.reviews})</span>
+          <Sep />
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ color: COLORS.gold, fontSize: 18, lineHeight: 1 }}>★</span>
+            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.text, fontSize: 15 }}>{applicant.stars}</span>
+            <span style={{ color: COLORS.textLight, marginLeft: 2 }}>({applicant.reviews})</span>
+          </span>
         </div>
       </div>
       <div style={{ color: COLORS.textLight, flexShrink: 0 }}>
