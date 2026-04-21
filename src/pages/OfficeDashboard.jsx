@@ -85,10 +85,14 @@ export default function OfficeDashboard() {
   const office = mockOffice;
 
   const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
+  const [chooserOpen, setChooserOpen] = useState(false);
 
   const handlePostJob = () => {
-    navigate('/post-shift');
+    setChooserOpen(true);
   };
+  const closeChooser = () => setChooserOpen(false);
+  const goToTemp = () => { closeChooser(); navigate('/post/temp'); };
+  const goToPermanent = () => { closeChooser(); navigate('/post/permanent'); };
 
   const handleFindPros = () => {
     navigate('/professionals');
@@ -162,6 +166,14 @@ export default function OfficeDashboard() {
       </div>
 
       <BottomNav />
+
+      {/* Post a Job chooser modal */}
+      <PostJobChooser
+        open={chooserOpen}
+        onClose={closeChooser}
+        onPickTemp={goToTemp}
+        onPickPermanent={goToPermanent}
+      />
     </div>
   );
 }
@@ -571,5 +583,142 @@ function OnsiteCard({ provider, onTap }) {
         }
       `}</style>
     </div>
+  );
+}
+
+// ── Post a Job chooser (temp vs permanent) ───────────────────
+// Restored from the pre-redesign office dashboard. Green = temp,
+// purple = permanent — matches the Jobs subtabs color coding used
+// elsewhere in the app.
+const CHOOSER_COLORS = {
+  green: '#1a7f5e',
+  greenTint: '#f1f9f5',
+  purple: '#7c3aed',
+  purpleSoft: '#f1ebfa',
+  bg: '#f9f8f6',
+  card: '#ffffff',
+  text: '#1a1a1a',
+  textMid: '#5a5a5a',
+  border: '#ececec',
+};
+
+function PostJobChooser({ open, onClose, onPickTemp, onPickPermanent }) {
+  if (!open) return null;
+  return (
+    <>
+      <style>{`
+        @keyframes kazi-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes kazi-scaleIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+      `}</style>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(3px)', zIndex: 100, animation: 'kazi-fadeIn 0.3s',
+        }}
+      />
+      <div
+        style={{
+          position: 'fixed', left: '50%', top: '50%',
+          transform: 'translate(-50%, -50%)', background: 'white',
+          borderRadius: 28, zIndex: 101, paddingBottom: 24,
+          width: 'calc(100% - 40px)', maxWidth: 400,
+          maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
+          animation: 'kazi-scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }}
+      >
+        <div style={{ padding: '24px 24px 8px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1.15, color: CHOOSER_COLORS.text }}>Post a Job</div>
+            <div style={{ fontSize: 14, color: CHOOSER_COLORS.textMid, marginTop: 6, lineHeight: 1.4 }}>What kind of position are you hiring for?</div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              width: 38, height: 38, borderRadius: '50%',
+              background: CHOOSER_COLORS.bg, border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', flexShrink: 0,
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke={CHOOSER_COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div style={{ padding: '24px 20px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <ChoiceCard
+            type="temp"
+            tag="Single day"
+            title="Temp Shift"
+            onClick={onPickTemp}
+            icon={(
+              <svg viewBox="0 0 24 24" fill="none" stroke={CHOOSER_COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}>
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            )}
+          />
+          <ChoiceCard
+            type="perm"
+            tag="Long-term hire"
+            title="Permanent Role"
+            onClick={onPickPermanent}
+            icon={(
+              <svg viewBox="0 0 24 24" fill="none" stroke={CHOOSER_COLORS.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            )}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ChoiceCard({ type, icon, tag, title, onClick }) {
+  const [hover, setHover] = useState(false);
+  const isPerm = type === 'perm';
+  const accent = isPerm ? CHOOSER_COLORS.purple : CHOOSER_COLORS.green;
+  const accentSoft = isPerm ? CHOOSER_COLORS.purpleSoft : CHOOSER_COLORS.greenTint;
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background: 'white',
+        border: `2px solid ${hover ? accent : CHOOSER_COLORS.border}`,
+        borderRadius: 22, padding: 22, cursor: 'pointer',
+        textAlign: 'left', width: '100%', fontFamily: 'inherit',
+        transition: 'all 0.2s', position: 'relative', overflow: 'hidden',
+        transform: hover ? 'translateY(-2px)' : 'none',
+        boxShadow: hover ? `0 8px 24px ${isPerm ? 'rgba(124, 58, 237, 0.15)' : 'rgba(26, 127, 94, 0.15)'}` : 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ width: 52, height: 52, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: accentSoft }}>
+          {icon}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, padding: '4px 10px', borderRadius: 100, marginBottom: 6, background: accentSoft, color: accent }}>
+            {tag}
+          </div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: CHOOSER_COLORS.text, lineHeight: 1.15 }}>
+            {title}
+          </div>
+        </div>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: accent, transform: hover ? 'translateX(3px)' : 'none', transition: 'transform 0.2s' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        </div>
+      </div>
+    </button>
   );
 }
