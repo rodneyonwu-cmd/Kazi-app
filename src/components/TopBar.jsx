@@ -144,39 +144,27 @@ export default function TopBar() {
       <button
         ref={triggerRef}
         onClick={() => setOpen((o) => !o)}
-        aria-label="Open profile menu"
+        aria-label="Open menu"
         style={{
+          width: 36,
+          height: 36,
+          borderRadius: 12,
           padding: 0,
-          background: 'none',
+          background: COLORS.green,
           border: 'none',
           cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           fontFamily: 'inherit',
           flexShrink: 0,
         }}
       >
-        {role === 'office' && officeImage ? (
-          <img src={officeImage} alt={displayName} style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }} />
-        ) : role === 'office' ? (
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg,#a8c9b8,#7ab8a8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 13,
-            }}
-          >
-            {officeInitials}
-          </div>
-        ) : (
-          <img src={DEFAULT_USER_PHOTO} alt={displayName} style={{ width: 36, height: 36, borderRadius: 12, objectFit: 'cover' }} />
-        )}
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="4" y1="7" x2="20" y2="7" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="17" x2="20" y2="17" />
+        </svg>
       </button>
 
       {open && items && (
