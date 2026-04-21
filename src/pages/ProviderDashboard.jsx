@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import BookedShiftModal from './BookedShiftModal';
 
 /**
  * ProviderDashboard
@@ -29,22 +30,14 @@ const mockProvider = {
     shiftsCompleted: 42,
   },
   todayShift: null, // null = empty state. Populate this object when provider is booked today.
-  // todayShift example when booked:
-  // {
-  //   officeInitials: 'MCD',
-  //   officeName: 'Missouri City Dental',
-  //   startTime: '8:00 AM',
-  //   endTime: '5:00 PM',
-  //   distanceMiles: 2.3,
-  // },
   week: [
     { dow: 'Tue', date: 9, status: 'today' },
     { dow: 'Wed', date: 10, status: 'booked' },
     { dow: 'Thu', date: 11, status: 'open' },
     { dow: 'Fri', date: 12, status: 'off' },
     { dow: 'Sat', date: 13, status: 'open' },
-    { dow: 'Sun', date: 14, status: 'off' },
-    { dow: 'Mon', date: 15, status: 'open' },
+    { dow: 'Sun', date: 14, status: 'booked' },
+    { dow: 'Mon', date: 15, status: 'booked' },
   ],
   nearbyShifts: [
     {
@@ -80,6 +73,105 @@ const mockProvider = {
   ],
 };
 
+// Mock booked shifts keyed by day-of-month for April 2026.
+// Tapping a day with status='booked' opens BookedShiftModal populated from here.
+const BOOKED_SHIFTS = {
+  10: {
+    officeName: 'Missouri City Dental',
+    officeInitials: 'MCD',
+    officeRating: '4.9',
+    officeBookingCount: 12,
+    priorBookings: 3,
+    dateTime: 'Wednesday, April 10 · 8:00 AM – 5:00 PM',
+    duration: '9 hours · 1 hour lunch break',
+    role: 'Dental Hygienist (RDH)',
+    roleSub: 'General dentistry · Adult prophy + perio',
+    payTotal: 464,
+    paySub: '$58/hr × 8 paid hours',
+    address: '7890 Highway 6, Missouri City, TX',
+    distance: '4.2 miles · ~14 min drive',
+  },
+  14: {
+    officeName: 'Sugar Land Bright Dental',
+    officeInitials: 'SBD',
+    officeRating: '4.6',
+    officeBookingCount: 8,
+    priorBookings: 1,
+    dateTime: 'Monday, April 14 · 9:00 AM – 4:00 PM',
+    duration: '7 hours · 30 min lunch break',
+    role: 'Dental Hygienist (RDH)',
+    roleSub: 'Cosmetic + general · Hygiene focus',
+    payTotal: 385,
+    paySub: '$55/hr × 7 paid hours',
+    address: '4500 Highway 6, Sugar Land, TX',
+    distance: '7.8 miles · ~22 min drive',
+  },
+  15: {
+    officeName: 'Sugar Land Bright Dental',
+    officeInitials: 'SBD',
+    officeRating: '4.6',
+    officeBookingCount: 8,
+    priorBookings: 1,
+    dateTime: 'Tuesday, April 15 · 9:00 AM – 4:00 PM',
+    duration: '7 hours · 30 min lunch break',
+    role: 'Dental Hygienist (RDH)',
+    roleSub: 'Cosmetic + general · Hygiene focus',
+    payTotal: 385,
+    paySub: '$55/hr × 7 paid hours',
+    address: '4500 Highway 6, Sugar Land, TX',
+    distance: '7.8 miles · ~22 min drive',
+  },
+  20: {
+    officeName: 'Pearland Wellness Dental',
+    officeInitials: 'PWD',
+    officeRating: '4.7',
+    officeBookingCount: 6,
+    dateTime: 'Sunday, April 20 · 8:00 AM – 5:00 PM',
+    duration: '9 hours · 1 hour lunch break',
+    role: 'Dental Hygienist (RDH)',
+    payTotal: 558,
+    paySub: '$62/hr × 9 paid hours',
+    address: '4500 Broadway St, Pearland, TX',
+    distance: '3.1 miles · ~11 min drive',
+  },
+  23: {
+    officeName: 'Houston Dental Care',
+    officeInitials: 'HDC',
+    officeRating: '4.8',
+    officeBookingCount: 9,
+    dateTime: 'Wednesday, April 23 · 9:00 AM – 3:00 PM',
+    duration: '6 hours · 30 min lunch break',
+    role: 'Dental Hygienist (RDH)',
+    payTotal: 330,
+    paySub: '$60/hr × 5.5 paid hours',
+    address: '1234 Main St, Houston, TX',
+    distance: '5.6 miles · ~18 min drive',
+  },
+  28: {
+    officeName: 'Missouri City Dental',
+    officeInitials: 'MCD',
+    officeRating: '4.9',
+    officeBookingCount: 12,
+    priorBookings: 3,
+    dateTime: 'Monday, April 28 · 8:00 AM – 5:00 PM',
+    duration: '9 hours · 1 hour lunch break',
+    role: 'Dental Hygienist (RDH)',
+    payTotal: 464,
+    paySub: '$58/hr × 8 paid hours',
+    address: '7890 Highway 6, Missouri City, TX',
+    distance: '4.2 miles · ~14 min drive',
+  },
+};
+
+// April 2026 — starts on Wednesday
+const MONTH_CELLS = [
+  null, null, null, { d: 1 }, { d: 2 }, { d: 3, s: 'off' }, { d: 4, s: 'off' },
+  { d: 5 }, { d: 6 }, { d: 7 }, { d: 8 }, { d: 9, s: 'today' }, { d: 10, s: 'booked' }, { d: 11, s: 'off' },
+  { d: 12, s: 'off' }, { d: 13 }, { d: 14, s: 'booked' }, { d: 15, s: 'booked' }, { d: 16 }, { d: 17, s: 'off' }, { d: 18, s: 'off' },
+  { d: 19 }, { d: 20, s: 'booked' }, { d: 21 }, { d: 22 }, { d: 23, s: 'booked' }, { d: 24, s: 'off' }, { d: 25, s: 'off' },
+  { d: 26 }, { d: 27 }, { d: 28, s: 'booked' }, { d: 29 }, { d: 30 }, null, null,
+];
+
 // ── Helpers ──────────────────────────────────────────────────
 const reliabilityClass = (score) => {
   if (score >= 95) return 'text-[#1a7f5e]';
@@ -94,6 +186,9 @@ export default function ProviderDashboard() {
   // const { data: provider, isLoading } = useProviderDashboard();
   const provider = mockProvider;
 
+  const [scheduleView, setScheduleView] = useState('week');
+  const [bookedShift, setBookedShift] = useState(null);
+
   const handleFindShifts = () => {
     navigate('/find-shifts');
   };
@@ -102,59 +197,91 @@ export default function ProviderDashboard() {
     navigate(`/find-shifts/${shiftId}`);
   };
 
-  const handleDayTap = (day) => {
-    const d = String(day.date).padStart(2, '0');
+  const openBooked = (dayNum) => {
+    const data = BOOKED_SHIFTS[dayNum];
+    if (data) setBookedShift(data);
+  };
+
+  const openFindForDate = (dayNum) => {
+    const d = String(dayNum).padStart(2, '0');
     navigate(`/provider-availability?date=2026-04-${d}`);
   };
 
+  // Week-rail day tap: booked → modal, otherwise → availability
+  const handleDayTap = (day) => {
+    if (day.status === 'booked') {
+      openBooked(day.date);
+    } else {
+      openFindForDate(day.date);
+    }
+  };
+
   return (
-    <div
-      style={{
-        background: '#f9f8f6',
-        maxWidth: 480,
-        margin: '0 auto',
-        minHeight: '100vh',
-        boxShadow: '0 0 40px rgba(0,0,0,0.06)',
-        position: 'relative',
-        paddingBottom: 100,
-      }}
-    >
-      <TopBar role="provider" />
+    <>
+      <div
+        style={{
+          background: '#f9f8f6',
+          maxWidth: 480,
+          margin: '0 auto',
+          minHeight: '100vh',
+          boxShadow: '0 0 40px rgba(0,0,0,0.06)',
+          position: 'relative',
+          paddingBottom: 100,
+        }}
+      >
+        <TopBar role="provider" />
 
-      <div className="bg-[#f9f8f6] min-h-full pb-6">
-        {/* Greeting */}
-        <section className="px-5 pt-4 pb-6">
-          <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
-            Hello, {provider.firstName} 👋
-          </h1>
-          <div className="text-[14px] font-medium text-[#6b7875]">
-            {provider.date} · {provider.location}
-          </div>
-        </section>
+        <div className="bg-[#f9f8f6] min-h-full pb-6">
+          {/* Greeting */}
+          <section className="px-5 pt-4 pb-6">
+            <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
+              Hello, {provider.firstName} 👋
+            </h1>
+            <div className="text-[14px] font-medium text-[#6b7875]">
+              {provider.date} · {provider.location}
+            </div>
+          </section>
 
-        {/* Stats strip */}
-        <StatsStrip stats={provider.stats} />
+          {/* Stats strip */}
+          <StatsStrip stats={provider.stats} />
 
-        {/* Today card */}
-        {provider.todayShift ? (
-          <TodayShiftCard shift={provider.todayShift} />
-        ) : (
-          <TodayEmptyCard onFindShifts={handleFindShifts} />
-        )}
+          {/* Today card */}
+          {provider.todayShift ? (
+            <TodayShiftCard shift={provider.todayShift} />
+          ) : (
+            <TodayEmptyCard onFindShifts={handleFindShifts} />
+          )}
 
-        {/* Your week */}
-        <YourWeekSection week={provider.week} onDayTap={handleDayTap} />
+          {/* Your week / month */}
+          <YourWeekSection
+            week={provider.week}
+            view={scheduleView}
+            onChangeView={setScheduleView}
+            onDayTap={handleDayTap}
+            onOpenBooked={openBooked}
+            onOpenFind={openFindForDate}
+          />
 
-        {/* Shifts near you */}
-        <ShiftsNearYouSection
-          shifts={provider.nearbyShifts}
-          onShiftTap={handleOpenShift}
-          onSeeAll={handleFindShifts}
-        />
+          {/* Shifts near you */}
+          <ShiftsNearYouSection
+            shifts={provider.nearbyShifts}
+            onShiftTap={handleOpenShift}
+            onSeeAll={handleFindShifts}
+          />
+        </div>
+
+        <ProviderBottomNav />
       </div>
 
-      <ProviderBottomNav />
-    </div>
+      {bookedShift && (
+        <BookedShiftModal
+          shift={bookedShift}
+          onClose={() => setBookedShift(null)}
+          onCancelShift={() => setBookedShift(null)}
+          onMessageOffice={() => { setBookedShift(null); navigate('/provider-messages'); }}
+        />
+      )}
+    </>
   );
 }
 
@@ -295,8 +422,8 @@ function TodayShiftCard({ shift }) {
   );
 }
 
-// ── Your week (day rail) ─────────────────────────────────────
-function YourWeekSection({ week, onDayTap }) {
+// ── Your week / month ────────────────────────────────────────
+function YourWeekSection({ week, view, onChangeView, onDayTap, onOpenBooked, onOpenFind }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
@@ -304,20 +431,34 @@ function YourWeekSection({ week, onDayTap }) {
           Your week
         </h3>
         <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
-          <button className="border-none bg-[#1a7f5e] text-white font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+          <button
+            onClick={() => onChangeView('week')}
+            className={`border-none font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full ${
+              view === 'week' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
+            }`}
+          >
             Week
           </button>
-          <button className="border-none bg-transparent text-[#6b7875] font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+          <button
+            onClick={() => onChangeView('month')}
+            className={`border-none font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full ${
+              view === 'month' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
+            }`}
+          >
             Month
           </button>
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
-        {week.map((day) => (
-          <DayCard key={day.date} day={day} onTap={() => onDayTap(day)} />
-        ))}
-      </div>
+      {view === 'week' ? (
+        <div className="flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
+          {week.map((day) => (
+            <DayCard key={day.date} day={day} onTap={() => onDayTap(day)} />
+          ))}
+        </div>
+      ) : (
+        <MonthGrid onOpenBooked={onOpenBooked} onOpenFind={onOpenFind} />
+      )}
     </>
   );
 }
@@ -362,6 +503,97 @@ function DayCard({ day, onTap }) {
       <div className={`text-[10.5px] font-semibold uppercase tracking-[0.04em] ${statusColor}`}>
         {statusText}
       </div>
+    </div>
+  );
+}
+
+// ── Month grid ───────────────────────────────────────────────
+function MonthGrid({ onOpenBooked, onOpenFind }) {
+  return (
+    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] px-4 pt-[18px] pb-[14px]">
+      <div className="flex items-center justify-between mb-[14px] px-1">
+        <NavBtn dir="left" />
+        <div className="font-[Outfit] font-bold text-[15px] text-[#0f1a16]">April 2026</div>
+        <NavBtn dir="right" />
+      </div>
+
+      <div className="grid grid-cols-7 gap-[5px]">
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+          <div
+            key={i}
+            className="text-center text-[10px] font-bold uppercase text-[#9aa5a1] tracking-[0.05em] pt-1 pb-[6px]"
+          >
+            {d}
+          </div>
+        ))}
+        {MONTH_CELLS.map((cell, i) => (
+          <MonthCell
+            key={i}
+            cell={cell}
+            onOpenBooked={cell?.s === 'booked' ? () => onOpenBooked(cell.d) : undefined}
+            onOpenFind={cell && (!cell.s || cell.s === 'today') ? () => onOpenFind(cell.d) : undefined}
+          />
+        ))}
+      </div>
+
+      <div className="flex gap-[14px] justify-center pt-[14px] mt-3 border-t border-[#efede8]">
+        <Legend swatch="bg-[#1a7f5e]" label="Today" />
+        <Legend swatch="bg-[#f5faf7] border border-[#dcebe3]" label="Booked" />
+        <Legend swatch="bg-white border border-[#e8e6e1]" label="Off" />
+      </div>
+    </div>
+  );
+}
+
+function NavBtn({ dir }) {
+  return (
+    <button
+      type="button"
+      className="w-[30px] h-[30px] rounded-full bg-[#f9f8f6] border border-[#e8e6e1] inline-flex items-center justify-center"
+    >
+      <svg className="w-3 h-3 stroke-[#0f1a16]" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {dir === 'left' ? <polyline points="15 18 9 12 15 6" /> : <polyline points="9 18 15 12 9 6" />}
+      </svg>
+    </button>
+  );
+}
+
+function MonthCell({ cell, onOpenBooked, onOpenFind }) {
+  if (!cell) return <div className="aspect-square" />;
+
+  const isToday = cell.s === 'today';
+  const isBooked = cell.s === 'booked';
+  const isOff = cell.s === 'off';
+  const isOpen = !cell.s;
+
+  let classes = 'aspect-square flex items-center justify-center font-[Outfit] rounded-[10px] relative';
+  let onClick;
+
+  if (isToday) {
+    classes += ' bg-[#1a7f5e] text-white font-bold text-[13px] cursor-pointer';
+    onClick = onOpenFind;
+  } else if (isBooked) {
+    classes += ' bg-[#f5faf7] text-[#146449] font-bold text-[13px] border border-[#dcebe3] cursor-pointer';
+    onClick = onOpenBooked;
+  } else if (isOff) {
+    classes += ' text-[#9aa5a1] text-[13px] font-semibold opacity-55 line-through';
+  } else if (isOpen) {
+    classes += ' text-[#0f1a16] text-[13px] font-semibold cursor-pointer';
+    onClick = onOpenFind;
+  }
+
+  return (
+    <div className={classes} onClick={onClick}>
+      {cell.d}
+    </div>
+  );
+}
+
+function Legend({ swatch, label }) {
+  return (
+    <div className="flex items-center gap-[5px] text-[10px] text-[#6b7875] font-semibold">
+      <span className={`w-[10px] h-[10px] rounded-[3px] ${swatch}`} />
+      {label}
     </div>
   );
 }
