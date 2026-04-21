@@ -65,13 +65,13 @@ const IconCalendarSmall = () => (
 // Cross-trained. Colors are pulled from the existing Kazi palette.
 const BADGE_ICONS = {
   check: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[28px] h-[28px]">
       <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.15" />
       <polyline points="8.5 12.5 11 15 15.5 10.5" />
     </svg>
   ),
   trophy: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[28px] h-[28px]">
       <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" fill="currentColor" fillOpacity="0.18" stroke="currentColor" />
       <path d="M17 5h2a2 2 0 0 1 0 4h-2" />
       <path d="M7 5H5a2 2 0 0 0 0 4h2" />
@@ -80,12 +80,12 @@ const BADGE_ICONS = {
     </svg>
   ),
   bolt: (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px]">
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-[28px] h-[28px]">
       <polygon points="13 2 4 14 11 14 10 22 20 10 13 10 13 2" />
     </svg>
   ),
   shuffle: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[28px] h-[28px]">
       <polyline points="16 3 21 3 21 8" />
       <line x1="4" y1="20" x2="21" y2="3" />
       <polyline points="21 16 21 21 16 21" />
