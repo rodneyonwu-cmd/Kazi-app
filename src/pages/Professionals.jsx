@@ -34,9 +34,9 @@ const ROLE_FILTERS = ['All Roles', 'Dental Assistant', 'Hygienist', 'Front Desk'
 // consistent across renders but varies across pros.
 const BADGE_ICONS = {
   check: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
-      <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.15" />
-      <polyline points="8.5 12.5 11 15 15.5 10.5" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[28px] h-[28px]">
+      <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.22" />
+      <polyline points="8.5 12.5 11 15 15.5 10.5" strokeWidth="2.4" />
     </svg>
   ),
   trophy: (
