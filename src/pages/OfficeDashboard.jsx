@@ -1,433 +1,475 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import FindProsSheet from '../components/FindProsSheet';
-import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
+import BottomNav from '../components/BottomNav';
 
-// ============================================================
-// KAZI OFFICE DASHBOARD
-// Main home screen with embedded "Post a Job" chooser modal
-// ============================================================
+/**
+ * OfficeDashboard
+ * ---------------
+ * Content-only dashboard for the office (practice owner) side of Kazi.
+ * The parent layout shell renders:
+ *   - Kazi topbar (logo + notifications + avatar)
+ *   - Bottom navigation (Home / Find / Bookings / Messages / Profile)
+ *
+ * Data: mocked inline for now. Wire to API later (see TODO comments).
+ * Design tokens follow Kazi's locked system:
+ *   - Primary green #1a7f5e · background #f9f8f6 · coral #e8734a · gold #f4b740
+ *   - Sage gradient avatars (#a8c9b8 → #7ab8a8)
+ *   - DM Sans body · Outfit headings · 16–20px card radius · 100px pill buttons
+ */
 
-const COLORS = {
-  green: '#1a7f5e',
-  greenDark: '#15604a',
-  greenSoft: '#e8f3ee',
-  greenTint: '#f1f9f5',
-  coral: '#e8734a',
-  coralSoft: '#fdeee7',
-  purple: '#7c3aed',
-  purpleSoft: '#f1ebfa',
-  orange: '#d97706',
-  orangeSoft: '#fef3e6',
-  bg: '#f9f8f6',
-  card: '#ffffff',
-  text: '#1a1a1a',
-  textMid: '#5a5a5a',
-  textLight: '#8a8a8a',
-  border: '#ececec',
-  borderSoft: '#f3f3f3',
-  gold: '#f4b740',
+// ── Mock data (replace with API response later) ──────────────
+const mockOffice = {
+  ownerFirstName: 'O',
+  officeName: 'Missouri City Dental',
+  date: 'Tuesday, April 7',
+  todayStats: {
+    activeToday: 2,
+    pending: 3,
+    unfilled: 1,
+  },
+  currentMonth: 'April 2026',
+  // Calendar days for April 2026 (starts Wednesday)
+  // status: 'empty' | 'normal' | 'today' | 'booked' | 'booked-open'
+  calendarDays: [
+    { empty: true }, { empty: true }, { empty: true },
+    { date: 1, status: 'normal' },
+    { date: 2, status: 'normal' },
+    { date: 3, status: 'normal' },
+    { date: 4, status: 'normal' },
+    { date: 5, status: 'normal' },
+    { date: 6, status: 'normal' },
+    { date: 7, status: 'today' },
+    { date: 8, status: 'booked' },
+    { date: 9, status: 'booked' },
+    { date: 10, status: 'booked-open' },
+    { date: 11, status: 'normal' },
+    { date: 12, status: 'normal' },
+    { date: 13, status: 'booked' },
+    { date: 14, status: 'booked' },
+    { date: 15, status: 'normal' },
+    { date: 16, status: 'booked' },
+    { date: 17, status: 'normal' },
+    { date: 18, status: 'normal' },
+    { date: 19, status: 'normal' },
+    { date: 20, status: 'booked' },
+    { date: 21, status: 'normal' },
+    { date: 22, status: 'booked' },
+    { date: 23, status: 'booked' },
+    { date: 24, status: 'booked' },
+    { date: 25, status: 'normal' },
+    { date: 26, status: 'normal' },
+    { date: 27, status: 'booked' },
+    { date: 28, status: 'booked' },
+    { date: 29, status: 'normal' },
+    { date: 30, status: 'booked' },
+    { empty: true }, { empty: true },
+  ],
+  onsiteNow: [
+    {
+      id: 'onsite_1',
+      initials: 'SK',
+      name: 'Sarah K.',
+      role: 'RDH',
+      timeRange: '8am–5pm',
+      checkedInAt: '7:52 AM',
+    },
+  ],
 };
 
+// ── Component ────────────────────────────────────────────────
 export default function OfficeDashboard() {
   const navigate = useNavigate();
-  const [scheduleView, setScheduleView] = useState('week');
-  const [chooserOpen, setChooserOpen] = useState(false);
-  const [findProsOpen, setFindProsOpen] = useState(false);
+  // TODO: replace mock with API call
+  // const { data: office, isLoading } = useOfficeDashboard();
+  const office = mockOffice;
 
-  const handleFindProsSubmit = (criteria) => {
-    setFindProsOpen(false);
-    const params = new URLSearchParams();
-    if (criteria.role) params.set('role', criteria.role);
-    if (criteria.date) params.set('date', criteria.date);
-    if (criteria.startTime) params.set('startTime', criteria.startTime);
-    if (criteria.endTime) params.set('endTime', criteria.endTime);
-    if (criteria.lunchBreakDuration != null) params.set('lunch', String(criteria.lunchBreakDuration));
-    if (criteria.rapidFillEnabled) params.set('rapidFill', '1');
-    if (criteria.rapidFillCount) params.set('rapidFillCount', String(criteria.rapidFillCount));
-    navigate(`/professionals?${params.toString()}`);
+  const handlePostJob = () => {
+    navigate('/post-shift');
   };
 
-  const openChooser = () => setChooserOpen(true);
-  const closeChooser = () => setChooserOpen(false);
-  const goToTemp = () => { closeChooser(); navigate('/post/temp'); };
-  const goToPermanent = () => { closeChooser(); navigate('/post/permanent'); };
+  const handleFindPros = () => {
+    navigate('/professionals');
+  };
+
+  const handleStatTap = (statName) => {
+    navigate(`/bookings?filter=${statName}`);
+  };
+
+  const handleCalendarDayTap = (day) => {
+    if (day.empty) return;
+    const d = String(day.date).padStart(2, '0');
+    navigate(`/bookings?date=2026-04-${d}`);
+  };
+
+  const handleCalendarNav = (direction) => {
+    // TODO: fetch prev/next month from API
+    console.log('Calendar nav:', direction);
+  };
+
+  const handleOnsiteTap = (onsiteId) => {
+    navigate(`/provider-profile/${onsiteId}`);
+  };
 
   return (
-    <>
-      <style>{`
-        @keyframes ringPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
-        @keyframes scaleIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-        .kazi-dashboard * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        .kazi-dashboard button { font-family: inherit; }
-      `}</style>
+    <div
+      style={{
+        background: '#f9f8f6',
+        maxWidth: 480,
+        margin: '0 auto',
+        minHeight: '100vh',
+        boxShadow: '0 0 40px rgba(0,0,0,0.06)',
+        position: 'relative',
+        paddingBottom: 100,
+      }}
+    >
+      <TopBar />
 
+      <div className="bg-[#f9f8f6] min-h-full pb-6">
+        {/* Greeting */}
+        <section className="px-5 pt-4 pb-5">
+          <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
+            Good morning, Dr. {office.ownerFirstName}
+          </h1>
+          <div className="text-[14px] font-medium text-[#6b7875]">
+            {office.officeName} · {office.date}
+          </div>
+        </section>
+
+        {/* Post a Job (Need coverage?) */}
+        <PostJobCard onPostJob={handlePostJob} onFindPros={handleFindPros} />
+
+        {/* Today's overview */}
+        <TodaysOverview stats={office.todayStats} onStatTap={handleStatTap} />
+
+        {/* This month calendar */}
+        <CalendarSection
+          monthLabel={office.currentMonth}
+          days={office.calendarDays}
+          onDayTap={handleCalendarDayTap}
+          onNav={handleCalendarNav}
+        />
+
+        {/* On-site now */}
+        <OnsiteNowSection
+          providers={office.onsiteNow}
+          onProviderTap={handleOnsiteTap}
+        />
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}
+
+// ── Post a Job card ──────────────────────────────────────────
+function PostJobCard({ onPostJob, onFindPros }) {
+  return (
+    <div className="mx-4 bg-[#e8f2ed] border border-[#d4e7dd] rounded-[20px] p-[22px_22px_20px] relative overflow-hidden cursor-pointer">
+      {/* Decorative glows */}
       <div
-        className="kazi-dashboard"
-        style={{
-          fontFamily: "'DM Sans', sans-serif",
-          background: COLORS.bg,
-          color: COLORS.text,
-          WebkitFontSmoothing: 'antialiased',
-          paddingBottom: 100,
-          maxWidth: 480,
-          margin: '0 auto',
-          minHeight: '100vh',
-          boxShadow: '0 0 40px rgba(0,0,0,0.06)',
-          position: 'relative',
-        }}
-      >
-        <TopBar role="office" />
-        {/* GREETING */}
-        <div style={{ padding: '22px 20px 8px' }}>
-          <div
-            style={{
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 24,
-              color: COLORS.text,
-              lineHeight: 1.15,
-            }}
+        className="absolute -top-[30px] -right-[30px] w-[140px] h-[140px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(26,127,94,0.08) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute -bottom-[40px] right-[40px] w-[100px] h-[100px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(232,115,74,0.12) 0%, transparent 70%)' }}
+      />
+
+      <div className="relative z-10">
+        <h2 className="font-[Outfit] font-bold text-[20px] tracking-[-0.01em] text-[#0f1a16] mb-[6px] leading-[1.2]">
+          Need coverage?
+        </h2>
+        <p className="text-[13.5px] text-[#6b7875] font-medium mb-4 leading-[1.35]">
+          Post a shift and top-rated Houston pros will respond fast.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={onPostJob}
+            className="flex-1 px-[14px] py-3 rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-[#1a7f5e] text-white inline-flex items-center justify-center gap-[6px]"
           >
-            Good morning, Dr. Osagie
-          </div>
-          <div style={{ fontSize: 13, color: COLORS.textLight, marginTop: 4 }}>
-            Missouri City Dental · Tuesday, April 7
-          </div>
+            <svg className="w-[14px] h-[14px] stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Post a Job
+          </button>
+          <button
+            onClick={onFindPros}
+            className="flex-1 px-[14px] py-3 rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-white text-[#1a7f5e] border border-[#d4e7dd] inline-flex items-center justify-center gap-[6px]"
+          >
+            <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Find Pros
+          </button>
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* HERO CTA — Post a Job */}
-        <div
-          onClick={openChooser}
-          style={{
-            margin: '18px 16px 8px',
-            borderRadius: 24,
-            padding: 22,
-            background: '#fdfaf3',
-            border: '1.5px solid #f0e9d6',
-            color: COLORS.text,
-            position: 'relative',
-            overflow: 'hidden',
-            cursor: 'pointer',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: -50,
-              right: -50,
-              width: 200,
-              height: 200,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, ${COLORS.greenTint} 0%, transparent 70%)`,
-              pointerEvents: 'none',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 20,
-              right: 30,
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, ${COLORS.coralSoft} 0%, transparent 70%)`,
-              pointerEvents: 'none',
-            }}
-          />
-          <div style={{ position: 'relative' }}>
-            <div
-              style={{
-                display: 'inline-block',
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                background: COLORS.green,
-                color: 'white',
-                padding: '5px 11px',
-                borderRadius: 100,
-                marginBottom: 14,
-              }}
-            >
-              Quick Post
-            </div>
-            <div
-              style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 800,
-                fontSize: 22,
-                lineHeight: 1.2,
-                marginBottom: 6,
-                color: COLORS.text,
-              }}
-            >
-              Need coverage?
-              <br />
-              Fill a shift in minutes.
-            </div>
-            <div style={{ fontSize: 13, color: COLORS.textMid, marginBottom: 18, maxWidth: 260 }}>
-              Post a job and our top-rated Houston pros will respond fast.
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openChooser();
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                background: COLORS.green,
-                color: 'white',
-                padding: '12px 20px',
-                borderRadius: 100,
-                fontSize: 14,
-                fontWeight: 700,
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              Post a Job
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
-          </div>
-        </div>
+// ── Today's overview (stats) ─────────────────────────────────
+function TodaysOverview({ stats, onStatTap }) {
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+          Today's overview
+        </h3>
+      </div>
 
-        {/* QUICK ACTIONS */}
-        <div style={{ padding: '22px 16px 0' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div style={quickTileStyle} onClick={() => setFindProsOpen(true)}>
-              <div style={quickIconStyle(COLORS.greenTint)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17 }}>
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </div>
-              <div style={quickLabelStyle}>Find Pros</div>
-            </div>
-            <div style={quickTileStyle} onClick={() => navigate('/bookings')}>
-              <div style={quickIconStyle(COLORS.purpleSoft)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 17, height: 17 }}>
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </div>
-              <div style={quickLabelStyle}>My Bookings</div>
-            </div>
-          </div>
-        </div>
-
-        {/* TODAY'S OVERVIEW STATS */}
-        <div style={{ padding: '18px 16px 0' }}>
-          <SectionHeader title="Today's overview" />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            <StatCard color="green" icon="check" value="2" label="Active today" onClick={() => navigate('/bookings')} />
-            <StatCard color="orange" icon="clock" value="3" label="Pending" onClick={() => navigate('/bookings')} />
-            <StatCard color="coral" icon="alert" value="1" label="Unfilled" onClick={() => navigate('/applicants')} />
-          </div>
-        </div>
-
-        {/* SCHEDULE — Week / Month toggle */}
-        <div style={{ padding: '18px 16px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text }}>
-              {scheduleView === 'week' ? 'This week' : 'This month'}
-            </div>
-            <div style={{ display: 'inline-flex', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 100, padding: 3, gap: 2 }}>
-              <button onClick={() => setScheduleView('week')} style={toggleBtnStyle(scheduleView === 'week')}>Week</button>
-              <button onClick={() => setScheduleView('month')} style={toggleBtnStyle(scheduleView === 'month')}>Month</button>
-            </div>
-          </div>
-          {scheduleView === 'week' ? <WeekStrip navigate={navigate} /> : <MonthGrid navigate={navigate} />}
-        </div>
-
-        {/* ON-SITE NOW */}
-        <div style={{ padding: '18px 16px 0' }}>
-          <SectionHeader title="On-site now" linkLabel="View all" onLinkClick={() => navigate('/bookings')} />
-          <div onClick={() => navigate('/bookings')} style={{ background: COLORS.card, margin: '0 4px', padding: 16, display: 'flex', alignItems: 'center', gap: 14, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18, cursor: 'pointer' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, position: 'relative', overflow: 'hidden' }}>
-              <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Sarah K." style={{ width: '100%', height: '100%', borderRadius: 16, objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: -3, borderRadius: 19, border: `2px solid ${COLORS.green}`, animation: 'ringPulse 2s infinite' }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text, lineHeight: 1.15, display: 'flex', alignItems: 'center', gap: 8 }}>
-                Sarah K.
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, color: COLORS.green, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  <span style={{ display: 'inline-block', width: 7, height: 7, background: COLORS.green, borderRadius: '50%', animation: 'pulseDot 2s infinite' }} />
-                  Live
-                </span>
-              </div>
-              <div style={{ fontSize: 12, color: COLORS.textMid, marginTop: 3 }}>
-                RDH · 8am–5pm <span style={{ color: COLORS.border, margin: '0 5px' }}>·</span> Checked in 7:52 AM
-              </div>
-            </div>
-            <div style={{ width: 28, height: 28, borderRadius: '50%', background: COLORS.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textMid} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}><polyline points="9 18 15 12 9 6" /></svg>
-            </div>
-          </div>
-        </div>
-
-        {/* BOTTOM NAV */}
-        <BottomNav />
-
-        {/* POST A JOB CHOOSER MODAL */}
-        {/* FIND PROS SHEET */}
-        <FindProsSheet open={findProsOpen} onClose={() => setFindProsOpen(false)} onSubmit={handleFindProsSubmit} />
-
-        {chooserOpen && (
-          <>
-            <div onClick={closeChooser} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)', zIndex: 100, animation: 'fadeIn 0.3s' }} />
-            <div style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: 28, zIndex: 101, paddingBottom: 24, width: 'calc(100% - 40px)', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.35)', animation: 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-              <div style={{ padding: '24px 24px 8px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1.15, color: COLORS.text }}>Post a Job</div>
-                  <div style={{ fontSize: 14, color: COLORS.textMid, marginTop: 6, lineHeight: 1.4 }}>What kind of position are you hiring for?</div>
-                </div>
-                <button onClick={closeChooser} style={{ width: 38, height: 38, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                </button>
-              </div>
-              <div style={{ padding: '24px 20px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <ChoiceCard type="temp" icon={<svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>} tag="Single day" title="Temp Shift" onClick={goToTemp} />
-                <ChoiceCard type="perm" icon={<svg viewBox="0 0 24 24" fill="none" stroke={COLORS.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>} tag="Long-term hire" title="Permanent Role" onClick={goToPermanent} />
-              </div>
-            </div>
-          </>
-        )}
+      <div className="grid grid-cols-3 gap-[10px] px-4">
+        <StatCard
+          icon="check"
+          iconVariant="green"
+          value={stats.activeToday}
+          label="Active today"
+          onTap={() => onStatTap('active')}
+        />
+        <StatCard
+          icon="clock"
+          iconVariant="amber"
+          value={stats.pending}
+          label="Pending"
+          onTap={() => onStatTap('pending')}
+        />
+        <StatCard
+          icon="alert"
+          iconVariant="coral"
+          value={stats.unfilled}
+          label="Unfilled"
+          onTap={() => onStatTap('unfilled')}
+        />
       </div>
     </>
   );
 }
 
-function SectionHeader({ title, linkLabel, onLinkClick }) {
+function StatCard({ icon, iconVariant, value, label, onTap }) {
+  const iconBgMap = {
+    green: 'bg-[#e8f2ed]',
+    amber: 'bg-[#fdf4e1]',
+    coral: 'bg-[#fdeee7]',
+  };
+  const iconStrokeMap = {
+    green: 'stroke-[#1a7f5e]',
+    amber: 'stroke-[#c98b16]',
+    coral: 'stroke-[#e8734a]',
+  };
+
+  const iconSvg = {
+    check: (
+      <svg className={`w-[18px] h-[18px] ${iconStrokeMap[iconVariant]}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    ),
+    clock: (
+      <svg className={`w-[18px] h-[18px] ${iconStrokeMap[iconVariant]}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    alert: (
+      <svg className={`w-[18px] h-[18px] ${iconStrokeMap[iconVariant]}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+    ),
+  };
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text }}>{title}</div>
-      {linkLabel && (
-        <button onClick={onLinkClick} style={{ fontSize: 12, fontWeight: 700, color: COLORS.green, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
-          {linkLabel}
-          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
+    <div
+      onClick={onTap}
+      className="bg-white border border-[#e8e6e1] rounded-[16px] p-[16px_14px] cursor-pointer active:scale-[0.98] transition-transform"
+    >
+      <div className={`w-9 h-9 rounded-[11px] grid place-items-center mb-3 ${iconBgMap[iconVariant]}`}>
+        {iconSvg[icon]}
+      </div>
+      <div className="font-[Outfit] font-bold text-[24px] leading-none tracking-[-0.02em] text-[#0f1a16]">
+        {value}
+      </div>
+      <div className="text-[12px] text-[#6b7875] font-medium mt-[6px]">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+// ── Calendar ─────────────────────────────────────────────────
+function CalendarSection({ monthLabel, days, onDayTap, onNav }) {
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+          This month
+        </h3>
+        <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
+          <button className="border-none bg-transparent text-[#6b7875] font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+            Week
+          </button>
+          <button className="border-none bg-[#1a7f5e] text-white font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+            Month
+          </button>
+        </div>
+      </div>
+
+      <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] p-[18px_16px_16px]">
+        {/* Nav */}
+        <div className="flex items-center justify-between mb-[14px]">
+          <button
+            onClick={() => onNav('prev')}
+            className="w-8 h-8 rounded-full bg-[#f5faf7] border-none grid place-items-center cursor-pointer"
+          >
+            <svg className="w-[14px] h-[14px] stroke-[#3a4a44]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <div className="font-[Outfit] font-bold text-[16px] text-[#0f1a16] tracking-[-0.01em]">
+            {monthLabel}
+          </div>
+          <button
+            onClick={() => onNav('next')}
+            className="w-8 h-8 rounded-full bg-[#f5faf7] border-none grid place-items-center cursor-pointer"
+          >
+            <svg className="w-[14px] h-[14px] stroke-[#3a4a44]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-7 gap-[3px]">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((dow, i) => (
+            <div key={i} className="text-[11px] font-bold text-[#9aa5a1] text-center py-[6px_0_10px] tracking-[0.05em]">
+              {dow}
+            </div>
+          ))}
+          {days.map((day, i) => (
+            <CalendarDay key={i} day={day} onTap={() => onDayTap(day)} />
+          ))}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-[18px] pt-[14px] mt-3 border-t border-[#efede8]">
+          <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+            <span className="w-3 h-3 rounded-[4px] bg-[#1a7f5e]" />
+            Today
+          </div>
+          <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+            <span className="w-3 h-3 rounded-[4px] bg-[#f5faf7] border border-[#e8f2ed]" />
+            Booked
+          </div>
+          <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+            <span className="w-[6px] h-[6px] rounded-full bg-[#e8734a]" />
+            Open shift
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CalendarDay({ day, onTap }) {
+  if (day.empty) {
+    return <div className="aspect-square" />;
+  }
+
+  let classes = 'aspect-square grid place-items-center text-[14px] font-semibold rounded-[12px] cursor-pointer relative';
+  let showDot = false;
+
+  if (day.status === 'today') {
+    classes += ' bg-[#1a7f5e] text-white font-bold';
+  } else if (day.status === 'booked') {
+    classes += ' bg-[#f5faf7] text-[#146449]';
+  } else if (day.status === 'booked-open') {
+    classes += ' bg-[#f5faf7] text-[#146449]';
+    showDot = true;
+  } else {
+    classes += ' text-[#0f1a16]';
+  }
+
+  return (
+    <div className={classes} onClick={onTap}>
+      {day.date}
+      {showDot && (
+        <span className="absolute bottom-[5px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#e8734a]" />
       )}
     </div>
   );
 }
 
-function StatCard({ color, icon, value, label, onClick }) {
-  const bgMap = { green: COLORS.greenTint, orange: COLORS.orangeSoft, coral: COLORS.coralSoft };
-  const strokeMap = { green: COLORS.green, orange: COLORS.orange, coral: COLORS.coral };
-  return (
-    <div onClick={onClick} style={{ background: COLORS.card, borderRadius: 18, padding: '14px 12px', border: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
-      <div style={{ width: 30, height: 30, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10, background: bgMap[color] }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke={strokeMap[color]} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
-          {icon === 'check' && <><polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></>}
-          {icon === 'clock' && <><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>}
-          {icon === 'alert' && <><path d="M12 9v3m0 3h.01" /><circle cx="12" cy="12" r="10" /></>}
-        </svg>
-      </div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 600, marginTop: 4 }}>{label}</div>
-    </div>
-  );
-}
+// ── On-site now ──────────────────────────────────────────────
+function OnsiteNowSection({ providers, onProviderTap }) {
+  if (!providers || providers.length === 0) return null;
 
-function WeekStrip({ navigate }) {
-  const days = [
-    { name: 'Tue', num: 7, dots: [true, true, false], today: true },
-    { name: 'Wed', num: 8, dots: [true, false, false] },
-    { name: 'Thu', num: 9, dots: [true, true, false] },
-    { name: 'Fri', num: 10, dots: [true, false, false] },
-    { name: 'Sat', num: 11, dots: [false, false, false] },
-    { name: 'Sun', num: 12, dots: [false, false, false] },
-    { name: 'Mon', num: 13, dots: [true, true, false] },
-  ];
   return (
-    <div style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', padding: '0 16px 4px', margin: '0 -16px' }}>
-      {days.map((d, i) => (
-        <div key={i} onClick={() => navigate && navigate('/bookings')} style={{ flexShrink: 0, width: 72, background: d.today ? COLORS.green : COLORS.card, border: `1px solid ${d.today ? COLORS.green : COLORS.borderSoft}`, borderRadius: 16, padding: '12px 8px', textAlign: 'center', cursor: 'pointer' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: d.today ? 'white' : COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>{d.name}</div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: d.today ? 'white' : COLORS.text, marginTop: 4 }}>{d.num}</div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 3, marginTop: 8, height: 6 }}>
-            {d.dots.map((filled, j) => (
-              <div key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: d.today ? (filled ? 'white' : 'rgba(255,255,255,0.5)') : (filled ? COLORS.green : COLORS.border) }} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function MonthGrid({ navigate }) {
-  const cells = [
-    null, null, null, 1, 2, 3, 4,
-    5, 6, { num: 7, today: true }, { num: 8, booked: true }, { num: 9, booked: true }, { num: 10, booked: true }, 11,
-    12, { num: 13, booked: true }, { num: 14, booked: true }, 15, { num: 16, booked: true }, 17, 18,
-    19, { num: 20, booked: true }, 21, { num: 22, booked: true }, { num: 23, booked: true }, { num: 24, booked: true }, 25,
-    26, { num: 27, booked: true }, { num: 28, booked: true }, 29, { num: 30, booked: true }, null, null,
-  ];
-  return (
-    <div style={{ background: COLORS.card, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 20, padding: '18px 16px 14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, padding: '0 4px' }}>
-        <button style={{ width: 30, height: 30, borderRadius: '50%', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text }}>April 2026</div>
-        <button style={{ width: 30, height: 30, borderRadius: '50%', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+          On-site now
+        </h3>
+        <a href="#" className="text-[13px] font-semibold text-[#1a7f5e] inline-flex items-center gap-[3px]">
+          View all
+          <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </a>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 }}>
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((l, i) => (
-          <div key={i} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: COLORS.textLight, textTransform: 'uppercase', padding: '4px 0 6px' }}>{l}</div>
+
+      <div className="px-4 flex flex-col gap-[10px]">
+        {providers.map((provider) => (
+          <OnsiteCard key={provider.id} provider={provider} onTap={() => onProviderTap(provider.id)} />
         ))}
-        {cells.map((cell, i) => {
-          if (cell === null) return <div key={i} style={{ aspectRatio: '1' }} />;
-          const isObj = typeof cell === 'object';
-          const num = isObj ? cell.num : cell;
-          const today = isObj && cell.today;
-          const booked = isObj && cell.booked;
-          return (
-            <div key={i} onClick={() => (booked || today) && navigate && navigate('/bookings')} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: booked || today ? 700 : 600, color: today ? 'white' : booked ? COLORS.green : COLORS.text, background: today ? COLORS.green : booked ? COLORS.greenTint : 'transparent', borderRadius: 10, cursor: booked || today ? 'pointer' : 'default' }}>
-              {num}
-            </div>
-          );
-        })}
       </div>
+    </>
+  );
+}
+
+function OnsiteCard({ provider, onTap }) {
+  return (
+    <div
+      onClick={onTap}
+      className="bg-white border border-[#e8e6e1] rounded-[16px] p-[14px] flex items-center gap-3 cursor-pointer"
+    >
+      <div
+        className="w-12 h-12 rounded-[14px] text-white font-[Outfit] font-bold text-[15px] grid place-items-center flex-shrink-0"
+        style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
+      >
+        {provider.initials}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-[3px]">
+          <span className="text-[15px] font-semibold text-[#0f1a16]">
+            {provider.name}
+          </span>
+          <span className="inline-flex items-center gap-1 bg-[#e8f2ed] text-[#1a7f5e] px-2 py-[2px] rounded-full text-[10.5px] font-bold tracking-[0.04em] uppercase">
+            <span
+              className="w-[6px] h-[6px] rounded-full bg-[#1a7f5e]"
+              style={{ animation: 'kazi-pulse 1.8s ease-out infinite' }}
+            />
+            Live
+          </span>
+        </div>
+        <div className="text-[12.5px] font-medium text-[#6b7875]">
+          {provider.role} · {provider.timeRange} · Checked in {provider.checkedInAt}
+        </div>
+      </div>
+
+      <svg className="w-[18px] h-[18px] stroke-[#9aa5a1] flex-shrink-0" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+
+      {/* Keyframes for live pulse (injected once) */}
+      <style>{`
+        @keyframes kazi-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
     </div>
   );
 }
-
-function ChoiceCard({ type, icon, tag, title, onClick }) {
-  const [hover, setHover] = useState(false);
-  const isPerm = type === 'perm';
-  const accent = isPerm ? COLORS.purple : COLORS.green;
-  const accentSoft = isPerm ? COLORS.purpleSoft : COLORS.greenTint;
-  return (
-    <button onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{ background: 'white', border: `2px solid ${hover ? accent : COLORS.border}`, borderRadius: 22, padding: 22, cursor: 'pointer', textAlign: 'left', width: '100%', fontFamily: 'inherit', transition: 'all 0.2s', position: 'relative', overflow: 'hidden', transform: hover ? 'translateY(-2px)' : 'none', boxShadow: hover ? `0 8px 24px ${isPerm ? 'rgba(124, 58, 237, 0.15)' : 'rgba(26, 127, 94, 0.15)'}` : 'none' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 52, height: 52, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: accentSoft }}>{icon}</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, padding: '4px 10px', borderRadius: 100, marginBottom: 6, background: accentSoft, color: accent }}>{tag}</div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, lineHeight: 1.15 }}>{title}</div>
-        </div>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: accent, transform: hover ? 'translateX(3px)' : 'none', transition: 'transform 0.2s' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-const quickTileStyle = { background: COLORS.card, border: `1px solid ${COLORS.borderSoft}`, borderRadius: 18, padding: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 };
-const quickIconStyle = (bg) => ({ width: 38, height: 38, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 });
-const quickLabelStyle = { fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13, color: COLORS.text, lineHeight: 1.2 };
-const toggleBtnStyle = (active) => ({ background: active ? COLORS.green : 'none', border: 'none', fontSize: 11, fontWeight: 700, color: active ? 'white' : COLORS.textLight, padding: '6px 14px', borderRadius: 100, cursor: 'pointer', transition: 'all 0.2s' });
