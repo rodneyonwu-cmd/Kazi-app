@@ -34,7 +34,7 @@ const ROLE_FILTERS = ['All Roles', 'Dental Assistant', 'Hygienist', 'Front Desk'
 // consistent across renders but varies across pros.
 const BADGE_ICONS = {
   check: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[28px] h-[28px]">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[22px] h-[22px]">
       <path d="M12 2l9 4v6c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V6l9-4z" fill="currentColor" fillOpacity="0.22" />
       <polyline points="8.5 12.5 11 15 15.5 10.5" strokeWidth="2.4" />
     </svg>
@@ -274,27 +274,6 @@ function ProCard({ pro, onClick, onSave, onBook }) {
           <div className="text-[9px] uppercase tracking-wider font-semibold mb-0.5" style={{ color: tier.color }}>Reliability</div>
           <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: tier.color }}>{pro.reliability}%</div>
         </div>
-      </div>
-
-      {/* Trust badges */}
-      <div className="flex flex-wrap gap-1.5 mt-3">
-        {pro.badges.map((badge, idx) => {
-          const isPurple = badge.toLowerCase().startsWith('top');
-          return (
-            <span
-              key={idx}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border"
-              style={{
-                background: isPurple ? '#f1ebfa' : COLORS.greenTint,
-                color: isPurple ? '#7c3aed' : COLORS.green,
-                borderColor: isPurple ? '#e4d7f7' : COLORS.greenSoft,
-              }}
-            >
-              {idx === 0 && <span style={{ color: isPurple ? '#7c3aed' : COLORS.green }}><Icon.Shield /></span>}
-              {badge}
-            </span>
-          );
-        })}
       </div>
 
       {/* Actions */}
