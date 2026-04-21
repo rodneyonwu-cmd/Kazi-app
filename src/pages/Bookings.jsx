@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
-import useProviderIds, { resolveProviderId } from '../hooks/useProviderIds';
 
 // ============================================================
 // KAZI BOOKINGS — Minimal redesign
@@ -823,10 +822,21 @@ function InfoChip({ variant, children }) {
 
 function ProStrip({ b }) {
   const navigate = useNavigate();
-  const realIds = useProviderIds();
-  const targetId = resolveProviderId(b.id, realIds);
+  const goToProfile = () => navigate(`/professionals/${b.id}`, {
+    state: {
+      mock: {
+        id: b.id,
+        name: b.name,
+        initials: b.initials,
+        avatarUrl: b.avatarUrl,
+        role: b.role || 'Dental Professional',
+        cred: b.cred,
+        rate: b.hourlyRate,
+      },
+    },
+  });
   return (
-    <div onClick={() => navigate(`/professionals/${targetId}`)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
+    <div onClick={goToProfile} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
       {b.avatarUrl ? (
         <img src={b.avatarUrl} alt={b.name} style={{ width: 50, height: 50, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
       ) : (

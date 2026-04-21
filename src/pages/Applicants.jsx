@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
-import useProviderIds, { resolveProviderId } from '../hooks/useProviderIds';
 
 // ============================================================
 // KAZI APPLICANTS — Inbound applicants (they applied to your shifts/jobs)
@@ -411,7 +410,26 @@ function PermJobCard({ job, filter, isCollapsed, onToggle, onOpenDetail, onOpenP
 // ============================================================
 function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline }) {
   useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
+  const navigate = useNavigate();
   const { type, data, shift, job } = selected;
+  const roleLabel = type === 'temp' ? shift.role : (job.title || 'Dental Professional');
+  const goToProfile = () => navigate(`/professionals/${data.id}`, {
+    state: {
+      mock: {
+        id: data.id,
+        name: data.name,
+        initials: data.initials,
+        avatarUrl: data.avatarUrl,
+        role: roleLabel,
+        cred: data.cred,
+        stars: data.stars,
+        reviews: data.reviews,
+        dist: data.dist,
+        rate: data.rate,
+        exp: data.exp,
+      },
+    },
+  });
 
   return (
     <>
@@ -428,7 +446,7 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
               <SheetTitle text={shift.date} />
               <SheetSub text={`${shift.time} · ${shift.hours} hours`} />
               <InfoChip variant="green">Applied <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{data.appliedAgo}</strong></InfoChip>
-              <ApplicantStrip applicant={data} subLine={`${shift.role} · ${data.cred}`} />
+              <ApplicantStrip applicant={data} subLine={`${shift.role} · ${data.cred}`} onNavigate={goToProfile} />
               <SectionTitle text="Shift details" />
               <InfoRow label="Date" value={shift.date} />
               <InfoRow label="Time" value={shift.time} />
@@ -445,7 +463,7 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
                 Applied <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{data.appliedAgo}</strong> · Stage:&nbsp;
                 <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{STAGE_LABELS[data.stage]}</strong>
               </InfoChip>
-              <ApplicantStrip applicant={data} subLine={`${data.cred} · ${data.exp}`} />
+              <ApplicantStrip applicant={data} subLine={`${data.cred} · ${data.exp}`} onNavigate={goToProfile} />
               <SectionTitle text="Job details" />
               <InfoRow label="Position" value={job.title} />
               <InfoRow label="Type" value={job.type} />
@@ -634,12 +652,9 @@ function InfoChip({ variant, children }) {
   );
 }
 
-function ApplicantStrip({ applicant, subLine }) {
-  const navigate = useNavigate();
-  const realIds = useProviderIds();
-  const targetId = resolveProviderId(applicant.id, realIds);
+function ApplicantStrip({ applicant, subLine, onNavigate }) {
   return (
-    <div onClick={() => navigate(`/professionals/${targetId}`)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
+    <div onClick={onNavigate} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
       {applicant.avatarUrl ? (
         <img src={applicant.avatarUrl} alt={applicant.name} style={{ width: 50, height: 50, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
       ) : (

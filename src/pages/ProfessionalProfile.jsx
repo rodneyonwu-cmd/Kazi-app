@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
@@ -8,6 +8,53 @@ import TopBar from '../components/TopBar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const ROLE_MAP = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant', front: 'Front Desk', dentist: 'Dentist', specialist: 'Specialist' };
+
+// Preview mock: when a pro card is tapped from Bookings/Applicants, the
+// strip passes the clicked record via navigation state. We expand it
+// into a fully populated profile here so the page renders against the
+// same person the user clicked on.
+function buildMockPro(mock) {
+  const firstName = (mock.name || '').split(' ')[0] || 'Pro';
+  const cred = mock.cred || 'RDH';
+  const rating = typeof mock.rating === 'number' ? mock.rating : parseFloat(mock.stars) || 4.8;
+  const reviewCount = mock.reviews ?? 54;
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const availableDays = [];
+  for (let d = today.getDate(); d <= daysInMonth; d++) {
+    if (d % 3 !== 0) availableDays.push(d);
+  }
+  return {
+    id: mock.id || 'mock',
+    name: mock.name || 'Unknown',
+    firstName,
+    initials: mock.initials || firstName.slice(0, 2).toUpperCase(),
+    avatarUrl: mock.avatarUrl || null,
+    role: mock.role || 'Dental Professional',
+    location: mock.location || 'Houston, TX',
+    creds: [cred, 'BLS'],
+    rating,
+    reviews: reviewCount,
+    distance: mock.distance || mock.dist || '4 mi',
+    activity: 'Active recently',
+    rate: mock.rate || mock.hourlyRate || 55,
+    bookings: mock.bookings || 142,
+    reliability: mock.reliability || 98,
+    responseTime: '< 1 hr',
+    badges: ['Background Verified', 'Top 5%'],
+    about: `${firstName} is a dedicated ${cred} with years of experience in busy practice environments. Known for reliability, patient rapport, and a calm, organized approach on complex days.`,
+    credentialsList: [cred, 'BLS'],
+    software: ['Dentrix', 'Eaglesoft', 'Open Dental'],
+    experience: ['Operative', 'Crowns & bridges', 'Periodontal care', 'Pediatric'],
+    languages: [{ name: 'English', level: 'Native', native: true }, { name: 'Spanish', level: 'Conversational', native: false }],
+    availableDays,
+    reviewsList: [
+      { office: 'Missouri City Dental', date: 'Mar 14, 2026', stars: 5, text: `${firstName} was a pleasure to work with. On time, prepared, and great with patients.` },
+      { office: 'Sugar Land Family Dental', date: 'Feb 28, 2026', stars: 5, text: 'Quick to pick up our flow and kept up with a packed schedule without complaint.' },
+      { office: 'Pearland Smiles', date: 'Jan 12, 2026', stars: 4, text: 'Solid work. Would book again when we need extra help.' },
+    ],
+  };
+}
 
 // ---------- Inline icons ----------
 const IconBack = () => (
@@ -138,6 +185,7 @@ function Section({ title, children }) {
 // ---------- Main component ----------
 export default function ProfessionalProfile() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const { getToken } = useAuth();
 
@@ -155,6 +203,14 @@ export default function ProfessionalProfile() {
 
   // Fetch provider data + availability
   useEffect(() => {
+    // Preview path: if navigated here from Bookings/Applicants, the strip
+    // passes the clicked record as navigation state — render it directly.
+    const mock = location.state?.mock;
+    if (mock) {
+      setPro(buildMockPro(mock));
+      setLoading(false);
+      return;
+    }
     const fetchPro = async () => {
       try {
         const token = await getToken();
@@ -228,7 +284,7 @@ export default function ProfessionalProfile() {
       setLoading(false);
     };
     fetchPro();
-  }, [id, getToken]);
+  }, [id, getToken, location.state]);
 
   // When returning from Rapid Fill, auto-reopen the sheet
   useEffect(() => {
