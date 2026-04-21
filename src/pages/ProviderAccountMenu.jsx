@@ -38,12 +38,10 @@ export default function ProviderAccountMenu() {
   const { user } = useUser();
   const { signOut } = useClerk();
 
-  const firstName = user?.firstName || 'Provider';
-  const lastName = user?.lastName || '';
+  const firstName = user?.firstName || 'Rodney';
+  const lastName = user?.lastName || 'Onwu';
   const fullName = `${firstName} ${lastName}`.trim();
-  const initials = (
-    (firstName?.[0] || '') + (lastName?.[0] || '')
-  ).toUpperCase() || 'P';
+  const avatarUrl = user?.imageUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
   const handleBack = () => navigate(-1);
   const handleHelp = () => navigate('/provider-help');
@@ -149,11 +147,8 @@ export default function ProviderAccountMenu() {
 
       {/* Identity */}
       <section className="px-5 pt-3 pb-6 flex items-center gap-4">
-        <div
-          className="w-[88px] h-[88px] rounded-[24px] text-white font-[Outfit] font-bold text-[30px] tracking-[-0.01em] grid place-items-center flex-shrink-0 relative"
-          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
-        >
-          {initials}
+        <div className="w-[88px] h-[88px] rounded-[24px] flex-shrink-0 relative overflow-hidden border-2 border-white" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+          <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" />
           <button
             onClick={handleEditAccount}
             className="absolute -bottom-1 -right-1 w-[30px] h-[30px] rounded-full bg-white border-2 border-[#f9f8f6] grid place-items-center cursor-pointer"
@@ -233,20 +228,10 @@ export default function ProviderAccountMenu() {
       </div>
 
       {/* Account section */}
-      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+      <div className="px-5 pt-7 pb-3">
         <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
           Account
         </h3>
-        <button
-          onClick={handleEditAccount}
-          className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer"
-        >
-          <svg className="w-[13px] h-[13px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-          </svg>
-          Edit
-        </button>
       </div>
       <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[18px] overflow-hidden">
         {accountRows.map((row, i) => (

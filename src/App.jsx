@@ -67,6 +67,10 @@ import ProviderHourlyRate from './pages/ProviderHourlyRate'
 import ProviderTravelRadius from './pages/ProviderTravelRadius'
 import ProviderMinimumShift from './pages/ProviderMinimumShift'
 import ProviderLegalDoc from './pages/ProviderLegalDoc'
+import ProviderChangePassword from './pages/ProviderChangePassword'
+import ProviderPhoneNumber from './pages/ProviderPhoneNumber'
+import ProviderDateOfBirth from './pages/ProviderDateOfBirth'
+import ProviderHomeAddress from './pages/ProviderHomeAddress'
 
 function App() {
   return (
@@ -122,6 +126,10 @@ function App() {
       <Route path="/account/travel-radius" element={<RequireAuth><ProviderTravelRadius /></RequireAuth>} />
       <Route path="/account/minimum-shift" element={<RequireAuth><ProviderMinimumShift /></RequireAuth>} />
       <Route path="/legal/:slug" element={<RequireAuth><ProviderLegalDoc /></RequireAuth>} />
+      <Route path="/account/change-password" element={<RequireAuth><ProviderChangePassword /></RequireAuth>} />
+      <Route path="/account/phone" element={<RequireAuth><ProviderPhoneNumber /></RequireAuth>} />
+      <Route path="/account/date-of-birth" element={<RequireAuth><ProviderDateOfBirth /></RequireAuth>} />
+      <Route path="/account/home-address" element={<RequireAuth><ProviderHomeAddress /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
       <Route path="/my-profile" element={<RequireAuth><ProviderMyProfile /></RequireAuth>} />
