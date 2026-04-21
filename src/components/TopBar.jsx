@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser, useClerk } from '@clerk/clerk-react';
+import useUserRole from '../hooks/useUserRole';
 
 // ============================================================
 // KAZI TOP BAR — Shared sticky top bar with kazi. logo + avatar
@@ -54,15 +55,21 @@ const OFFICE_ITEMS = {
   viewProfilePath: '/my-office',
 };
 
-export default function TopBar({ role = 'provider' }) {
+// Role is derived from useUserRole() (backed by /api/users/me).
+// A legacy `role` prop may still be passed by older call sites —
+// React ignores unknown props on function components, so it's harmless.
+// The hook is the single source of truth.
+export default function TopBar() {
   const navigate = useNavigate();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { role: hookRole } = useUserRole();
   const [open, setOpen] = useState(false);
   const popoverRef = useRef(null);
   const triggerRef = useRef(null);
 
-  const items = role === 'office' ? OFFICE_ITEMS : PROVIDER_ITEMS;
+  const role = hookRole; // 'office' | 'provider' | null
+  const items = role === 'office' ? OFFICE_ITEMS : role === 'provider' ? PROVIDER_ITEMS : null;
 
   const firstName = user?.firstName || (role === 'office' ? '' : 'Rodney');
   const lastName = user?.lastName || (role === 'office' ? '' : 'Onwu');
@@ -116,7 +123,11 @@ export default function TopBar({ role = 'provider' }) {
       }}
     >
       <div
-        onClick={() => navigate(role === 'office' ? '/dashboard' : '/provider')}
+        onClick={() => {
+          if (role === 'office') navigate('/dashboard');
+          else if (role === 'provider') navigate('/provider');
+          // role unknown yet — do nothing rather than routing to the wrong dashboard
+        }}
         style={{
           fontFamily: "'Outfit', sans-serif",
           fontWeight: 800,
@@ -168,7 +179,7 @@ export default function TopBar({ role = 'provider' }) {
         )}
       </button>
 
-      {open && (
+      {open && items && (
         <div
           ref={popoverRef}
           style={{
