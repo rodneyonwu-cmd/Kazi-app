@@ -146,11 +146,10 @@ export default function TopBar() {
         onClick={() => setOpen((o) => !o)}
         aria-label="Open menu"
         style={{
-          width: 36,
-          height: 36,
-          borderRadius: 12,
+          width: 44,
+          height: 44,
           padding: 0,
-          background: COLORS.green,
+          background: 'none',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
@@ -160,10 +159,10 @@ export default function TopBar() {
           flexShrink: 0,
         }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="4" y1="7" x2="20" y2="7" />
-          <line x1="4" y1="12" x2="20" y2="12" />
-          <line x1="4" y1="17" x2="20" y2="17" />
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
       </button>
 
