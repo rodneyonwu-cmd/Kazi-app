@@ -304,20 +304,33 @@ function StatCard({ icon, iconVariant, value, label, onTap }) {
 
 // ── Calendar ─────────────────────────────────────────────────
 const DOW_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const DOW_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-// Extract the week that contains "today". Falls back to the first
-// non-empty week if nothing is marked today.
-function getWeekOfToday(days) {
-  for (let start = 0; start < days.length; start += 7) {
-    const row = days.slice(start, start + 7);
-    if (row.some((d) => d.status === 'today')) return row;
-  }
-  return days.slice(0, 7);
+// April 2026 DOW lookup (Apr 1 = Wed). Index = date of month.
+const APRIL_2026_DOW = {
+  1: 'Wed', 2: 'Thu', 3: 'Fri', 4: 'Sat', 5: 'Sun', 6: 'Mon', 7: 'Tue',
+  8: 'Wed', 9: 'Thu', 10: 'Fri', 11: 'Sat', 12: 'Sun', 13: 'Mon', 14: 'Tue',
+  15: 'Wed', 16: 'Thu', 17: 'Fri', 18: 'Sat', 19: 'Sun', 20: 'Mon', 21: 'Tue',
+  22: 'Wed', 23: 'Thu', 24: 'Fri', 25: 'Sat', 26: 'Sun', 27: 'Mon', 28: 'Tue',
+  29: 'Wed', 30: 'Thu',
+};
+
+// 7 forward-looking days starting from today, with DOW attached.
+// Mirrors the provider dashboard's week data shape: { dow, date, status }.
+function buildWeek(days) {
+  const todayIdx = days.findIndex((d) => d.status === 'today');
+  if (todayIdx < 0) return [];
+  return days
+    .slice(todayIdx, todayIdx + 7)
+    .filter((d) => !d.empty)
+    .map((d) => ({
+      dow: APRIL_2026_DOW[d.date] || '',
+      date: d.date,
+      status: d.status,
+    }));
 }
 
 function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav }) {
-  const weekDays = getWeekOfToday(days);
+  const weekDays = buildWeek(days);
 
   return (
     <>
@@ -345,37 +358,37 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
         </div>
       </div>
 
-      <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] p-[18px_16px_16px]">
-        {/* Nav */}
-        <div className="flex items-center justify-between mb-[14px]">
-          <button
-            onClick={() => onNav('prev')}
-            className="w-8 h-8 rounded-full bg-[#f5faf7] border-none grid place-items-center cursor-pointer"
-          >
-            <svg className="w-[14px] h-[14px] stroke-[#3a4a44]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <div className="font-[Outfit] font-bold text-[16px] text-[#0f1a16] tracking-[-0.01em]">
-            {monthLabel}
-          </div>
-          <button
-            onClick={() => onNav('next')}
-            className="w-8 h-8 rounded-full bg-[#f5faf7] border-none grid place-items-center cursor-pointer"
-          >
-            <svg className="w-[14px] h-[14px] stroke-[#3a4a44]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
+      {view === 'week' ? (
+        <div className="flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
+          {weekDays.map((day) => (
+            <OfficeDayCard key={day.date} day={day} onTap={() => onDayTap(day)} />
+          ))}
         </div>
-
-        {view === 'week' ? (
-          <div className="grid grid-cols-7 gap-[6px]">
-            {weekDays.map((day, i) => (
-              <WeekDayCard key={i} day={day} dow={DOW_SHORT[i]} onTap={() => onDayTap(day)} />
-            ))}
+      ) : (
+        <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] p-[18px_16px_16px]">
+          {/* Nav */}
+          <div className="flex items-center justify-between mb-[14px]">
+            <button
+              onClick={() => onNav('prev')}
+              className="w-8 h-8 rounded-full bg-[#f5faf7] border-none grid place-items-center cursor-pointer"
+            >
+              <svg className="w-[14px] h-[14px] stroke-[#3a4a44]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <div className="font-[Outfit] font-bold text-[16px] text-[#0f1a16] tracking-[-0.01em]">
+              {monthLabel}
+            </div>
+            <button
+              onClick={() => onNav('next')}
+              className="w-8 h-8 rounded-full bg-[#f5faf7] border-none grid place-items-center cursor-pointer"
+            >
+              <svg className="w-[14px] h-[14px] stroke-[#3a4a44]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
           </div>
-        ) : (
+
           <div className="grid grid-cols-7 gap-[3px]">
             {DOW_LETTERS.map((dow, i) => (
               <div key={i} className="text-[11px] font-bold text-[#9aa5a1] text-center py-[6px_0_10px] tracking-[0.05em]">
@@ -386,62 +399,75 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
               <CalendarDay key={i} day={day} onTap={() => onDayTap(day)} />
             ))}
           </div>
-        )}
 
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-[18px] pt-[14px] mt-3 border-t border-[#efede8]">
-          <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
-            <span className="w-3 h-3 rounded-[4px] bg-[#1a7f5e]" />
-            Today
-          </div>
-          <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
-            <span className="w-3 h-3 rounded-[4px] bg-[#f5faf7] border border-[#e8f2ed]" />
-            Booked
-          </div>
-          <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
-            <span className="w-[6px] h-[6px] rounded-full bg-[#e8734a]" />
-            Open shift
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-[18px] pt-[14px] mt-3 border-t border-[#efede8]">
+            <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+              <span className="w-3 h-3 rounded-[4px] bg-[#1a7f5e]" />
+              Today
+            </div>
+            <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+              <span className="w-3 h-3 rounded-[4px] bg-[#f5faf7] border border-[#e8f2ed]" />
+              Booked
+            </div>
+            <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+              <span className="w-[6px] h-[6px] rounded-full bg-[#e8734a]" />
+              Open shift
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
 
-function WeekDayCard({ day, dow, onTap }) {
-  if (day.empty) {
-    return <div className="aspect-[3/4]" />;
-  }
+// Mirrors ProviderDashboard DayCard exactly. Status mapping for office:
+//   today       → green card, "Today"
+//   booked      → sage card, "Booked"
+//   booked-open → sage card, "Open" (has open shifts still)
+//   normal      → white card, no status text
+function OfficeDayCard({ day, onTap }) {
+  const baseClasses = 'flex-shrink-0 w-[76px] h-[110px] rounded-[16px] p-[10px_8px_10px] flex flex-col items-center justify-center text-center cursor-pointer border';
 
-  const isToday = day.status === 'today';
-  const isBooked = day.status === 'booked' || day.status === 'booked-open';
-  const showDot = day.status === 'booked-open';
-
-  let wrapper = 'relative flex flex-col items-center justify-center aspect-[3/4] rounded-[12px] cursor-pointer';
+  let classes = baseClasses;
   let dowColor = 'text-[#9aa5a1]';
   let numColor = 'text-[#0f1a16]';
+  let statusColor = 'text-[#9aa5a1]';
+  let statusText = '';
 
-  if (isToday) {
-    wrapper += ' bg-[#1a7f5e]';
+  if (day.status === 'today') {
+    classes += ' bg-[#1a7f5e] border-[#1a7f5e]';
     dowColor = 'text-white/80';
     numColor = 'text-white';
-  } else if (isBooked) {
-    wrapper += ' bg-[#f5faf7]';
+    statusColor = 'text-white/90';
+    statusText = 'Today';
+  } else if (day.status === 'booked') {
+    classes += ' bg-[#f5faf7] border-[#dcebe3]';
     dowColor = 'text-[#146449]';
     numColor = 'text-[#146449]';
+    statusColor = 'text-[#1a7f5e]';
+    statusText = 'Booked';
+  } else if (day.status === 'booked-open') {
+    classes += ' bg-[#f5faf7] border-[#dcebe3]';
+    dowColor = 'text-[#146449]';
+    numColor = 'text-[#146449]';
+    statusColor = 'text-[#e8734a]';
+    statusText = 'Open';
+  } else {
+    classes += ' bg-white border-[#e8e6e1]';
   }
 
   return (
-    <div className={wrapper} onClick={onTap}>
-      <div className={`text-[10px] font-bold uppercase tracking-[0.06em] ${dowColor} mb-[2px]`}>
-        {dow}
+    <div className={classes} onClick={onTap}>
+      <div className={`text-[10.5px] font-bold uppercase tracking-[0.06em] ${dowColor} mb-1`}>
+        {day.dow}
       </div>
-      <div className={`font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] ${numColor}`}>
+      <div className={`font-[Outfit] font-bold text-[22px] leading-none tracking-[-0.02em] ${numColor} mb-2`}>
         {day.date}
       </div>
-      {showDot && (
-        <span className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#e8734a]" />
-      )}
+      <div className={`text-[10.5px] font-semibold uppercase tracking-[0.04em] ${statusColor} min-h-[13px]`}>
+        {statusText}
+      </div>
     </div>
   );
 }
