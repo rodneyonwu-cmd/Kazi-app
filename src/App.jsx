@@ -63,6 +63,7 @@ import PostTempShiftWizard from './pages/PostTempShiftWizard'
 import PostPermanentJobWizard from './pages/PostPermanentJobWizard'
 import ProviderAccountMenu from './pages/ProviderAccountMenu'
 import ProviderPersonalSettings from './pages/ProviderPersonalSettings'
+import ProviderSettingStub from './pages/ProviderSettingStub'
 
 function App() {
   return (
@@ -114,6 +115,7 @@ function App() {
       <Route path="/provider-settings" element={<RequireAuth><ProviderSettings /></RequireAuth>} />
       <Route path="/account" element={<RequireAuth><ProviderAccountMenu /></RequireAuth>} />
       <Route path="/account/personal" element={<RequireAuth><ProviderPersonalSettings /></RequireAuth>} />
+      <Route path="/account/setting" element={<RequireAuth><ProviderSettingStub /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
       <Route path="/my-profile" element={<RequireAuth><ProviderMyProfile /></RequireAuth>} />
