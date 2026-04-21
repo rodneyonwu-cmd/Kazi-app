@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
  * OfficeDashboard
@@ -70,6 +73,9 @@ const mockOffice = {
       id: 'onsite_1',
       initials: 'SK',
       name: 'Sarah K.',
+      firstName: 'Sarah',
+      lastName: 'K.',
+      avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
       role: 'RDH',
       timeRange: '8am–5pm',
       checkedInAt: '7:52 AM',
@@ -80,12 +86,45 @@ const mockOffice = {
 // ── Component ────────────────────────────────────────────────
 export default function OfficeDashboard() {
   const navigate = useNavigate();
+  const { getToken } = useAuth();
   // TODO: replace mock with API call
   // const { data: office, isLoading } = useOfficeDashboard();
   const office = mockOffice;
 
   const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
   const [chooserOpen, setChooserOpen] = useState(false);
+  // Map of mock on-site id → real Prisma provider id, resolved once on mount.
+  const [onsiteRealIds, setOnsiteRealIds] = useState({});
+
+  // Resolve the mock on-site providers' real IDs so tapping them routes to
+  // their actual ProfessionalProfile page (which serves the same avatarUrl
+  // from the seeded DB — keeping the photo consistent across surfaces).
+  useEffect(() => {
+    let cancelled = false;
+    const resolveIds = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await fetch(`${API_URL}/api/providers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const list = await res.json();
+        const lookup = {};
+        for (const onsite of office.onsiteNow) {
+          const match = list.find(
+            (p) =>
+              p?.user?.firstName === onsite.firstName &&
+              p?.user?.lastName === onsite.lastName,
+          );
+          if (match) lookup[onsite.id] = match.id;
+        }
+        if (!cancelled) setOnsiteRealIds(lookup);
+      } catch {}
+    };
+    resolveIds();
+    return () => { cancelled = true; };
+  }, [getToken, office.onsiteNow]);
 
   const handlePostJob = () => {
     setChooserOpen(true);
@@ -114,7 +153,13 @@ export default function OfficeDashboard() {
   };
 
   const handleOnsiteTap = (onsiteId) => {
-    navigate(`/provider-profile/${onsiteId}`);
+    const realId = onsiteRealIds[onsiteId];
+    if (realId) {
+      navigate(`/professionals/${realId}`);
+    } else {
+      // ID hasn't resolved yet (or API failed) — fall back to listing.
+      navigate('/professionals');
+    }
   };
 
   return (
@@ -546,12 +591,20 @@ function OnsiteCard({ provider, onTap }) {
       onClick={onTap}
       className="bg-white border border-[#e8e6e1] rounded-[16px] p-[14px] flex items-center gap-3 cursor-pointer"
     >
-      <div
-        className="w-12 h-12 rounded-[14px] text-white font-[Outfit] font-bold text-[15px] grid place-items-center flex-shrink-0"
-        style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
-      >
-        {provider.initials}
-      </div>
+      {provider.avatarUrl ? (
+        <img
+          src={provider.avatarUrl}
+          alt={provider.name}
+          className="w-12 h-12 rounded-[14px] object-cover flex-shrink-0"
+        />
+      ) : (
+        <div
+          className="w-12 h-12 rounded-[14px] text-white font-[Outfit] font-bold text-[15px] grid place-items-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
+        >
+          {provider.initials}
+        </div>
+      )}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-[3px]">
