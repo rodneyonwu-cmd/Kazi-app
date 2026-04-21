@@ -340,20 +340,31 @@ export default function ProfessionalProfile() {
           <IconBack />
         </button>
         <div className="flex-1" />
-        <button className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a]">
-          <IconShare />
-        </button>
-        <button className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#e8734a]">
-          <IconHeart />
-        </button>
       </div>
 
       {/* Hero */}
-      <div className="bg-white px-5 pt-6 pb-6 text-left relative overflow-hidden">
+      <div className="bg-white pl-8 pr-5 pt-6 pb-6 text-left relative overflow-hidden">
         <div
           className="absolute top-0 left-0 w-72 h-52 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at top left, #f1f9f5 0%, transparent 70%)' }}
         />
+
+        {/* Share / favorite — moved down from the sticky top bar */}
+        <div className="absolute top-4 right-5 flex gap-2 z-10">
+          <button
+            aria-label="Share"
+            className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a] border border-[#f3f3f3]"
+          >
+            <IconShare />
+          </button>
+          <button
+            aria-label="Save"
+            className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#e8734a] border border-[#f3f3f3]"
+          >
+            <IconHeart />
+          </button>
+        </div>
+
         <div className="relative">
           <div className="relative inline-block mb-3">
             {pro.avatarUrl ? (
