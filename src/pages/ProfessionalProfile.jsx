@@ -104,21 +104,16 @@ const BADGES = [
 
 function TrustBadges() {
   return (
-    <div className="flex items-start gap-4 mt-4">
+    <div className="flex items-center gap-3 mt-4">
       {BADGES.map((b) => (
-        <div key={b.label} className="flex flex-col items-center text-center flex-1">
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center border"
-            style={{ background: b.bg, borderColor: b.border, color: b.color }}
-          >
-            {BADGE_ICONS[b.icon]}
-          </div>
-          <div
-            className="mt-1.5 text-[10.5px] font-bold leading-[1.2] whitespace-pre-line"
-            style={{ color: b.color }}
-          >
-            {b.label}
-          </div>
+        <div
+          key={b.label}
+          title={b.label.replace('\n', ' ')}
+          aria-label={b.label.replace('\n', ' ')}
+          className="w-12 h-12 rounded-full flex items-center justify-center border"
+          style={{ background: b.bg, borderColor: b.border, color: b.color }}
+        >
+          {BADGE_ICONS[b.icon]}
         </div>
       ))}
     </div>
@@ -403,11 +398,11 @@ export default function ProfessionalProfile() {
           </div>
           <div className="text-sm">
             <span className="inline-flex items-center gap-1.5">
-              <span className="text-[#f4b740] text-[18px] leading-none">★</span>
-              <span className="font-bold text-[15px] text-[#1a1a1a]">{pro.rating.toFixed(1)}</span>
-              <span className="text-[#8a8a8a]">({pro.reviews})</span>
+              <span className="text-[#f4b740] text-[26px] leading-none">★</span>
+              <span className="font-bold text-[20px] text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.rating.toFixed(1)}</span>
+              <span className="text-[#8a8a8a] text-[14px]">({pro.reviews})</span>
             </span>
-            <span className="text-[#ececec] mx-1">·</span>
+            <span className="text-[#ececec] mx-1.5">·</span>
             <span className="inline-flex items-center gap-1 text-[#5a5a5a]">
               <span className="text-[#8a8a8a]">
                 <IconPin />
