@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import BottomNav from '../components/BottomNav';
+import TopBar from '../components/TopBar';
 
 // ============================================================
 // KAZI APPLICANTS — Inbound applicants (they applied to your shifts/jobs)
@@ -149,6 +150,7 @@ export default function Applicants() {
       `}</style>
 
       <div className="kazi-applicants" style={{ background: COLORS.bg, minHeight: '100vh', maxWidth: 480, margin: '0 auto', boxShadow: '0 0 40px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif", color: COLORS.text, WebkitFontSmoothing: 'antialiased', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <TopBar role="office" />
 
         {/* TOP BAR */}
         <div style={{ background: 'white', padding: '18px 18px 0', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0, position: 'sticky', top: 0, zIndex: 20 }}>
