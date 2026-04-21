@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
+import useProviderIds, { resolveProviderId } from '../hooks/useProviderIds';
 
 // ============================================================
 // KAZI APPLICANTS — Inbound applicants (they applied to your shifts/jobs)
@@ -635,8 +636,10 @@ function InfoChip({ variant, children }) {
 
 function ApplicantStrip({ applicant, subLine }) {
   const navigate = useNavigate();
+  const realIds = useProviderIds();
+  const targetId = resolveProviderId(applicant.id, realIds);
   return (
-    <div onClick={() => navigate(`/professionals/${applicant.id}`)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
+    <div onClick={() => navigate(`/professionals/${targetId}`)} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
       {applicant.avatarUrl ? (
         <img src={applicant.avatarUrl} alt={applicant.name} style={{ width: 50, height: 50, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
       ) : (
