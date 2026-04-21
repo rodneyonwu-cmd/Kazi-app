@@ -230,6 +230,25 @@ function ProCard({ pro, onClick, onSave, onBook }) {
         </div>
       </div>
 
+      {/* Stats strip */}
+      <div className="flex gap-2 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
+        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
+          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Rate</div>
+          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.rate}</div>
+        </div>
+        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
+          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Bookings</div>
+          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.bookings}</div>
+        </div>
+        <div
+          className="flex-1 rounded-xl py-2.5 px-2 text-center border"
+          style={{ background: tier.bg, borderColor: tier.border }}
+        >
+          <div className="text-[9px] uppercase tracking-wider font-semibold mb-0.5" style={{ color: tier.color }}>Reliability</div>
+          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: tier.color }}>{pro.reliability}%</div>
+        </div>
+      </div>
+
       {/* Trust badges — randomized realistic mix per pro */}
       <TrustBadgesRow proId={pro.id} rating={pro.rating} reliability={pro.reliability} />
 
@@ -256,25 +275,6 @@ function ProCard({ pro, onClick, onSave, onBook }) {
           </p>
         </div>
       )}
-
-      {/* Stats strip */}
-      <div className="flex gap-2 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
-        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
-          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Rate</div>
-          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.rate}</div>
-        </div>
-        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
-          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Bookings</div>
-          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.bookings}</div>
-        </div>
-        <div
-          className="flex-1 rounded-xl py-2.5 px-2 text-center border"
-          style={{ background: tier.bg, borderColor: tier.border }}
-        >
-          <div className="text-[9px] uppercase tracking-wider font-semibold mb-0.5" style={{ color: tier.color }}>Reliability</div>
-          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: tier.color }}>{pro.reliability}%</div>
-        </div>
-      </div>
 
       {/* Actions */}
       <div className="flex gap-2 mt-3.5">
