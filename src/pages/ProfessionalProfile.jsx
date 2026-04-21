@@ -136,6 +136,7 @@ export default function ProfessionalProfile() {
             name: displayName,
             firstName,
             initials,
+            avatarUrl: u.avatarUrl || null,
             role: ROLE_MAP[data.role] || data.role || 'Professional',
             location: data.city && data.state ? `${data.city}, ${data.state}` : 'Houston, TX',
             creds: (data.credentials || []).map(c => c.type).slice(0, 5),
@@ -146,6 +147,7 @@ export default function ProfessionalProfile() {
             rate: data.hourlyRate || 0,
             bookings: data.shiftsCompleted || 0,
             reliability: data.reliabilityScore || 100,
+            responseTime: data.responseTime || '< 1 hr',
             badges: ['Background Verified', ...(data.skills || []).slice(0, 2)],
             about: data.bio || 'No bio available.',
             credentialsList: (data.credentials || []).map(c => c.type),
@@ -286,28 +288,36 @@ export default function ProfessionalProfile() {
       </div>
 
       {/* Hero */}
-      <div className="bg-white px-5 pt-6 pb-7 text-center relative overflow-hidden">
+      <div className="bg-white px-5 pt-6 pb-6 text-left relative overflow-hidden">
         <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-52 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at center, #f1f9f5 0%, transparent 70%)' }}
+          className="absolute top-0 left-0 w-72 h-52 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at top left, #f1f9f5 0%, transparent 70%)' }}
         />
         <div className="relative">
-          <div className="relative inline-block mb-3.5">
-            <div
-              className="w-[100px] h-[100px] rounded-[28px] flex items-center justify-center text-white text-4xl font-bold shadow-xl"
-              style={{
-                background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-                fontFamily: "'Outfit', sans-serif",
-              }}
-            >
-              {pro.initials}
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-[30px] h-[30px] bg-[#1a7f5e] rounded-full flex items-center justify-center border-[3px] border-white text-white">
-              <IconCheck className="w-3.5 h-3.5" />
+          <div className="relative inline-block mb-3">
+            {pro.avatarUrl ? (
+              <img
+                src={pro.avatarUrl}
+                alt={pro.name}
+                className="w-[72px] h-[72px] rounded-[20px] object-cover shadow-md"
+              />
+            ) : (
+              <div
+                className="w-[72px] h-[72px] rounded-[20px] flex items-center justify-center text-white text-2xl font-bold shadow-md"
+                style={{
+                  background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
+                  fontFamily: "'Outfit', sans-serif",
+                }}
+              >
+                {pro.initials}
+              </div>
+            )}
+            <div className="absolute -bottom-0.5 -right-0.5 w-[24px] h-[24px] bg-[#1a7f5e] rounded-full flex items-center justify-center border-[3px] border-white text-white">
+              <IconCheck className="w-3 h-3" />
             </div>
           </div>
           <div
-            className="text-[26px] font-extrabold leading-tight mb-1 text-[#1a1a1a]"
+            className="text-[24px] font-extrabold leading-tight mb-1 text-[#1a1a1a]"
             style={{ fontFamily: "'Outfit', sans-serif" }}
           >
             {pro.name}
@@ -315,7 +325,7 @@ export default function ProfessionalProfile() {
           <div className="text-sm text-[#5a5a5a] mb-2.5">
             {pro.role} · {pro.location}
           </div>
-          <div className="inline-flex gap-1.5 mb-3 flex-wrap justify-center">
+          <div className="inline-flex gap-1.5 mb-3 flex-wrap">
             {pro.creds.map((c) => (
               <span
                 key={c}
@@ -343,7 +353,7 @@ export default function ProfessionalProfile() {
             <div className="w-[7px] h-[7px] bg-[#1a7f5e] rounded-full animate-pulse" />
             {pro.activity}
           </div>
-          <div className="flex flex-wrap gap-1.5 justify-center mt-3.5">
+          <div className="flex flex-wrap gap-1.5 mt-3">
             {pro.badges.map((badge, idx) => {
               const isPurple = badge.toLowerCase().startsWith('top');
               return (
@@ -370,28 +380,34 @@ export default function ProfessionalProfile() {
       </div>
 
       {/* Quick stats */}
-      <div className="px-5 py-4 grid grid-cols-3 gap-2.5">
-        <div className="bg-white rounded-2xl p-3.5 border border-[#f3f3f3] text-center">
+      <div className="px-5 py-4 grid grid-cols-4 gap-2">
+        <div className="bg-white rounded-2xl p-3 border border-[#f3f3f3] text-center">
           <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Rate</div>
-          <div className="text-lg font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+          <div className="text-[15px] font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
             ${pro.rate}/hr
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-3.5 border border-[#f3f3f3] text-center">
+        <div className="bg-white rounded-2xl p-3 border border-[#f3f3f3] text-center">
           <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Bookings</div>
-          <div className="text-lg font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+          <div className="text-[15px] font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
             {pro.bookings}
           </div>
         </div>
         <div
-          className="rounded-2xl p-3.5 border text-center"
+          className="rounded-2xl p-3 border text-center"
           style={{ background: reliabilityTier.bg, borderColor: reliabilityTier.border }}
         >
           <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: reliabilityTier.color }}>
             Reliability
           </div>
-          <div className="text-lg font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: reliabilityTier.color }}>
+          <div className="text-[15px] font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: reliabilityTier.color }}>
             {pro.reliability}%
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-3 border border-[#f3f3f3] text-center">
+          <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Response</div>
+          <div className="text-[15px] font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+            {pro.responseTime}
           </div>
         </div>
       </div>
