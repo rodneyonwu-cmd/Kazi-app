@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
@@ -84,6 +84,8 @@ export default function OfficeDashboard() {
   // const { data: office, isLoading } = useOfficeDashboard();
   const office = mockOffice;
 
+  const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
+
   const handlePostJob = () => {
     navigate('/post-shift');
   };
@@ -142,10 +144,12 @@ export default function OfficeDashboard() {
         {/* Today's overview */}
         <TodaysOverview stats={office.todayStats} onStatTap={handleStatTap} />
 
-        {/* This month calendar */}
+        {/* Calendar (Week / Month) */}
         <CalendarSection
           monthLabel={office.currentMonth}
           days={office.calendarDays}
+          view={calendarView}
+          onChangeView={setCalendarView}
           onDayTap={handleCalendarDayTap}
           onNav={handleCalendarNav}
         />
@@ -299,18 +303,43 @@ function StatCard({ icon, iconVariant, value, label, onTap }) {
 }
 
 // ── Calendar ─────────────────────────────────────────────────
-function CalendarSection({ monthLabel, days, onDayTap, onNav }) {
+const DOW_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DOW_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+// Extract the week that contains "today". Falls back to the first
+// non-empty week if nothing is marked today.
+function getWeekOfToday(days) {
+  for (let start = 0; start < days.length; start += 7) {
+    const row = days.slice(start, start + 7);
+    if (row.some((d) => d.status === 'today')) return row;
+  }
+  return days.slice(0, 7);
+}
+
+function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav }) {
+  const weekDays = getWeekOfToday(days);
+
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
         <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
-          This month
+          {view === 'week' ? 'This week' : 'This month'}
         </h3>
         <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
-          <button className="border-none bg-transparent text-[#6b7875] font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+          <button
+            onClick={() => onChangeView('week')}
+            className={`border-none font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full ${
+              view === 'week' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
+            }`}
+          >
             Week
           </button>
-          <button className="border-none bg-[#1a7f5e] text-white font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full">
+          <button
+            onClick={() => onChangeView('month')}
+            className={`border-none font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full ${
+              view === 'month' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
+            }`}
+          >
             Month
           </button>
         </div>
@@ -340,17 +369,24 @@ function CalendarSection({ monthLabel, days, onDayTap, onNav }) {
           </button>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-7 gap-[3px]">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((dow, i) => (
-            <div key={i} className="text-[11px] font-bold text-[#9aa5a1] text-center py-[6px_0_10px] tracking-[0.05em]">
-              {dow}
-            </div>
-          ))}
-          {days.map((day, i) => (
-            <CalendarDay key={i} day={day} onTap={() => onDayTap(day)} />
-          ))}
-        </div>
+        {view === 'week' ? (
+          <div className="grid grid-cols-7 gap-[6px]">
+            {weekDays.map((day, i) => (
+              <WeekDayCard key={i} day={day} dow={DOW_SHORT[i]} onTap={() => onDayTap(day)} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-7 gap-[3px]">
+            {DOW_LETTERS.map((dow, i) => (
+              <div key={i} className="text-[11px] font-bold text-[#9aa5a1] text-center py-[6px_0_10px] tracking-[0.05em]">
+                {dow}
+              </div>
+            ))}
+            {days.map((day, i) => (
+              <CalendarDay key={i} day={day} onTap={() => onDayTap(day)} />
+            ))}
+          </div>
+        )}
 
         {/* Legend */}
         <div className="flex items-center justify-center gap-[18px] pt-[14px] mt-3 border-t border-[#efede8]">
@@ -369,6 +405,44 @@ function CalendarSection({ monthLabel, days, onDayTap, onNav }) {
         </div>
       </div>
     </>
+  );
+}
+
+function WeekDayCard({ day, dow, onTap }) {
+  if (day.empty) {
+    return <div className="aspect-[3/4]" />;
+  }
+
+  const isToday = day.status === 'today';
+  const isBooked = day.status === 'booked' || day.status === 'booked-open';
+  const showDot = day.status === 'booked-open';
+
+  let wrapper = 'relative flex flex-col items-center justify-center aspect-[3/4] rounded-[12px] cursor-pointer';
+  let dowColor = 'text-[#9aa5a1]';
+  let numColor = 'text-[#0f1a16]';
+
+  if (isToday) {
+    wrapper += ' bg-[#1a7f5e]';
+    dowColor = 'text-white/80';
+    numColor = 'text-white';
+  } else if (isBooked) {
+    wrapper += ' bg-[#f5faf7]';
+    dowColor = 'text-[#146449]';
+    numColor = 'text-[#146449]';
+  }
+
+  return (
+    <div className={wrapper} onClick={onTap}>
+      <div className={`text-[10px] font-bold uppercase tracking-[0.06em] ${dowColor} mb-[2px]`}>
+        {dow}
+      </div>
+      <div className={`font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] ${numColor}`}>
+        {day.date}
+      </div>
+      {showDot && (
+        <span className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#e8734a]" />
+      )}
+    </div>
   );
 }
 
