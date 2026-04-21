@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 // ============================================================
 // KAZI BOTTOM NAV — Shared office-side bottom tab bar
-// 5 tabs: Home / Find / Bookings / Messages / Profile
+// 5 tabs: Home / Applicants / Bookings / Messages / Profile
 // Profile tab navigates directly to /my-office.
 // (Account dropdown lives on the TopBar avatar.)
 // ============================================================
@@ -27,12 +27,14 @@ const TABS = [
     ),
   },
   {
-    label: 'Find',
-    path: '/professionals',
+    label: 'Applicants',
+    path: '/applicants',
     icon: (
       <>
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="8.5" cy="7" r="4" />
+        <path d="M20 8v6" />
+        <path d="M23 11h-6" />
       </>
     ),
   },
@@ -71,7 +73,7 @@ export default function BottomNav() {
 
   const isActive = (path) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';
-    if (path === '/professionals') return location.pathname.startsWith('/professionals');
+    if (path === '/applicants') return location.pathname.startsWith('/applicants');
     if (path === '/bookings') return location.pathname.startsWith('/bookings');
     if (path === '/messages') return location.pathname.startsWith('/messages');
     if (path === '/my-office') return location.pathname === '/my-office' || location.pathname.startsWith('/office-profile');
