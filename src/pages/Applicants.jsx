@@ -393,28 +393,40 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 20px' }}>
           {type === 'temp' ? (
             <>
-              <SheetLabel text={`Applicant · ${shift.role}`} />
-              <SheetTitle text={data.name} />
-              <div style={{ fontSize: 14, color: COLORS.textMid, marginTop: 6 }}>{data.cred} · {data.dist} · Applied {data.appliedAgo}</div>
-              <RatingRow stars={data.stars} reviews={data.reviews} />
+              <SheetLabel text="Temp shift applicant" />
+              <SheetTitle text={shift.date} />
+              <SheetSub text={`${shift.time} · ${shift.hours} hours`} />
+              <InfoChip variant="green">Applied <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{data.appliedAgo}</strong></InfoChip>
+              <ApplicantStrip applicant={data} subLine={`${shift.role} · ${data.cred}`} />
               <SectionTitle text="Shift details" />
               <InfoRow label="Date" value={shift.date} />
               <InfoRow label="Time" value={shift.time} />
               <InfoRow label="Hours" value={shift.hours.toString()} />
               <InfoRow label="Hourly rate" value={`$${shift.hourlyRate}/hr`} valueColor={COLORS.green} valueLarge />
               <InfoRow label="Est. total" value={`$${shift.hourlyRate * shift.hours}`} valueColor={COLORS.green} valueLarge />
+              <SectionTitle text="About applicant" />
+              <InfoRow label="Distance" value={data.dist} />
+              <InfoRow label="Rating" value={`${data.stars} ★ (${data.reviews})`} />
+              <InfoRow label="Requested rate" value={`$${data.rate}/hr`} />
             </>
           ) : (
             <>
-              <SheetLabel text={`Applicant · ${job.title}`} />
-              <SheetTitle text={data.name} />
-              <div style={{ fontSize: 14, color: COLORS.textMid, marginTop: 6 }}>{data.cred} · {data.exp} experience · {data.dist}</div>
-              <RatingRow stars={data.stars} reviews={data.reviews} />
+              <SheetLabel text="Permanent job applicant" />
+              <SheetTitle text={job.title} />
+              <SheetSub text={`${job.salary} · ${job.type}`} />
+              <InfoChip variant="purple">
+                Applied <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{data.appliedAgo}</strong> · Stage:&nbsp;
+                <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{STAGE_LABELS[data.stage]}</strong>
+              </InfoChip>
+              <ApplicantStrip applicant={data} subLine={`${data.cred} · ${data.exp}`} />
               <SectionTitle text="Job details" />
               <InfoRow label="Position" value={job.title} />
               <InfoRow label="Type" value={job.type} />
               <InfoRow label="Salary" value={job.salary} valueColor={COLORS.purple} />
-              <InfoRow label="Applied" value={data.appliedAgo} />
+              <InfoRow label="Posted" value={job.posted} />
+              <SectionTitle text="About applicant" />
+              <InfoRow label="Distance" value={data.dist} />
+              <InfoRow label="Rating" value={`${data.stars} ★ (${data.reviews})`} />
             </>
           )}
         </div>
@@ -574,7 +586,50 @@ function MessageBtn() {
 
 function SheetLabel({ text }) { return <div style={{ fontSize: 10, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 800, letterSpacing: 0.6, marginBottom: 8 }}>{text}</div>; }
 function SheetTitle({ text }) { return <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: '-0.6px', lineHeight: 1.1 }}>{text}</div>; }
+function SheetSub({ text }) { return <div style={{ fontSize: 14, color: COLORS.textMid, marginTop: 6 }}>{text}</div>; }
 function SectionTitle({ text }) { return <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12, marginTop: 22 }}>{text}</div>; }
+
+function InfoChip({ variant, children }) {
+  const map = {
+    green: { bg: COLORS.greenTint, border: COLORS.greenSoft, fg: COLORS.green },
+    purple: { bg: COLORS.purpleSoft, border: COLORS.purpleSoft, fg: COLORS.purple },
+    amber: { bg: COLORS.amberSoft, border: '#fce0bf', fg: COLORS.amber },
+  };
+  const s = map[variant] || map.green;
+  return (
+    <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, background: s.bg, border: `1px solid ${s.border}`, color: s.fg }}>
+      <svg viewBox="0 0 24 24" fill="none" stroke={s.fg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function ApplicantStrip({ applicant, subLine }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '16px 0', marginTop: 18, borderTop: `1px solid ${COLORS.borderSoft}`, borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
+      <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, flexShrink: 0, letterSpacing: '-0.3px' }}>
+        {applicant.initials}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.3px', marginBottom: 3 }}>{applicant.name}</div>
+        <div style={{ fontSize: 12, color: COLORS.textMid, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span>{subLine}</span>
+          <span style={{ color: COLORS.gold }}>★</span>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.text }}>{applicant.stars}</span>
+          <span style={{ color: COLORS.textLight }}>({applicant.reviews})</span>
+        </div>
+      </div>
+      <div style={{ color: COLORS.textLight, flexShrink: 0 }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 function RatingRow({ stars, reviews }) {
   return (
