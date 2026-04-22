@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
+import FindProsSheet from '../components/FindProsSheet';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -93,6 +94,7 @@ export default function OfficeDashboard() {
 
   const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
   const [chooserOpen, setChooserOpen] = useState(false);
+  const [findProsOpen, setFindProsOpen] = useState(false);
   // Map of mock on-site id → real Prisma provider id, resolved once on mount.
   const [onsiteRealIds, setOnsiteRealIds] = useState({});
 
@@ -134,7 +136,18 @@ export default function OfficeDashboard() {
   const goToPermanent = () => { closeChooser(); navigate('/post/permanent'); };
 
   const handleFindPros = () => {
-    navigate('/professionals');
+    setFindProsOpen(true);
+  };
+
+  const handleFindProsSubmit = (criteria) => {
+    setFindProsOpen(false);
+    const qs = new URLSearchParams();
+    if (criteria.role) qs.set('role', criteria.role);
+    if (criteria.date) qs.set('date', criteria.date);
+    if (criteria.startTime) qs.set('start', criteria.startTime);
+    if (criteria.endTime) qs.set('end', criteria.endTime);
+    if (criteria.lunchBreakDuration) qs.set('lunch', String(criteria.lunchBreakDuration));
+    navigate(`/professionals?${qs.toString()}`);
   };
 
   const handleStatTap = (statName) => {
@@ -218,6 +231,13 @@ export default function OfficeDashboard() {
         onClose={closeChooser}
         onPickTemp={goToTemp}
         onPickPermanent={goToPermanent}
+      />
+
+      {/* Find Pros criteria sheet */}
+      <FindProsSheet
+        open={findProsOpen}
+        onClose={() => setFindProsOpen(false)}
+        onSubmit={handleFindProsSubmit}
       />
     </div>
   );
