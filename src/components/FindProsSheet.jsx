@@ -85,15 +85,15 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
     return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (rapid = false) => {
     onSubmit && onSubmit({
       role,
       date: selectedDate.toISOString().split('T')[0],
       startTime,
       endTime,
       lunchBreakDuration: lunchOn ? lunchMins : null,
-      rapidFillEnabled: false,
-      rapidFillCount: 0,
+      rapidFillEnabled: rapid,
+      rapidFillCount: rapid ? 9 : 0,
     });
   };
 
@@ -324,7 +324,7 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
           {/* RAPID FILL */}
           <div style={{ padding: '22px 24px' }}>
             <div style={sectionLabel}>Rapid fill</div>
-            <div style={{ background: 'white', border: `1.5px solid ${COLORS.borderSoft}`, borderRadius: 18, padding: 16, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
+            <div onClick={() => handleSubmit(true)} style={{ background: 'white', border: `1.5px solid ${COLORS.borderSoft}`, borderRadius: 18, padding: 16, display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: COLORS.greenTint, border: `1px solid ${COLORS.greenSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg viewBox="0 0 24 24" fill={COLORS.green} stroke={COLORS.green} strokeWidth="1.5" style={{ width: 20, height: 20 }}>
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -344,7 +344,7 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
         {/* Sticky footer */}
         <div style={{ padding: '14px 20px 26px', borderTop: `1px solid ${COLORS.borderSoft}`, background: 'white', flexShrink: 0 }}>
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit(false)}
             style={{
               width: '100%', background: COLORS.green, color: 'white',
               border: 'none', borderRadius: 100, padding: '16px 20px',

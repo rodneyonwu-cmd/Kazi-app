@@ -142,10 +142,11 @@ export default function OfficeDashboard() {
   const handleFindProsSubmit = (criteria) => {
     setFindProsOpen(false);
     const qs = new URLSearchParams();
+    if (criteria.rapidFillEnabled) qs.set('rapidfill', '1');
     if (criteria.role) qs.set('role', criteria.role);
     if (criteria.date) qs.set('date', criteria.date);
-    if (criteria.startTime) qs.set('start', criteria.startTime);
-    if (criteria.endTime) qs.set('end', criteria.endTime);
+    if (criteria.startTime) qs.set('startTime', criteria.startTime);
+    if (criteria.endTime) qs.set('endTime', criteria.endTime);
     if (criteria.lunchBreakDuration) qs.set('lunch', String(criteria.lunchBreakDuration));
     navigate(`/professionals?${qs.toString()}`);
   };
