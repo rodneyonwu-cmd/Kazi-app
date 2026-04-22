@@ -192,7 +192,7 @@ export default function OfficeDashboard() {
       <div className="bg-[#f9f8f6] min-h-full pb-6">
         {/* Greeting */}
         <section className="px-5 pt-4 pb-5">
-          <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
+          <h1 className="font-[Outfit] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
             Good morning, Dr. {office.ownerFirstName} 👋
           </h1>
           <div className="text-[14px] font-medium text-[#6b7875]">
