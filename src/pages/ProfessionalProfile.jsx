@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
 import BottomNav from '../components/BottomNav';
@@ -188,6 +188,7 @@ export default function ProfessionalProfile() {
   const location = useLocation();
   const { id } = useParams();
   const { getToken } = useAuth();
+  const { user } = useUser();
 
   const [pro, setPro] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -208,6 +209,27 @@ export default function ProfessionalProfile() {
     const mock = location.state?.mock;
     if (mock) {
       setPro(buildMockPro(mock));
+      setLoading(false);
+      return;
+    }
+    // Self-view: the provider-side Profile tab routes here with id="me".
+    if (id === 'me') {
+      const firstName = user?.firstName || 'Rodney';
+      const lastName = user?.lastName || 'Onwu';
+      let storedPhoto = null;
+      try { storedPhoto = localStorage.getItem('kazi_profile_photo'); } catch {}
+      setPro(buildMockPro({
+        id: 'me',
+        name: `${firstName} ${lastName}`.trim(),
+        initials: `${firstName[0] || 'R'}${lastName[0] || 'O'}`.toUpperCase(),
+        avatarUrl: storedPhoto || user?.imageUrl || null,
+        role: 'Dental Assistant',
+        cred: 'RDA',
+        stars: '4.9',
+        reviews: 82,
+        dist: '—',
+        rate: 28,
+      }));
       setLoading(false);
       return;
     }
@@ -284,7 +306,7 @@ export default function ProfessionalProfile() {
       setLoading(false);
     };
     fetchPro();
-  }, [id, getToken, location.state]);
+  }, [id, getToken, location.state, user]);
 
   // When returning from Rapid Fill, auto-reopen the sheet
   useEffect(() => {

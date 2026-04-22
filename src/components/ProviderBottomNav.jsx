@@ -54,7 +54,7 @@ const TABS = [
   },
   {
     label: 'Profile',
-    path: '/my-profile',
+    path: '/professionals/me',
     icon: (
       <>
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -73,7 +73,7 @@ export default function ProviderBottomNav() {
     if (path === '/find-shifts') return location.pathname.startsWith('/find-shifts');
     if (path === '/requests') return location.pathname.startsWith('/requests');
     if (path === '/messages') return location.pathname.startsWith('/messages');
-    if (path === '/my-profile') return location.pathname === '/my-profile' || location.pathname === '/provider-profile-preview';
+    if (path === '/professionals/me') return location.pathname === '/professionals/me' || location.pathname === '/my-profile' || location.pathname === '/provider-profile-preview';
     return false;
   };
 
