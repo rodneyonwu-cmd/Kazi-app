@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/clerk-react';
 import BookingSheet from '../components/BookingSheet';
 import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
+import SuccessToast from '../components/SuccessToast';
 
 // ============================================================
 // Kazi - Find Professionals (Search Feed)
@@ -502,6 +503,7 @@ export default function FindProfessionals() {
   const [savedIds, setSavedIds] = useState([]);
   const [officeId, setOfficeId] = useState(null);
   const [bookingPro, setBookingPro] = useState(null);
+  const [bookingSentName, setBookingSentName] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -892,9 +894,16 @@ export default function FindProfessionals() {
           selectedDate={criteriaDate || null}
           backups={[]}
           onLaunchRapidFill={() => {}}
-          onSend={(details) => { setBookingPro(null); alert(`Booking request sent to ${bookingPro.name}!`); }}
+          onSend={() => { const name = bookingPro.name; setBookingPro(null); setBookingSentName(name); }}
         />
       )}
+
+      <SuccessToast
+        open={!!bookingSentName}
+        title="Booking request sent"
+        subtitle={bookingSentName ? `${bookingSentName} will be notified and has 24 hours to respond.` : ''}
+        onClose={() => setBookingSentName(null)}
+      />
 
       {/* Rapid Fill bottom bar */}
       {isRapidFill && (
