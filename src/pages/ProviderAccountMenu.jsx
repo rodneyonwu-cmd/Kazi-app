@@ -41,7 +41,8 @@ export default function ProviderAccountMenu() {
   const firstName = user?.firstName || 'Rodney';
   const lastName = user?.lastName || 'Onwu';
   const fullName = `${firstName} ${lastName}`.trim();
-  const avatarUrl = user?.imageUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
+  const storedPhoto = (() => { try { return localStorage.getItem('kazi_profile_photo') || null; } catch { return null; } })();
+  const avatarUrl = storedPhoto || user?.imageUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
   const handleBack = () => navigate(-1);
   const handleHelp = () => navigate('/provider-help');

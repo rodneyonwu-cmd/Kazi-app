@@ -71,6 +71,7 @@ import ProviderChangePassword from './pages/ProviderChangePassword'
 import ProviderPhoneNumber from './pages/ProviderPhoneNumber'
 import ProviderDateOfBirth from './pages/ProviderDateOfBirth'
 import ProviderHomeAddress from './pages/ProviderHomeAddress'
+import ProviderProfilePhoto from './pages/ProviderProfilePhoto'
 
 function App() {
   return (
@@ -130,6 +131,7 @@ function App() {
       <Route path="/account/phone" element={<RequireAuth><ProviderPhoneNumber /></RequireAuth>} />
       <Route path="/account/date-of-birth" element={<RequireAuth><ProviderDateOfBirth /></RequireAuth>} />
       <Route path="/account/home-address" element={<RequireAuth><ProviderHomeAddress /></RequireAuth>} />
+      <Route path="/account/profile-photo" element={<RequireAuth><ProviderProfilePhoto /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
       <Route path="/my-profile" element={<RequireAuth><ProviderMyProfile /></RequireAuth>} />

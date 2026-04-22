@@ -5,6 +5,10 @@ import ProviderBottomNav from '../components/ProviderBottomNav';
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=faces';
 
+function getStoredPhoto() {
+  try { return localStorage.getItem('kazi_profile_photo') || null; } catch { return null; }
+}
+
 const styles = `
 .kazi-settings{--green:#1a7f5e;--green-soft:#e8f5f0;--coral:#e8734a;--coral-soft:#fdeee7;--amber:#f4b740;--amber-soft:#fef6e4;--bg:#f9f8f6;--card:#fff;--text:#1a1a1a;--text-mid:#6b7280;--text-light:#9ca3af;--border:#e5e7eb;--border-soft:#f3f4f6;--danger:#d64545;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:100px;max-width:480px;margin:0 auto;min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.06)}
 .kazi-settings .topbar{position:sticky;top:0;z-index:30;background:var(--card);padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-soft)}
@@ -41,7 +45,7 @@ export default function ProviderPersonalSettings() {
   const lastName = user?.lastName || 'Onwu';
   const fullName = `${firstName} ${lastName}`.trim();
   const email = user?.primaryEmailAddress?.emailAddress || 'rodney@email.com';
-  const avatarUrl = user?.imageUrl || DEFAULT_PHOTO;
+  const avatarUrl = getStoredPhoto() || user?.imageUrl || DEFAULT_PHOTO;
 
   return (
     <div className="kazi-settings">
@@ -55,7 +59,7 @@ export default function ProviderPersonalSettings() {
 
       <div className="section-label">Account</div>
       <div className="card">
-        <div className="profile-row">
+        <div className="profile-row" onClick={() => navigate('/account/profile-photo')}>
           <div className="profile-avatar">
             <img src={avatarUrl} alt={fullName} />
             <div className="cam"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg></div>
