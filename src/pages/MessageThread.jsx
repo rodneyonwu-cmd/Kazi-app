@@ -4,6 +4,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
+import useUserRole from '../hooks/useUserRole';
 
 // ============================================================
 // KAZI MESSAGE THREAD — Unified (office + provider)
@@ -74,7 +75,8 @@ export default function MessageThread() {
   const officeId = dashIdx >= 0 ? conversationId.substring(0, dashIdx) : '';
   const providerId = dashIdx >= 0 ? conversationId.substring(dashIdx + 1) : '';
 
-  const [role, setRole] = useState(null); // 'OFFICE' | 'PROVIDER' | null
+  const { role: ctxRole, isLoading: roleLoading } = useUserRole();
+  const role = ctxRole === 'office' ? 'OFFICE' : ctxRole === 'provider' ? 'PROVIDER' : null;
   const [messages, setMessages] = useState([]);
   const [otherParty, setOtherParty] = useState(null); // { name, avatarUrl, subtitle }
   const [loading, setLoading] = useState(true);
@@ -85,7 +87,6 @@ export default function MessageThread() {
   // Detect role + load thread + other party + mark read
   useEffect(() => {
     if (previewMock) {
-      setRole('OFFICE');
       setOtherParty({
         name: previewMock.name || 'Provider',
         avatarUrl: previewMock.avatarUrl || null,
@@ -96,6 +97,7 @@ export default function MessageThread() {
       return;
     }
     if (!authLoaded || !isSignedIn) return;
+    if (roleLoading || !role) return;
     if (!officeId || !providerId) {
       setLoading(false);
       return;
@@ -108,18 +110,7 @@ export default function MessageThread() {
       try {
         const token = await getToken();
         const headers = { Authorization: `Bearer ${token}` };
-
-        // Probe role
-        let detectedRole = null;
-        const provRes = await fetch(`${API_URL}/api/providers/me`, { headers });
-        if (provRes.ok) {
-          detectedRole = 'PROVIDER';
-        } else {
-          const offRes = await fetch(`${API_URL}/api/offices/me`, { headers });
-          if (offRes.ok) detectedRole = 'OFFICE';
-        }
-        if (cancelled) return;
-        setRole(detectedRole);
+        const detectedRole = role;
 
         // Fetch messages
         const msgRes = await fetch(
@@ -271,6 +262,14 @@ export default function MessageThread() {
   const otherInitials = getInitials(otherName);
   const otherSubtitle = otherParty?.subtitle || '';
 
+  // Never render either bottom nav until role is known (unless we're in
+  // the preview-mock path, where the office context is implied).
+  if (!previewMock && (roleLoading || !role)) {
+    return <div style={{ background: COLORS.bg, minHeight: '100vh', maxWidth: 480, margin: '0 auto' }} />;
+  }
+
+  const effectiveRole = previewMock ? 'OFFICE' : role;
+
   return (
     <div
       style={{
@@ -286,7 +285,7 @@ export default function MessageThread() {
         minHeight: '100vh',
       }}
     >
-      <TopBar role={role === 'OFFICE' ? 'office' : 'provider'} />
+      <TopBar role={effectiveRole === 'OFFICE' ? 'office' : 'provider'} />
       {/* TOP BAR */}
       <div
         style={{
@@ -415,7 +414,7 @@ export default function MessageThread() {
               cursor: 'pointer',
             }}
           >
-            {role === 'OFFICE' ? 'Book again' : 'See shifts'}
+            {effectiveRole === 'OFFICE' ? 'Book again' : 'See shifts'}
           </button>
         </div>
       </div>
@@ -546,7 +545,7 @@ export default function MessageThread() {
         </button>
       </div>
 
-      {role === 'OFFICE' ? <BottomNav /> : <ProviderBottomNav />}
+      {effectiveRole === 'OFFICE' ? <BottomNav /> : <ProviderBottomNav />}
     </div>
   );
 }

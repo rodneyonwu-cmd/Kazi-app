@@ -4,6 +4,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
+import useUserRole from '../hooks/useUserRole';
 
 // ============================================================
 // KAZI MESSAGES — Unified inbox (office + provider)
@@ -61,14 +62,16 @@ export default function Messages() {
   const navigate = useNavigate();
   const { getToken, isLoaded: authLoaded } = useAuth();
   const { isSignedIn } = useUser();
-  const [role, setRole] = useState(null); // 'OFFICE' | 'PROVIDER' | null
+  const { role: ctxRole, isLoading: roleLoading } = useUserRole();
+  const role = ctxRole === 'office' ? 'OFFICE' : ctxRole === 'provider' ? 'PROVIDER' : null;
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Detect role + load conversations
+  // Load conversations once role + auth are ready
   useEffect(() => {
     if (!authLoaded || !isSignedIn) return;
+    if (roleLoading || !role) return;
     let cancelled = false;
 
     const load = async () => {
@@ -76,18 +79,7 @@ export default function Messages() {
       try {
         const token = await getToken();
         const headers = { Authorization: `Bearer ${token}` };
-
-        // Probe role
-        let detectedRole = null;
-        const provRes = await fetch(`${API_URL}/api/providers/me`, { headers });
-        if (provRes.ok) {
-          detectedRole = 'PROVIDER';
-        } else {
-          const offRes = await fetch(`${API_URL}/api/offices/me`, { headers });
-          if (offRes.ok) detectedRole = 'OFFICE';
-        }
-        if (cancelled) return;
-        setRole(detectedRole);
+        const detectedRole = role;
 
         // Fetch conversations
         const convRes = await fetch(`${API_URL}/api/messages/conversations`, { headers });
@@ -154,6 +146,12 @@ export default function Messages() {
   const handleCompose = () => {
     alert('Compose new message — coming soon');
   };
+
+  // Never render either bottom nav until role is known — prevents the
+  // office-user-sees-provider-nav leak after cross-tab navigation.
+  if (roleLoading || !role) {
+    return <div style={{ background: COLORS.bg, minHeight: '100vh', maxWidth: 480, margin: '0 auto' }} />;
+  }
 
   return (
     <div
