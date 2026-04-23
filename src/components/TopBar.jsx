@@ -144,10 +144,10 @@ export default function TopBar() {
       <button
         ref={triggerRef}
         onClick={() => {
-          if (role === 'provider') { navigate('/account'); return; }
+          if (role === 'office' || role === 'provider') { navigate('/account'); return; }
           setOpen((o) => !o);
         }}
-        aria-label={role === 'provider' ? 'Open account' : 'Open menu'}
+        aria-label={role ? 'Open account' : 'Open menu'}
         style={{
           width: 44,
           height: 44,

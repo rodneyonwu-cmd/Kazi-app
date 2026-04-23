@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthenticateWithRedirectCallback, useAuth } from '@clerk/clerk-react'
 import ScrollToTop from './components/ScrollToTop'
 import RoleGuard from './components/RoleGuard'
+import RoleSwitch from './components/RoleSwitch'
 
 function RequireAuth({ children }) {
   const { isLoaded, isSignedIn } = useAuth()
@@ -75,6 +76,7 @@ import OfficeDashboard from './pages/OfficeDashboard'
 import PostTempShiftWizard from './pages/PostTempShiftWizard'
 import PostPermanentJobWizard from './pages/PostPermanentJobWizard'
 import ProviderAccountMenu from './pages/ProviderAccountMenu'
+import OfficeAccountMenu from './pages/OfficeAccountMenu'
 import ProviderPersonalSettings from './pages/ProviderPersonalSettings'
 import ProviderHourlyRate from './pages/ProviderHourlyRate'
 import ProviderTravelRadius from './pages/ProviderTravelRadius'
@@ -146,7 +148,7 @@ function App() {
       <Route path="/provider-favorites" element={<Navigate to="/favorites" replace />} />
       <Route path="/provider-help" element={<ProviderOnly><ProviderHelpCenter /></ProviderOnly>} />
       <Route path="/provider-settings" element={<ProviderOnly><ProviderSettings /></ProviderOnly>} />
-      <Route path="/account" element={<ProviderOnly><ProviderAccountMenu /></ProviderOnly>} />
+      <Route path="/account" element={<RoleSwitch office={<OfficeAccountMenu />} provider={<ProviderAccountMenu />} />} />
       <Route path="/account/personal" element={<ProviderOnly><ProviderPersonalSettings /></ProviderOnly>} />
       <Route path="/account/hourly-rate" element={<ProviderOnly><ProviderHourlyRate /></ProviderOnly>} />
       <Route path="/account/travel-radius" element={<ProviderOnly><ProviderTravelRadius /></ProviderOnly>} />
