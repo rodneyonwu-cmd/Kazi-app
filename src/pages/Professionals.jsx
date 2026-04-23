@@ -107,7 +107,7 @@ function TrustBadgesRow({ proId, rating, reliability }) {
           <div key={k} className="flex flex-col items-center gap-1 w-[60px]">
             <div
               aria-label={meta.label}
-              className="w-10 h-10 rounded-full flex items-center justify-center border-[1.5px]"
+              className="w-10 h-10 rounded-full flex items-center justify-center border-[2.5px]"
               style={{ background: meta.bg, borderColor: meta.color, color: meta.color }}
             >
               {BADGE_ICONS[k]}
