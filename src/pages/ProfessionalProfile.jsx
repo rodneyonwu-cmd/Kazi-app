@@ -157,8 +157,8 @@ function TrustBadges() {
           key={b.label}
           title={b.label.replace('\n', ' ')}
           aria-label={b.label.replace('\n', ' ')}
-          className="w-12 h-12 rounded-full flex items-center justify-center border"
-          style={{ background: b.bg, borderColor: b.border, color: b.color }}
+          className="w-12 h-12 rounded-full flex items-center justify-center border-[1.5px]"
+          style={{ background: b.bg, borderColor: b.color, color: b.color }}
         >
           {BADGE_ICONS[b.icon]}
         </div>
