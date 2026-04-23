@@ -1,6 +1,8 @@
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import BottomNav from '../components/BottomNav';
+import useUserRole from '../hooks/useUserRole';
 
 const DOCS = {
   terms: {
@@ -135,13 +137,14 @@ const DOCS = {
 export default function ProviderLegalDoc() {
   const navigate = useNavigate();
   const { slug } = useParams();
+  const { isOffice } = useUserRole();
   const doc = DOCS[slug];
 
-  if (!doc) return <Navigate to="/provider-settings" replace />;
+  if (!doc) return <Navigate to={isOffice ? '/settings' : '/provider-settings'} replace />;
 
   return (
     <div style={{ background: '#f9f8f6', minHeight: '100vh', maxWidth: 480, margin: '0 auto', paddingBottom: 110, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 0 40px rgba(0,0,0,.06)' }}>
-      <TopBar role="provider" />
+      <TopBar role={isOffice ? 'office' : 'provider'} />
 
       <div style={{ padding: '14px 20px', background: 'white', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 20 }}>
         <button onClick={() => navigate(-1)} aria-label="Back" style={{ width: 36, height: 36, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}>
@@ -170,7 +173,7 @@ export default function ProviderLegalDoc() {
         ))}
       </div>
 
-      <ProviderBottomNav />
+      {isOffice ? <BottomNav /> : <ProviderBottomNav />}
     </div>
   );
 }

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import BottomNav from '../components/BottomNav';
+import useUserRole from '../hooks/useUserRole';
 
 const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
 
@@ -23,6 +25,7 @@ function Text({ label, value, onChange, placeholder, type = 'text', maxLength })
 
 export default function ProviderHomeAddress() {
   const navigate = useNavigate();
+  const { isOffice } = useUserRole();
   const [street, setStreet] = useState('');
   const [apt, setApt] = useState('');
   const [city, setCity] = useState('Houston');
@@ -34,17 +37,17 @@ export default function ProviderHomeAddress() {
 
   return (
     <div style={{ background: '#f9f8f6', minHeight: '100vh', maxWidth: 480, margin: '0 auto', paddingBottom: 110, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 0 40px rgba(0,0,0,.06)' }}>
-      <TopBar role="provider" />
+      <TopBar role={isOffice ? 'office' : 'provider'} />
 
       <div style={{ padding: '14px 20px', background: 'white', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 20 }}>
         <button onClick={() => navigate(-1)} aria-label="Back" style={{ width: 36, height: 36, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
         </button>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>Home address</div>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>{isOffice ? 'Office address' : 'Home address'}</div>
       </div>
 
       <div style={{ padding: '24px 20px 8px' }}>
-        <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.55 }}>We use your home address to calculate distance from shifts and your travel radius. Offices never see your exact address.</div>
+        <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.55 }}>{isOffice ? 'Your office address is used to match you with nearby pros and is shown on your public profile.' : 'We use your home address to calculate distance from shifts and your travel radius. Offices never see your exact address.'}</div>
       </div>
 
       <div style={{ padding: '18px 20px 0' }}>
@@ -77,7 +80,7 @@ export default function ProviderHomeAddress() {
         </button>
       </div>
 
-      <ProviderBottomNav />
+      {isOffice ? <BottomNav /> : <ProviderBottomNav />}
     </div>
   );
 }

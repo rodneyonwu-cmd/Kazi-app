@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import BottomNav from '../components/BottomNav';
+import useUserRole from '../hooks/useUserRole';
 
 function formatPhone(raw) {
   const d = raw.replace(/\D/g, '').slice(0, 10);
@@ -12,19 +14,20 @@ function formatPhone(raw) {
 
 export default function ProviderPhoneNumber() {
   const navigate = useNavigate();
-  const [phone, setPhone] = useState('(713) 555-0142');
+  const { isOffice } = useUserRole();
+  const [phone, setPhone] = useState(isOffice ? '(281) 555-0142' : '(713) 555-0142');
   const digits = phone.replace(/\D/g, '');
   const valid = digits.length === 10;
 
   return (
     <div style={{ background: '#f9f8f6', minHeight: '100vh', maxWidth: 480, margin: '0 auto', paddingBottom: 110, fontFamily: "'DM Sans', sans-serif", boxShadow: '0 0 40px rgba(0,0,0,.06)' }}>
-      <TopBar role="provider" />
+      <TopBar role={isOffice ? 'office' : 'provider'} />
 
       <div style={{ padding: '14px 20px', background: 'white', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 20 }}>
         <button onClick={() => navigate(-1)} aria-label="Back" style={{ width: 36, height: 36, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
         </button>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>Phone number</div>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>{isOffice ? 'Office phone' : 'Phone number'}</div>
       </div>
 
       <div style={{ padding: '24px 20px 6px' }}>
@@ -64,7 +67,7 @@ export default function ProviderPhoneNumber() {
         </button>
       </div>
 
-      <ProviderBottomNav />
+      {isOffice ? <BottomNav /> : <ProviderBottomNav />}
     </div>
   );
 }

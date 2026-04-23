@@ -77,6 +77,8 @@ import PostTempShiftWizard from './pages/PostTempShiftWizard'
 import PostPermanentJobWizard from './pages/PostPermanentJobWizard'
 import ProviderAccountMenu from './pages/ProviderAccountMenu'
 import OfficeAccountMenu from './pages/OfficeAccountMenu'
+import OfficePersonalSettings from './pages/OfficePersonalSettings'
+import OfficeSettings from './pages/OfficeSettings'
 import ProviderPersonalSettings from './pages/ProviderPersonalSettings'
 import ProviderHourlyRate from './pages/ProviderHourlyRate'
 import ProviderTravelRadius from './pages/ProviderTravelRadius'
@@ -115,7 +117,7 @@ function App() {
       <Route path="/applicants" element={<OfficeOnly><Applicants /></OfficeOnly>} />
       <Route path="/bookings" element={<OfficeOnly><Bookings /></OfficeOnly>} />
       <Route path="/help" element={<OfficeOnly><Help /></OfficeOnly>} />
-      <Route path="/settings" element={<OfficeOnly><Settings /></OfficeOnly>} />
+      <Route path="/settings" element={<OfficeOnly><OfficeSettings /></OfficeOnly>} />
       <Route path="/office-profile" element={<OfficeOnly><OfficeProfile /></OfficeOnly>} />
       <Route path="/saved-professionals" element={<OfficeOnly><SavedProfessionals /></OfficeOnly>} />
       <Route path="/office-profile/:id" element={<OfficeOnly><OfficeProfile /></OfficeOnly>} />
@@ -149,16 +151,16 @@ function App() {
       <Route path="/provider-help" element={<ProviderOnly><ProviderHelpCenter /></ProviderOnly>} />
       <Route path="/provider-settings" element={<ProviderOnly><ProviderSettings /></ProviderOnly>} />
       <Route path="/account" element={<RoleSwitch office={<OfficeAccountMenu />} provider={<ProviderAccountMenu />} />} />
-      <Route path="/account/personal" element={<ProviderOnly><ProviderPersonalSettings /></ProviderOnly>} />
+      <Route path="/account/personal" element={<RoleSwitch office={<OfficePersonalSettings />} provider={<ProviderPersonalSettings />} />} />
       <Route path="/account/hourly-rate" element={<ProviderOnly><ProviderHourlyRate /></ProviderOnly>} />
       <Route path="/account/travel-radius" element={<ProviderOnly><ProviderTravelRadius /></ProviderOnly>} />
       <Route path="/account/minimum-shift" element={<ProviderOnly><ProviderMinimumShift /></ProviderOnly>} />
-      <Route path="/legal/:slug" element={<ProviderOnly><ProviderLegalDoc /></ProviderOnly>} />
-      <Route path="/account/change-password" element={<ProviderOnly><ProviderChangePassword /></ProviderOnly>} />
-      <Route path="/account/phone" element={<ProviderOnly><ProviderPhoneNumber /></ProviderOnly>} />
+      <Route path="/legal/:slug" element={<RequireAuth><ProviderLegalDoc /></RequireAuth>} />
+      <Route path="/account/change-password" element={<RequireAuth><ProviderChangePassword /></RequireAuth>} />
+      <Route path="/account/phone" element={<RequireAuth><ProviderPhoneNumber /></RequireAuth>} />
       <Route path="/account/date-of-birth" element={<ProviderOnly><ProviderDateOfBirth /></ProviderOnly>} />
-      <Route path="/account/home-address" element={<ProviderOnly><ProviderHomeAddress /></ProviderOnly>} />
-      <Route path="/account/profile-photo" element={<ProviderOnly><ProviderProfilePhoto /></ProviderOnly>} />
+      <Route path="/account/home-address" element={<RequireAuth><ProviderHomeAddress /></RequireAuth>} />
+      <Route path="/account/profile-photo" element={<RequireAuth><ProviderProfilePhoto /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/my-profile" element={<ProviderOnly><ProviderMyProfile /></ProviderOnly>} />
       <Route path="/provider-profile-preview" element={<ProviderOnly><ProviderProfilePreview /></ProviderOnly>} />
