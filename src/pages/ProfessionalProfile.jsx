@@ -640,7 +640,11 @@ export default function ProfessionalProfile() {
         className="fixed left-0 right-0 bg-white px-5 pt-3.5 pb-4 border-t border-[#f3f3f3] flex gap-2.5 z-[45] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] sm:max-w-[480px] sm:left-1/2 sm:-translate-x-1/2"
         style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
       >
-        <button className="w-14 h-[52px] rounded-full bg-[#f9f8f6] border border-[#ececec] flex items-center justify-center text-[#1a1a1a]">
+        <button
+          onClick={() => navigate(`/messages/${pro.id}`, { state: { mock: { id: pro.id, name: pro.name, initials: pro.initials, avatarUrl: pro.avatarUrl, role: pro.role } } })}
+          className="w-14 h-[52px] rounded-full bg-[#f9f8f6] border border-[#ececec] flex items-center justify-center text-[#1a1a1a]"
+          aria-label={`Message ${pro.firstName || pro.name}`}
+        >
           <IconMessage />
         </button>
         <button

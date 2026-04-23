@@ -146,7 +146,7 @@ const Icon = {
 };
 
 // ============ Pro Card ============
-function ProCard({ pro, onClick, onSave, onBook }) {
+function ProCard({ pro, onClick, onSave, onBook, onMessage }) {
   const [saved, setSaved] = useState(pro.saved);
   const [bioExpanded, setBioExpanded] = useState(false);
   const tier = getReliabilityTier(pro.reliability);
@@ -283,7 +283,7 @@ function ProCard({ pro, onClick, onSave, onBook }) {
       {/* Actions */}
       <div className="flex gap-2 mt-3.5">
         <button
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); if (onMessage) onMessage(pro); }}
           className="flex-1 py-2.5 px-4 rounded-full border border-[#ececec] bg-[#f9f8f6] text-[#1a1a1a] text-[13px] font-bold flex items-center justify-center gap-1.5"
         >
           <Icon.Message /> Message
@@ -820,6 +820,7 @@ export default function FindProfessionals() {
               }}
               onSave={isRapidFill ? undefined : handleSavePro}
               onBook={isRapidFill ? undefined : (p) => setBookingPro(p)}
+              onMessage={isRapidFill ? undefined : (p) => navigate(`/messages/${p.id}`, { state: { mock: { id: p.id, name: p.name, initials: p.initials, avatarUrl: p.avatarUrl, role: p.role } } })}
             />
           </div>
         );

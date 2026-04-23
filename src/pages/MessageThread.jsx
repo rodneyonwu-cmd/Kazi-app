@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import BottomNav from '../components/BottomNav';
 import ProviderBottomNav from '../components/ProviderBottomNav';
@@ -63,9 +63,11 @@ function getInitials(name) {
 // ============================================================
 export default function MessageThread() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { conversationId } = useParams();
   const { getToken, isLoaded: authLoaded } = useAuth();
   const { isSignedIn } = useUser();
+  const previewMock = location.state?.mock || null;
 
   // Parse conversationId on first hyphen
   const dashIdx = (conversationId || '').indexOf('-');
@@ -82,6 +84,17 @@ export default function MessageThread() {
 
   // Detect role + load thread + other party + mark read
   useEffect(() => {
+    if (previewMock) {
+      setRole('OFFICE');
+      setOtherParty({
+        name: previewMock.name || 'Provider',
+        avatarUrl: previewMock.avatarUrl || null,
+        subtitle: previewMock.role || 'Dental Professional',
+      });
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
     if (!authLoaded || !isSignedIn) return;
     if (!officeId || !providerId) {
       setLoading(false);
