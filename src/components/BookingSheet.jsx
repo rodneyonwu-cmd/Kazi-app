@@ -158,21 +158,37 @@ export default function BookingSheet({
         <div className="w-10 h-1 bg-[#ececec] rounded-full mx-auto mt-3 mb-1" />
 
         {/* Header */}
-        <div className="px-6 pt-3 pb-2 flex items-center justify-between">
-          <div>
-            <div
-              className="text-xl font-extrabold text-[#1a1a1a]"
-              style={{ fontFamily: "'Outfit', sans-serif" }}
-            >
-              Book {firstName}
-            </div>
-            <div className="text-xs text-[#8a8a8a] mt-0.5">
-              Confirm shift details to send request
+        <div className="px-6 pt-3 pb-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {pro?.avatarUrl ? (
+              <img
+                src={pro.avatarUrl}
+                alt={pro?.name || firstName}
+                className="w-11 h-11 rounded-full object-cover border border-[#ececec] flex-shrink-0"
+              />
+            ) : (
+              <div
+                className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-[14px]"
+                style={{ background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', fontFamily: "'Outfit', sans-serif" }}
+              >
+                {pro?.initials || (firstName ? firstName.charAt(0).toUpperCase() : 'P')}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <div
+                className="text-xl font-extrabold text-[#1a1a1a] leading-tight"
+                style={{ fontFamily: "'Outfit', sans-serif" }}
+              >
+                Book {firstName}
+              </div>
+              <div className="text-xs text-[#8a8a8a] mt-0.5">
+                Confirm shift details to send request
+              </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a]"
+            className="w-9 h-9 rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a] flex-shrink-0"
           >
             <IconClose />
           </button>

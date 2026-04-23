@@ -890,7 +890,7 @@ export default function FindProfessionals() {
         <BookingSheet
           open={!!bookingPro}
           onClose={() => setBookingPro(null)}
-          pro={{ name: bookingPro.name, firstName: bookingPro.name.split(' ')[0], rate: parseFloat((bookingPro.rate || '$0').replace(/[^0-9.]/g, '')) || 0 }}
+          pro={{ name: bookingPro.name, firstName: bookingPro.name.split(' ')[0], initials: bookingPro.initials, avatarUrl: bookingPro.avatarUrl, rate: parseFloat((bookingPro.rate || '$0').replace(/[^0-9.]/g, '')) || 0 }}
           selectedDate={criteriaDate || null}
           backups={[]}
           onLaunchRapidFill={() => {}}

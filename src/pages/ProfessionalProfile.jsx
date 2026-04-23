@@ -404,7 +404,7 @@ export default function ProfessionalProfile() {
 
   return (
     <div
-      className="bg-[#f9f8f6] min-h-screen pb-28"
+      className="bg-[#f9f8f6] min-h-screen pb-[180px]"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       <TopBar role="office" />
@@ -636,7 +636,10 @@ export default function ProfessionalProfile() {
       </Section>
 
       {/* Sticky action bar — tapping Book also opens the BookingSheet */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white px-5 pt-3.5 pb-7 border-t border-[#f3f3f3] flex gap-2.5 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] sm:max-w-[480px] sm:left-1/2 sm:-translate-x-1/2">
+      <div
+        className="fixed left-0 right-0 bg-white px-5 pt-3.5 pb-4 border-t border-[#f3f3f3] flex gap-2.5 z-[45] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] sm:max-w-[480px] sm:left-1/2 sm:-translate-x-1/2"
+        style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+      >
         <button className="w-14 h-[52px] rounded-full bg-[#f9f8f6] border border-[#ececec] flex items-center justify-center text-[#1a1a1a]">
           <IconMessage />
         </button>
