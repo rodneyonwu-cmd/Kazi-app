@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import TempShiftCard from '../components/TempShiftCard';
+import ShiftDetailModal from '../components/ShiftDetailModal';
 import BookedShiftModal from './BookedShiftModal';
 
 /**
@@ -42,33 +44,45 @@ const mockProvider = {
   nearbyShifts: [
     {
       id: 'shift_1',
-      officeInitials: 'SD',
-      officeName: 'Sugar Land Dental',
-      date: 'Thu, Apr 11',
-      timeRange: '8A–5P',
-      role: 'RDH',
-      distanceMiles: 4.2,
-      ratePerHour: 42,
+      initials: 'SLD',
+      name: 'Sugar Land Dental',
+      role: 'Hygienist',
+      distance: '4.2 mi · Sugar Land',
+      rating: '4.8',
+      reviewCount: 87,
+      applied: 4,
+      when: 'Thu, Apr 11 · 8:00 AM – 5:00 PM',
+      lunch: '30 min lunch',
+      software: 'Eaglesoft',
+      pay: 42,
     },
     {
       id: 'shift_2',
-      officeInitials: 'BF',
-      officeName: 'Bellaire Family Dental',
-      date: 'Sat, Apr 13',
-      timeRange: '9A–3P',
-      role: 'RDH',
-      distanceMiles: 6.8,
-      ratePerHour: 45,
+      initials: 'BFD',
+      name: 'Bellaire Family Dental',
+      role: 'Hygienist',
+      distance: '6.8 mi · Bellaire',
+      rating: '4.7',
+      reviewCount: 64,
+      applied: 6,
+      when: 'Sat, Apr 13 · 9:00 AM – 3:00 PM',
+      lunch: '45 min lunch',
+      software: 'Dentrix',
+      pay: 45,
     },
     {
       id: 'shift_3',
-      officeInitials: 'PD',
-      officeName: 'Pearland Dental Care',
-      date: 'Mon, Apr 15',
-      timeRange: '7A–4P',
-      role: 'RDH',
-      distanceMiles: 9.1,
-      ratePerHour: 40,
+      initials: 'PDC',
+      name: 'Pearland Dental Care',
+      role: 'Hygienist',
+      distance: '9.1 mi · Pearland',
+      rating: '4.9',
+      reviewCount: 142,
+      applied: 8,
+      when: 'Mon, Apr 15 · 7:00 AM – 4:00 PM',
+      lunch: '30 min lunch',
+      software: 'Open Dental',
+      pay: 40,
     },
   ],
 };
@@ -188,13 +202,10 @@ export default function ProviderDashboard() {
 
   const [scheduleView, setScheduleView] = useState('week');
   const [bookedShift, setBookedShift] = useState(null);
+  const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
 
   const handleFindShifts = () => {
     navigate('/find-shifts');
-  };
-
-  const handleOpenShift = (shiftId) => {
-    navigate(`/find-shifts/${shiftId}`);
   };
 
   const openBooked = (dayNum) => {
@@ -262,16 +273,22 @@ export default function ProviderDashboard() {
             onOpenFind={openFindForDate}
           />
 
-          {/* Shifts near you */}
+          {/* Shifts near you — horizontal carousel of large shift cards */}
           <ShiftsNearYouSection
             shifts={provider.nearbyShifts}
-            onShiftTap={handleOpenShift}
+            onApply={(shift) => setSelectedNearbyShift(shift)}
             onSeeAll={handleFindShifts}
           />
         </div>
 
         <ProviderBottomNav />
       </div>
+
+      <ShiftDetailModal
+        open={!!selectedNearbyShift}
+        shift={selectedNearbyShift}
+        onClose={() => setSelectedNearbyShift(null)}
+      />
 
       {bookedShift && (
         <BookedShiftModal
@@ -599,7 +616,10 @@ function Legend({ swatch, label }) {
 }
 
 // ── Shifts near you ──────────────────────────────────────────
-function ShiftsNearYouSection({ shifts, onShiftTap, onSeeAll }) {
+// Horizontal carousel of the same large card used on /find-shifts.
+// Each card is fixed-width and wrapped in a flex-shrink:0 box so
+// the row scrolls horizontally and snaps to card edges.
+function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
@@ -611,45 +631,32 @@ function ShiftsNearYouSection({ shifts, onShiftTap, onSeeAll }) {
         </button>
       </div>
 
-      <div className="px-4 flex flex-col gap-[10px]">
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          overflowX: 'auto',
+          padding: '4px 16px 8px',
+          scrollSnapType: 'x mandatory',
+          scrollPaddingLeft: 16,
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {shifts.map((shift) => (
-          <ShiftCard key={shift.id} shift={shift} onTap={() => onShiftTap(shift.id)} />
+          <div
+            key={shift.id}
+            style={{
+              flex: '0 0 auto',
+              width: 320,
+              maxWidth: '85vw',
+              scrollSnapAlign: 'start',
+            }}
+          >
+            <TempShiftCard shift={shift} onApply={() => onApply(shift)} />
+          </div>
         ))}
       </div>
     </>
-  );
-}
-
-function ShiftCard({ shift, onTap }) {
-  return (
-    <div
-      onClick={onTap}
-      className="bg-white border border-[#e8e6e1] rounded-[16px] p-[14px] flex items-center gap-3 cursor-pointer"
-    >
-      <div
-        className="w-12 h-12 rounded-[14px] text-white font-[Outfit] font-bold text-[14px] grid place-items-center flex-shrink-0"
-        style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
-      >
-        {shift.officeInitials}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-[6px] mb-[2px]">
-          <span className="text-[14.5px] font-semibold text-[#0f1a16] truncate">
-            {shift.officeName}
-          </span>
-        </div>
-        <div className="text-[12.5px] font-medium text-[#6b7875] mb-1">
-          {shift.date} · {shift.timeRange} · {shift.role} · {shift.distanceMiles} mi
-        </div>
-        <div className="text-[12.5px] font-bold text-[#1a7f5e]">
-          ${shift.ratePerHour}/hr
-        </div>
-      </div>
-
-      <svg className="w-[18px] h-[18px] stroke-[#9aa5a1] flex-shrink-0" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    </div>
   );
 }
