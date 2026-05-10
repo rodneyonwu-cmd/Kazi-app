@@ -225,7 +225,7 @@ const mockProvider = {
       title: 'PSA: confirm tray setup BEFORE first patient',
       body: "Always check tray setup and where the ultrasonic tips are kept before first patient. 5 minutes saves a chaotic morning. Most chaos I've seen comes from skipping this.",
       tag: 'Tip',
-      author: { initials: 'MC', name: 'Maya C.', role: 'DA · 3 yrs', anon: false },
+      author: { initials: 'MC', name: 'Maya C.', role: 'DA · 3 yrs', anon: false, avatarUrl: 'https://i.pravatar.cc/120?u=maya-c' },
       time: '5h',
       score: 67,
       replyCount: 19,
@@ -235,7 +235,7 @@ const mockProvider = {
       title: 'Fair hourly rate for an experienced DA in Houston?',
       body: "Trying to calibrate before my next shift. What are folks getting paid right now? Vote below — I'll share what I end up booking.",
       tag: 'Pay Talk',
-      author: { initials: 'RP', name: 'Rachel P.', role: 'DA · 4 yrs', anon: false },
+      author: { initials: 'RP', name: 'Rachel P.', role: 'DA · 4 yrs', anon: false, avatarUrl: 'https://i.pravatar.cc/120?u=rachel-p' },
       time: '3h',
       score: 28,
       replyCount: 41,
@@ -1055,6 +1055,7 @@ function LoungeThreadCard({ thread, onTap }) {
               color: '#fff', fontWeight: 600, fontSize: 9,
               flexShrink: 0,
               position: 'relative',
+              overflow: 'hidden',
             }}
           >
             {isAnon ? (
@@ -1062,6 +1063,13 @@ function LoungeThreadCard({ thread, onTap }) {
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
+            ) : thread.author.avatarUrl ? (
+              <img
+                src={thread.author.avatarUrl}
+                alt={thread.author.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
             ) : (
               thread.author.initials
             )}
@@ -1072,6 +1080,7 @@ function LoungeThreadCard({ thread, onTap }) {
                   width: 10, height: 10, borderRadius: '50%',
                   background: '#1a7f5e', border: '1.5px solid #fff',
                   display: 'grid', placeItems: 'center',
+                  zIndex: 1,
                 }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 5, height: 5 }}>
