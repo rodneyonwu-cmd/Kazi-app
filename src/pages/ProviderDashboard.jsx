@@ -658,6 +658,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
               shift={shift}
               onApply={() => onApply(shift)}
               style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+              compact
             />
           </div>
         ))}

@@ -178,20 +178,36 @@ export function ExtraChip({ children }) {
   );
 }
 
-export default function TempShiftCard({ shift, onApply, style }) {
+/**
+ * Props
+ *  - shift: data
+ *  - onApply: handler. In the default variant this is wired to the Apply
+ *    button. In the compact variant the whole card is tappable and uses
+ *    the same handler.
+ *  - style: outer style override (used by the dashboard carousel for
+ *    width / display:flex column layout).
+ *  - compact: shorter variant used on the provider dashboard's
+ *    "Shifts near you" carousel — hides the Apply button and the
+ *    lunch/software chips row, reduces internal padding, and makes the
+ *    entire card tappable.
+ */
+export default function TempShiftCard({ shift, onApply, style, compact = false }) {
+  const handleCardClick = compact && onApply ? onApply : undefined;
   return (
     <div
+      onClick={handleCardClick}
       style={{
         background: COLORS.card,
         border: `1px solid ${COLORS.borderSoft}`,
         borderRadius: 22,
-        padding: 18,
+        padding: compact ? 14 : 18,
         position: 'relative',
+        cursor: handleCardClick ? 'pointer' : 'default',
         ...style,
       }}
     >
       {/* Hourly rate — top right */}
-      <div style={{ position: 'absolute', top: 18, right: 18, textAlign: 'right' }}>
+      <div style={{ position: 'absolute', top: compact ? 14 : 18, right: compact ? 14 : 18, textAlign: 'right' }}>
         <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 15, lineHeight: 1 }}>
           ${shift.pay}/hr
         </div>
@@ -205,7 +221,7 @@ export default function TempShiftCard({ shift, onApply, style }) {
           padding: '11px 14px',
           background: COLORS.bg,
           borderRadius: 12,
-          marginBottom: 10,
+          marginBottom: compact ? 0 : 10,
           fontFamily: "'DM Sans', sans-serif",
           fontSize: 13.5,
           fontWeight: 600,
@@ -220,38 +236,39 @@ export default function TempShiftCard({ shift, onApply, style }) {
         </svg>
         {shift.when}
       </div>
-      {/* marginTop: auto pushes the row to the bottom of the card when
-          the card is rendered as a flex column with stretched height
-          (e.g. the Shifts-near-you carousel). In normal block layout
-          (Find Shifts list) it resolves to 0, so this is a no-op. */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 'auto' }}>
-        {shift.lunch && <ExtraChip>{shift.lunch}</ExtraChip>}
-        {shift.software && <ExtraChip>{shift.software}</ExtraChip>}
-        <button
-          onClick={onApply}
-          style={{
-            background: COLORS.green,
-            color: 'white',
-            border: 'none',
-            borderRadius: 100,
-            padding: '7px 22px',
-            fontSize: 12,
-            fontWeight: 700,
-            fontFamily: 'inherit',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            cursor: 'pointer',
-            marginLeft: 'auto',
-          }}
-        >
-          Apply
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
-      </div>
+      {/* Lunch / software chips + Apply button — only on the full
+          variant. marginTop: auto keeps Apply pinned to the bottom
+          when the card is in a flex column with stretched height. */}
+      {!compact && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 'auto' }}>
+          {shift.lunch && <ExtraChip>{shift.lunch}</ExtraChip>}
+          {shift.software && <ExtraChip>{shift.software}</ExtraChip>}
+          <button
+            onClick={onApply}
+            style={{
+              background: COLORS.green,
+              color: 'white',
+              border: 'none',
+              borderRadius: 100,
+              padding: '7px 22px',
+              fontSize: 12,
+              fontWeight: 700,
+              fontFamily: 'inherit',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              marginLeft: 'auto',
+            }}
+          >
+            Apply
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
