@@ -316,3 +316,121 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+// ── LOUNGE ─────────────────────────────────────────
+// Verified-provider community feature. Threads can be scoped to the
+// global feed (with an optional roleType filter) or to a seeded group.
+// Group definitions live as constants in the frontend — no Group table
+// until member demand justifies one.
+model LoungeThread {
+  id          String   @id @default(cuid())
+  authorId    String
+  scope       String   // 'feed' or group id ('hacks', 'events', 'breakroom', 'da-only')
+  roleType    String?  // 'dentist' | 'rdh' | 'da' | 'fo' — only set when scope='feed'
+  title       String?
+  body        String
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  replies     LoungeReply[]
+  votes       LoungeVote[]
+  poll        LoungePoll?
+  bookmarks   LoungeBookmark[]
+
+  @@index([scope, createdAt])
+  @@index([authorId])
+}
+
+model LoungeReply {
+  id          String   @id @default(cuid())
+  threadId    String
+  thread      LoungeThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId    String
+  text        String
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  votes       LoungeReplyVote[]
+
+  @@index([threadId, createdAt])
+}
+
+model LoungeVote {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    LoungeThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId    String
+  direction String   // 'up' | 'down'
+  createdAt DateTime @default(now())
+
+  @@unique([threadId, userId])
+  @@index([threadId])
+}
+
+// Reply "likes" are a single-direction toggle, not up/down vote pairs.
+model LoungeReplyVote {
+  id        String   @id @default(cuid())
+  replyId   String
+  reply     LoungeReply @relation(fields: [replyId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([replyId, userId])
+}
+
+model LoungePoll {
+  id        String   @id @default(cuid())
+  threadId  String   @unique
+  thread    LoungeThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  closesAt  DateTime?
+  createdAt DateTime @default(now())
+
+  options   LoungePollOption[]
+}
+
+model LoungePollOption {
+  id        String   @id @default(cuid())
+  pollId    String
+  poll      LoungePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  label     String
+  order     Int
+
+  votes     LoungePollVote[]
+
+  @@index([pollId, order])
+}
+
+// One vote per user per poll — uniqueness enforced at the app layer
+// across all options of the parent poll.
+model LoungePollVote {
+  id           String   @id @default(cuid())
+  pollOptionId String
+  pollOption   LoungePollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
+  userId       String
+  createdAt    DateTime @default(now())
+
+  @@index([pollOptionId])
+  @@index([userId])
+}
+
+model LoungeGroupMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String   // 'hacks', 'events', 'breakroom', 'da-only'
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+}
+
+model LoungeBookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  threadId  String
+  thread    LoungeThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, threadId])
+  @@index([userId])
+}

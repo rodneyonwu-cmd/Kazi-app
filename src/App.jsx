@@ -89,6 +89,7 @@ import ProviderPhoneNumber from './pages/ProviderPhoneNumber'
 import ProviderDateOfBirth from './pages/ProviderDateOfBirth'
 import ProviderHomeAddress from './pages/ProviderHomeAddress'
 import ProviderProfilePhoto from './pages/ProviderProfilePhoto'
+import Lounge from './pages/provider/Lounge'
 
 function App() {
   return (
@@ -165,6 +166,7 @@ function App() {
       <Route path="/my-profile" element={<ProviderOnly><ProviderMyProfile /></ProviderOnly>} />
       <Route path="/provider-profile-preview" element={<ProviderOnly><ProviderProfilePreview /></ProviderOnly>} />
       <Route path="/provider-availability" element={<ProviderOnly><ProviderAvailability /></ProviderOnly>} />
+      <Route path="/lounge" element={<ProviderOnly><Lounge /></ProviderOnly>} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

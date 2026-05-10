@@ -14,6 +14,7 @@ import reviewsRouter from './routes/reviews.js';
 import webhooksRouter from './routes/webhooks.js';
 import notificationsRouter from './routes/notifications.js';
 import adminRouter from './routes/admin.js';
+import loungeRouter from './routes/lounge.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -43,6 +44,7 @@ app.use('/api/messages', requireAuth, messagesRouter);
 app.use('/api/reviews', requireAuth, reviewsRouter);
 app.use('/api/notifications', requireAuth, notificationsRouter);
 app.use('/api/admin', requireAuth, adminRouter);
+app.use('/api/lounge', requireAuth, loungeRouter);
 
 // ── Error handler ───────────────────────────────────
 app.use((err, _req, res, _next) => {
