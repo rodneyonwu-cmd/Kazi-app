@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
@@ -699,6 +699,8 @@ function Legend({ swatch, label }) {
 // Each card is fixed-width and wrapped in a flex-shrink:0 box so
 // the row scrolls horizontally and snaps to card edges.
 function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
+  const scrollerRef = useRef(null);
+  const [activeIdx, setActiveIdx] = useState(0);
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
@@ -711,6 +713,8 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
       </div>
 
       <div
+        ref={scrollerRef}
+        onScroll={() => setActiveIdx(carouselActiveIndex(scrollerRef.current))}
         style={{
           display: 'flex',
           gap: 12,
@@ -742,6 +746,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
           </div>
         ))}
       </div>
+      <CarouselDots count={shifts.length} activeIdx={activeIdx} />
     </>
   );
 }
@@ -750,6 +755,8 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
 // Same horizontal-scroll pattern as ShiftsNearYouSection. Uses the
 // shared PermJobCard so the cards look identical to Find Shifts.
 function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
+  const scrollerRef = useRef(null);
+  const [activeIdx, setActiveIdx] = useState(0);
   if (!jobs?.length) return null;
   return (
     <>
@@ -763,6 +770,8 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
       </div>
 
       <div
+        ref={scrollerRef}
+        onScroll={() => setActiveIdx(carouselActiveIndex(scrollerRef.current))}
         style={{
           display: 'flex',
           gap: 12,
@@ -793,6 +802,51 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
           </div>
         ))}
       </div>
+      <CarouselDots count={jobs.length} activeIdx={activeIdx} />
     </>
+  );
+}
+
+// ── Carousel scroll-position dots ────────────────────────────
+// Compute which child of the scroll container is currently centered
+// in the viewport. Robust to variable card widths and different
+// container widths (320px cards capped at 85vw on small screens).
+function carouselActiveIndex(scroller) {
+  if (!scroller) return 0;
+  const center = scroller.scrollLeft + scroller.clientWidth / 2;
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < scroller.children.length; i++) {
+    const child = scroller.children[i];
+    const childCenter = child.offsetLeft + child.offsetWidth / 2;
+    const dist = Math.abs(childCenter - center);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
+function CarouselDots({ count, activeIdx }) {
+  if (count <= 1) return null;
+  return (
+    <div className="flex items-center justify-center gap-[6px] mt-3 mb-1">
+      {Array.from({ length: count }).map((_, i) => {
+        const active = i === activeIdx;
+        return (
+          <span
+            key={i}
+            style={{
+              width: active ? 8 : 6,
+              height: active ? 8 : 6,
+              borderRadius: '50%',
+              background: active ? '#1a1a1a' : '#d1d5db',
+              transition: 'all 0.18s ease',
+            }}
+          />
+        );
+      })}
+    </div>
   );
 }
