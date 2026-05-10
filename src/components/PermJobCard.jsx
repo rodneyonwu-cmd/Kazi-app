@@ -26,8 +26,8 @@ export default function PermJobCard({ job, onTap, style }) {
       onClick={onTap}
       style={{
         background: COLORS.card,
-        border: `1px solid ${COLORS.borderSoft}`,
-        borderRadius: 22,
+        border: '1px solid #e8e6e1',
+        borderRadius: 18,
         padding: 18,
         position: 'relative',
         cursor: 'pointer',

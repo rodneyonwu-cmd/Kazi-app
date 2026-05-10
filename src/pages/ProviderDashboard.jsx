@@ -598,7 +598,7 @@ function AvailabilityToggle({ available, onToggle }) {
     <section className="px-4 pt-2 pb-3">
       <button
         onClick={() => onToggle(!available)}
-        className="w-full bg-white border border-[#e8e6e1] rounded-[14px] px-4 py-[10px] flex items-center gap-[10px] cursor-pointer"
+        className="w-full bg-white border border-[#e8e6e1] rounded-[18px] px-4 py-[10px] flex items-center gap-[10px] cursor-pointer"
         style={{
           fontFamily: 'inherit',
           WebkitTapHighlightColor: 'transparent',
@@ -731,7 +731,7 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
 
   return (
     <section className="px-4 mb-[14px]">
-      <div className="bg-white border border-[#e8e6e1] rounded-[20px] overflow-hidden relative">
+      <div className="bg-white border border-[#e8e6e1] rounded-[18px] overflow-hidden relative">
         {/* Provider avatar — top right. Same rounded-square shape as
             the office logos on the shift cards. Taps through to
             /account. */}
@@ -908,7 +908,7 @@ function StatsStrip({ stats }) {
 // ── Today card (empty state — no shift booked) ───────────────
 function TodayEmptyCard({ onFindShifts }) {
   return (
-    <div className="mx-4 bg-[#e8f2ed] border border-[#d4e7dd] rounded-[20px] p-[18px] relative overflow-hidden">
+    <div className="mx-4 bg-[#e8f2ed] border border-[#d4e7dd] rounded-[18px] p-[18px] relative overflow-hidden">
       <div className="flex items-center justify-between mb-[14px]">
         <span className="inline-flex items-center gap-[6px] text-[11.5px] font-bold tracking-[0.06em] uppercase text-[#6b7875]">
           <span className="w-[6px] h-[6px] rounded-full bg-[#9aa5a1]" />
@@ -954,7 +954,7 @@ function TodayEmptyCard({ onFindShifts }) {
 // ── Today card (populated — provider has a shift today) ──────
 function TodayShiftCard({ shift }) {
   return (
-    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] p-[18px] relative overflow-hidden">
+    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[18px] p-[18px] relative overflow-hidden">
       {/* Left accent bar */}
       <div className="absolute top-0 left-0 w-1 h-full bg-[#1a7f5e]" />
 
@@ -1146,7 +1146,7 @@ function DayCard({ day, onTap }) {
 // ── Month grid ───────────────────────────────────────────────
 function MonthGrid({ onOpenBooked, onOpenFind }) {
   return (
-    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[20px] px-4 pt-[18px] pb-[14px]">
+    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[18px] px-4 pt-[18px] pb-[14px]">
       <div className="flex items-center justify-between mb-[14px] px-1">
         <NavBtn dir="left" />
         <div className="font-[Outfit] font-bold text-[15px] text-[#0f1a16]">April 2026</div>
@@ -1400,7 +1400,7 @@ function LoungeThreadCard({ thread, onTap }) {
       style={{
         background: '#ffffff',
         border: '1px solid #e8e6e1',
-        borderRadius: 16,
+        borderRadius: 18,
         padding: '14px 16px',
         cursor: 'pointer',
         textAlign: 'left',
