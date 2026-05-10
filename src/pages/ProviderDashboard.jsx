@@ -48,6 +48,9 @@ const mockProvider = {
     weekShiftCount: 3,
     nextPayoutDate: 'Fri',
     nextPayoutAmount: 580,
+    // Last 7 days of earnings (oldest → newest) for the inline
+    // sparkline. Real values will replace these once /finance is wired.
+    daily: [0, 280, 0, 380, 0, 0, 580],
   },
   // Today's shift — null → renders the smart-suggestion empty state,
   // populated → renders the bold green hero card.
@@ -303,6 +306,7 @@ const newProviderMock = {
     weekShiftCount: 0,
     nextPayoutDate: null,
     nextPayoutAmount: 0,
+    daily: [0, 0, 0, 0, 0, 0, 0],
   },
   // No upcoming shift — ContextualGreeting falls into discovery mode.
   nextShift: null,
@@ -843,10 +847,14 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
               </div>
             )}
           </div>
-          <div className="text-[12.5px] font-medium text-[#6b7875] mt-[8px]">
-            {isNewUser
-              ? 'Book your first shift to start earning'
-              : `Next payout ${earnings.nextPayoutDate} · $${earnings.nextPayoutAmount}`}
+          {/* 7-day sparkline + payout line on the same row */}
+          <div className="flex items-center justify-between gap-[12px] mt-[10px]">
+            <Sparkline data={earnings.daily} />
+            <div className="text-[12.5px] font-medium text-[#6b7875] text-right flex-shrink-0">
+              {isNewUser
+                ? 'Book your first shift to start earning'
+                : `Next payout ${earnings.nextPayoutDate} · $${earnings.nextPayoutAmount}`}
+            </div>
           </div>
         </button>
 
@@ -873,6 +881,42 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
         )}
       </div>
     </section>
+  );
+}
+
+// Tiny 7-day bar sparkline. Renders a row of subtle bars sized by
+// each day's earnings value relative to the max in the series. Bars
+// are hairlines (3px wide) with rounded tops, today's bar is solid
+// green to anchor the eye.
+function Sparkline({ data, width = 84, height = 24, gap = 3, barWidth = 3 }) {
+  if (!data || data.length === 0) return null;
+  const max = Math.max(...data, 1);
+  const totalBars = data.length;
+  const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
+  const offsetX = (width - totalWidth) / 2;
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true" style={{ flexShrink: 0 }}>
+      {data.map((v, i) => {
+        const ratio = v / max;
+        const minBar = 2;
+        const h = Math.max(minBar, Math.round(ratio * (height - 4)));
+        const x = offsetX + i * (barWidth + gap);
+        const y = height - h;
+        const isLast = i === data.length - 1;
+        const isZero = v === 0;
+        return (
+          <rect
+            key={i}
+            x={x}
+            y={y}
+            width={barWidth}
+            height={h}
+            rx={1.5}
+            fill={isZero ? '#e8e6e1' : isLast ? '#1a7f5e' : '#a8c9b8'}
+          />
+        );
+      })}
+    </svg>
   );
 }
 
