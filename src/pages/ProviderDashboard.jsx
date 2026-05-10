@@ -223,6 +223,7 @@ const mockProvider = {
     {
       id: 't2',
       title: 'PSA: confirm tray setup BEFORE first patient',
+      body: "Always check tray setup and where the ultrasonic tips are kept before first patient. 5 minutes saves a chaotic morning. Most chaos I've seen comes from skipping this.",
       tag: 'Tip',
       author: { initials: 'MC', name: 'Maya C.', role: 'DA · 3 yrs', anon: false },
       time: '5h',
@@ -232,6 +233,7 @@ const mockProvider = {
     {
       id: 't1',
       title: 'Fair hourly rate for an experienced DA in Houston?',
+      body: "Trying to calibrate before my next shift. What are folks getting paid right now? Vote below — I'll share what I end up booking.",
       tag: 'Pay Talk',
       author: { initials: 'RP', name: 'Rachel P.', role: 'DA · 4 yrs', anon: false },
       time: '3h',
@@ -241,6 +243,7 @@ const mockProvider = {
     {
       id: 't3',
       title: 'Evolve Dentistry — would book again',
+      body: 'Worked a temp shift here last Friday. Clean office, friendly staff, and Dr. was totally hands-off in the best way. Pay was on time and lunch was covered.',
       tag: 'Office Review',
       author: { initials: null, name: 'Anonymous DA', role: 'verified', anon: true },
       time: '2d',
@@ -1019,6 +1022,25 @@ function LoungeThreadCard({ thread, onTap }) {
       >
         {thread.title}
       </div>
+
+      {/* Body preview — 2 lines clamped */}
+      {thread.body && (
+        <div
+          style={{
+            fontSize: 13.5,
+            lineHeight: 1.45,
+            color: '#5a5a5a',
+            fontWeight: 400,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            marginTop: -2,
+          }}
+        >
+          {thread.body}
+        </div>
+      )}
 
       {/* Bottom row — author + counts */}
       <div className="flex items-center justify-between">
