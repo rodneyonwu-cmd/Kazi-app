@@ -28,6 +28,12 @@ const mockProvider = {
   referralCode: 'RODNEY50',
   date: 'Tuesday, April 9',
   location: 'Houston, TX',
+  // Contextual greeting source. The home page uses this to render a
+  // single useful sentence at the top instead of a generic "hello".
+  nextShift: {
+    hoursAway: 18,
+    officeName: 'Sugar Land Dental',
+  },
   stats: {
     rating: 4.9,
     reliability: 98,
@@ -411,15 +417,9 @@ export default function ProviderDashboard() {
         <TopBar role="provider" />
 
         <div className="bg-[#f9f8f6] min-h-full pb-6">
-          {/* Greeting */}
-          <section className="px-5 pt-4 pb-6">
-            <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.1] tracking-[-0.02em] text-[#0f1a16] mb-1">
-              Hello, {provider.firstName} 👋
-            </h1>
-            <div className="text-[15px] font-normal text-[#6b7875]">
-              {provider.date} · {provider.location}
-            </div>
-          </section>
+          {/* Greeting — contextual one-liner. Falls back to a smart
+              suggestion when the user has no upcoming shift. */}
+          <ContextualGreeting provider={provider} onTapNext={handleFindShifts} />
 
           {/* Stats strip */}
           <StatsStrip stats={provider.stats} />
@@ -494,6 +494,54 @@ export default function ProviderDashboard() {
         />
       )}
     </>
+  );
+}
+
+// ── Contextual greeting ──────────────────────────────────────
+// Single useful sentence that replaces the generic "Hello, X 👋"
+// header. Shows next-shift countdown when one exists, otherwise a
+// nudge to discover open shifts.
+function ContextualGreeting({ provider, onTapNext }) {
+  const next = provider.nextShift;
+
+  let primary;
+  let secondary;
+  if (next) {
+    const hrs = next.hoursAway;
+    const when = hrs >= 24
+      ? `in ${Math.round(hrs / 24)} day${Math.round(hrs / 24) === 1 ? '' : 's'}`
+      : `in ${hrs} hour${hrs === 1 ? '' : 's'}`;
+    primary = (
+      <>
+        Your next shift is <span style={{ color: '#1a7f5e' }}>{when}</span>
+      </>
+    );
+    secondary = next.officeName;
+  } else {
+    primary = (
+      <>
+        <span style={{ color: '#1a7f5e' }}>3 high-paying shifts</span> opened today
+      </>
+    );
+    secondary = `Within 5 mi of ${provider.location}`;
+  }
+
+  return (
+    <section
+      onClick={onTapNext}
+      className="px-5 pt-4 pb-6 cursor-pointer"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      <h1 className="font-[Outfit] font-bold text-[26px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-[6px]">
+        {primary}
+      </h1>
+      <div className="text-[14.5px] font-normal text-[#6b7875] flex items-center gap-[6px]">
+        {secondary}
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9aa5a1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </div>
+    </section>
   );
 }
 
