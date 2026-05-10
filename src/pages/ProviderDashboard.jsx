@@ -28,6 +28,7 @@ const mockProvider = {
   referralCode: 'RODNEY50',
   date: 'Tuesday, April 9',
   location: 'Houston, TX',
+  avatarUrl: 'https://i.pravatar.cc/120?u=rodney-onwu',
   // Contextual greeting source. The home page uses this to render a
   // single useful sentence at the top instead of a generic "hello".
   nextShift: {
@@ -276,6 +277,7 @@ const newProviderMock = {
   referralCode: 'ALEX50',
   date: 'Tuesday, April 9',
   location: 'Houston, TX',
+  avatarUrl: 'https://i.pravatar.cc/120?u=alex-newbie',
   stats: {
     rating: 0,
     reliability: 100,
@@ -494,7 +496,10 @@ export default function ProviderDashboard() {
             <EarningsAnchor
               earnings={provider.earnings}
               stats={provider.stats}
+              avatarUrl={provider.avatarUrl}
+              firstName={provider.firstName}
               onTap={() => navigate('/finance')}
+              onTapAvatar={() => navigate('/account')}
             />
           </div>
 
@@ -718,27 +723,74 @@ function ContextualGreeting({ provider, onTapNext }) {
 // Single dominant metric (this week's earnings) with delta vs last
 // week, # of shifts, and next payout. Secondary stats (rating,
 // reliability, profile, shifts) collapse into an expandable footer.
-function EarningsAnchor({ earnings, stats, onTap }) {
+function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAvatar }) {
   const [expanded, setExpanded] = useState(false);
   const positive = earnings.weekDeltaPct >= 0;
   const isNewUser = earnings.weekTotal === 0 && earnings.weekShiftCount === 0;
+  const initials = (firstName || '?').slice(0, 1).toUpperCase();
 
   return (
     <section className="px-4 mb-[14px]">
-      <div className="bg-white border border-[#e8e6e1] rounded-[20px] overflow-hidden">
+      <div className="bg-white border border-[#e8e6e1] rounded-[20px] overflow-hidden relative">
+        {/* Provider avatar — top right. Taps through to /account. */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onTapAvatar && onTapAvatar(); }}
+          aria-label="Open account"
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            border: '1.5px solid #ffffff',
+            boxShadow: '0 0 0 1px #e8e6e1, 0 2px 6px rgba(15,26,22,0.08)',
+            background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
+            padding: 0,
+            cursor: 'pointer',
+            overflow: 'hidden',
+            zIndex: 2,
+            display: 'grid',
+            placeItems: 'center',
+            color: '#fff',
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 700,
+            fontSize: 14,
+          }}
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={firstName || 'Profile'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          ) : (
+            initials
+          )}
+        </button>
+
         {/* Primary metric */}
         <button
           onClick={onTap}
           className="w-full text-left bg-transparent border-none px-5 pt-5 pb-4 cursor-pointer"
           style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
         >
-          <div className="flex items-center justify-between mb-[6px]">
+          <div className="mb-[8px]" style={{ paddingRight: 56 }}>
             <span className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#6b7875]">
               Earnings · this week
             </span>
+          </div>
+          <div className="flex items-baseline flex-wrap gap-x-[10px] gap-y-[4px]">
+            <span className="font-[Outfit] font-bold text-[40px] leading-none tracking-[-0.04em] text-[#0f1a16]">
+              ${earnings.weekTotal.toLocaleString()}
+            </span>
+            <span className="text-[13.5px] font-medium text-[#6b7875]">
+              · {earnings.weekShiftCount} {earnings.weekShiftCount === 1 ? 'shift' : 'shifts'}
+            </span>
             {!isNewUser && (
-              <div className="flex items-center gap-[5px]">
-                <svg viewBox="0 0 24 24" fill="none" stroke={positive ? '#1a7f5e' : '#e8734a'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+              <div className="flex items-center gap-[4px]">
+                <svg viewBox="0 0 24 24" fill="none" stroke={positive ? '#1a7f5e' : '#e8734a'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
                   {positive ? (
                     <>
                       <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
@@ -757,14 +809,6 @@ function EarningsAnchor({ earnings, stats, onTap }) {
                 <span className="text-[12px] font-medium text-[#9aa5a1]">vs last wk</span>
               </div>
             )}
-          </div>
-          <div className="flex items-baseline gap-[10px]">
-            <span className="font-[Outfit] font-bold text-[40px] leading-none tracking-[-0.04em] text-[#0f1a16]">
-              ${earnings.weekTotal.toLocaleString()}
-            </span>
-            <span className="text-[13.5px] font-medium text-[#6b7875]">
-              · {earnings.weekShiftCount} {earnings.weekShiftCount === 1 ? 'shift' : 'shifts'}
-            </span>
           </div>
           <div className="text-[12.5px] font-medium text-[#6b7875] mt-[8px]">
             {isNewUser
