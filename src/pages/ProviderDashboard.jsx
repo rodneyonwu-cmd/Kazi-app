@@ -423,61 +423,87 @@ export default function ProviderDashboard() {
       >
         <TopBar role="provider" />
 
+        {/* Staggered fade-in for top-level sections — pure CSS, no JS
+            scroll observers. Sections respect prefers-reduced-motion. */}
+        <style>{`
+          @keyframes kazi-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+          .kazi-rise { opacity: 0; animation: kazi-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+          @media (prefers-reduced-motion: reduce) {
+            .kazi-rise { animation: none; opacity: 1; transform: none; }
+          }
+        `}</style>
+
         <div className="bg-[#f9f8f6] min-h-full pb-6">
           {/* Greeting — contextual one-liner. Falls back to a smart
               suggestion when the user has no upcoming shift. */}
-          <ContextualGreeting provider={provider} onTapNext={handleFindShifts} />
+          <div className="kazi-rise" style={{ animationDelay: '0ms' }}>
+            <ContextualGreeting provider={provider} onTapNext={handleFindShifts} />
+          </div>
 
           {/* Earnings anchor — primary metric. Tap-to-expand reveals
               rating / reliability / profile / shifts secondary stats. */}
-          <EarningsAnchor
-            earnings={provider.earnings}
-            stats={provider.stats}
-            onTap={() => navigate('/finance')}
-          />
+          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
+            <EarningsAnchor
+              earnings={provider.earnings}
+              stats={provider.stats}
+              onTap={() => navigate('/finance')}
+            />
+          </div>
 
           {/* Today card */}
-          {provider.todayShift ? (
-            <TodayShiftCard shift={provider.todayShift} />
-          ) : (
-            <TodayEmptyCard onFindShifts={handleFindShifts} />
-          )}
+          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
+            {provider.todayShift ? (
+              <TodayShiftCard shift={provider.todayShift} />
+            ) : (
+              <TodayEmptyCard onFindShifts={handleFindShifts} />
+            )}
+          </div>
 
           {/* Your week — compact 7-day dot strip. Tap to expand to
               the full schedule page. */}
-          <CompactWeekStrip
-            week={provider.week}
-            onTapDay={handleDayTap}
-            onSeeAll={() => navigate('/provider-schedule')}
-          />
+          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
+            <CompactWeekStrip
+              week={provider.week}
+              onTapDay={handleDayTap}
+              onSeeAll={() => navigate('/provider-schedule')}
+            />
+          </div>
 
           {/* Shifts near you — horizontal carousel of large shift cards */}
-          <ShiftsNearYouSection
-            shifts={provider.nearbyShifts}
-            onApply={(shift) => setSelectedNearbyShift(shift)}
-            onSeeAll={handleFindShifts}
-          />
+          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
+            <ShiftsNearYouSection
+              shifts={provider.nearbyShifts}
+              onApply={(shift) => setSelectedNearbyShift(shift)}
+              onSeeAll={handleFindShifts}
+            />
+          </div>
 
           {/* Permanent jobs near me — horizontal carousel of perm job cards */}
-          <PermanentJobsNearMeSection
-            jobs={provider.nearbyPermJobs}
-            onTap={(job) => setSelectedNearbyPermJob(job)}
-            onSeeAll={() => navigate('/find-shifts?type=perm')}
-          />
+          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
+            <PermanentJobsNearMeSection
+              jobs={provider.nearbyPermJobs}
+              onTap={(job) => setSelectedNearbyPermJob(job)}
+              onSeeAll={() => navigate('/find-shifts?type=perm')}
+            />
+          </div>
 
           {/* Latest from the Lounge — community thread preview */}
-          <LatestFromLoungeSection
-            threads={provider.loungeHighlights}
-            onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
-            onSeeAll={() => navigate('/lounge')}
-          />
+          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
+            <LatestFromLoungeSection
+              threads={provider.loungeHighlights}
+              onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
+              onSeeAll={() => navigate('/lounge')}
+            />
+          </div>
 
           {/* Referral CTA — invite a friend, earn $50 */}
-          <ReferralCard
-            code={provider.referralCode}
-            bonusAmount={50}
-            firstName={provider.firstName}
-          />
+          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
+            <ReferralCard
+              code={provider.referralCode}
+              bonusAmount={50}
+              firstName={provider.firstName}
+            />
+          </div>
         </div>
 
         <ProviderBottomNav />
