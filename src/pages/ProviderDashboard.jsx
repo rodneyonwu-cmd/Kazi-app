@@ -485,13 +485,18 @@ export default function ProviderDashboard() {
       >
         <TopBar role="provider" />
 
-        {/* Staggered fade-in for top-level sections — pure CSS, no JS
-            scroll observers. Sections respect prefers-reduced-motion. */}
+        {/* Staggered fade-in for top-level sections + tappable card
+            press feedback. Pure CSS, no JS scroll observers. Both
+            respect prefers-reduced-motion. */}
         <style>{`
           @keyframes kazi-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
           .kazi-rise { opacity: 0; animation: kazi-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+          .kazi-tap { transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1); }
+          .kazi-tap:active { transform: scale(0.98); }
           @media (prefers-reduced-motion: reduce) {
             .kazi-rise { animation: none; opacity: 1; transform: none; }
+            .kazi-tap { transition: none; }
+            .kazi-tap:active { transform: none; }
           }
         `}</style>
 
@@ -505,7 +510,7 @@ export default function ProviderDashboard() {
 
           {/* Earnings anchor — primary metric. Tap-to-expand reveals
               rating / reliability / profile / shifts secondary stats. */}
-          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
+          <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
             <EarningsAnchor
               earnings={provider.earnings}
               stats={provider.stats}
@@ -517,7 +522,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Today card */}
-          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
+          <div className="kazi-rise kazi-tap" style={{ animationDelay: '120ms' }}>
             {provider.todayShift ? (
               <TodayShiftCard
                 shift={provider.todayShift}
@@ -624,7 +629,7 @@ function AvailabilityToggle({ available, onToggle }) {
     <section className="px-4 pt-2 pb-3">
       <button
         onClick={() => onToggle(!available)}
-        className="w-full bg-white border border-[#e8e6e1] rounded-[18px] px-4 py-[10px] flex items-center gap-[10px] cursor-pointer"
+        className="kazi-tap w-full bg-white border border-[#e8e6e1] rounded-[18px] px-4 py-[10px] flex items-center gap-[10px] cursor-pointer"
         style={{
           fontFamily: 'inherit',
           WebkitTapHighlightColor: 'transparent',
@@ -1461,6 +1466,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
         {shifts.map((shift) => (
           <div
             key={shift.id}
+            className="kazi-tap"
             style={{
               flex: '0 0 auto',
               width: 320,
@@ -1518,6 +1524,7 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
         {jobs.map((job) => (
           <div
             key={job.id}
+            className="kazi-tap"
             style={{
               flex: '0 0 auto',
               width: 320,
@@ -1589,6 +1596,7 @@ function LoungeThreadCard({ thread, onTap }) {
   return (
     <button
       onClick={onTap}
+      className="kazi-tap"
       style={{
         background: '#ffffff',
         border: '1px solid #e8e6e1',
@@ -1600,11 +1608,7 @@ function LoungeThreadCard({ thread, onTap }) {
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
-        transition: 'box-shadow 0.15s, transform 0.1s',
       }}
-      onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.99)'; }}
-      onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
     >
       {/* Top row — tag + time */}
       <div className="flex items-center justify-between">
