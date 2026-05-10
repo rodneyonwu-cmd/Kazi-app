@@ -40,6 +40,14 @@ const mockProvider = {
     profileScore: 650,
     shiftsCompleted: 42,
   },
+  // Anchor metric — the single number the home page leads with.
+  earnings: {
+    weekTotal: 1240,
+    weekDeltaPct: 12,        // vs last week
+    weekShiftCount: 3,
+    nextPayoutDate: 'Fri',
+    nextPayoutAmount: 580,
+  },
   todayShift: null, // null = empty state. Populate this object when provider is booked today.
   week: [
     { dow: 'Tue', date: 9, status: 'today' },
@@ -420,8 +428,13 @@ export default function ProviderDashboard() {
               suggestion when the user has no upcoming shift. */}
           <ContextualGreeting provider={provider} onTapNext={handleFindShifts} />
 
-          {/* Stats strip */}
-          <StatsStrip stats={provider.stats} />
+          {/* Earnings anchor — primary metric. Tap-to-expand reveals
+              rating / reliability / profile / shifts secondary stats. */}
+          <EarningsAnchor
+            earnings={provider.earnings}
+            stats={provider.stats}
+            onTap={() => navigate('/finance')}
+          />
 
           {/* Today card */}
           {provider.todayShift ? (
@@ -539,6 +552,98 @@ function ContextualGreeting({ provider, onTapNext }) {
         </svg>
       </div>
     </section>
+  );
+}
+
+// ── Earnings anchor card ─────────────────────────────────────
+// Single dominant metric (this week's earnings) with delta vs last
+// week, # of shifts, and next payout. Secondary stats (rating,
+// reliability, profile, shifts) collapse into an expandable footer.
+function EarningsAnchor({ earnings, stats, onTap }) {
+  const [expanded, setExpanded] = useState(false);
+  const positive = earnings.weekDeltaPct >= 0;
+
+  return (
+    <section className="px-4 mb-[14px]">
+      <div className="bg-white border border-[#e8e6e1] rounded-[20px] overflow-hidden">
+        {/* Primary metric */}
+        <button
+          onClick={onTap}
+          className="w-full text-left bg-transparent border-none px-5 pt-5 pb-4 cursor-pointer"
+          style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
+        >
+          <div className="flex items-center justify-between mb-[6px]">
+            <span className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#6b7875]">
+              Earnings · this week
+            </span>
+            <div className="flex items-center gap-[5px]">
+              <svg viewBox="0 0 24 24" fill="none" stroke={positive ? '#1a7f5e' : '#e8734a'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+                {positive ? (
+                  <>
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                    <polyline points="17 6 23 6 23 12" />
+                  </>
+                ) : (
+                  <>
+                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                    <polyline points="17 18 23 18 23 12" />
+                  </>
+                )}
+              </svg>
+              <span className="text-[12px] font-bold" style={{ color: positive ? '#1a7f5e' : '#e8734a' }}>
+                {positive ? '+' : ''}{earnings.weekDeltaPct}%
+              </span>
+              <span className="text-[12px] font-medium text-[#9aa5a1]">vs last wk</span>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-[10px]">
+            <span className="font-[Outfit] font-bold text-[40px] leading-none tracking-[-0.04em] text-[#0f1a16]">
+              ${earnings.weekTotal.toLocaleString()}
+            </span>
+            <span className="text-[13.5px] font-medium text-[#6b7875]">
+              · {earnings.weekShiftCount} {earnings.weekShiftCount === 1 ? 'shift' : 'shifts'}
+            </span>
+          </div>
+          <div className="text-[12.5px] font-medium text-[#6b7875] mt-[8px]">
+            Next payout {earnings.nextPayoutDate} · ${earnings.nextPayoutAmount}
+          </div>
+        </button>
+
+        {/* Expandable secondary stats */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          className="w-full bg-[#fafaf8] border-none border-t border-[#f0eee8] px-5 py-[10px] flex items-center justify-between cursor-pointer"
+          style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
+        >
+          <span className="text-[12px] font-semibold text-[#6b7875]">
+            {expanded ? 'Hide stats' : 'Rating · Reliability · Profile · Shifts'}
+          </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9aa5a1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.18s ease' }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        {expanded && (
+          <div className="px-5 py-4 grid grid-cols-4 gap-3 border-t border-[#f0eee8]">
+            <SecondaryStat label="Rating" value={stats.rating.toFixed(1)} icon="★" iconColor="#f4b740" />
+            <SecondaryStat label="Reliability" value={`${stats.reliability}%`} valueColor={reliabilityClass(stats.reliability)} />
+            <SecondaryStat label="Profile" value={stats.profileScore} />
+            <SecondaryStat label="Shifts" value={stats.shiftsCompleted} />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SecondaryStat({ label, value, icon, iconColor, valueColor }) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="flex items-center gap-[3px] mb-[4px]">
+        {icon && <span style={{ color: iconColor || '#1a7f5e', fontSize: 14, lineHeight: 1 }}>{icon}</span>}
+        <span className={`font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] ${valueColor || 'text-[#0f1a16]'}`}>{value}</span>
+      </div>
+      <span className="text-[11.5px] font-medium text-[#6b7875]">{label}</span>
+    </div>
   );
 }
 
