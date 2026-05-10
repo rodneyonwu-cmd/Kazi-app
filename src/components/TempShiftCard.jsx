@@ -99,6 +99,9 @@ export function CardHeader({ item }) {
             marginBottom: 4,
             letterSpacing: '-0.3px',
             cursor: 'pointer',
+            // Reserve right-side space for the absolutely-positioned $/hr
+            // chip so long office names can't slide underneath it.
+            paddingRight: 72,
           }}
         >
           {item.name}
