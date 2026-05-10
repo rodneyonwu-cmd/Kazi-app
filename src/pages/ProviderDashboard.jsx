@@ -216,6 +216,38 @@ const mockProvider = {
       salary: '$82K – $98K / year',
     },
   ],
+  // Latest from the Lounge — preview of trending community threads.
+  // Real version: top N threads sorted by score / recency from
+  // GET /api/lounge/threads.
+  loungeHighlights: [
+    {
+      id: 't2',
+      title: 'PSA: confirm tray setup BEFORE first patient',
+      tag: 'Tip',
+      author: { initials: 'MC', name: 'Maya C.', role: 'DA · 3 yrs', anon: false },
+      time: '5h',
+      score: 67,
+      replyCount: 19,
+    },
+    {
+      id: 't1',
+      title: 'Fair hourly rate for an experienced DA in Houston?',
+      tag: 'Pay Talk',
+      author: { initials: 'RP', name: 'Rachel P.', role: 'DA · 4 yrs', anon: false },
+      time: '3h',
+      score: 28,
+      replyCount: 41,
+    },
+    {
+      id: 't3',
+      title: 'Evolve Dentistry — would book again',
+      tag: 'Office Review',
+      author: { initials: null, name: 'Anonymous DA', role: 'verified', anon: true },
+      time: '2d',
+      score: 32,
+      replyCount: 12,
+    },
+  ],
 };
 
 // Mock booked shifts keyed by day-of-month for April 2026.
@@ -417,6 +449,13 @@ export default function ProviderDashboard() {
             jobs={provider.nearbyPermJobs}
             onTap={(job) => setSelectedNearbyPermJob(job)}
             onSeeAll={() => navigate('/find-shifts?type=perm')}
+          />
+
+          {/* Latest from the Lounge — community thread preview */}
+          <LatestFromLoungeSection
+            threads={provider.loungeHighlights}
+            onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
+            onSeeAll={() => navigate('/lounge')}
           />
         </div>
 
@@ -870,6 +909,177 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
       </div>
       <CarouselDots count={jobs.length} activeIdx={activeIdx} />
     </>
+  );
+}
+
+// ── Latest from the Lounge ───────────────────────────────────
+// Vertical stack of community thread previews. Each card shows a
+// color-coded tag pill, title, author meta, and right-aligned vote
+// + reply counts. Tapping a card or "See all" routes into /lounge.
+const LOUNGE_TAG_COLORS = {
+  'Pay Talk': { bg: '#f3ecfd', text: '#5b21b6', border: '#d9c7f5' },
+  'Tip': { bg: '#e8f5f0', text: '#1a7f5e', border: '#c5e3d5' },
+  'Office Review': { bg: '#fff4ec', text: '#b54a18', border: '#f7d6bc' },
+  'Clinical': { bg: '#e0f2fe', text: '#0369a1', border: '#bae0fb' },
+  'Owner Q': { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
+  'Billing': { bg: '#f3ecfd', text: '#5b21b6', border: '#d9c7f5' },
+};
+
+function LatestFromLoungeSection({ threads, onOpenThread, onSeeAll }) {
+  if (!threads?.length) return null;
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <div className="flex items-center gap-[8px]">
+          <span
+            style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: '#1a7f5e',
+              boxShadow: '0 0 0 4px rgba(26,127,94,0.15)',
+            }}
+          />
+          <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
+            Latest from the Lounge
+          </h3>
+        </div>
+        <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
+          See all
+        </button>
+      </div>
+
+      <div className="px-4 flex flex-col gap-[10px]">
+        {threads.map((t) => (
+          <LoungeThreadCard key={t.id} thread={t} onTap={() => onOpenThread(t)} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function LoungeThreadCard({ thread, onTap }) {
+  const tagColors = LOUNGE_TAG_COLORS[thread.tag] || { bg: '#f3f4f6', text: '#374151', border: '#e5e7eb' };
+  const isAnon = thread.author.anon;
+  return (
+    <button
+      onClick={onTap}
+      style={{
+        background: '#ffffff',
+        border: '1px solid #e8e6e1',
+        borderRadius: 16,
+        padding: '14px 16px',
+        cursor: 'pointer',
+        textAlign: 'left',
+        fontFamily: 'inherit',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        transition: 'box-shadow 0.15s, transform 0.1s',
+      }}
+      onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.99)'; }}
+      onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+    >
+      {/* Top row — tag + time */}
+      <div className="flex items-center justify-between">
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '3px 10px',
+            borderRadius: 100,
+            background: tagColors.bg,
+            color: tagColors.text,
+            border: `1px solid ${tagColors.border}`,
+            fontSize: 11,
+            fontWeight: 700,
+            fontFamily: "'Outfit', sans-serif",
+            letterSpacing: '-0.1px',
+          }}
+        >
+          {thread.tag}
+        </span>
+        <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 500 }}>{thread.time}</span>
+      </div>
+
+      {/* Title */}
+      <div
+        style={{
+          fontFamily: "'Outfit', sans-serif",
+          fontWeight: 700,
+          fontSize: 16,
+          color: '#0f1a16',
+          letterSpacing: '-0.2px',
+          lineHeight: 1.3,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {thread.title}
+      </div>
+
+      {/* Bottom row — author + counts */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-[8px] min-w-0">
+          <div
+            style={{
+              width: 26, height: 26, borderRadius: '50%',
+              background: isAnon
+                ? 'linear-gradient(135deg, #d4d4d4 0%, #a8a8a8 100%)'
+                : 'linear-gradient(135deg, #a8c9b8 0%, #7ab8a8 100%)',
+              display: 'grid', placeItems: 'center',
+              color: '#fff', fontWeight: 600, fontSize: 9,
+              flexShrink: 0,
+              position: 'relative',
+            }}
+          >
+            {isAnon ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            ) : (
+              thread.author.initials
+            )}
+            {!isAnon && (
+              <span
+                style={{
+                  position: 'absolute', bottom: -2, right: -2,
+                  width: 10, height: 10, borderRadius: '50%',
+                  background: '#1a7f5e', border: '1.5px solid #fff',
+                  display: 'grid', placeItems: 'center',
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 5, height: 5 }}>
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+            )}
+          </div>
+          <div className="text-[12.5px] text-[#6b7875] truncate">
+            <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{thread.author.name}</span>
+            <span style={{ color: '#9aa5a1' }}> · {thread.author.role}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-[12px] flex-shrink-0">
+          <div className="flex items-center gap-[4px] text-[12px] font-semibold text-[#1a7f5e]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+              <line x1="12" y1="19" x2="12" y2="5" />
+              <polyline points="5 12 12 5 19 12" />
+            </svg>
+            {thread.score}
+          </div>
+          <div className="flex items-center gap-[4px] text-[12px] font-semibold text-[#6b7875]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b7875" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            {thread.replyCount}
+          </div>
+        </div>
+      </div>
+    </button>
   );
 }
 
