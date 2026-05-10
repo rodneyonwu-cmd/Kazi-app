@@ -7,7 +7,8 @@ import ShiftDetailModal from '../components/ShiftDetailModal';
 import DatePickerSheet from '../components/DatePickerSheet';
 import FilterPickerSheet from '../components/FilterPickerSheet';
 import ZipInputSheet from '../components/ZipInputSheet';
-import TempShiftCard, { CardHeader, ExtraChip } from '../components/TempShiftCard';
+import TempShiftCard, { ExtraChip } from '../components/TempShiftCard';
+import PermJobCard from '../components/PermJobCard';
 
 // ============================================================
 // KAZI FIND SHIFTS — Browse open shifts (route: /find-shifts)
@@ -432,7 +433,14 @@ export default function FindShifts() {
                   style={{ margin: '14px 16px 0' }}
                 />
               ))
-          : PERM_JOBS.map((job) => <PermJobCard key={job.id} job={job} onTap={() => setSelectedPermJob(job)} />)}
+          : PERM_JOBS.map((job) => (
+              <PermJobCard
+                key={job.id}
+                job={job}
+                onTap={() => setSelectedPermJob(job)}
+                style={{ margin: '14px 16px 0' }}
+              />
+            ))}
 
         <ProviderBottomNav />
       </div>
@@ -569,76 +577,6 @@ function FilterChip({ label, value, active, onClick }) {
         <polyline points="6 9 12 15 18 9" />
       </svg>
     </button>
-  );
-}
-
-function PermJobCard({ job, onTap }) {
-  return (
-    <div
-      onClick={onTap}
-      style={{
-        background: COLORS.card,
-        border: `1px solid ${COLORS.borderSoft}`,
-        borderRadius: 22,
-        padding: 18,
-        margin: '14px 16px 0',
-        position: 'relative',
-        cursor: 'pointer',
-      }}
-    >
-      {/* Salary — top right */}
-      <div style={{ position: 'absolute', top: 18, right: 18, textAlign: 'right' }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 13, lineHeight: 1 }}>
-          {job.payRange}
-        </div>
-        <div style={{ fontSize: 9, color: COLORS.textLight, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", marginTop: 2 }}>
-          {job.payUnit}
-        </div>
-      </div>
-      <CardHeader item={job} />
-      {/* Tags row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: job.benefits?.length ? 10 : 0 }}>
-        {job.tags.map((t, i) => (
-          <span
-            key={i}
-            style={{
-              background: t.gray ? COLORS.bg : '#f3ecfd',
-              color: t.gray ? COLORS.textMid : '#5b21b6',
-              border: `1px solid ${t.gray ? COLORS.border : '#d9c7f5'}`,
-              padding: '4px 10px',
-              borderRadius: 100,
-              fontSize: 10,
-              fontWeight: 700,
-              fontFamily: "'Outfit', sans-serif",
-            }}
-          >
-            {t.label}
-          </span>
-        ))}
-      </div>
-      {/* Benefits row — same style as gray tags */}
-      {job.benefits?.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          {job.benefits.map((b) => (
-            <span
-              key={b}
-              style={{
-                background: COLORS.bg,
-                color: COLORS.textMid,
-                border: `1px solid ${COLORS.border}`,
-                padding: '4px 10px',
-                borderRadius: 100,
-                fontSize: 10,
-                fontWeight: 700,
-                fontFamily: "'Outfit', sans-serif",
-              }}
-            >
-              {b}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 

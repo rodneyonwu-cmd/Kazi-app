@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TempShiftCard from '../components/TempShiftCard';
+import PermJobCard from '../components/PermJobCard';
 import ShiftDetailModal from '../components/ShiftDetailModal';
+import PermanentJobModal from '../components/PermanentJobModal';
 import BookedShiftModal from './BookedShiftModal';
 
 /**
@@ -88,6 +90,64 @@ const mockProvider = {
       lunch: '30 min lunch',
       software: 'Open Dental',
       pay: 40,
+    },
+  ],
+  // Permanent jobs near me — mirrors the PERM_JOBS shape from Find Shifts.
+  // Cards open the same PermanentJobModal as Find Shifts.
+  nearbyPermJobs: [
+    {
+      id: 'perm-mcd',
+      initials: 'MCD',
+      logoUrl: 'https://picsum.photos/seed/missouri-city-perm/120/120',
+      name: 'Missouri City Dental',
+      role: 'Dental Hygienist',
+      distance: '4.2 mi · Fort Bend',
+      rating: '4.9',
+      reviewCount: 124,
+      applied: 12,
+      tags: [{ label: 'Full-time' }, { label: 'Mon–Fri', gray: true }, { label: 'Starts ASAP', gray: true }],
+      benefits: ['Health', 'Dental', '401(k)', 'PTO'],
+      payRange: '$75K – $92K',
+      payUnit: 'per year',
+      title: 'Dental Hygienist',
+      type: 'Full-Time · Starts ASAP',
+      salary: '$75K – $92K / year',
+    },
+    {
+      id: 'perm-sbd',
+      initials: 'SBD',
+      logoUrl: 'https://picsum.photos/seed/sugar-land-perm/120/120',
+      name: 'Sugar Land Bright Dental',
+      role: 'Dental Hygienist',
+      distance: '7.8 mi · Sugar Land',
+      rating: '4.6',
+      reviewCount: 43,
+      applied: 5,
+      tags: [{ label: 'Full-time' }, { label: 'Tue–Sat', gray: true }, { label: 'Within 3 mo', gray: true }],
+      benefits: ['Health', 'Vision', 'PTO'],
+      payRange: '$95K – $115K',
+      payUnit: 'per year',
+      title: 'Dental Hygienist',
+      type: 'Full-Time · Start within 3 months',
+      salary: '$95K – $115K / year',
+    },
+    {
+      id: 'perm-pwd',
+      initials: 'PWD',
+      logoUrl: 'https://picsum.photos/seed/pearland-perm/120/120',
+      name: 'Pearland Wellness Dental',
+      role: 'Dental Assistant',
+      distance: '3.1 mi · Pearland',
+      rating: '4.7',
+      reviewCount: 58,
+      applied: 8,
+      tags: [{ label: 'Part-time' }, { label: 'Mon, Wed, Fri', gray: true }, { label: 'Starts ASAP', gray: true }],
+      benefits: ['Flexible Hours', 'PTO', 'CE Allowance'],
+      payRange: '$24 – $30',
+      payUnit: 'per hour',
+      title: 'Dental Assistant',
+      type: 'Part-Time · 3 days/week · Starts ASAP',
+      salary: '$24 – $30 / hour',
     },
   ],
 };
@@ -208,6 +268,7 @@ export default function ProviderDashboard() {
   const [scheduleView, setScheduleView] = useState('week');
   const [bookedShift, setBookedShift] = useState(null);
   const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
+  const [selectedNearbyPermJob, setSelectedNearbyPermJob] = useState(null);
 
   const handleFindShifts = () => {
     navigate('/find-shifts');
@@ -284,6 +345,13 @@ export default function ProviderDashboard() {
             onApply={(shift) => setSelectedNearbyShift(shift)}
             onSeeAll={handleFindShifts}
           />
+
+          {/* Permanent jobs near me — horizontal carousel of perm job cards */}
+          <PermanentJobsNearMeSection
+            jobs={provider.nearbyPermJobs}
+            onTap={(job) => setSelectedNearbyPermJob(job)}
+            onSeeAll={() => navigate('/find-shifts?type=perm')}
+          />
         </div>
 
         <ProviderBottomNav />
@@ -293,6 +361,12 @@ export default function ProviderDashboard() {
         open={!!selectedNearbyShift}
         shift={selectedNearbyShift}
         onClose={() => setSelectedNearbyShift(null)}
+      />
+
+      <PermanentJobModal
+        open={!!selectedNearbyPermJob}
+        job={selectedNearbyPermJob}
+        onClose={() => setSelectedNearbyPermJob(null)}
       />
 
       {bookedShift && (
@@ -664,6 +738,57 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
               onApply={() => onApply(shift)}
               style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
               compact
+            />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── Permanent jobs near me ───────────────────────────────────
+// Same horizontal-scroll pattern as ShiftsNearYouSection. Uses the
+// shared PermJobCard so the cards look identical to Find Shifts.
+function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
+  if (!jobs?.length) return null;
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 pt-7 pb-3">
+        <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
+          Permanent jobs near me
+        </h3>
+        <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
+          See all
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          overflowX: 'auto',
+          padding: '4px 16px 8px',
+          scrollSnapType: 'x mandatory',
+          scrollPaddingLeft: 16,
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        {jobs.map((job) => (
+          <div
+            key={job.id}
+            style={{
+              flex: '0 0 auto',
+              width: 320,
+              maxWidth: '85vw',
+              scrollSnapAlign: 'start',
+              display: 'flex',
+            }}
+          >
+            <PermJobCard
+              job={job}
+              onTap={() => onTap(job)}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
             />
           </div>
         ))}
