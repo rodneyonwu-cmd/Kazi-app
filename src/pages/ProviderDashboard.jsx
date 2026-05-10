@@ -384,6 +384,7 @@ export default function ProviderDashboard() {
   const [bookedShift, setBookedShift] = useState(null);
   const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
   const [selectedNearbyPermJob, setSelectedNearbyPermJob] = useState(null);
+  const [available, setAvailable] = useState(true);
 
   const handleFindShifts = () => {
     navigate('/find-shifts');
@@ -434,15 +435,22 @@ export default function ProviderDashboard() {
         `}</style>
 
         <div className="bg-[#f9f8f6] min-h-full pb-6">
+          {/* Availability toggle — the most-tapped marketplace
+              control. Sits at the very top so the user always knows
+              their state at a glance. */}
+          <div className="kazi-rise" style={{ animationDelay: '0ms' }}>
+            <AvailabilityToggle available={available} onToggle={setAvailable} />
+          </div>
+
           {/* Greeting — contextual one-liner. Falls back to a smart
               suggestion when the user has no upcoming shift. */}
-          <div className="kazi-rise" style={{ animationDelay: '0ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
             <ContextualGreeting provider={provider} onTapNext={handleFindShifts} />
           </div>
 
           {/* Earnings anchor — primary metric. Tap-to-expand reveals
               rating / reliability / profile / shifts secondary stats. */}
-          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
             <EarningsAnchor
               earnings={provider.earnings}
               stats={provider.stats}
@@ -451,7 +459,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Today card */}
-          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
             {provider.todayShift ? (
               <TodayShiftCard shift={provider.todayShift} />
             ) : (
@@ -461,7 +469,7 @@ export default function ProviderDashboard() {
 
           {/* Your week — compact 7-day dot strip. Tap to expand to
               the full schedule page. */}
-          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
             <CompactWeekStrip
               week={provider.week}
               onTapDay={handleDayTap}
@@ -470,7 +478,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Shifts near you — horizontal carousel of large shift cards */}
-          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
             <ShiftsNearYouSection
               shifts={provider.nearbyShifts}
               onApply={(shift) => setSelectedNearbyShift(shift)}
@@ -479,7 +487,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Permanent jobs near me — horizontal carousel of perm job cards */}
-          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
             <PermanentJobsNearMeSection
               jobs={provider.nearbyPermJobs}
               onTap={(job) => setSelectedNearbyPermJob(job)}
@@ -488,7 +496,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Latest from the Lounge — community thread preview */}
-          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
             <LatestFromLoungeSection
               threads={provider.loungeHighlights}
               onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
@@ -497,7 +505,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Referral CTA — invite a friend, earn $50 */}
-          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '480ms' }}>
             <ReferralCard
               code={provider.referralCode}
               bonusAmount={50}
@@ -530,6 +538,89 @@ export default function ProviderDashboard() {
         />
       )}
     </>
+  );
+}
+
+// ── Availability toggle ──────────────────────────────────────
+// First thing the user sees on home. Sets their visibility to
+// offices: when ON, offices can request them; when OFF, they go
+// dormant. Keyed off local state today; will eventually POST to
+// /api/providers/me { available }.
+function AvailabilityToggle({ available, onToggle }) {
+  return (
+    <section className="px-4 pt-2 pb-3">
+      <button
+        onClick={() => onToggle(!available)}
+        className="w-full bg-white border border-[#e8e6e1] rounded-[14px] px-4 py-[10px] flex items-center gap-[10px] cursor-pointer"
+        style={{
+          fontFamily: 'inherit',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        {/* Status dot — pulses when available */}
+        <span style={{ position: 'relative', width: 8, height: 8, flexShrink: 0 }}>
+          <span
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              background: available ? '#1a7f5e' : '#c5c8c4',
+            }}
+          />
+          {available && (
+            <>
+              <style>{`
+                @keyframes kazi-pulse-ring {
+                  0%   { transform: scale(1);   opacity: 0.55; }
+                  100% { transform: scale(2.6); opacity: 0;   }
+                }
+              `}</style>
+              <span
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  background: '#1a7f5e',
+                  animation: 'kazi-pulse-ring 1.6s ease-out infinite',
+                }}
+              />
+            </>
+          )}
+        </span>
+
+        <span className="flex-1 text-left text-[14.5px] font-semibold text-[#0f1a16]">
+          {available ? 'Available for shifts' : 'Not available'}
+        </span>
+
+        {/* Toggle pill */}
+        <span
+          style={{
+            width: 36,
+            height: 22,
+            borderRadius: 11,
+            background: available ? '#1a7f5e' : '#d1d5db',
+            position: 'relative',
+            flexShrink: 0,
+            transition: 'background 0.18s ease',
+          }}
+        >
+          <span
+            style={{
+              position: 'absolute',
+              top: 2,
+              left: 2,
+              width: 18,
+              height: 18,
+              borderRadius: '50%',
+              background: '#fff',
+              transform: available ? 'translateX(14px)' : 'translateX(0)',
+              transition: 'transform 0.18s ease',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+            }}
+          />
+        </span>
+      </button>
+    </section>
   );
 }
 
