@@ -430,6 +430,7 @@ export default function ProviderDashboard() {
   const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
   const [selectedNearbyPermJob, setSelectedNearbyPermJob] = useState(null);
   const [available, setAvailable] = useState(true);
+  const [scheduleView, setScheduleView] = useState('week');
 
   const handleFindShifts = () => {
     navigate('/find-shifts');
@@ -506,13 +507,15 @@ export default function ProviderDashboard() {
             )}
           </div>
 
-          {/* Your week — compact 7-day dot strip. Tap to expand to
-              the full schedule page. */}
+          {/* Your week / month — full schedule view */}
           <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
-            <CompactWeekStrip
+            <YourWeekSection
               week={provider.week}
-              onTapDay={handleDayTap}
-              onSeeAll={() => navigate('/provider-schedule')}
+              view={scheduleView}
+              onChangeView={setScheduleView}
+              onDayTap={handleDayTap}
+              onOpenBooked={openBooked}
+              onOpenFind={openFindForDate}
             />
           </div>
 
