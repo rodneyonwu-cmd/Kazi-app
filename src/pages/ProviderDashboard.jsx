@@ -651,9 +651,14 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
               width: 320,
               maxWidth: '85vw',
               scrollSnapAlign: 'start',
+              display: 'flex',
             }}
           >
-            <TempShiftCard shift={shift} onApply={() => onApply(shift)} />
+            <TempShiftCard
+              shift={shift}
+              onApply={() => onApply(shift)}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+            />
           </div>
         ))}
       </div>
