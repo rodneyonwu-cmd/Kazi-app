@@ -444,7 +444,7 @@ function YourWeekSection({ week, view, onChangeView, onDayTap, onOpenBooked, onO
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[24px] tracking-[-0.02em] text-[#0f1a16] m-0">
+        <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
           Your week
         </h3>
         <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
@@ -623,7 +623,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[24px] tracking-[-0.02em] text-[#0f1a16] m-0">
+        <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
           Shifts near you
         </h3>
         <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
