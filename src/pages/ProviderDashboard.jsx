@@ -28,7 +28,7 @@ const mockProvider = {
   referralCode: 'RODNEY50',
   date: 'Tuesday, April 9',
   location: 'Houston, TX',
-  avatarUrl: 'https://i.pravatar.cc/120?u=rodney-onwu',
+  avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=faces',
   // Contextual greeting source. The home page uses this to render a
   // single useful sentence at the top instead of a generic "hello".
   nextShift: {
@@ -732,7 +732,9 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
   return (
     <section className="px-4 mb-[14px]">
       <div className="bg-white border border-[#e8e6e1] rounded-[20px] overflow-hidden relative">
-        {/* Provider avatar — top right. Taps through to /account. */}
+        {/* Provider avatar — top right. Same rounded-square shape as
+            the office logos on the shift cards. Taps through to
+            /account. */}
         <button
           onClick={(e) => { e.stopPropagation(); onTapAvatar && onTapAvatar(); }}
           aria-label="Open account"
@@ -740,11 +742,11 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
             position: 'absolute',
             top: 16,
             right: 16,
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
+            width: 52,
+            height: 52,
+            borderRadius: 14,
             border: '1.5px solid #ffffff',
-            boxShadow: '0 0 0 1px #e8e6e1, 0 2px 6px rgba(15,26,22,0.08)',
+            boxShadow: '0 0 0 1px #e8e6e1, 0 2px 8px rgba(15,26,22,0.08)',
             background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
             padding: 0,
             cursor: 'pointer',
@@ -755,7 +757,7 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
             color: '#fff',
             fontFamily: "'Outfit', sans-serif",
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: 16,
           }}
         >
           {avatarUrl ? (
@@ -776,7 +778,7 @@ function EarningsAnchor({ earnings, stats, avatarUrl, firstName, onTap, onTapAva
           className="w-full text-left bg-transparent border-none px-5 pt-5 pb-4 cursor-pointer"
           style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
         >
-          <div className="mb-[8px]" style={{ paddingRight: 56 }}>
+          <div className="mb-[8px]" style={{ paddingRight: 68 }}>
             <span className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#6b7875]">
               Earnings · this week
             </span>
