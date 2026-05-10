@@ -25,6 +25,7 @@ import BookedShiftModal from './BookedShiftModal';
 // ── Mock data (replace with API response later) ──────────────
 const mockProvider = {
   firstName: 'Rodney',
+  referralCode: 'RODNEY50',
   date: 'Tuesday, April 9',
   location: 'Houston, TX',
   stats: {
@@ -459,6 +460,13 @@ export default function ProviderDashboard() {
             threads={provider.loungeHighlights}
             onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
             onSeeAll={() => navigate('/lounge')}
+          />
+
+          {/* Referral CTA — invite a friend, earn $50 */}
+          <ReferralCard
+            code={provider.referralCode}
+            bonusAmount={50}
+            firstName={provider.firstName}
           />
         </div>
 
@@ -1111,6 +1119,240 @@ function LoungeThreadCard({ thread, onTap }) {
         </div>
       </div>
     </button>
+  );
+}
+
+// ── Referral CTA card ────────────────────────────────────────
+// Sits at the bottom of the dashboard. Dark green gradient so it
+// stands out from the white/off-white sections above without feeling
+// out of place. Native Share API when available; falls back to
+// clipboard copy with a brief "Copied" pill.
+function ReferralCard({ code, bonusAmount = 50, firstName = 'A friend' }) {
+  const [copied, setCopied] = useState(false);
+
+  const inviteUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/signup?ref=${encodeURIComponent(code)}`
+    : `https://kazi-app-woad.vercel.app/signup?ref=${encodeURIComponent(code)}`;
+
+  const shareText = `Join me on Kazi — the best way to find dental shifts. Use my code ${code} when you sign up: ${inviteUrl}`;
+
+  const handleShare = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join me on Kazi',
+          text: `Use my code ${code} when you sign up.`,
+          url: inviteUrl,
+        });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to copy.
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // No clipboard access — fail silently.
+    }
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // No clipboard access.
+    }
+  };
+
+  return (
+    <div className="px-4 pt-7">
+      <div
+        style={{
+          position: 'relative',
+          background: 'linear-gradient(135deg, #1a7f5e 0%, #146449 100%)',
+          borderRadius: 24,
+          padding: '24px 22px',
+          color: '#ffffff',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Decorative blur orb (top-right) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: -40,
+            right: -40,
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Eyebrow + title */}
+        <div className="flex items-center gap-[8px] mb-[10px]" style={{ position: 'relative' }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.16)',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+              <polyline points="20 12 20 22 4 22 4 12" />
+              <rect x="2" y="7" width="20" height="5" />
+              <line x1="12" y1="22" x2="12" y2="7" />
+              <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+              <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+            </svg>
+          </div>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.6px',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.78)',
+            }}
+          >
+            Refer & earn
+          </span>
+        </div>
+
+        <h3
+          style={{
+            fontFamily: "'Outfit', sans-serif",
+            fontSize: 22,
+            fontWeight: 700,
+            letterSpacing: '-0.4px',
+            lineHeight: 1.2,
+            margin: 0,
+            position: 'relative',
+          }}
+        >
+          Refer a dental pro,<br />get <span style={{ color: '#fff' }}>${bonusAmount}</span>
+        </h3>
+
+        <p
+          style={{
+            marginTop: 8,
+            fontSize: 13.5,
+            lineHeight: 1.45,
+            color: 'rgba(255,255,255,0.82)',
+            fontWeight: 400,
+            maxWidth: 320,
+            position: 'relative',
+          }}
+        >
+          When they sign up with your code and complete their first shift, ${bonusAmount} drops into your earnings.
+        </p>
+
+        {/* Code + copy */}
+        <button
+          onClick={handleCopyCode}
+          aria-label="Copy referral code"
+          style={{
+            marginTop: 16,
+            background: 'rgba(255,255,255,0.14)',
+            border: '1px dashed rgba(255,255,255,0.4)',
+            borderRadius: 14,
+            padding: '11px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            color: '#ffffff',
+            position: 'relative',
+            width: '100%',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.7)',
+            }}
+          >
+            Your code
+          </span>
+          <span
+            style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontWeight: 700,
+              fontSize: 16,
+              letterSpacing: '0.6px',
+              color: '#ffffff',
+              flex: 1,
+            }}
+          >
+            {code}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            {copied ? 'Copied!' : 'Copy'}
+          </span>
+        </button>
+
+        {/* Share CTA */}
+        <button
+          onClick={handleShare}
+          style={{
+            marginTop: 12,
+            width: '100%',
+            background: '#ffffff',
+            color: '#1a7f5e',
+            border: 'none',
+            borderRadius: 100,
+            padding: '13px 18px',
+            fontSize: 14.5,
+            fontWeight: 700,
+            fontFamily: "'DM Sans', sans-serif",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            position: 'relative',
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          Share invite link
+        </button>
+
+        <p
+          style={{
+            marginTop: 12,
+            fontSize: 11.5,
+            color: 'rgba(255,255,255,0.65)',
+            textAlign: 'center',
+            position: 'relative',
+            fontWeight: 500,
+          }}
+        >
+          {firstName === 'A friend' ? 'Bonus credited after referee\'s first booking.' : `${firstName}, bonus credits after their first booking.`}
+        </p>
+      </div>
+    </div>
   );
 }
 
