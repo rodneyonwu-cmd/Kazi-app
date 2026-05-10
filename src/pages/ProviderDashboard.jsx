@@ -487,15 +487,9 @@ export default function ProviderDashboard() {
             <AvailabilityToggle available={available} onToggle={setAvailable} />
           </div>
 
-          {/* Greeting — contextual one-liner. Falls back to a smart
-              suggestion when the user has no upcoming shift. */}
-          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
-            <ContextualGreeting provider={provider} onTapNext={handleFindShifts} />
-          </div>
-
           {/* Earnings anchor — primary metric. Tap-to-expand reveals
               rating / reliability / profile / shifts secondary stats. */}
-          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
             <EarningsAnchor
               earnings={provider.earnings}
               stats={provider.stats}
@@ -504,7 +498,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Today card */}
-          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
             {provider.todayShift ? (
               <TodayShiftCard shift={provider.todayShift} />
             ) : (
@@ -514,7 +508,7 @@ export default function ProviderDashboard() {
 
           {/* Your week — compact 7-day dot strip. Tap to expand to
               the full schedule page. */}
-          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
             <CompactWeekStrip
               week={provider.week}
               onTapDay={handleDayTap}
@@ -523,7 +517,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Shifts near you — horizontal carousel of large shift cards */}
-          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
             <ShiftsNearYouSection
               shifts={provider.nearbyShifts}
               onApply={(shift) => setSelectedNearbyShift(shift)}
@@ -532,7 +526,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Permanent jobs near me — horizontal carousel of perm job cards */}
-          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
             <PermanentJobsNearMeSection
               jobs={provider.nearbyPermJobs}
               onTap={(job) => setSelectedNearbyPermJob(job)}
@@ -541,7 +535,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Latest from the Lounge — community thread preview */}
-          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
             <LatestFromLoungeSection
               threads={provider.loungeHighlights}
               onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
@@ -550,7 +544,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Referral CTA — invite a friend, earn $50 */}
-          <div className="kazi-rise" style={{ animationDelay: '480ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
             <ReferralCard
               code={provider.referralCode}
               bonusAmount={50}
