@@ -217,7 +217,11 @@ export default function TempShiftCard({ shift, onApply, style }) {
         </svg>
         {shift.when}
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      {/* marginTop: auto pushes the row to the bottom of the card when
+          the card is rendered as a flex column with stretched height
+          (e.g. the Shifts-near-you carousel). In normal block layout
+          (Find Shifts list) it resolves to 0, so this is a no-op. */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 'auto' }}>
         {shift.lunch && <ExtraChip>{shift.lunch}</ExtraChip>}
         {shift.software && <ExtraChip>{shift.software}</ExtraChip>}
         <button
