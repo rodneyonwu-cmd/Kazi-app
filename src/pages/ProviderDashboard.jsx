@@ -373,7 +373,6 @@ export default function ProviderDashboard() {
   // const { data: provider, isLoading } = useProviderDashboard();
   const provider = mockProvider;
 
-  const [scheduleView, setScheduleView] = useState('week');
   const [bookedShift, setBookedShift] = useState(null);
   const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
   const [selectedNearbyPermJob, setSelectedNearbyPermJob] = useState(null);
@@ -431,14 +430,12 @@ export default function ProviderDashboard() {
             <TodayEmptyCard onFindShifts={handleFindShifts} />
           )}
 
-          {/* Your week / month */}
-          <YourWeekSection
+          {/* Your week — compact 7-day dot strip. Tap to expand to
+              the full schedule page. */}
+          <CompactWeekStrip
             week={provider.week}
-            view={scheduleView}
-            onChangeView={setScheduleView}
-            onDayTap={handleDayTap}
-            onOpenBooked={openBooked}
-            onOpenFind={openFindForDate}
+            onTapDay={handleDayTap}
+            onSeeAll={() => navigate('/provider-schedule')}
           />
 
           {/* Shifts near you — horizontal carousel of large shift cards */}
@@ -683,6 +680,70 @@ function TodayShiftCard({ shift }) {
 }
 
 // ── Your week / month ────────────────────────────────────────
+// ── Compact 7-day strip ──────────────────────────────────────
+// Replaces the full week-grid / month-calendar block on home with
+// a thin row of dot-marked days. Bigger schedule view lives on its
+// own page (/provider-schedule), reachable via "Full schedule →".
+function CompactWeekStrip({ week, onTapDay, onSeeAll }) {
+  const dotForStatus = (status) => {
+    switch (status) {
+      case 'today':   return { color: '#1a7f5e', ring: true };
+      case 'booked':  return { color: '#1a7f5e', ring: false };
+      case 'open':    return { color: '#d1d5db', ring: false };
+      case 'off':     return { color: 'transparent', ring: false };
+      default:        return { color: '#d1d5db', ring: false };
+    }
+  };
+  return (
+    <section className="px-4 pt-1 pb-3">
+      <div className="bg-white border border-[#e8e6e1] rounded-[18px] px-3 py-3">
+        <div className="flex items-center justify-between mb-[8px] px-2">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#6b7875]">This week</span>
+          <button onClick={onSeeAll} className="text-[12.5px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
+            Full schedule →
+          </button>
+        </div>
+        <div className="flex items-stretch justify-between gap-1">
+          {week.map((day) => {
+            const isToday = day.status === 'today';
+            const dot = dotForStatus(day.status);
+            return (
+              <button
+                key={day.date}
+                onClick={() => onTapDay(day)}
+                className="flex-1 flex flex-col items-center gap-[6px] py-[6px] rounded-[10px] cursor-pointer"
+                style={{
+                  background: isToday ? '#f1f9f5' : 'transparent',
+                  border: 'none',
+                  fontFamily: 'inherit',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                <span className={`text-[10.5px] font-semibold uppercase tracking-[0.06em] ${isToday ? 'text-[#1a7f5e]' : 'text-[#9aa5a1]'}`}>
+                  {day.dow}
+                </span>
+                <span className={`font-[Outfit] font-bold text-[16px] leading-none ${isToday ? 'text-[#1a7f5e]' : 'text-[#0f1a16]'}`}>
+                  {day.date}
+                </span>
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: dot.color,
+                    boxShadow: dot.ring ? '0 0 0 3px rgba(26,127,94,0.18)' : 'none',
+                    marginTop: 2,
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function YourWeekSection({ week, view, onChangeView, onDayTap, onOpenBooked, onOpenFind }) {
   return (
     <>
