@@ -992,7 +992,7 @@ function LoungeThreadCard({ thread, onTap }) {
             color: tagColors.text,
             border: `1px solid ${tagColors.border}`,
             fontSize: 11,
-            fontWeight: 700,
+            fontWeight: 600,
             fontFamily: "'Outfit', sans-serif",
             letterSpacing: '-0.1px',
           }}
@@ -1006,7 +1006,7 @@ function LoungeThreadCard({ thread, onTap }) {
       <div
         style={{
           fontFamily: "'Outfit', sans-serif",
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: 16,
           color: '#0f1a16',
           letterSpacing: '-0.2px',

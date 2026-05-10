@@ -92,7 +92,7 @@ export function CardHeader({ item }) {
           onClick={goOffice}
           style={{
             fontFamily: "'Outfit', sans-serif",
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: 19,
             color: '#111111',
             lineHeight: 1.2,
