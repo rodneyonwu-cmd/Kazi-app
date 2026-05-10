@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
 import TempShiftCard from '../components/TempShiftCard';
@@ -268,6 +268,48 @@ const mockProvider = {
   ],
 };
 
+// New-user mock — what the home page looks like for a provider who
+// just finished onboarding (no shifts booked, no earnings yet, no
+// reviews). Reachable at /provider?demo=new for design review.
+const newProviderMock = {
+  firstName: 'Alex',
+  referralCode: 'ALEX50',
+  date: 'Tuesday, April 9',
+  location: 'Houston, TX',
+  stats: {
+    rating: 0,
+    reliability: 100,
+    profileScore: 320,
+    shiftsCompleted: 0,
+  },
+  earnings: {
+    weekTotal: 0,
+    weekDeltaPct: 0,
+    weekShiftCount: 0,
+    nextPayoutDate: null,
+    nextPayoutAmount: 0,
+  },
+  // No upcoming shift — ContextualGreeting falls into discovery mode.
+  nextShift: null,
+  todayShift: null,
+  // All days open or off — no bookings yet.
+  week: [
+    { dow: 'Tue', date: 9, status: 'today' },
+    { dow: 'Wed', date: 10, status: 'open' },
+    { dow: 'Thu', date: 11, status: 'open' },
+    { dow: 'Fri', date: 12, status: 'open' },
+    { dow: 'Sat', date: 13, status: 'off' },
+    { dow: 'Sun', date: 14, status: 'off' },
+    { dow: 'Mon', date: 15, status: 'open' },
+  ],
+  // Recommendation surfaces — same content as the populated mock.
+  // These are algorithm-driven, not user-driven, so a brand-new
+  // provider sees the same list of recommended shifts/jobs/threads.
+  nearbyShifts: mockProvider.nearbyShifts,
+  nearbyPermJobs: mockProvider.nearbyPermJobs,
+  loungeHighlights: mockProvider.loungeHighlights,
+};
+
 // Mock booked shifts keyed by day-of-month for April 2026.
 // Tapping a day with status='booked' opens BookedShiftModal populated from here.
 const BOOKED_SHIFTS = {
@@ -379,7 +421,10 @@ export default function ProviderDashboard() {
   const navigate = useNavigate();
   // TODO: replace mock with API call
   // const { data: provider, isLoading } = useProviderDashboard();
-  const provider = mockProvider;
+  // Demo override — visit /provider?demo=new to see the just-onboarded
+  // (no shifts / no earnings) state for design review.
+  const [searchParams] = useSearchParams();
+  const provider = searchParams.get('demo') === 'new' ? newProviderMock : mockProvider;
 
   const [bookedShift, setBookedShift] = useState(null);
   const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
@@ -679,6 +724,7 @@ function ContextualGreeting({ provider, onTapNext }) {
 function EarningsAnchor({ earnings, stats, onTap }) {
   const [expanded, setExpanded] = useState(false);
   const positive = earnings.weekDeltaPct >= 0;
+  const isNewUser = earnings.weekTotal === 0 && earnings.weekShiftCount === 0;
 
   return (
     <section className="px-4 mb-[14px]">
@@ -693,25 +739,27 @@ function EarningsAnchor({ earnings, stats, onTap }) {
             <span className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-[#6b7875]">
               Earnings · this week
             </span>
-            <div className="flex items-center gap-[5px]">
-              <svg viewBox="0 0 24 24" fill="none" stroke={positive ? '#1a7f5e' : '#e8734a'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
-                {positive ? (
-                  <>
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                    <polyline points="17 6 23 6 23 12" />
-                  </>
-                ) : (
-                  <>
-                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-                    <polyline points="17 18 23 18 23 12" />
-                  </>
-                )}
-              </svg>
-              <span className="text-[12px] font-bold" style={{ color: positive ? '#1a7f5e' : '#e8734a' }}>
-                {positive ? '+' : ''}{earnings.weekDeltaPct}%
-              </span>
-              <span className="text-[12px] font-medium text-[#9aa5a1]">vs last wk</span>
-            </div>
+            {!isNewUser && (
+              <div className="flex items-center gap-[5px]">
+                <svg viewBox="0 0 24 24" fill="none" stroke={positive ? '#1a7f5e' : '#e8734a'} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+                  {positive ? (
+                    <>
+                      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                      <polyline points="17 6 23 6 23 12" />
+                    </>
+                  ) : (
+                    <>
+                      <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                      <polyline points="17 18 23 18 23 12" />
+                    </>
+                  )}
+                </svg>
+                <span className="text-[12px] font-bold" style={{ color: positive ? '#1a7f5e' : '#e8734a' }}>
+                  {positive ? '+' : ''}{earnings.weekDeltaPct}%
+                </span>
+                <span className="text-[12px] font-medium text-[#9aa5a1]">vs last wk</span>
+              </div>
+            )}
           </div>
           <div className="flex items-baseline gap-[10px]">
             <span className="font-[Outfit] font-bold text-[40px] leading-none tracking-[-0.04em] text-[#0f1a16]">
@@ -722,7 +770,9 @@ function EarningsAnchor({ earnings, stats, onTap }) {
             </span>
           </div>
           <div className="text-[12.5px] font-medium text-[#6b7875] mt-[8px]">
-            Next payout {earnings.nextPayoutDate} · ${earnings.nextPayoutAmount}
+            {isNewUser
+              ? 'Book your first shift to start earning'
+              : `Next payout ${earnings.nextPayoutDate} · $${earnings.nextPayoutAmount}`}
           </div>
         </button>
 
