@@ -44,11 +44,16 @@ const styles = `
   background: var(--bg);
   border-radius: 28px 28px 0 0;
   max-height: 92vh;
-  overflow-y: auto;
-  padding-bottom: 20px;
   animation: kaziBsmSlide 0.3s ease;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+.kazi-bsm .sheet-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
 }
 @keyframes kaziBsmFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes kaziBsmSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -132,6 +137,7 @@ export default function BookedShiftModal({ shift, onClose, onCancelShift, onMess
             <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
 
+          <div className="sheet-scroll">
           <div className="office-hero" style={{ marginTop: '20px' }}>
             <div className="office-row">
               <div className="office-logo">{shift.officeInitials || 'SD'}</div>
@@ -208,6 +214,7 @@ export default function BookedShiftModal({ shift, onClose, onCancelShift, onMess
               Message Office
             </button>
             <button className="btn btn-cancel" onClick={handleCancel}>Cancel Shift</button>
+          </div>
           </div>
         </div>
       </div>
