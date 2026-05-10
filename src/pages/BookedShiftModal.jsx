@@ -53,8 +53,8 @@ const styles = `
 }
 @keyframes kaziBsmSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .kazi-bsm .handle { width: 40px; height: 4px; background: var(--border); border-radius: 100px; margin: 10px auto 0; }
-.kazi-bsm .close-btn { position: absolute; top: 18px; right: 18px; width: 32px; height: 32px; border-radius: 50%; background: var(--card); border: 1px solid var(--border-soft); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; font-family: inherit; }
-.kazi-bsm .close-btn svg { width: 14px; height: 14px; stroke: var(--text); stroke-width: 2.5; fill: none; }
+.kazi-bsm .close-btn { position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border-radius: 50%; background: #f9f8f6; border: 1px solid #ececec; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; font-family: inherit; padding: 0; }
+.kazi-bsm .close-btn svg { width: 13px; height: 13px; stroke: #1a1a1a; stroke-width: 2.5; fill: none; }
 .kazi-bsm .countdown { margin: 20px 20px 0; background: linear-gradient(135deg, var(--green) 0%, #15604a 100%); border-radius: 18px; padding: 16px 18px; color: white; display: flex; align-items: center; gap: 12px; overflow: hidden; position: relative; }
 .kazi-bsm .countdown::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%); border-radius: 50%; }
 .kazi-bsm .countdown-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
