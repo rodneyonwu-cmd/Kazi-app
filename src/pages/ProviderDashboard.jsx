@@ -41,10 +41,13 @@ const mockProvider = {
     { dow: 'Sun', date: 14, status: 'booked' },
     { dow: 'Mon', date: 15, status: 'booked' },
   ],
+  // Stable seeded logos via picsum.photos (matches Find Shifts pattern).
+  // Real office logos will replace these once the API is wired.
   nearbyShifts: [
     {
       id: 'shift_1',
       initials: 'SLD',
+      logoUrl: 'https://picsum.photos/seed/sugar-land-dental/120/120',
       name: 'Sugar Land Dental',
       role: 'Hygienist',
       distance: '4.2 mi · Sugar Land',
@@ -59,6 +62,7 @@ const mockProvider = {
     {
       id: 'shift_2',
       initials: 'BFD',
+      logoUrl: 'https://picsum.photos/seed/bellaire-family-dental/120/120',
       name: 'Bellaire Family Dental',
       role: 'Hygienist',
       distance: '6.8 mi · Bellaire',
@@ -73,6 +77,7 @@ const mockProvider = {
     {
       id: 'shift_3',
       initials: 'PDC',
+      logoUrl: 'https://picsum.photos/seed/pearland-dental-care/120/120',
       name: 'Pearland Dental Care',
       role: 'Hygienist',
       distance: '9.1 mi · Pearland',
