@@ -23,38 +23,38 @@ const styles = `
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
-.kazi-bsm .backdrop {
+/* Outer wrapper / sheet / animations match ShiftDetailModal so the
+   booked-shift popup feels identical to the Apply popup. */
+.kazi-bsm .overlay {
   position: fixed;
   inset: 0;
+  z-index: 9999;
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(4px);
-  z-index: 200;
-}
-.kazi-bsm .sheet-wrap {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 480px;
-  z-index: 201;
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
+  align-items: flex-end;
   justify-content: center;
+  animation: kaziBsmFade 0.25s ease;
 }
 .kazi-bsm .sheet {
   position: relative;
   width: 100%;
+  max-width: 480px;
   background: var(--bg);
   border-radius: 28px 28px 0 0;
   max-height: 92vh;
   overflow-y: auto;
   padding-bottom: 20px;
-  animation: kaziBsmSlide 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: kaziBsmSlide 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
+@keyframes kaziBsmFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes kaziBsmSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.kazi-bsm .handle { width: 40px; height: 4px; background: var(--border); border-radius: 100px; margin: 10px auto 0; }
-.kazi-bsm .close-btn { position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border-radius: 50%; background: #f9f8f6; border: 1px solid #ececec; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; font-family: inherit; padding: 0; }
-.kazi-bsm .close-btn svg { width: 13px; height: 13px; stroke: #1a1a1a; stroke-width: 2.5; fill: none; }
+.kazi-bsm .handle { width: 40px; height: 4px; background: #d1d5db; border-radius: 100px; margin: 12px auto 0; }
+.kazi-bsm .close-btn { position: absolute; top: 14px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: #f3f4f6; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; font-family: inherit; padding: 0; }
+.kazi-bsm .close-btn svg { width: 14px; height: 14px; stroke: #1a1a1a; stroke-width: 2.5; fill: none; }
 .kazi-bsm .countdown { margin: 20px 20px 0; background: linear-gradient(135deg, var(--green) 0%, #15604a 100%); border-radius: 18px; padding: 16px 18px; color: white; display: flex; align-items: center; gap: 12px; overflow: hidden; position: relative; }
 .kazi-bsm .countdown::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%); border-radius: 50%; }
 .kazi-bsm .countdown-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
@@ -125,9 +125,8 @@ export default function BookedShiftModal({ shift, onClose, onCancelShift, onMess
   return (
     <div className="kazi-bsm">
       <style>{styles}</style>
-      <div className="backdrop" onClick={onClose} />
-      <div className="sheet-wrap">
-        <div className="sheet">
+      <div className="overlay" onClick={onClose}>
+        <div className="sheet" onClick={(e) => e.stopPropagation()}>
           <div className="handle" />
           <button className="close-btn" onClick={onClose} aria-label="Close">
             <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
