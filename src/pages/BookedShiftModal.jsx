@@ -43,7 +43,11 @@ const styles = `
   max-width: 480px;
   background: var(--bg);
   border-radius: 28px 28px 0 0;
-  max-height: 92vh;
+  /* Use dvh so iOS Safari's address bar doesn't push the cap past the
+     visible area. 85% of the dynamic viewport leaves a clear band of
+     dimmed page above, matching the Apply popup's visual height. */
+  max-height: 85vh;
+  max-height: 85dvh;
   animation: kaziBsmSlide 0.3s ease;
   display: flex;
   flex-direction: column;
