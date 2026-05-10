@@ -245,10 +245,10 @@ export default function ProviderDashboard() {
         <div className="bg-[#f9f8f6] min-h-full pb-6">
           {/* Greeting */}
           <section className="px-5 pt-4 pb-6">
-            <h1 className="font-[Outfit] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
+            <h1 className="font-[Outfit] font-bold text-[28px] leading-[1.1] tracking-[-0.02em] text-[#0f1a16] mb-1">
               Hello, {provider.firstName} 👋
             </h1>
-            <div className="text-[14px] font-medium text-[#6b7875]">
+            <div className="text-[15px] font-normal text-[#6b7875]">
               {provider.date} · {provider.location}
             </div>
           </section>
@@ -314,7 +314,7 @@ function StatsStrip({ stats }) {
           </svg>
           {stats.rating.toFixed(1)}
         </div>
-        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Rating</div>
+        <div className="text-[12.5px] font-medium text-[#6b7875] leading-none">Rating</div>
       </div>
 
       <div className="w-px bg-[#efede8] my-1" />
@@ -324,7 +324,7 @@ function StatsStrip({ stats }) {
         <div className={`font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] ${reliabilityClass(stats.reliability)}`}>
           {stats.reliability}%
         </div>
-        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Reliability</div>
+        <div className="text-[12.5px] font-medium text-[#6b7875] leading-none">Reliability</div>
       </div>
 
       <div className="w-px bg-[#efede8] my-1" />
@@ -334,7 +334,7 @@ function StatsStrip({ stats }) {
         <div className="font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] text-[#0f1a16]">
           {stats.profileScore}
         </div>
-        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Profile</div>
+        <div className="text-[12.5px] font-medium text-[#6b7875] leading-none">Profile</div>
       </div>
 
       <div className="w-px bg-[#efede8] my-1" />
@@ -344,7 +344,7 @@ function StatsStrip({ stats }) {
         <div className="font-[Outfit] font-bold text-[18px] leading-none tracking-[-0.02em] text-[#0f1a16]">
           {stats.shiftsCompleted}
         </div>
-        <div className="text-[11px] font-medium text-[#6b7875] leading-none">Shifts</div>
+        <div className="text-[12.5px] font-medium text-[#6b7875] leading-none">Shifts</div>
       </div>
     </div>
   );
@@ -371,10 +371,10 @@ function TodayEmptyCard({ onFindShifts }) {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-[Outfit] font-bold text-[17px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
+          <div className="font-[Outfit] font-bold text-[19px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
             No shift today
           </div>
-          <div className="text-[13px] font-medium text-[#6b7875] leading-[1.35]">
+          <div className="text-[14.5px] font-normal text-[#6b7875] leading-[1.4]">
             Browse open shifts from Houston offices.
           </div>
         </div>
@@ -417,10 +417,10 @@ function TodayShiftCard({ shift }) {
           {shift.officeInitials}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-[Outfit] font-bold text-[17px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
+          <div className="font-[Outfit] font-bold text-[19px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
             {shift.officeName}
           </div>
-          <div className="text-[13.5px] font-medium text-[#6b7875]">
+          <div className="text-[14.5px] font-normal text-[#6b7875]">
             {shift.startTime} – {shift.endTime} · {shift.distanceMiles} mi
           </div>
         </div>
@@ -444,7 +444,7 @@ function YourWeekSection({ week, view, onChangeView, onDayTap, onOpenBooked, onO
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+        <h3 className="font-[Outfit] font-bold text-[24px] tracking-[-0.02em] text-[#0f1a16] m-0">
           Your week
         </h3>
         <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
@@ -623,7 +623,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+        <h3 className="font-[Outfit] font-bold text-[24px] tracking-[-0.02em] text-[#0f1a16] m-0">
           Shifts near you
         </h3>
         <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">

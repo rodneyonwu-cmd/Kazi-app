@@ -93,7 +93,7 @@ export function CardHeader({ item }) {
           style={{
             fontFamily: "'Outfit', sans-serif",
             fontWeight: 700,
-            fontSize: 17,
+            fontSize: 19,
             color: '#111111',
             lineHeight: 1.2,
             marginBottom: 4,
@@ -103,10 +103,10 @@ export function CardHeader({ item }) {
         >
           {item.name}
         </div>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: COLORS.textMid, lineHeight: 1.2, marginBottom: 6 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: 14.5, color: COLORS.textMid, lineHeight: 1.3, marginBottom: 6 }}>
           {item.role}
         </div>
-        <div style={{ fontSize: 12, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+        <div style={{ fontSize: 13, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 500 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
@@ -164,10 +164,10 @@ export function ExtraChip({ children }) {
         border: `1px solid ${COLORS.border}`,
         padding: '7px 12px',
         borderRadius: 100,
-        fontSize: 12,
-        fontWeight: 700,
+        fontSize: 12.5,
+        fontWeight: 600,
         color: COLORS.text,
-        fontFamily: "'Outfit', sans-serif",
+        fontFamily: "'DM Sans', sans-serif",
       }}
     >
       {children}
@@ -189,7 +189,7 @@ export default function TempShiftCard({ shift, onApply, style }) {
     >
       {/* Hourly rate — top right */}
       <div style={{ position: 'absolute', top: 18, right: 18, textAlign: 'right' }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 13, lineHeight: 1 }}>
+        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 15, lineHeight: 1 }}>
           ${shift.pay}/hr
         </div>
       </div>
@@ -203,9 +203,9 @@ export default function TempShiftCard({ shift, onApply, style }) {
           background: COLORS.bg,
           borderRadius: 12,
           marginBottom: 10,
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: 13,
-          fontWeight: 700,
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 13.5,
+          fontWeight: 600,
           color: COLORS.text,
         }}
       >
