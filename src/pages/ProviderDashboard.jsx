@@ -49,7 +49,20 @@ const mockProvider = {
     nextPayoutDate: 'Fri',
     nextPayoutAmount: 580,
   },
-  todayShift: null, // null = empty state. Populate this object when provider is booked today.
+  // Today's shift — null → renders the smart-suggestion empty state,
+  // populated → renders the bold green hero card.
+  todayShift: {
+    officeName: 'Sugar Land Dental',
+    officeInitials: 'SLD',
+    officeLogoUrl: 'https://picsum.photos/seed/sugar-land-dental/120/120',
+    role: 'Dental Hygienist',
+    timeRange: '8:00 AM – 5:00 PM',
+    distance: '4.2 mi · Sugar Land',
+    address: '4521 Highway 6, Sugar Land, TX',
+    countdown: 'In 2h 18m',
+    payTotal: 464,
+    payRate: '$58/hr × 8 paid hours',
+  },
   week: [
     { dow: 'Tue', date: 9, status: 'today' },
     { dow: 'Wed', date: 10, status: 'booked' },
@@ -506,9 +519,22 @@ export default function ProviderDashboard() {
           {/* Today card */}
           <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
             {provider.todayShift ? (
-              <TodayShiftCard shift={provider.todayShift} />
+              <TodayShiftCard
+                shift={provider.todayShift}
+                onDirections={() => {
+                  const q = encodeURIComponent(provider.todayShift.address || '');
+                  window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
+                }}
+                onMessage={() => navigate('/provider-messages')}
+              />
             ) : (
-              <TodayEmptyCard onFindShifts={handleFindShifts} />
+              <TodayEmptyCard
+                suggestion={provider.nearbyShifts?.[0]}
+                onFindShifts={(shift) => {
+                  if (shift) setSelectedNearbyShift(shift);
+                  else handleFindShifts();
+                }}
+              />
             )}
           </div>
 
@@ -906,90 +932,256 @@ function StatsStrip({ stats }) {
 }
 
 // ── Today card (empty state — no shift booked) ───────────────
-function TodayEmptyCard({ onFindShifts }) {
+// ── Today empty card — smart-suggestion variant ──────────────
+// Instead of a generic "browse shifts" CTA, surface the single best
+// match inline so a no-shift day still drives the user to act.
+function TodayEmptyCard({ onFindShifts, suggestion }) {
   return (
-    <div className="mx-4 bg-[#e8f2ed] border border-[#d4e7dd] rounded-[18px] p-[18px] relative overflow-hidden">
-      <div className="flex items-center justify-between mb-[14px]">
+    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[18px] overflow-hidden">
+      {/* Eyebrow row */}
+      <div className="flex items-center justify-between px-[18px] pt-[16px] pb-[10px]">
         <span className="inline-flex items-center gap-[6px] text-[11.5px] font-bold tracking-[0.06em] uppercase text-[#6b7875]">
           <span className="w-[6px] h-[6px] rounded-full bg-[#9aa5a1]" />
-          Today
+          No shift today
         </span>
+        {suggestion && (
+          <span
+            style={{
+              padding: '3px 9px',
+              borderRadius: 100,
+              background: '#fff4ec',
+              border: '1px solid #f7d6bc',
+              color: '#b54a18',
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.4px',
+              textTransform: 'uppercase',
+            }}
+          >
+            Top match
+          </span>
+        )}
       </div>
 
-      <div className="flex gap-[14px] items-center">
-        <div className="w-14 h-14 rounded-[16px] bg-white border border-[#d4e7dd] grid place-items-center flex-shrink-0">
-          <svg className="w-6 h-6 stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-[Outfit] font-bold text-[19px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
-            No shift today
+      {suggestion ? (
+        <>
+          {/* Inline suggestion */}
+          <div className="px-[18px] pb-[14px] flex items-center gap-[12px]">
+            {suggestion.logoUrl ? (
+              <img
+                src={suggestion.logoUrl}
+                alt={suggestion.name}
+                style={{ width: 48, height: 48, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
+              />
+            ) : (
+              <div
+                className="grid place-items-center text-white font-[Outfit] font-bold flex-shrink-0"
+                style={{ width: 48, height: 48, borderRadius: 14, fontSize: 13, background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
+              >
+                {suggestion.initials}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-[Outfit] font-semibold text-[16px] tracking-[-0.01em] text-[#0f1a16] truncate">
+                {suggestion.name}
+              </div>
+              <div className="text-[13px] font-normal text-[#6b7875] truncate">
+                {suggestion.role} · {suggestion.distance}
+              </div>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <div className="font-[Outfit] font-bold text-[16px] text-[#1a7f5e] leading-none">
+                ${suggestion.pay}
+              </div>
+              <div className="text-[10.5px] font-medium text-[#9aa5a1] mt-[2px]">/hr</div>
+            </div>
           </div>
-          <div className="text-[14.5px] font-normal text-[#6b7875] leading-[1.4]">
-            Browse open shifts from Houston offices.
+          <div className="border-t border-[#f0eee8] flex">
+            <button
+              onClick={() => onFindShifts(suggestion)}
+              className="flex-1 px-[14px] py-[12px] font-[DM_Sans] font-semibold text-[13.5px] bg-[#1a7f5e] text-white border-none cursor-pointer inline-flex items-center justify-center gap-[6px]"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
+            >
+              View shift
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
+            <button
+              onClick={() => onFindShifts(null)}
+              className="px-[18px] py-[12px] font-[DM_Sans] font-semibold text-[13px] bg-white text-[#1a7f5e] border-none border-l border-[#f0eee8] cursor-pointer"
+              style={{ fontFamily: "'DM Sans', sans-serif", borderLeft: '1px solid #f0eee8' }}
+            >
+              See all
+            </button>
           </div>
+        </>
+      ) : (
+        <div className="px-[18px] pb-[18px]">
+          <button
+            onClick={() => onFindShifts(null)}
+            className="w-full px-[14px] py-[11px] rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-[#1a7f5e] text-white inline-flex items-center justify-center gap-[6px]"
+          >
+            Browse open shifts
+          </button>
         </div>
-      </div>
-
-      <div className="h-px bg-[#efede8] my-[14px]" />
-
-      <button
-        onClick={onFindShifts}
-        className="w-full px-[14px] py-[11px] rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-[#1a7f5e] text-white inline-flex items-center justify-center gap-[6px]"
-      >
-        <svg className="w-[14px] h-[14px] stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        Find Shifts
-      </button>
+      )}
     </div>
   );
 }
 
-// ── Today card (populated — provider has a shift today) ──────
-function TodayShiftCard({ shift }) {
+// ── Today card — populated, bold-hero variant ────────────────
+// Green gradient hero so a booked-shift day is the visual anchor of
+// the page. Countdown chip + pay-out highlight + dual CTAs.
+function TodayShiftCard({ shift, onDirections, onMessage }) {
   return (
-    <div className="mx-4 bg-white border border-[#e8e6e1] rounded-[18px] p-[18px] relative overflow-hidden">
-      {/* Left accent bar */}
-      <div className="absolute top-0 left-0 w-1 h-full bg-[#1a7f5e]" />
+    <div className="mx-4 rounded-[18px] overflow-hidden relative" style={{
+      background: 'linear-gradient(135deg, #1a7f5e 0%, #15604a 100%)',
+      color: '#ffffff',
+    }}>
+      {/* Decorative orb */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -50,
+          right: -50,
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
 
-      <div className="flex items-center justify-between mb-[14px]">
-        <span className="inline-flex items-center gap-[6px] text-[11.5px] font-bold tracking-[0.06em] uppercase text-[#1a7f5e]">
-          <span className="w-[6px] h-[6px] rounded-full bg-[#1a7f5e]" />
-          Today's shift
-        </span>
-      </div>
-
-      <div className="flex gap-[14px] items-center">
-        <div className="w-14 h-14 rounded-[16px] text-white font-[Outfit] font-bold text-[15px] grid place-items-center flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
-        >
-          {shift.officeInitials}
+      <div className="px-[18px] pt-[18px] pb-[14px] relative">
+        {/* Eyebrow + countdown chip */}
+        <div className="flex items-center justify-between mb-[14px]">
+          <span style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.6px',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.78)',
+          }}>
+            Today's shift
+          </span>
+          <span style={{
+            background: 'rgba(255,255,255,0.18)',
+            padding: '4px 10px',
+            borderRadius: 100,
+            fontSize: 11.5,
+            fontWeight: 700,
+            color: '#ffffff',
+            letterSpacing: '-0.1px',
+          }}>
+            {shift.countdown}
+          </span>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-[Outfit] font-bold text-[19px] tracking-[-0.01em] text-[#0f1a16] mb-[3px]">
-            {shift.officeName}
-          </div>
-          <div className="text-[14.5px] font-normal text-[#6b7875]">
-            {shift.startTime} – {shift.endTime} · {shift.distanceMiles} mi
+
+        {/* Office row */}
+        <div className="flex items-center gap-[12px] mb-[16px]">
+          {shift.officeLogoUrl ? (
+            <img
+              src={shift.officeLogoUrl}
+              alt={shift.officeName}
+              style={{ width: 52, height: 52, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
+            />
+          ) : (
+            <div
+              className="grid place-items-center font-[Outfit] font-bold flex-shrink-0"
+              style={{ width: 52, height: 52, borderRadius: 14, fontSize: 14, background: 'rgba(255,255,255,0.16)', color: '#ffffff' }}
+            >
+              {shift.officeInitials}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 19, letterSpacing: '-0.3px', color: '#ffffff', lineHeight: 1.2 }}>
+              {shift.officeName}
+            </div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.82)', marginTop: 2, fontWeight: 500 }}>
+              {shift.role}
+            </div>
           </div>
         </div>
+
+        {/* Detail chips: time + distance */}
+        <div className="flex items-center gap-[16px] mb-[14px]">
+          <div className="flex items-center gap-[6px]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.92)', fontWeight: 600 }}>{shift.timeRange}</span>
+          </div>
+          <div className="flex items-center gap-[6px]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.78)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.92)', fontWeight: 600 }}>{shift.distance}</span>
+          </div>
+        </div>
+
+        {/* Pay highlight */}
+        <div style={{ background: 'rgba(255,255,255,0.14)', borderRadius: 12, padding: '10px 14px', marginBottom: 14 }}>
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
+                You'll earn
+              </div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#ffffff', lineHeight: 1.1, marginTop: 2 }}>
+                ${shift.payTotal}
+              </div>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.78)', fontWeight: 500 }}>
+              {shift.payRate}
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-[8px]">
+          <button
+            onClick={onDirections}
+            className="flex-1 inline-flex items-center justify-center gap-[6px] cursor-pointer"
+            style={{
+              background: '#ffffff',
+              color: '#1a7f5e',
+              border: 'none',
+              borderRadius: 100,
+              padding: '11px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <polygon points="3 11 22 2 13 21 11 13 3 11" />
+            </svg>
+            Directions
+          </button>
+          <button
+            onClick={onMessage}
+            className="cursor-pointer inline-flex items-center justify-center gap-[6px]"
+            style={{
+              background: 'rgba(255,255,255,0.18)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 100,
+              padding: '11px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Message
+          </button>
+        </div>
       </div>
-
-      <div className="h-px bg-[#efede8] my-[14px]" />
-
-      <button className="w-full px-[14px] py-[11px] rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-white text-[#1a7f5e] border border-[#d4e7dd] inline-flex items-center justify-center gap-[6px]">
-        <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-          <circle cx="12" cy="10" r="3" />
-        </svg>
-        Directions
-      </button>
     </div>
   );
 }
