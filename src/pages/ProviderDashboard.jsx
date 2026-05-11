@@ -559,6 +559,11 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Today card */}
+          {/* Search pill — quick path to /find-shifts pre-focused. */}
+          <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
+            <SearchPill onTap={() => navigate('/find-shifts')} />
+          </div>
+
           {/* Today-card cascade:
                 1. todayShift     → bold hero, eyebrow "Today's shift"
                 2. upcomingShift  → bold hero, eyebrow "Next shift"
@@ -571,7 +576,7 @@ export default function ProviderDashboard() {
           {(() => {
             if (provider.todayShift) {
               return (
-                <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
+                <div className="kazi-rise kazi-tap" style={{ animationDelay: '120ms' }}>
                   <TodayShiftCard
                     shift={provider.todayShift}
                     eyebrow="Today's shift"
@@ -586,7 +591,7 @@ export default function ProviderDashboard() {
             }
             if (provider.upcomingShift) {
               return (
-                <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
+                <div className="kazi-rise kazi-tap" style={{ animationDelay: '120ms' }}>
                   <TodayShiftCard
                     shift={provider.upcomingShift}
                     eyebrow="Next shift"
@@ -604,7 +609,7 @@ export default function ProviderDashboard() {
           })()}
 
           {/* Your week / month — full schedule view */}
-          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
             <YourWeekSection
               week={provider.week}
               view={scheduleView}
@@ -616,7 +621,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Shifts near you — horizontal carousel of large shift cards */}
-          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
             <ShiftsNearYouSection
               shifts={provider.nearbyShifts}
               onApply={(shift) => setSelectedNearbyShift(shift)}
@@ -625,7 +630,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Permanent jobs near me — horizontal carousel of perm job cards */}
-          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
             <PermanentJobsNearMeSection
               jobs={provider.nearbyPermJobs}
               onTap={(job) => setSelectedNearbyPermJob(job)}
@@ -634,7 +639,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Latest from the Lounge — community thread preview */}
-          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
             <LatestFromLoungeSection
               threads={provider.loungeHighlights}
               onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
@@ -643,7 +648,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Referral CTA — invite a friend, earn $50 */}
-          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
             <ReferralCard
               code={provider.referralCode}
               bonusAmount={50}
@@ -806,6 +811,31 @@ function ContextualGreeting({ provider, onTapNext }) {
           <polyline points="9 18 15 12 9 6" />
         </svg>
       </div>
+    </section>
+  );
+}
+
+// ── Search pill ──────────────────────────────────────────────
+// Quick discovery affordance — a thin "search" pill that routes to
+// /find-shifts. Eventually the input here can become a real search
+// bound to a query param the Find Shifts page reads.
+function SearchPill({ onTap }) {
+  return (
+    <section className="px-4 mb-[14px]">
+      <button
+        onClick={onTap}
+        className="kazi-tap w-full bg-white border border-[#e8e6e1] rounded-full px-[14px] py-[11px] flex items-center gap-[10px] cursor-pointer text-left"
+        style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
+        aria-label="Search shifts"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="#9aa5a1" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span className="text-[13.5px] font-medium text-[#9aa5a1]">
+          Search by office, city, or role
+        </span>
+      </button>
     </section>
   );
 }
