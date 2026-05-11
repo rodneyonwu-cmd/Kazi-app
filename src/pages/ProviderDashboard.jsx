@@ -52,8 +52,8 @@ const mockProvider = {
     // sparkline. Real values will replace these once /finance is wired.
     daily: [0, 280, 0, 380, 0, 0, 580],
   },
-  // Today's shift — null → renders the smart-suggestion empty state,
-  // populated → renders the bold green hero card.
+  // Today's shift — null → falls through to nextShift / invites /
+  // hidden cascade. Populated → bold dark forest hero with countdown.
   todayShift: {
     officeName: 'Sugar Land Dental',
     officeInitials: 'SLD',
@@ -65,6 +65,32 @@ const mockProvider = {
     countdown: 'In 2h 18m',
     payTotal: 464,
     payRate: '$58/hr × 8 paid hours',
+  },
+  // Upcoming shift — used when there's no todayShift but the
+  // provider has one in the next 7 days. Same shape as todayShift.
+  upcomingShift: {
+    officeName: 'Pearland Wellness Dental',
+    officeInitials: 'PWD',
+    officeLogoUrl: 'https://picsum.photos/seed/pearland-wellness/120/120',
+    role: 'Dental Hygienist',
+    timeRange: 'Wed · 8:00 AM – 5:00 PM',
+    distance: '3.1 mi · Pearland',
+    address: '4500 Broadway St, Pearland, TX',
+    countdown: 'In 2 days',
+    payTotal: 558,
+    payRate: '$62/hr × 9 paid hours',
+  },
+  // Pending invites + applications — used when there's no shift at
+  // all but offices have invited the provider OR they have apps
+  // waiting for office response.
+  inboundActivity: {
+    inviteCount: 3,
+    applicationCount: 2,
+    previews: [
+      { logoUrl: 'https://picsum.photos/seed/sugar-land-dental/120/120', name: 'Sugar Land Dental', kind: 'invite' },
+      { logoUrl: 'https://picsum.photos/seed/bellaire-family-dental/120/120', name: 'Bellaire Family Dental', kind: 'invite' },
+      { logoUrl: 'https://picsum.photos/seed/pearland-dental-care/120/120', name: 'Pearland Dental Care', kind: 'application' },
+    ],
   },
   week: [
     { dow: 'Tue', date: 9, status: 'today' },
@@ -311,6 +337,8 @@ const newProviderMock = {
   // No upcoming shift — ContextualGreeting falls into discovery mode.
   nextShift: null,
   todayShift: null,
+  upcomingShift: null,
+  inboundActivity: null,
   // All days open or off — no bookings yet.
   week: [
     { dow: 'Tue', date: 9, status: 'today' },
@@ -440,10 +468,20 @@ export default function ProviderDashboard() {
   const navigate = useNavigate();
   // TODO: replace mock with API call
   // const { data: provider, isLoading } = useProviderDashboard();
-  // Demo override — visit /provider?demo=new to see the just-onboarded
-  // (no shifts / no earnings) state for design review.
+  // Demo override — visit /provider?demo=<mode> to preview different
+  // states of the Today card cascade for design review.
   const [searchParams] = useSearchParams();
-  const provider = searchParams.get('demo') === 'new' ? newProviderMock : mockProvider;
+  const demo = searchParams.get('demo');
+  let provider;
+  if (demo === 'new') {
+    provider = newProviderMock;                                   // state 4: card hidden
+  } else if (demo === 'upcoming') {
+    provider = { ...mockProvider, todayShift: null };             // state 2: next shift this week
+  } else if (demo === 'invites') {
+    provider = { ...mockProvider, todayShift: null, upcomingShift: null }; // state 3: invites only
+  } else {
+    provider = mockProvider;                                      // state 1: today's shift
+  }
 
   const [bookedShift, setBookedShift] = useState(null);
   const [selectedNearbyShift, setSelectedNearbyShift] = useState(null);
@@ -523,26 +561,60 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Today card */}
-          <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
-            {provider.todayShift ? (
-              <TodayShiftCard
-                shift={provider.todayShift}
-                onDirections={() => {
-                  const q = encodeURIComponent(provider.todayShift.address || '');
-                  window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
-                }}
-                onMessage={() => navigate('/provider-messages')}
-              />
-            ) : (
-              <TodayEmptyCard
-                suggestion={provider.nearbyShifts?.[0]}
-                onFindShifts={(shift) => {
-                  if (shift) setSelectedNearbyShift(shift);
-                  else handleFindShifts();
-                }}
-              />
-            )}
-          </div>
+          {/* Today-card cascade:
+                1. todayShift     → bold hero, eyebrow "Today's shift"
+                2. upcomingShift  → bold hero, eyebrow "Next shift"
+                3. inboundActivity (invites/apps) → invites panel
+                4. truly nothing  → render nothing
+              States 1-3 all use the dark-forest hero so the page's
+              anchor card has a consistent visual identity. */}
+          {(() => {
+            if (provider.todayShift) {
+              return (
+                <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
+                  <TodayShiftCard
+                    shift={provider.todayShift}
+                    eyebrow="Today's shift"
+                    onDirections={() => {
+                      const q = encodeURIComponent(provider.todayShift.address || '');
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
+                    }}
+                    onMessage={() => navigate('/provider-messages')}
+                  />
+                </div>
+              );
+            }
+            if (provider.upcomingShift) {
+              return (
+                <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
+                  <TodayShiftCard
+                    shift={provider.upcomingShift}
+                    eyebrow="Next shift"
+                    onDirections={() => {
+                      const q = encodeURIComponent(provider.upcomingShift.address || '');
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank');
+                    }}
+                    onMessage={() => navigate('/provider-messages')}
+                  />
+                </div>
+              );
+            }
+            const ia = provider.inboundActivity;
+            if (ia && ((ia.inviteCount || 0) + (ia.applicationCount || 0)) > 0) {
+              return (
+                <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
+                  <PendingInvitesCard
+                    activity={ia}
+                    onSeeInvites={() => navigate('/requests')}
+                    onSeeApplications={() => navigate('/requests')}
+                  />
+                </div>
+              );
+            }
+            // State 4: render nothing — page goes ProfileStrip →
+            // Calendar → Shifts near you.
+            return null;
+          })()}
 
           {/* Your week / month — full schedule view */}
           <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
@@ -1219,10 +1291,150 @@ function TodayEmptyCard({ onFindShifts, suggestion }) {
   );
 }
 
-// ── Today card — populated, bold-hero variant ────────────────
-// Green gradient hero so a booked-shift day is the visual anchor of
-// the page. Countdown chip + pay-out highlight + dual CTAs.
-function TodayShiftCard({ shift, onDirections, onMessage }) {
+// ── Pending invites & applications card ──────────────────────
+// State 3 of the Today-card cascade — fires when there's no shift
+// today and none upcoming, but offices have invited the provider OR
+// they have applications waiting on a response. Same dark-forest
+// hero treatment so the page's anchor card stays visually consistent.
+function PendingInvitesCard({ activity, onSeeInvites, onSeeApplications }) {
+  const totalPending = (activity.inviteCount || 0) + (activity.applicationCount || 0);
+  return (
+    <div className="mx-4 rounded-[18px] overflow-hidden relative" style={{
+      background: 'linear-gradient(135deg, #1a2e2c 0%, #0f1d1b 100%)',
+      color: '#ffffff',
+    }}>
+      {/* Decorative blur orb */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -50,
+          right: -50,
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div className="px-[18px] pt-[18px] pb-[14px] relative">
+        {/* Eyebrow + count chip */}
+        <div className="flex items-center justify-between mb-[14px]">
+          <span style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.6px',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.78)',
+          }}>
+            Needs your attention
+          </span>
+          <span style={{
+            background: 'rgba(255,255,255,0.18)',
+            padding: '4px 10px',
+            borderRadius: 100,
+            fontSize: 11.5,
+            fontWeight: 700,
+            color: '#ffffff',
+            letterSpacing: '-0.1px',
+          }}>
+            {totalPending} pending
+          </span>
+        </div>
+
+        {/* Office avatar stack */}
+        {activity.previews?.length > 0 && (
+          <div className="flex items-center mb-[14px]">
+            {activity.previews.slice(0, 4).map((p, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: '2px solid #1a2e2c',
+                  marginLeft: i === 0 ? 0 : -10,
+                  overflow: 'hidden',
+                  background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
+                  flexShrink: 0,
+                  zIndex: 4 - i,
+                  position: 'relative',
+                }}
+              >
+                {p.logoUrl && (
+                  <img src={p.logoUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Counts list */}
+        <div className="flex flex-col gap-[10px] mb-[14px]">
+          {activity.inviteCount > 0 && (
+            <div
+              onClick={onSeeInvites}
+              className="kazi-tap flex items-center gap-[10px] cursor-pointer"
+              style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: 12 }}
+            >
+              <div style={{
+                width: 32, height: 32, borderRadius: 10,
+                background: 'rgba(26,127,94,0.28)', border: '1px solid rgba(26,127,94,0.45)',
+                display: 'grid', placeItems: 'center', flexShrink: 0,
+              }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7ee2b8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: '#ffffff', lineHeight: 1.3 }}>
+                  <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{activity.inviteCount}</strong>
+                  {' '}{activity.inviteCount === 1 ? 'office invited' : 'offices invited'} you to apply
+                </div>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          )}
+          {activity.applicationCount > 0 && (
+            <div
+              onClick={onSeeApplications}
+              className="kazi-tap flex items-center gap-[10px] cursor-pointer"
+              style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.08)', borderRadius: 12 }}
+            >
+              <div style={{
+                width: 32, height: 32, borderRadius: 10,
+                background: 'rgba(244,183,64,0.22)', border: '1px solid rgba(244,183,64,0.4)',
+                display: 'grid', placeItems: 'center', flexShrink: 0,
+              }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f4b740" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: '#ffffff', lineHeight: 1.3 }}>
+                  <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{activity.applicationCount}</strong>
+                  {' '}{activity.applicationCount === 1 ? 'application' : 'applications'} awaiting response
+                </div>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Shift hero card — bold dark forest variant ───────────────
+// Used for both "today's shift" and "next upcoming shift" — the
+// caller passes the eyebrow label ("Today's shift" / "Next shift")
+// and shift.countdown contains the right relative-time string.
+function TodayShiftCard({ shift, eyebrow = "Today's shift", onDirections, onMessage }) {
   return (
     <div className="mx-4 rounded-[18px] overflow-hidden relative" style={{
       background: 'linear-gradient(135deg, #1a2e2c 0%, #0f1d1b 100%)',
@@ -1252,7 +1464,7 @@ function TodayShiftCard({ shift, onDirections, onMessage }) {
             textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.78)',
           }}>
-            Today's shift
+            {eyebrow}
           </span>
           <span style={{
             background: 'rgba(255,255,255,0.18)',
