@@ -815,6 +815,25 @@ function ContextualGreeting({ provider, onTapNext }) {
   );
 }
 
+// ── Section dot ──────────────────────────────────────────────
+// Small colored marker that differentiates section headers. Each
+// section gets a unique color so the page reads with visual rhythm
+// instead of a flat repeat of identical Outfit-bold titles.
+function SectionDot({ color }) {
+  return (
+    <span
+      style={{
+        width: 7,
+        height: 7,
+        borderRadius: '50%',
+        background: color,
+        boxShadow: `0 0 0 3.5px ${color}22`,
+        flexShrink: 0,
+      }}
+    />
+  );
+}
+
 // ── Search pill ──────────────────────────────────────────────
 // Quick discovery affordance — a thin "search" pill that routes to
 // /find-shifts. Eventually the input here can become a real search
@@ -1853,9 +1872,12 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
-          Shifts near you
-        </h3>
+        <div className="flex items-center gap-[10px]">
+          <SectionDot color="#1a7f5e" />
+          <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
+            Shifts near you
+          </h3>
+        </div>
         <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
           See all
         </button>
@@ -1911,9 +1933,12 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
-          Permanent jobs near me
-        </h3>
+        <div className="flex items-center gap-[10px]">
+          <SectionDot color="#f4b740" />
+          <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
+            Permanent jobs near me
+          </h3>
+        </div>
         <button onClick={onSeeAll} className="text-[13px] font-semibold text-[#1a7f5e] bg-transparent border-none cursor-pointer">
           See all
         </button>
@@ -1976,14 +2001,8 @@ function LatestFromLoungeSection({ threads, onOpenThread, onSeeAll }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <div className="flex items-center gap-[8px]">
-          <span
-            style={{
-              width: 6, height: 6, borderRadius: '50%',
-              background: '#1a7f5e',
-              boxShadow: '0 0 0 4px rgba(26,127,94,0.15)',
-            }}
-          />
+        <div className="flex items-center gap-[10px]">
+          <SectionDot color="#7c3aed" />
           <h3 className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] m-0">
             Latest from the Lounge
           </h3>
