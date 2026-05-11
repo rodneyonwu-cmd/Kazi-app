@@ -474,11 +474,9 @@ export default function ProviderDashboard() {
   const demo = searchParams.get('demo');
   let provider;
   if (demo === 'new') {
-    provider = newProviderMock;                                   // state 4: card hidden
+    provider = newProviderMock;                                   // state 3: card hidden
   } else if (demo === 'upcoming') {
     provider = { ...mockProvider, todayShift: null };             // state 2: next shift this week
-  } else if (demo === 'invites') {
-    provider = { ...mockProvider, todayShift: null, upcomingShift: null }; // state 3: invites only
   } else {
     provider = mockProvider;                                      // state 1: today's shift
   }
@@ -564,10 +562,12 @@ export default function ProviderDashboard() {
           {/* Today-card cascade:
                 1. todayShift     → bold hero, eyebrow "Today's shift"
                 2. upcomingShift  → bold hero, eyebrow "Next shift"
-                3. inboundActivity (invites/apps) → invites panel
-                4. truly nothing  → render nothing
-              States 1-3 all use the dark-forest hero so the page's
-              anchor card has a consistent visual identity. */}
+                3. nothing        → render nothing (invites + apps
+                                    already live behind the Requests
+                                    tab in the bottom nav, no need
+                                    to duplicate on home).
+              States 1-2 share the dark-forest hero for a consistent
+              anchor visual. */}
           {(() => {
             if (provider.todayShift) {
               return (
@@ -599,20 +599,7 @@ export default function ProviderDashboard() {
                 </div>
               );
             }
-            const ia = provider.inboundActivity;
-            if (ia && ((ia.inviteCount || 0) + (ia.applicationCount || 0)) > 0) {
-              return (
-                <div className="kazi-rise" style={{ animationDelay: '60ms' }}>
-                  <PendingInvitesCard
-                    activity={ia}
-                    onSeeInvites={() => navigate('/requests')}
-                    onSeeApplications={() => navigate('/requests')}
-                  />
-                </div>
-              );
-            }
-            // State 4: render nothing — page goes ProfileStrip →
-            // Calendar → Shifts near you.
+            // State 3: render nothing.
             return null;
           })()}
 
