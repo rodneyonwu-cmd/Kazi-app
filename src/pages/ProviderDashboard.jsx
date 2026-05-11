@@ -512,16 +512,16 @@ export default function ProviderDashboard() {
             <AvailabilityToggle available={available} onToggle={setAvailable} />
           </div>
 
-          {/* Earnings anchor — primary metric. Tap-to-expand reveals
-              rating / reliability / profile / shifts secondary stats. */}
+          {/* Identity strip — slim greeting + photo. Replaces the
+              earnings anchor. Tap routes to /account. */}
           <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
-            <EarningsAnchor
-              earnings={provider.earnings}
-              stats={provider.stats}
-              avatarUrl={provider.avatarUrl}
+            <ProfileStrip
               firstName={provider.firstName}
-              onTap={() => navigate('/finance')}
-              onTapAvatar={() => navigate('/account')}
+              role={provider.stats?.rating ? 'Dental Hygienist' : 'Dental Hygienist'}
+              rating={provider.stats?.rating}
+              shiftsCompleted={provider.stats?.shiftsCompleted}
+              avatarUrl={provider.avatarUrl}
+              onTap={() => navigate('/account')}
             />
           </div>
 
@@ -750,6 +750,79 @@ function ContextualGreeting({ provider, onTapNext }) {
           <polyline points="9 18 15 12 9 6" />
         </svg>
       </div>
+    </section>
+  );
+}
+
+// ── Profile strip ────────────────────────────────────────────
+// Slim identity card: greeting + role + small rating chip on the
+// left, 52px rounded-square photo on the right. Replaces the bigger
+// earnings anchor card. Whole card taps to /account.
+function ProfileStrip({ firstName, role, rating, shiftsCompleted, avatarUrl, onTap }) {
+  const initials = (firstName || '?').slice(0, 1).toUpperCase();
+  const hasMeta = (typeof rating === 'number' && rating > 0) || (typeof shiftsCompleted === 'number' && shiftsCompleted > 0);
+  return (
+    <section className="px-4 mb-[14px]">
+      <button
+        onClick={onTap}
+        className="w-full bg-white border border-[#e8e6e1] rounded-[18px] px-4 py-[14px] flex items-center gap-[14px] cursor-pointer text-left"
+        style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] leading-tight">
+            Hello, {firstName}
+          </div>
+          <div className="text-[13px] font-medium text-[#6b7875] mt-[4px] flex items-center gap-[8px] flex-wrap">
+            <span>{role}</span>
+            {hasMeta && (
+              <>
+                <span className="text-[#d1d5db]">·</span>
+                {typeof rating === 'number' && rating > 0 && (
+                  <span className="inline-flex items-center gap-[3px] text-[#0f1a16] font-semibold">
+                    <span style={{ color: '#f4b740', fontSize: 13, lineHeight: 1 }}>★</span>
+                    {rating.toFixed(1)}
+                  </span>
+                )}
+                {typeof shiftsCompleted === 'number' && shiftsCompleted > 0 && (
+                  <>
+                    <span className="text-[#d1d5db]">·</span>
+                    <span className="text-[#0f1a16] font-semibold">{shiftsCompleted} shifts</span>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 14,
+            background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
+            boxShadow: '0 2px 8px rgba(15,26,22,0.08)',
+            display: 'grid',
+            placeItems: 'center',
+            color: '#fff',
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 700,
+            fontSize: 16,
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={firstName || 'Profile'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          ) : (
+            initials
+          )}
+        </div>
+      </button>
     </section>
   );
 }
@@ -1791,7 +1864,7 @@ function LoungeThreadCard({ thread, onTap }) {
 // stands out from the white/off-white sections above without feeling
 // out of place. Native Share API when available; falls back to
 // clipboard copy with a brief "Copied" pill.
-function ReferralCard({ code, bonusAmount = 50, firstName = 'A friend' }) {
+function ReferralCard({ code, bonusAmount = 50 }) {
   const [copied, setCopied] = useState(false);
 
   const inviteUrl = typeof window !== 'undefined'
@@ -1833,44 +1906,24 @@ function ReferralCard({ code, bonusAmount = 50, firstName = 'A friend' }) {
   };
 
   return (
-    <div className="px-4 pt-7">
+    <div className="px-4 pt-5">
       <div
-        style={{
-          position: 'relative',
-          background: 'linear-gradient(135deg, #1a7f5e 0%, #146449 100%)',
-          borderRadius: 24,
-          padding: '24px 22px',
-          color: '#ffffff',
-          overflow: 'hidden',
-        }}
+        className="bg-white border border-[#e8e6e1] rounded-[18px] px-4 py-[14px]"
       >
-        {/* Decorative blur orb (top-right) */}
-        <div
-          style={{
-            position: 'absolute',
-            top: -40,
-            right: -40,
-            width: 160,
-            height: 160,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Eyebrow + title */}
-        <div className="flex items-center gap-[8px] mb-[10px]" style={{ position: 'relative' }}>
+        {/* Top row: gift icon + title + share button */}
+        <div className="flex items-center gap-[12px]">
           <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 10,
-              background: 'rgba(255,255,255,0.16)',
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              background: '#f1f9f5',
               display: 'grid',
               placeItems: 'center',
+              flexShrink: 0,
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
               <polyline points="20 12 20 22 4 22 4 12" />
               <rect x="2" y="7" width="20" height="5" />
               <line x1="12" y1="22" x2="12" y2="7" />
@@ -1878,143 +1931,86 @@ function ReferralCard({ code, bonusAmount = 50, firstName = 'A friend' }) {
               <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
             </svg>
           </div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.6px',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.78)',
-            }}
-          >
-            Refer & earn
-          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-[Outfit] font-bold text-[15.5px] tracking-[-0.01em] text-[#0f1a16] leading-tight">
+              Refer a friend, earn <span className="text-[#1a7f5e]">${bonusAmount}</span>
+            </div>
+            <div className="text-[12.5px] font-medium text-[#6b7875] mt-[2px]">
+              Bonus drops in after their first booking.
+            </div>
+          </div>
         </div>
 
-        <h3
-          style={{
-            fontFamily: "'Outfit', sans-serif",
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: '-0.4px',
-            lineHeight: 1.2,
-            margin: 0,
-            position: 'relative',
-          }}
-        >
-          Refer a dental pro,<br />get <span style={{ color: '#fff' }}>${bonusAmount}</span>
-        </h3>
-
-        <p
-          style={{
-            marginTop: 8,
-            fontSize: 13.5,
-            lineHeight: 1.45,
-            color: 'rgba(255,255,255,0.82)',
-            fontWeight: 400,
-            maxWidth: 320,
-            position: 'relative',
-          }}
-        >
-          When they sign up with your code and complete their first shift, ${bonusAmount} drops into your earnings.
-        </p>
-
-        {/* Code + copy */}
-        <button
-          onClick={handleCopyCode}
-          aria-label="Copy referral code"
-          style={{
-            marginTop: 16,
-            background: 'rgba(255,255,255,0.14)',
-            border: '1px dashed rgba(255,255,255,0.4)',
-            borderRadius: 14,
-            padding: '11px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            color: '#ffffff',
-            position: 'relative',
-            width: '100%',
-          }}
-        >
-          <span
+        {/* Code chip + share — single inline row */}
+        <div className="flex items-center gap-[8px] mt-[12px]">
+          <button
+            onClick={handleCopyCode}
+            aria-label="Copy referral code"
+            className="kazi-tap"
             style={{
-              fontSize: 10.5,
-              fontWeight: 700,
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.7)',
+              flex: 1,
+              minWidth: 0,
+              background: '#f9f8f6',
+              border: '1px dashed #d1d5db',
+              borderRadius: 100,
+              padding: '8px 14px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
             }}
           >
-            Your code
-          </span>
-          <span
-            style={{
+            <span style={{
               fontFamily: "'Outfit', sans-serif",
               fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: '0.6px',
+              fontSize: 13.5,
+              letterSpacing: '0.4px',
+              color: '#0f1a16',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {code}
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 600, color: '#6b7875', flexShrink: 0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6b7875" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              {copied ? 'Copied' : 'Copy'}
+            </span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="kazi-tap"
+            style={{
+              background: '#1a7f5e',
               color: '#ffffff',
-              flex: 1,
+              border: 'none',
+              borderRadius: 100,
+              padding: '8px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: "'DM Sans', sans-serif",
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              flexShrink: 0,
             }}
           >
-            {code}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.92)' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
-            {copied ? 'Copied!' : 'Copy'}
-          </span>
-        </button>
-
-        {/* Share CTA */}
-        <button
-          onClick={handleShare}
-          style={{
-            marginTop: 12,
-            width: '100%',
-            background: '#ffffff',
-            color: '#1a7f5e',
-            border: 'none',
-            borderRadius: 100,
-            padding: '13px 18px',
-            fontSize: 14.5,
-            fontWeight: 700,
-            fontFamily: "'DM Sans', sans-serif",
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            cursor: 'pointer',
-            position: 'relative',
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-            <circle cx="18" cy="5" r="3" />
-            <circle cx="6" cy="12" r="3" />
-            <circle cx="18" cy="19" r="3" />
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-          </svg>
-          Share invite link
-        </button>
-
-        <p
-          style={{
-            marginTop: 12,
-            fontSize: 11.5,
-            color: 'rgba(255,255,255,0.65)',
-            textAlign: 'center',
-            position: 'relative',
-            fontWeight: 500,
-          }}
-        >
-          {firstName === 'A friend' ? 'Bonus credited after referee\'s first booking.' : `${firstName}, bonus credits after their first booking.`}
-        </p>
+            Share
+          </button>
+        </div>
       </div>
     </div>
   );
