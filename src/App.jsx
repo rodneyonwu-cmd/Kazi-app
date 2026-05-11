@@ -90,6 +90,7 @@ import ProviderDateOfBirth from './pages/ProviderDateOfBirth'
 import ProviderHomeAddress from './pages/ProviderHomeAddress'
 import ProviderProfilePhoto from './pages/ProviderProfilePhoto'
 import Lounge from './pages/provider/Lounge'
+import LoungeProfile from './pages/provider/LoungeProfile'
 
 function App() {
   return (
@@ -167,6 +168,7 @@ function App() {
       <Route path="/provider-profile-preview" element={<ProviderOnly><ProviderProfilePreview /></ProviderOnly>} />
       <Route path="/provider-availability" element={<ProviderOnly><ProviderAvailability /></ProviderOnly>} />
       <Route path="/lounge" element={<ProviderOnly><Lounge /></ProviderOnly>} />
+      <Route path="/lounge/u/:handle" element={<ProviderOnly><LoungeProfile /></ProviderOnly>} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>

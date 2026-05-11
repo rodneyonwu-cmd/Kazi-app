@@ -1,5 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProviderBottomNav from '../../components/ProviderBottomNav';
+import { lookupLoungeUser } from './loungeUsers';
 
 // ============================================================
 // KAZI LOUNGE — Verified-provider community hub
@@ -280,13 +282,19 @@ const ICONS = {
 };
 
 // ── Avatar ──────────────────────────────────────────────────
-function Avatar({ author, size = 36, showVerify = true }) {
+function Avatar({ author, size = 36, showVerify = true, onClick }) {
   const isAnon = author.anon;
   const fontSize = size <= 28 ? 10 : size <= 36 ? 12 : 13;
   const verifyDim = size <= 36 ? 12 : 14;
   const verifyIcon = size <= 36 ? 6 : 7;
+  // Resolve avatar from the directory if the author isn't anon and the
+  // caller didn't pass an override on the author object.
+  const directoryEntry = !isAnon ? lookupLoungeUser(author.name) : undefined;
+  const avatarUrl = !isAnon && (author.avatarUrl || directoryEntry?.avatarUrl);
+  const handler = onClick && !isAnon ? (e) => { e.stopPropagation(); onClick(); } : undefined;
   return (
     <div
+      onClick={handler}
       style={{
         width: size,
         height: size,
@@ -300,10 +308,19 @@ function Avatar({ author, size = 36, showVerify = true }) {
         flexShrink: 0,
         position: 'relative',
         fontFamily: FONT_DM,
+        overflow: 'hidden',
+        cursor: handler ? 'pointer' : 'default',
       }}
     >
       {isAnon ? (
         <Svg size={size * 0.55}>{ICONS.user}</Svg>
+      ) : avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={author.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
       ) : (
         author.initials
       )}
@@ -320,6 +337,7 @@ function Avatar({ author, size = 36, showVerify = true }) {
             border: '2px solid #fff',
             display: 'grid',
             placeItems: 'center',
+            zIndex: 1,
           }}
         >
           <Svg size={verifyIcon} stroke="#fff" strokeWidth={3}>{ICONS.check}</Svg>
@@ -330,10 +348,11 @@ function Avatar({ author, size = 36, showVerify = true }) {
 }
 
 // ── Thread card (feed list item) ─────────────────────────────
-function ThreadCard({ thread, onOpen, onVote }) {
+function ThreadCard({ thread, onOpen, onVote, onAuthorTap }) {
   const upvotes = thread.score + thread.downvotes;
   const upActive = thread.vote === 'up';
   const downActive = thread.vote === 'down';
+  const canTapAuthor = !thread.author.anon && onAuthorTap;
   return (
     <div
       onClick={onOpen}
@@ -350,10 +369,15 @@ function ThreadCard({ thread, onOpen, onVote }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-        <Avatar author={thread.author} size={36} />
+        <Avatar author={thread.author} size={36} onClick={canTapAuthor ? onAuthorTap : undefined} />
         <div style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35 }}>
           <div>
-            <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{thread.author.name}</span>
+            <span
+              onClick={canTapAuthor ? (e) => { e.stopPropagation(); onAuthorTap(); } : undefined}
+              style={{ fontWeight: 700, color: '#1a1a1a', cursor: canTapAuthor ? 'pointer' : 'default' }}
+            >
+              {thread.author.name}
+            </span>
             {' — '}
             <span style={{ color: '#1a1a1a', fontWeight: 600 }}>{thread.author.role}</span>
           </div>
@@ -602,11 +626,12 @@ function Toast({ message, show }) {
 }
 
 // ── Thread detail sheet ─────────────────────────────────────
-function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendReply }) {
+function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendReply, onAuthorTap }) {
   const [replyText, setReplyText] = useState('');
   const bodyScrollRef = useRef(null);
 
   if (!thread) return null;
+  const tapAuthor = (author) => { if (onAuthorTap && !author.anon) onAuthorTap(author); };
 
   const upvotes = thread.score + thread.downvotes;
   const upActive = thread.vote === 'up';
@@ -686,10 +711,15 @@ function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendR
         <div ref={bodyScrollRef} style={{ flex: 1, overflowY: 'auto', paddingBottom: 100 }}>
           <div style={{ padding: 20 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-              <Avatar author={thread.author} size={40} />
+              <Avatar author={thread.author} size={40} onClick={() => tapAuthor(thread.author)} />
               <div style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35 }}>
                 <div>
-                  <span style={{ fontWeight: 700 }}>{thread.author.name}</span>
+                  <span
+                    onClick={() => tapAuthor(thread.author)}
+                    style={{ fontWeight: 700, cursor: !thread.author.anon && onAuthorTap ? 'pointer' : 'default' }}
+                  >
+                    {thread.author.name}
+                  </span>
                   {' — '}
                   <span style={{ fontWeight: 600 }}>{thread.author.role}</span>
                 </div>
@@ -764,10 +794,15 @@ function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendR
           <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
             {thread.replies.map((r) => (
               <div key={r.id} style={{ display: 'flex', gap: 12 }}>
-                <Avatar author={r.author} size={36} />
+                <Avatar author={r.author} size={36} onClick={() => tapAuthor(r.author)} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12.5, display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontWeight: 600 }}>{r.author.name}</span>
+                    <span
+                      onClick={() => tapAuthor(r.author)}
+                      style={{ fontWeight: 600, cursor: !r.author.anon && onAuthorTap ? 'pointer' : 'default' }}
+                    >
+                      {r.author.name}
+                    </span>
                     <span style={{ color: '#999', fontSize: 12 }}>{r.author.role}</span>
                     <span style={{ color: '#999', fontSize: 11.5, marginLeft: 'auto' }}>{r.time}</span>
                   </div>
@@ -1126,6 +1161,12 @@ function GroupRow({ groupId, group, onOpen }) {
 // Main page
 // ============================================================
 export default function Lounge() {
+  const navigate = useNavigate();
+  const openAuthorProfile = (author) => {
+    if (!author || author.anon) return;
+    const u = lookupLoungeUser(author.name);
+    if (u?.handle) navigate(`/lounge/u/${u.handle}`);
+  };
   const [currentTab, setCurrentTab] = useState('feed'); // 'feed' | 'groups'
   const [currentRole, setCurrentRole] = useState('all');
   const [currentGroupId, setCurrentGroupId] = useState(null);
@@ -1444,6 +1485,7 @@ export default function Lounge() {
                   thread={t}
                   onOpen={() => setOpenThreadId(t.id)}
                   onVote={(dir) => toggleVote(t.id, dir)}
+                  onAuthorTap={() => openAuthorProfile(t.author)}
                 />
               ))
             )}
@@ -1528,6 +1570,7 @@ export default function Lounge() {
                   thread={t}
                   onOpen={() => setOpenThreadId(t.id)}
                   onVote={(dir) => toggleVote(t.id, dir)}
+                  onAuthorTap={() => openAuthorProfile(t.author)}
                 />
               ))
             )}
@@ -1567,6 +1610,7 @@ export default function Lounge() {
           onPollVote={(tid, idx) => votePoll(tid, idx)}
           onReplyLike={(rid) => toggleReplyLike(openThread.id, rid)}
           onSendReply={(text) => sendReply(openThread.id, text)}
+          onAuthorTap={openAuthorProfile}
         />
       )}
 
