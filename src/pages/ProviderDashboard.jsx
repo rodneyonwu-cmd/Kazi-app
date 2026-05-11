@@ -1086,7 +1086,7 @@ function TodayEmptyCard({ onFindShifts, suggestion }) {
 function TodayShiftCard({ shift, onDirections, onMessage }) {
   return (
     <div className="mx-4 rounded-[18px] overflow-hidden relative" style={{
-      background: 'linear-gradient(135deg, #1a7f5e 0%, #15604a 100%)',
+      background: 'linear-gradient(135deg, #1a2e2c 0%, #0f1d1b 100%)',
       color: '#ffffff',
     }}>
       {/* Decorative orb */}
@@ -1173,13 +1173,13 @@ function TodayShiftCard({ shift, onDirections, onMessage }) {
         </div>
 
         {/* Pay highlight */}
-        <div style={{ background: 'rgba(255,255,255,0.14)', borderRadius: 12, padding: '10px 14px', marginBottom: 14 }}>
+        <div style={{ background: 'rgba(26,127,94,0.22)', border: '1px solid rgba(26,127,94,0.35)', borderRadius: 12, padding: '10px 14px', marginBottom: 14 }}>
           <div className="flex items-baseline justify-between">
             <div>
               <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
                 You'll earn
               </div>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#ffffff', lineHeight: 1.1, marginTop: 2 }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#7ee2b8', lineHeight: 1.1, marginTop: 2 }}>
                 ${shift.payTotal}
               </div>
             </div>
