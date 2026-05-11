@@ -119,14 +119,18 @@ export default function ProviderBottomNav() {
               viewBox="0 0 24 24"
               fill="none"
               stroke={active ? COLORS.green : COLORS.textLight}
-              strokeWidth="2"
+              strokeWidth={active ? 2.2 : 2}
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ width: 22, height: 22 }}
+              style={{ width: 24, height: 24, transition: 'transform 0.18s ease', transform: active ? 'scale(1)' : 'scale(0.96)' }}
             >
               {tab.icon}
             </svg>
-            <span style={{ fontSize: 10, color: active ? COLORS.green : COLORS.textLight, fontWeight: 600 }}>{tab.label}</span>
+            {active && (
+              <span style={{ fontSize: 10.5, color: COLORS.green, fontWeight: 700, letterSpacing: '-0.1px' }}>
+                {tab.label}
+              </span>
+            )}
           </button>
         );
       })}
