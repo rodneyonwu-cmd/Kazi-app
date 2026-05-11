@@ -497,6 +497,7 @@ export default function ProviderDashboard() {
           .kazi-rise { opacity: 0; animation: kazi-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
           .kazi-tap { transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1); }
           .kazi-tap:active { transform: scale(0.98); }
+          @keyframes kazi-pulse-ring { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(2.6); opacity: 0; } }
           @media (prefers-reduced-motion: reduce) {
             .kazi-rise { animation: none; opacity: 1; transform: none; }
             .kazi-tap { transition: none; }
@@ -505,28 +506,24 @@ export default function ProviderDashboard() {
         `}</style>
 
         <div className="bg-[#f9f8f6] min-h-full pb-6">
-          {/* Availability toggle — the most-tapped marketplace
-              control. Sits at the very top so the user always knows
-              their state at a glance. */}
+          {/* Identity + availability — combined card.
+              Top row: greeting + photo (taps to /account).
+              Bottom row: "Available for shifts" toggle. */}
           <div className="kazi-rise" style={{ animationDelay: '0ms' }}>
-            <AvailabilityToggle available={available} onToggle={setAvailable} />
-          </div>
-
-          {/* Identity strip — slim greeting + photo. Replaces the
-              earnings anchor. Tap routes to /account. */}
-          <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
             <ProfileStrip
               firstName={provider.firstName}
-              role={provider.stats?.rating ? 'Dental Hygienist' : 'Dental Hygienist'}
+              role="Dental Hygienist"
               rating={provider.stats?.rating}
               shiftsCompleted={provider.stats?.shiftsCompleted}
               avatarUrl={provider.avatarUrl}
+              available={available}
+              onToggleAvailable={setAvailable}
               onTap={() => navigate('/account')}
             />
           </div>
 
           {/* Today card */}
-          <div className="kazi-rise kazi-tap" style={{ animationDelay: '120ms' }}>
+          <div className="kazi-rise kazi-tap" style={{ animationDelay: '60ms' }}>
             {provider.todayShift ? (
               <TodayShiftCard
                 shift={provider.todayShift}
@@ -548,7 +545,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Your week / month — full schedule view */}
-          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '120ms' }}>
             <YourWeekSection
               week={provider.week}
               view={scheduleView}
@@ -560,7 +557,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Shifts near you — horizontal carousel of large shift cards */}
-          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '180ms' }}>
             <ShiftsNearYouSection
               shifts={provider.nearbyShifts}
               onApply={(shift) => setSelectedNearbyShift(shift)}
@@ -569,7 +566,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Permanent jobs near me — horizontal carousel of perm job cards */}
-          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '240ms' }}>
             <PermanentJobsNearMeSection
               jobs={provider.nearbyPermJobs}
               onTap={(job) => setSelectedNearbyPermJob(job)}
@@ -578,7 +575,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Latest from the Lounge — community thread preview */}
-          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '300ms' }}>
             <LatestFromLoungeSection
               threads={provider.loungeHighlights}
               onOpenThread={(t) => navigate(`/lounge?thread=${t.id}`)}
@@ -587,7 +584,7 @@ export default function ProviderDashboard() {
           </div>
 
           {/* Referral CTA — invite a friend, earn $50 */}
-          <div className="kazi-rise" style={{ animationDelay: '420ms' }}>
+          <div className="kazi-rise" style={{ animationDelay: '360ms' }}>
             <ReferralCard
               code={provider.referralCode}
               bonusAmount={50}
@@ -755,74 +752,143 @@ function ContextualGreeting({ provider, onTapNext }) {
 }
 
 // ── Profile strip ────────────────────────────────────────────
-// Slim identity card: greeting + role + small rating chip on the
-// left, 52px rounded-square photo on the right. Replaces the bigger
-// earnings anchor card. Whole card taps to /account.
-function ProfileStrip({ firstName, role, rating, shiftsCompleted, avatarUrl, onTap }) {
+// Identity card with two rows separated by a divider:
+//   1. Greeting + role + rating + shifts on the left, 52px
+//      rounded-square photo on the right. Tap → /account.
+//   2. "Available for shifts" status + toggle. Tap → flips
+//      availability (does NOT bubble up to /account).
+// Replaces both the EarningsAnchor card and the standalone
+// AvailabilityToggle card.
+function ProfileStrip({ firstName, role, rating, shiftsCompleted, avatarUrl, available, onToggleAvailable, onTap }) {
   const initials = (firstName || '?').slice(0, 1).toUpperCase();
   const hasMeta = (typeof rating === 'number' && rating > 0) || (typeof shiftsCompleted === 'number' && shiftsCompleted > 0);
   return (
     <section className="px-4 mb-[14px]">
-      <button
-        onClick={onTap}
-        className="w-full bg-white border border-[#e8e6e1] rounded-[18px] px-4 py-[14px] flex items-center gap-[14px] cursor-pointer text-left"
-        style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
-      >
-        <div className="flex-1 min-w-0">
-          <div className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] leading-tight">
-            Hello, {firstName}
+      <div className="bg-white border border-[#e8e6e1] rounded-[18px] overflow-hidden">
+        {/* Top row: greeting + photo, tap → account */}
+        <button
+          onClick={onTap}
+          className="kazi-tap w-full bg-transparent border-none px-4 py-[14px] flex items-center gap-[14px] cursor-pointer text-left"
+          style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
+        >
+          <div className="flex-1 min-w-0">
+            <div className="font-[Outfit] font-bold text-[20px] tracking-[-0.02em] text-[#0f1a16] leading-tight">
+              Hello, {firstName}
+            </div>
+            <div className="text-[13px] font-medium text-[#6b7875] mt-[4px] flex items-center gap-[8px] flex-wrap">
+              <span>{role}</span>
+              {hasMeta && (
+                <>
+                  <span className="text-[#d1d5db]">·</span>
+                  {typeof rating === 'number' && rating > 0 && (
+                    <span className="inline-flex items-center gap-[3px] text-[#0f1a16] font-semibold">
+                      <span style={{ color: '#f4b740', fontSize: 13, lineHeight: 1 }}>★</span>
+                      {rating.toFixed(1)}
+                    </span>
+                  )}
+                  {typeof shiftsCompleted === 'number' && shiftsCompleted > 0 && (
+                    <>
+                      <span className="text-[#d1d5db]">·</span>
+                      <span className="text-[#0f1a16] font-semibold">{shiftsCompleted} shifts</span>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-          <div className="text-[13px] font-medium text-[#6b7875] mt-[4px] flex items-center gap-[8px] flex-wrap">
-            <span>{role}</span>
-            {hasMeta && (
-              <>
-                <span className="text-[#d1d5db]">·</span>
-                {typeof rating === 'number' && rating > 0 && (
-                  <span className="inline-flex items-center gap-[3px] text-[#0f1a16] font-semibold">
-                    <span style={{ color: '#f4b740', fontSize: 13, lineHeight: 1 }}>★</span>
-                    {rating.toFixed(1)}
-                  </span>
-                )}
-                {typeof shiftsCompleted === 'number' && shiftsCompleted > 0 && (
-                  <>
-                    <span className="text-[#d1d5db]">·</span>
-                    <span className="text-[#0f1a16] font-semibold">{shiftsCompleted} shifts</span>
-                  </>
-                )}
-              </>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
+              boxShadow: '0 2px 8px rgba(15,26,22,0.08)',
+              display: 'grid',
+              placeItems: 'center',
+              color: '#fff',
+              fontFamily: "'Outfit', sans-serif",
+              fontWeight: 700,
+              fontSize: 16,
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={firstName || 'Profile'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              initials
             )}
           </div>
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
-            boxShadow: '0 2px 8px rgba(15,26,22,0.08)',
-            display: 'grid',
-            placeItems: 'center',
-            color: '#fff',
-            fontFamily: "'Outfit', sans-serif",
-            fontWeight: 700,
-            fontSize: 16,
-            overflow: 'hidden',
-            flexShrink: 0,
-          }}
+        </button>
+
+        {/* Divider */}
+        <div className="h-px bg-[#f0eee8] mx-4" />
+
+        {/* Bottom row: availability toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleAvailable && onToggleAvailable(!available); }}
+          className="kazi-tap w-full bg-transparent border-none px-4 py-[12px] flex items-center gap-[10px] cursor-pointer text-left"
+          style={{ fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent' }}
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={firstName || 'Profile'}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          {/* Status dot — pulses when available */}
+          <span style={{ position: 'relative', width: 8, height: 8, flexShrink: 0 }}>
+            <span
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                background: available ? '#1a7f5e' : '#c5c8c4',
+              }}
             />
-          ) : (
-            initials
-          )}
-        </div>
-      </button>
+            {available && (
+              <span
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  background: '#1a7f5e',
+                  animation: 'kazi-pulse-ring 1.6s ease-out infinite',
+                }}
+              />
+            )}
+          </span>
+          <span className="flex-1 text-[14px] font-semibold text-[#0f1a16]">
+            {available ? 'Available for shifts' : 'Not available'}
+          </span>
+          <span
+            style={{
+              width: 36,
+              height: 22,
+              borderRadius: 11,
+              background: available ? '#1a7f5e' : '#d1d5db',
+              position: 'relative',
+              flexShrink: 0,
+              transition: 'background 0.18s ease',
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                top: 2,
+                left: 2,
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: '#fff',
+                transform: available ? 'translateX(14px)' : 'translateX(0)',
+                transition: 'transform 0.18s ease',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+              }}
+            />
+          </span>
+        </button>
+      </div>
     </section>
   );
 }
