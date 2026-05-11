@@ -1897,7 +1897,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {shifts.map((shift) => (
+        {shifts.map((shift, i) => (
           <div
             key={shift.id}
             className="kazi-tap"
@@ -1914,6 +1914,7 @@ function ShiftsNearYouSection({ shifts, onApply, onSeeAll }) {
               onApply={() => onApply(shift)}
               style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
               compact
+              badge={i === 0 ? 'Top match' : null}
             />
           </div>
         ))}
@@ -1958,7 +1959,7 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {jobs.map((job) => (
+        {jobs.map((job, i) => (
           <div
             key={job.id}
             className="kazi-tap"
@@ -1974,6 +1975,7 @@ function PermanentJobsNearMeSection({ jobs, onTap, onSeeAll }) {
               job={job}
               onTap={() => onTap(job)}
               style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+              badge={i === 0 ? 'Top match' : null}
             />
           </div>
         ))}

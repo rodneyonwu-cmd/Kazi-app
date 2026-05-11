@@ -156,6 +156,37 @@ export function CardHeader({ item }) {
   );
 }
 
+// Inline ribbon badge for highlighting a "top match" or "popular"
+// card. Renders as a small dark pill at the top-left of the card's
+// interior; the card flows the rest of the content below it.
+export function CardBadge({ children }) {
+  return (
+    <div style={{ display: 'flex', marginBottom: 10 }}>
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+          padding: '4px 10px',
+          borderRadius: 100,
+          background: '#0f1d1b',
+          color: '#7ee2b8',
+          fontFamily: "'Outfit', sans-serif",
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.4px',
+          textTransform: 'uppercase',
+        }}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7ee2b8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 9, height: 9 }}>
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+        {children}
+      </span>
+    </div>
+  );
+}
+
 export function ExtraChip({ children }) {
   return (
     <span
@@ -191,7 +222,7 @@ export function ExtraChip({ children }) {
  *    lunch/software chips row, reduces internal padding, and makes the
  *    entire card tappable.
  */
-export default function TempShiftCard({ shift, onApply, style, compact = false }) {
+export default function TempShiftCard({ shift, onApply, style, compact = false, badge }) {
   const handleCardClick = compact && onApply ? onApply : undefined;
   return (
     <div
@@ -206,6 +237,8 @@ export default function TempShiftCard({ shift, onApply, style, compact = false }
         ...style,
       }}
     >
+      {/* Top match badge — when set, sits in the top-left corner */}
+      {badge && <CardBadge>{badge}</CardBadge>}
       {/* Hourly rate — top right */}
       <div style={{ position: 'absolute', top: compact ? 14 : 18, right: compact ? 14 : 18, textAlign: 'right' }}>
         <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 15, lineHeight: 1 }}>

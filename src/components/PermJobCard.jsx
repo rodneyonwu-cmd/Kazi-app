@@ -1,5 +1,5 @@
 import React from 'react';
-import { CardHeader } from './TempShiftCard';
+import { CardHeader, CardBadge } from './TempShiftCard';
 
 // ============================================================
 // Shared permanent-job card.
@@ -20,7 +20,7 @@ const COLORS = {
   borderSoft: '#f3f3f3',
 };
 
-export default function PermJobCard({ job, onTap, style }) {
+export default function PermJobCard({ job, onTap, style, badge }) {
   return (
     <div
       onClick={onTap}
@@ -34,6 +34,7 @@ export default function PermJobCard({ job, onTap, style }) {
         ...style,
       }}
     >
+      {badge && <CardBadge>{badge}</CardBadge>}
       {/* Salary — top right */}
       <div style={{ position: 'absolute', top: 18, right: 18, textAlign: 'right' }}>
         <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 13, lineHeight: 1 }}>
