@@ -127,12 +127,21 @@ function TrustBadgesRow({ proId, rating, reliability }) {
 // Real source: /api/providers/:id should return a `lastSeen` ISO
 // string. For now, hash the pro id to a stable 0-90 day number so
 // each card consistently shows the same value across renders.
+// Bias the distribution toward green (active) — most pros should
+// look healthy on the marketplace. Real source: /api/providers
+// `lastSeen` ISO when wired.
+//   ~60% green  (0-7 days)
+//   ~30% amber  (8-30 days)
+//   ~10% red    (31-60 days)
 function getLastLoginDays(pro) {
   if (typeof pro?.lastLoginDays === 'number') return pro.lastLoginDays;
   const id = String(pro?.id || '');
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return h % 90; // 0..89
+  const r = h % 100;
+  if (r < 60) return r % 8;             // 0..7
+  if (r < 90) return 8 + (r % 23);      // 8..30
+  return 31 + (r % 30);                 // 31..60
 }
 
 function loginPillStyle(days) {
@@ -144,28 +153,28 @@ function loginPillStyle(days) {
 function loginPillLabel(days) {
   if (days === 0) return 'Active today';
   if (days === 1) return 'Active 1 day ago';
-  if (days <= 30) return `Active ${days} days ago`;
-  return `Inactive ${days} days`;
+  return `Active ${days} days ago`;
 }
 
 function LastLoginPill({ days }) {
   const style = loginPillStyle(days);
   return (
     <span
-      className="inline-flex items-center gap-[5px] mt-1.5"
+      className="inline-flex items-center gap-[4px] mt-1.5"
       style={{
         background: style.bg,
         border: `1px solid ${style.border}`,
         color: style.color,
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: 700,
-        padding: '3px 9px',
+        padding: '2px 7px',
         borderRadius: 100,
         fontFamily: "'DM Sans', sans-serif",
         letterSpacing: '-0.05px',
+        lineHeight: 1.3,
       }}
     >
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: style.color }} />
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: style.color }} />
       {loginPillLabel(days)}
     </span>
   );
