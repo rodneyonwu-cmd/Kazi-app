@@ -497,12 +497,12 @@ export default function LoungeProfile() {
             </button>
           </div>
 
-          {/* Stats row — raw vote counts + followers. No aggregated
-              "karma" yet (deferred to a real product decision). */}
+          {/* Stats row — Upvotes (green) + Posts. Downvotes and
+              Followers intentionally omitted; aggregated reputation
+              score deferred. */}
           <div style={{ position: 'relative', display: 'flex', gap: 4, paddingTop: 14, borderTop: `1px solid ${SOFT_DIVIDER}` }}>
             <Stat label="Upvotes" value={user.upvoteCount} valueColor="#1a7f5e" />
-            <Stat label="Downvotes" value={user.downvoteCount} valueColor="#e8734a" />
-            <Stat label="Followers" value={user.followerCount} />
+            <Stat label="Posts" value={user.postCount} />
           </div>
         </div>
       </section>
