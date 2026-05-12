@@ -591,13 +591,8 @@ export default function ProfessionalProfile() {
             </span>
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15, minWidth: 0 }}>
-                {pro.name}
-              </div>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a7f5e', lineHeight: 1, letterSpacing: '-0.02em', flexShrink: 0 }}>
-                ${pro.rate}<span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 600, marginLeft: 1 }}>/hr</span>
-              </div>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+              {pro.name}
             </div>
             <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
               {pro.role} · {pro.location}
@@ -621,6 +616,7 @@ export default function ProfessionalProfile() {
             search into the profile. Reliability picks up the colored
             tier bg; the rest stay on the off-white tile. */}
         <div style={{ display: 'flex', gap: 8, marginTop: 14, marginBottom: 14, paddingTop: 14, borderTop: '1px solid #f3f3f3' }}>
+          <ProStatTile label="Rate" value={`$${pro.rate}/hr`} valueColor="#1a7f5e" />
           <ProStatTile
             label="Reliability"
             value={`${pro.reliability}%`}
@@ -629,7 +625,6 @@ export default function ProfessionalProfile() {
             valueColor={reliabilityTier.color}
             labelColor={reliabilityTier.color}
           />
-          <ProStatTile label="Response" value={pro.responseTime} />
           <ProStatTile label="Bookings" value={pro.bookings} />
           <ProStatTile label="Score" value={pro.score} valueColor="#1a7f5e" />
         </div>

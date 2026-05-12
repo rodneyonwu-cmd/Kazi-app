@@ -123,6 +123,54 @@ function TrustBadgesRow({ proId, rating, reliability }) {
 }
 
 // ============ Reliability tier helper ============
+// ── Last-login pill (color-coded by recency) ─────────────────
+// Real source: /api/providers/:id should return a `lastSeen` ISO
+// string. For now, hash the pro id to a stable 0-90 day number so
+// each card consistently shows the same value across renders.
+function getLastLoginDays(pro) {
+  if (typeof pro?.lastLoginDays === 'number') return pro.lastLoginDays;
+  const id = String(pro?.id || '');
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h % 90; // 0..89
+}
+
+function loginPillStyle(days) {
+  if (days <= 7)  return { bg: '#f1f9f5', border: '#c5e3d5', color: '#1a7f5e' };
+  if (days <= 30) return { bg: '#fef3e6', border: '#fce0bf', color: '#b45309' };
+  return                 { bg: '#fdecec', border: '#f9d4d4', color: '#dc2626' };
+}
+
+function loginPillLabel(days) {
+  if (days === 0) return 'Active today';
+  if (days === 1) return 'Active 1 day ago';
+  if (days <= 30) return `Active ${days} days ago`;
+  return `Inactive ${days} days`;
+}
+
+function LastLoginPill({ days }) {
+  const style = loginPillStyle(days);
+  return (
+    <span
+      className="inline-flex items-center gap-[5px] mt-1.5"
+      style={{
+        background: style.bg,
+        border: `1px solid ${style.border}`,
+        color: style.color,
+        fontSize: 11,
+        fontWeight: 700,
+        padding: '3px 9px',
+        borderRadius: 100,
+        fontFamily: "'DM Sans', sans-serif",
+        letterSpacing: '-0.05px',
+      }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: style.color }} />
+      {loginPillLabel(days)}
+    </span>
+  );
+}
+
 const getReliabilityTier = (pct) => {
   if (pct >= 95) return { className: 'rel-excellent', bg: COLORS.greenTint, color: COLORS.green, border: COLORS.greenSoft };
   if (pct >= 85) return { className: 'rel-great', bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' };
@@ -220,17 +268,8 @@ function ProCard({ pro, onClick, onSave, onBook, onMessage }) {
             </span>
           </div>
 
-          {/* Activity status */}
-          <div
-            className="inline-flex items-center gap-1 text-[11px] font-semibold mt-1"
-            style={{ color: pro.isActive ? COLORS.green : COLORS.textLight }}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${pro.isActive ? 'animate-pulse' : ''}`}
-              style={{ background: pro.isActive ? COLORS.green : COLORS.textLight }}
-            />
-            {pro.activity}
-          </div>
+          {/* Last-login pill — color-coded by recency. */}
+          <LastLoginPill days={getLastLoginDays(pro)} />
         </div>
       </div>
 
