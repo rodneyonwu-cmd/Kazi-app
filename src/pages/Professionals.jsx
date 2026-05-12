@@ -253,9 +253,6 @@ function ProCard({ pro, onClick, onSave, onBook, onMessage }) {
         </div>
       </div>
 
-      {/* Trust badges — randomized realistic mix per pro */}
-      <TrustBadgesRow proId={pro.id} rating={pro.rating} reliability={pro.reliability} />
-
       {/* About section — only renders if pro has a bio */}
       {pro.bio && pro.bio.trim() && (
         <div className="mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
