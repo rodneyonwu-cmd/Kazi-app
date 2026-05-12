@@ -138,10 +138,10 @@ function HeroAvatar({ user }) {
 }
 
 // ── Stat block ──────────────────────────────────────────────
-function Stat({ label, value }) {
+function Stat({ label, value, valueColor }) {
   return (
     <div className="flex flex-col items-center text-center" style={{ flex: 1 }}>
-      <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 800, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 800, fontSize: 18, color: valueColor || '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1 }}>{value}</div>
       <div style={{ fontSize: 11.5, color: '#6b7875', fontWeight: 500, marginTop: 4 }}>{label}</div>
     </div>
   );
@@ -497,11 +497,11 @@ export default function LoungeProfile() {
             </button>
           </div>
 
-          {/* Stats row */}
+          {/* Stats row — raw vote counts + followers. No aggregated
+              "karma" yet (deferred to a real product decision). */}
           <div style={{ position: 'relative', display: 'flex', gap: 4, paddingTop: 14, borderTop: `1px solid ${SOFT_DIVIDER}` }}>
-            <Stat label="Karma" value={user.karma} />
-            <Stat label="Posts" value={user.postCount} />
-            <Stat label="Comments" value={user.commentCount} />
+            <Stat label="Upvotes" value={user.upvoteCount} valueColor="#1a7f5e" />
+            <Stat label="Downvotes" value={user.downvoteCount} valueColor="#e8734a" />
             <Stat label="Followers" value={user.followerCount} />
           </div>
         </div>
