@@ -90,6 +90,11 @@ function buildMockPro(mock) {
     // for now defaulted to both. Possible values: 'Temp shifts',
     // 'Permanent'. Shown on the office-facing profile under Availability.
     openTo: mock.openTo || fallbackOpenTo(id),
+    // Resume — mock placeholder so the row renders. Real value
+    // comes from /api/providers (Provider.resumeUrl + resumeName).
+    resumeUrl: mock.resumeUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    resumeName: mock.resumeName || `${firstName.toLowerCase()}_resume.pdf`,
+    resumePages: mock.resumePages || 2,
     reviewsList: [
       { office: 'Missouri City Dental', date: 'Mar 14, 2026', stars: 5, text: `${firstName} was a pleasure to work with. On time, prepared, and great with patients.` },
       { office: 'Sugar Land Family Dental', date: 'Feb 28, 2026', stars: 5, text: 'Quick to pick up our flow and kept up with a packed schedule without complaint.' },
@@ -351,6 +356,9 @@ export default function ProfessionalProfile() {
             // TODO API: source openTo from /api/providers/:id once the
             // onboarding flow stores it. For now default to both.
             openTo: data.openTo || fallbackOpenTo(data.id),
+            resumeUrl: data.resumeUrl || null,
+            resumeName: data.resumeName || (data.resumeUrl ? `${firstName.toLowerCase() || 'pro'}_resume.pdf` : null),
+            resumePages: data.resumePages || null,
             reviewsList: reviews.map(r => ({
               office: 'Verified Practice',
               date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -751,6 +759,9 @@ export default function ProfessionalProfile() {
       <section style={{ padding: '14px 20px 30px' }}>
         {tab === 'about' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <ProDetail label="Last active">
+              <LastLoginPill days={getLastLoginDays(pro)} />
+            </ProDetail>
             {pro.about && (
               <ProDetail label="Summary">
                 <p style={{ fontSize: 14, lineHeight: 1.55, color: '#444', margin: 0 }}>
@@ -758,9 +769,77 @@ export default function ProfessionalProfile() {
                 </p>
               </ProDetail>
             )}
-            <ProDetail label="Last active">
-              <LastLoginPill days={getLastLoginDays(pro)} />
-            </ProDetail>
+            {pro.resumeUrl && (
+              <ProDetail label="Resume">
+                <a
+                  href={pro.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="kazi-tap"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    background: '#f9f8f6',
+                    border: '1px solid #e8e6e1',
+                    borderRadius: 14,
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: '#e8f5f0',
+                      display: 'grid',
+                      placeItems: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="9" y1="13" x2="15" y2="13" />
+                      <line x1="9" y1="17" x2="13" y2="17" />
+                    </svg>
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#0f1a16', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {pro.resumeName}
+                    </div>
+                    {pro.resumePages && (
+                      <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500, marginTop: 2 }}>
+                        {pro.resumePages} {pro.resumePages === 1 ? 'page' : 'pages'} · PDF
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '6px 12px',
+                      borderRadius: 100,
+                      background: '#1a7f5e',
+                      color: '#ffffff',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      fontFamily: "'DM Sans', sans-serif",
+                      flexShrink: 0,
+                    }}
+                  >
+                    View
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="7" y1="17" x2="17" y2="7" />
+                      <polyline points="7 7 17 7 17 17" />
+                    </svg>
+                  </span>
+                </a>
+              </ProDetail>
+            )}
             {pro.openTo?.length > 0 && (
               <ProDetail label="Open to">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
