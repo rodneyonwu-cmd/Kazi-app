@@ -4,6 +4,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
 import BottomNav from '../components/BottomNav';
+import ProviderBottomNav from '../components/ProviderBottomNav';
 import TopBar from '../components/TopBar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -428,7 +429,7 @@ export default function ProfessionalProfile() {
           <p className="text-sm text-[#8a8a8a]">Loading profile...</p>
         </div>
       </div>
-      <BottomNav />
+      {isPreviewMode ? <ProviderBottomNav /> : <BottomNav />}
     </div>
   );
   if (!pro) return (
@@ -437,7 +438,7 @@ export default function ProfessionalProfile() {
       <div className="flex items-center justify-center py-20">
         <p className="text-sm text-[#8a8a8a]">Professional not found.</p>
       </div>
-      <BottomNav />
+      {isPreviewMode ? <ProviderBottomNav /> : <BottomNav />}
     </div>
   );
 
@@ -829,7 +830,7 @@ export default function ProfessionalProfile() {
         onLaunchRapidFill={handleLaunchRapidFill}
         onSend={handleSend}
       />
-      <BottomNav />
+      {isPreviewMode ? <ProviderBottomNav /> : <BottomNav />}
     </div>
   );
 }
