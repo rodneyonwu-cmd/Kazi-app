@@ -691,6 +691,35 @@ export default function ProfessionalProfile() {
       <section style={{ padding: '14px 20px 30px' }}>
         {tab === 'about' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {pro.openTo?.length > 0 && (
+              <ProDetail label="Open to">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {pro.openTo.map((o) => {
+                    const isPerm = /perm/i.test(o);
+                    const palette = isPerm
+                      ? { bg: '#f3ecfd', border: '#d9c7f5', text: '#5b21b6' }   // purple — permanent
+                      : { bg: '#e8f5f0', border: '#c5e3d5', text: '#1a7f5e' }; // green — temp
+                    return (
+                      <span
+                        key={o}
+                        style={{
+                          padding: '5px 11px',
+                          background: palette.bg,
+                          border: `1px solid ${palette.border}`,
+                          borderRadius: 100,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: palette.text,
+                          fontFamily: "'Outfit', sans-serif",
+                        }}
+                      >
+                        {o}
+                      </span>
+                    );
+                  })}
+                </div>
+              </ProDetail>
+            )}
             <ProDetail label="Credentials">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {pro.credentialsList.map((c) => (
@@ -743,37 +772,8 @@ export default function ProfessionalProfile() {
         )}
 
         {tab === 'availability' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {/* Open to — work types this provider accepts. Sourced from
-                onboarding once that flow saves the field; mock for now. */}
-            {pro.openTo?.length > 0 && (
-              <ProDetail label="Open to">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {pro.openTo.map((o) => (
-                    <span
-                      key={o}
-                      style={{
-                        padding: '5px 11px',
-                        background: '#e8f5f0',
-                        border: '1px solid #c5e3d5',
-                        borderRadius: 100,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#1a7f5e',
-                        fontFamily: "'Outfit', sans-serif",
-                      }}
-                    >
-                      {o}
-                    </span>
-                  ))}
-                </div>
-              </ProDetail>
-            )}
-            <ProDetail label="Calendar">
-              <div style={{ background: '#ffffff', border: '1px solid #e8e6e1', borderRadius: 16, padding: 16 }}>
-                <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
-              </div>
-            </ProDetail>
+          <div style={{ background: '#ffffff', border: '1px solid #e8e6e1', borderRadius: 16, padding: 16 }}>
+            <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
           </div>
         )}
 
