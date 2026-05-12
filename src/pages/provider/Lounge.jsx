@@ -727,7 +727,6 @@ function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendR
   if (!thread) return null;
   const tapAuthor = (author) => { if (onAuthorTap && !author.anon) onAuthorTap(author); };
 
-  const upvotes = thread.score + thread.downvotes;
   const upActive = thread.vote === 'up';
   const downActive = thread.vote === 'down';
 
@@ -803,81 +802,80 @@ function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendR
         </div>
 
         <div ref={bodyScrollRef} style={{ flex: 1, overflowY: 'auto', paddingBottom: 100 }}>
-          <div style={{ padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-              <Avatar author={thread.author} size={40} onClick={() => tapAuthor(thread.author)} />
-              <div style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35 }}>
-                <div>
-                  <span
-                    onClick={() => tapAuthor(thread.author)}
-                    style={{ fontWeight: 700, cursor: !thread.author.anon && onAuthorTap ? 'pointer' : 'default' }}
-                  >
-                    {thread.author.name}
-                  </span>
-                  {' — '}
-                  <span style={{ fontWeight: 600 }}>{thread.author.role}</span>
-                </div>
-                {thread.location && (
-                  <div style={{ marginTop: 2 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 600 }}>
-                      <Svg size={12}>{ICONS.pin}</Svg>
-                      {thread.location}
-                    </span>
-                  </div>
-                )}
+          <div style={{ padding: '16px 20px' }}>
+            {/* Author meta — single Reddit-style line */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Avatar author={thread.author} size={28} showVerify={false} onClick={() => tapAuthor(thread.author)} />
+              <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: '#6b7875', fontWeight: 500, lineHeight: 1.3 }}>
+                <span
+                  onClick={() => tapAuthor(thread.author)}
+                  style={{ fontWeight: 600, color: '#1a1a1a', cursor: !thread.author.anon && onAuthorTap ? 'pointer' : 'default' }}
+                >
+                  {thread.author.name}
+                </span>
+                <span> · </span>
+                <span>{stripYears(thread.author.role)}</span>
+                <span> · </span>
+                <span>{thread.time}</span>
               </div>
-              <span style={{ fontSize: 12, color: '#666' }}>{thread.time}</span>
+              {thread.tag && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '2px 9px',
+                    borderRadius: 100,
+                    background: 'rgba(26,127,94,0.1)',
+                    color: GREEN,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    flexShrink: 0,
+                  }}
+                >
+                  {thread.tag}
+                </span>
+              )}
             </div>
 
-            {thread.tag && (
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '4px 12px',
-                  borderRadius: 100,
-                  background: 'rgba(26,127,94,0.1)',
-                  color: GREEN,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  marginBottom: 14,
-                }}
-              >
-                <Svg size={12}>{ICONS.tag}</Svg>
-                {thread.tag}
-              </div>
-            )}
-
+            {/* Title */}
             <div
               style={{
                 fontFamily: FONT_OUTFIT,
-                fontSize: 22,
-                fontWeight: 700,
+                fontSize: 19,
+                fontWeight: 600,
                 lineHeight: 1.25,
                 letterSpacing: '-0.3px',
-                marginBottom: 14,
+                color: '#1a1a1a',
+                marginBottom: 10,
               }}
             >
               {thread.title}
             </div>
 
-            <div style={{ fontSize: 15, lineHeight: 1.55, color: '#222', marginBottom: 14, whiteSpace: 'pre-wrap' }}>
+            {thread.location && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: '#6b7875', fontWeight: 500, marginBottom: 12 }}>
+                <Svg size={12} stroke="#6b7875">{ICONS.pin}</Svg>
+                {thread.location}
+              </div>
+            )}
+
+            <div style={{ fontSize: 14.5, lineHeight: 1.55, color: '#222', marginBottom: 14, whiteSpace: 'pre-wrap' }}>
               {thread.body}
             </div>
 
             {thread.poll && <Poll poll={thread.poll} onVote={(i) => onPollVote(thread.id, i)} />}
             {thread.office && <OfficeChip office={thread.office} />}
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, borderTop: '1px solid #f0f0f0', paddingTop: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: GREEN, fontSize: 13, fontWeight: 600 }}>
-                <Svg size={16} stroke={GREEN}>{ICONS.comment}</Svg>
-                <span>{thread.replyCount} comments</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <VoteButton active={upActive} direction="up" onClick={() => onVote('up')} count={upvotes} />
-                <VoteButton active={downActive} direction="down" onClick={() => onVote('down')} count={thread.downvotes} />
-              </div>
+            {/* Bottom action row — Reddit-style vote bar + comments pill */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16 }}>
+              <RedditVoteBar
+                netScore={thread.score}
+                upActive={upActive}
+                downActive={downActive}
+                onUp={() => onVote('up')}
+                onDown={() => onVote('down')}
+              />
+              <ActionPill onClick={() => {}} icon={ICONS.comment} label={thread.replyCount} />
             </div>
           </div>
 
@@ -897,7 +895,7 @@ function ThreadSheet({ thread, onClose, onVote, onPollVote, onReplyLike, onSendR
                     >
                       {r.author.name}
                     </span>
-                    <span style={{ color: '#999', fontSize: 12 }}>{r.author.role}</span>
+                    <span style={{ color: '#999', fontSize: 12 }}>{stripYears(r.author.role)}</span>
                     <span style={{ color: '#999', fontSize: 11.5, marginLeft: 'auto' }}>{r.time}</span>
                   </div>
                   <div style={{ fontSize: 14, lineHeight: 1.45, color: '#333', marginTop: 3 }}>{r.text}</div>
