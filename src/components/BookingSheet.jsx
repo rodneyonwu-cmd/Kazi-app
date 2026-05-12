@@ -145,9 +145,15 @@ export default function BookingSheet({
         }`}
       />
 
-      {/* Sheet */}
+      {/* Sheet — capped at 85dvh (with vh fallback) so iOS Safari's
+          collapsing URL bar can't push the top of the sheet behind
+          the visible viewport. Content above the cap scrolls inside
+          the sheet itself. */}
+      <style>{`
+        .kazi-booking-sheet { max-height: 85vh; max-height: 85dvh; }
+      `}</style>
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[28px] z-[101] max-h-[92vh] overflow-y-auto transition-transform duration-300 sm:max-w-[480px] sm:left-1/2"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[28px] z-[101] overflow-y-auto transition-transform duration-300 sm:max-w-[480px] sm:left-1/2 kazi-booking-sheet"
         style={{
           ...sheetStyle,
           WebkitOverflowScrolling: 'touch',
