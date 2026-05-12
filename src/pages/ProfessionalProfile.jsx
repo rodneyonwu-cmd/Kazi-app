@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
@@ -199,6 +199,8 @@ export default function ProfessionalProfile() {
   const [loading, setLoading] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [tab, setTab] = useState('about'); // 'about' | 'availability' | 'reviews'
+  const [saved, setSaved] = useState(false);
 
   const [backups, setBackups] = useState(() => {
     try {
@@ -334,6 +336,25 @@ export default function ProfessionalProfile() {
   const handleDayClick = (date) => { setSelectedDate(date); setSheetOpen(true); };
   const handleBookButtonClick = () => { if (!selectedDate) setSelectedDate(new Date()); setSheetOpen(true); };
 
+  const handleShare = async () => {
+    if (!pro) return;
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const text = `${pro.name} — ${pro.role} on Kazi`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: pro.name, text, url });
+        return;
+      } catch { /* user cancelled */ }
+    }
+    try { await navigator.clipboard.writeText(`${text} — ${url}`); } catch { /* clipboard unavailable */ }
+  };
+
+  const handleMessageClick = () => {
+    navigate(`/messages/${pro.id}`, {
+      state: { mock: { id: pro.id, name: pro.name, initials: pro.initials, avatarUrl: pro.avatarUrl, role: pro.role } },
+    });
+  };
+
   const handleLaunchRapidFill = () => {
     if (!pro) return;
     try {
@@ -377,14 +398,6 @@ export default function ProfessionalProfile() {
     } catch { alert('Failed to send booking request'); }
   };
 
-  const reliabilityTier = useMemo(() => {
-    const r = pro?.reliability || 0;
-    if (r >= 95) return { bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' };
-    if (r >= 85) return { bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' };
-    if (r >= 70) return { bg: '#fef3e6', color: '#d97706', border: '#fce0bf' };
-    return { bg: '#fdecec', color: '#dc2626', border: '#f9d4d4' };
-  }, [pro?.reliability]);
-
   if (loading) return (
     <div className="bg-[#f9f8f6] min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <TopBar role="office" />
@@ -407,15 +420,14 @@ export default function ProfessionalProfile() {
     </div>
   );
 
+  // Reliability color — green ≥95, amber 85-94, coral <85.
+  const reliabilityColor = pro.reliability >= 95 ? '#1a7f5e' : pro.reliability >= 85 ? '#c98b16' : '#e8734a';
+
   return (
     <div
-      className="bg-[#f9f8f6] min-h-screen pb-[180px]"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
+      style={{ minHeight: '100vh', background: '#ffffff', fontFamily: "'DM Sans', sans-serif", paddingBottom: 90 }}
     >
-      <TopBar role={isPreviewMode ? 'provider' : 'office'} />
-      {/* Preview-mode banner — only when a provider is viewing their own
-          profile via ?preview=1. "Exit Preview" returns to the editable
-          self-view at /my-profile. */}
+      {/* Preview banner — provider previewing their own page */}
       {isPreviewMode && (
         <div
           style={{
@@ -427,7 +439,6 @@ export default function ProfessionalProfile() {
             justifyContent: 'space-between',
             fontSize: 13,
             fontWeight: 600,
-            fontFamily: "'DM Sans', sans-serif",
             borderBottom: '1px solid #f5e3b8',
           }}
         >
@@ -440,269 +451,314 @@ export default function ProfessionalProfile() {
           </span>
           <button
             onClick={() => navigate('/my-profile')}
-            style={{
-              background: '#fff',
-              color: '#8b6914',
-              border: '1px solid #f5e3b8',
-              padding: '5px 12px',
-              borderRadius: 100,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
+            style={{ background: '#fff', color: '#8b6914', border: '1px solid #f5e3b8', padding: '5px 12px', borderRadius: 100, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
           >
             Exit preview
           </button>
         </div>
       )}
-      {/* Top bar */}
-      <div className="bg-white px-5 py-3.5 flex items-center gap-3.5 border-b border-[#f3f3f3] sticky top-0 z-50">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a]"
-          aria-label="Back"
-        >
-          <IconBack />
-        </button>
-        <div className="flex-1" />
-      </div>
 
-      {/* Hero */}
-      <div className="bg-white pl-8 pr-5 pt-6 pb-6 text-left relative overflow-hidden">
-        <div
-          className="absolute top-0 left-0 w-72 h-52 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at top left, #f1f9f5 0%, transparent 70%)' }}
-        />
-
-        {/* Share / favorite — moved down from the sticky top bar */}
-        <div className="absolute top-4 right-5 flex gap-2 z-10">
-          <button
-            aria-label="Share"
-            className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a] border border-[#f3f3f3]"
-          >
-            <IconShare />
-          </button>
-          <button
-            aria-label="Save"
-            className="w-[38px] h-[38px] rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#e8734a] border border-[#f3f3f3]"
-          >
-            <IconHeart />
-          </button>
-        </div>
-
-        <div className="relative">
-          <div className="relative inline-block mb-3">
-            {pro.avatarUrl ? (
-              <img
-                src={pro.avatarUrl}
-                alt={pro.name}
-                className="w-[72px] h-[72px] rounded-[20px] object-cover shadow-md"
-              />
-            ) : (
-              <div
-                className="w-[72px] h-[72px] rounded-[20px] flex items-center justify-center text-white text-2xl font-bold shadow-md"
-                style={{
-                  background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)',
-                  fontFamily: "'Outfit', sans-serif",
-                }}
-              >
-                {pro.initials}
-              </div>
-            )}
-            <div className="absolute -bottom-0.5 -right-0.5 w-[24px] h-[24px] bg-[#1a7f5e] rounded-full flex items-center justify-center border-[3px] border-white text-white">
-              <IconCheck className="w-3 h-3" />
-            </div>
-          </div>
-          <div
-            className="text-[24px] font-extrabold leading-tight mb-1 text-[#1a1a1a]"
-            style={{ fontFamily: "'Outfit', sans-serif" }}
-          >
-            {pro.name}
-          </div>
-          <div className="text-sm text-[#5a5a5a] mb-2.5">
-            {pro.role} · {pro.location}
-          </div>
-          <div className="inline-flex gap-1.5 mb-3 flex-wrap">
-            {pro.creds.map((c) => (
-              <span
-                key={c}
-                className="bg-[#f1f9f5] text-[#1a7f5e] text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide"
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-          <div className="text-sm">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="text-[#f4b740] text-[26px] leading-none">★</span>
-              <span className="font-bold text-[20px] text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.rating.toFixed(1)}</span>
-              <span className="text-[#8a8a8a] text-[14px]">({pro.reviews})</span>
-            </span>
-            <span className="text-[#ececec] mx-1.5">·</span>
-            <span className="inline-flex items-center gap-1 text-[#5a5a5a]">
-              <span className="text-[#8a8a8a]">
-                <IconPin />
-              </span>
-              {pro.distance}
-            </span>
-          </div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a7f5e] mt-2.5">
-            <div className="w-[7px] h-[7px] bg-[#1a7f5e] rounded-full animate-pulse" />
-            {pro.activity}
-          </div>
-          <TrustBadges />
-        </div>
-      </div>
-
-      {/* Quick stats */}
-      <div className="px-5 py-4 grid grid-cols-4 gap-2">
-        <div className="bg-white rounded-2xl p-3 border border-[#f3f3f3] text-center">
-          <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Rate</div>
-          <div className="text-[15px] font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            ${pro.rate}/hr
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-3 border border-[#f3f3f3] text-center">
-          <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Bookings</div>
-          <div className="text-[15px] font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            {pro.bookings}
-          </div>
-        </div>
-        <div
-          className="rounded-2xl p-3 border text-center"
-          style={{ background: reliabilityTier.bg, borderColor: reliabilityTier.border }}
-        >
-          <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: reliabilityTier.color }}>
-            Reliability
-          </div>
-          <div className="text-[15px] font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: reliabilityTier.color }}>
-            {pro.reliability}%
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-3 border border-[#f3f3f3] text-center">
-          <div className="text-[10px] text-[#8a8a8a] uppercase tracking-wide font-semibold mb-1">Response</div>
-          <div className="text-[15px] font-bold text-[#1a1a1a]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            {pro.responseTime}
-          </div>
-        </div>
-      </div>
-
-      {/* About */}
-      <Section title="About">
-        <div className="text-sm leading-relaxed text-[#5a5a5a]">{pro.about}</div>
-      </Section>
-
-      {/* Availability calendar — tapping a green day opens the BookingSheet */}
-      <div className="bg-white mx-4 mb-3 rounded-[20px] p-5 border border-[#f3f3f3]">
-        <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
-      </div>
-
-      {/* Credentials */}
-      <Section title="Credentials">
-        <div className="flex flex-wrap gap-2">
-          {pro.credentialsList.map((c) => (
-            <span
-              key={c}
-              className="bg-[#f1f9f5] text-[#1a7f5e] border border-[#e8f3ee] px-3.5 py-2 rounded-full text-xs font-semibold"
-            >
-              {c}
-            </span>
-          ))}
-        </div>
-      </Section>
-
-      {/* Practice Software */}
-      <Section title="Practice Software">
-        <div className="flex flex-wrap gap-2">
-          {pro.software.map((s) => (
-            <span
-              key={s}
-              className="bg-[#f9f8f6] border border-[#f3f3f3] px-3.5 py-2 rounded-full text-xs font-semibold text-[#1a1a1a]"
-            >
-              {s}
-            </span>
-          ))}
-        </div>
-      </Section>
-
-      {/* Experience */}
-      <Section title="Experience Assisting">
-        <div className="flex flex-wrap gap-2">
-          {pro.experience.map((e) => (
-            <span
-              key={e}
-              className="bg-[#f9f8f6] border border-[#f3f3f3] px-3.5 py-2 rounded-full text-xs font-semibold text-[#1a1a1a]"
-            >
-              {e}
-            </span>
-          ))}
-        </div>
-      </Section>
-
-      {/* Languages */}
-      <Section title="Languages">
-        {pro.languages.map((l, i) => (
-          <div
-            key={l.name}
-            className={`flex items-center justify-between py-3 ${
-              i !== pro.languages.length - 1 ? 'border-b border-[#f3f3f3]' : ''
-            } ${i === 0 ? 'pt-0' : ''}`}
-          >
-            <span className="text-sm font-semibold text-[#1a1a1a]">{l.name}</span>
-            <span
-              className={`text-[11px] font-semibold px-3 py-1 rounded-full ${
-                l.native ? 'text-[#1a7f5e] bg-[#f1f9f5]' : 'text-[#8a8a8a] bg-[#f9f8f6]'
-              }`}
-            >
-              {l.level}
-            </span>
-          </div>
-        ))}
-      </Section>
-
-      {/* Reviews */}
-      <Section title={`Reviews (${pro.reviews})`}>
-        {pro.reviewsList.map((r, i) => (
-          <div
-            key={i}
-            className={`py-3.5 ${
-              i !== pro.reviewsList.length - 1 ? 'border-b border-[#f3f3f3]' : ''
-            } ${i === 0 ? 'pt-0' : ''}`}
-          >
-            <div className="flex justify-between mb-1.5">
-              <div className="text-[13px] font-bold text-[#1a1a1a]">{r.office}</div>
-              <div className="text-[11px] text-[#8a8a8a]">{r.date}</div>
-            </div>
-            <div className="text-[#f4b740] text-[13px] mb-1.5">{'★'.repeat(r.stars)}</div>
-            <div className="text-[13px] leading-relaxed text-[#5a5a5a]">{r.text}</div>
-          </div>
-        ))}
-        <button className="block mx-auto mt-3.5 px-4 py-3 bg-[#f9f8f6] border border-[#f3f3f3] rounded-full text-[#1a7f5e] text-[13px] font-bold w-full text-center">
-          See all {pro.reviews} reviews
-        </button>
-      </Section>
-
-      {/* Sticky action bar — tapping Book also opens the BookingSheet */}
+      {/* Sticky topbar — circular back (left) + circular share & save (right). */}
       <div
-        className="fixed left-0 right-0 bg-white px-5 pt-3.5 pb-4 border-t border-[#f3f3f3] flex gap-2.5 z-[45] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] sm:max-w-[480px] sm:left-1/2 sm:-translate-x-1/2"
-        style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 41,
+          background: '#ffffff',
+          padding: '14px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
       >
         <button
-          onClick={() => navigate(`/messages/${pro.id}`, { state: { mock: { id: pro.id, name: pro.name, initials: pro.initials, avatarUrl: pro.avatarUrl, role: pro.role } } })}
-          className="w-14 h-[52px] rounded-full bg-[#f9f8f6] border border-[#ececec] flex items-center justify-center text-[#1a1a1a]"
-          aria-label={`Message ${pro.firstName || pro.name}`}
+          onClick={() => navigate(-1)}
+          aria-label="Back"
+          className="kazi-tap"
+          style={{ width: 36, height: 36, display: 'grid', placeItems: 'center', background: '#f9f8f6', border: '1px solid #ececec', borderRadius: '50%', cursor: 'pointer', padding: 0 }}
         >
-          <IconMessage />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
         </button>
-        <button
-          onClick={handleBookButtonClick}
-          className="flex-1 bg-[#1a7f5e] text-white rounded-full font-bold text-[15px] flex items-center justify-center gap-2"
-        >
-          <IconCalendarSmall />
-          Book {pro.firstName}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={handleShare}
+            aria-label="Share profile"
+            className="kazi-tap"
+            style={{ width: 36, height: 36, display: 'grid', placeItems: 'center', background: '#f9f8f6', border: '1px solid #ececec', borderRadius: '50%', cursor: 'pointer', padding: 0 }}
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+              <polyline points="16 6 12 2 8 6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setSaved((s) => !s)}
+            aria-label={saved ? 'Unsave profile' : 'Save profile'}
+            className="kazi-tap"
+            style={{
+              width: 36,
+              height: 36,
+              display: 'grid',
+              placeItems: 'center',
+              background: saved ? '#fdeee7' : '#f9f8f6',
+              border: `1px solid ${saved ? '#fdeee7' : '#ececec'}`,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={saved ? '#e8734a' : 'none'} stroke={saved ? '#e8734a' : '#1a1a1a'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Hero — flat on the white page, no card */}
+      <section style={{ padding: '4px 20px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
+          <div style={{
+            width: 96,
+            height: 96,
+            borderRadius: 24,
+            background: 'linear-gradient(135deg, #a8c9b8 0%, #7ab8a8 100%)',
+            display: 'grid',
+            placeItems: 'center',
+            color: '#fff',
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            flexShrink: 0,
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: '0 4px 14px rgba(15,29,27,0.12)',
+          }}>
+            {pro.avatarUrl ? (
+              <img src={pro.avatarUrl} alt={pro.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              pro.initials
+            )}
+            <span style={{ position: 'absolute', bottom: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#1a7f5e', border: '3px solid #fff', display: 'grid', placeItems: 'center' }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
+            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+              {pro.name}
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
+              {pro.role} · {pro.location}
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 13, color: '#0f1a16', fontWeight: 600 }}>
+              <span style={{ color: '#f4b740', fontSize: 16, lineHeight: 1 }}>★</span>
+              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{pro.rating.toFixed(1)}</span>
+              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 12 }}>({pro.reviews} reviews)</span>
+            </div>
+          </div>
+        </div>
+
+        {pro.about && (
+          <p style={{ fontSize: 14, lineHeight: 1.5, color: '#444', marginBottom: 14 }}>
+            {pro.about}
+          </p>
+        )}
+
+        {/* Action row — Book + Message inline (no sticky bottom bar) */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <button
+            onClick={handleBookButtonClick}
+            className="kazi-tap"
+            style={{
+              flex: 1,
+              background: '#1a7f5e',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 100,
+              padding: '10px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: "'DM Sans', sans-serif",
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Book {pro.firstName || pro.name}
+          </button>
+          <button
+            onClick={handleMessageClick}
+            className="kazi-tap"
+            style={{
+              flex: 1,
+              background: '#ffffff',
+              color: '#0f1a16',
+              border: '1px solid #e8e6e1',
+              borderRadius: 100,
+              padding: '10px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: "'DM Sans', sans-serif",
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f1a16" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Message
+          </button>
+        </div>
+
+        {/* Stats row — flat, hairline-divided */}
+        <div style={{ display: 'flex', gap: 4, paddingTop: 14, borderTop: '1px solid #f0eee8' }}>
+          <ProStat label="Rating" value={pro.rating.toFixed(1)} valueColor="#0f1a16" prefix={<span style={{ color: '#f4b740', fontSize: 14, lineHeight: 1, marginRight: 2 }}>★</span>} />
+          <ProStat label="Reliability" value={`${pro.reliability}%`} valueColor={reliabilityColor} />
+          <ProStat label="Bookings" value={pro.bookings} valueColor="#0f1a16" />
+          <ProStat label="Rate" value={`$${pro.rate}`} suffix="/hr" valueColor="#1a7f5e" />
+        </div>
+      </section>
+
+      {/* Sticky tab strip */}
+      <section style={{ padding: '0 20px', position: 'sticky', top: 65, zIndex: 30, background: '#ffffff' }}>
+        <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid #f0eee8' }}>
+          {[
+            { id: 'about', label: 'About' },
+            { id: 'availability', label: 'Availability' },
+            { id: 'reviews', label: `Reviews · ${pro.reviews}` },
+          ].map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: "'Outfit', sans-serif",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: active ? '#0f1a16' : '#9aa5a1',
+                  padding: '12px 0',
+                  position: 'relative',
+                  letterSpacing: '-0.1px',
+                }}
+              >
+                {t.label}
+                {active && (
+                  <span style={{ position: 'absolute', bottom: -1, left: 0, right: 0, height: 2, background: '#1a7f5e', borderRadius: 2 }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Tab content */}
+      <section style={{ padding: '14px 20px 30px' }}>
+        {tab === 'about' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <ProDetail label="Credentials">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {pro.credentialsList.map((c) => (
+                  <span key={c} style={{ padding: '5px 11px', background: '#e8f5f0', border: '1px solid #c5e3d5', borderRadius: 100, fontSize: 12, fontWeight: 600, color: '#1a7f5e', fontFamily: "'Outfit', sans-serif" }}>
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </ProDetail>
+            <ProDetail label="Practice software">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {pro.software.map((s) => (
+                  <span key={s} style={{ padding: '5px 11px', background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 100, fontSize: 12, fontWeight: 600, color: '#0f1a16', fontFamily: "'Outfit', sans-serif" }}>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </ProDetail>
+            <ProDetail label="Experience">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {pro.experience.map((e) => (
+                  <span key={e} style={{ padding: '5px 11px', background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 100, fontSize: 12, fontWeight: 600, color: '#0f1a16', fontFamily: "'Outfit', sans-serif" }}>
+                    {e}
+                  </span>
+                ))}
+              </div>
+            </ProDetail>
+            <ProDetail label="Languages">
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {pro.languages.map((l, i) => (
+                  <div
+                    key={l.name}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 0',
+                      borderBottom: i !== pro.languages.length - 1 ? '1px solid #f0eee8' : 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#0f1a16' }}>{l.name}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', borderRadius: 100, color: l.native ? '#1a7f5e' : '#6b7875', background: l.native ? '#e8f5f0' : '#f9f8f6' }}>
+                      {l.level}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </ProDetail>
+          </div>
+        )}
+
+        {tab === 'availability' && (
+          <div style={{ background: '#ffffff', border: '1px solid #e8e6e1', borderRadius: 16, padding: 16 }}>
+            <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
+          </div>
+        )}
+
+        {tab === 'reviews' && (
+          pro.reviewsList.length === 0 ? (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: '#6b7875' }}>
+              <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14, color: '#0f1a16', marginBottom: 4 }}>No reviews yet</p>
+              <p style={{ fontSize: 13 }}>Office reviews of {pro.firstName || pro.name} will appear here.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {pro.reviewsList.map((r, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: '14px 0',
+                    borderBottom: i !== pro.reviewsList.length - 1 ? '1px solid #f0eee8' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                    <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: '#0f1a16' }}>{r.office}</div>
+                    <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500 }}>{r.date}</div>
+                  </div>
+                  <div style={{ color: '#f4b740', fontSize: 13, marginBottom: 6, letterSpacing: '0.5px' }}>{'★'.repeat(r.stars)}</div>
+                  <div style={{ fontSize: 13.5, lineHeight: 1.5, color: '#444' }}>{r.text}</div>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+      </section>
 
       {/* Booking sheet overlay */}
       <BookingSheet
@@ -715,6 +771,32 @@ export default function ProfessionalProfile() {
         onSend={handleSend}
       />
       <BottomNav />
+    </div>
+  );
+}
+
+// ── Stats row item ─────────────────────────────────────────────
+function ProStat({ label, value, valueColor, prefix, suffix }) {
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: valueColor || '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>
+        {prefix}
+        {value}
+        {suffix && <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 600, marginLeft: 1 }}>{suffix}</span>}
+      </div>
+      <div style={{ fontSize: 11.5, color: '#6b7875', fontWeight: 500, marginTop: 4 }}>{label}</div>
+    </div>
+  );
+}
+
+// ── About tab section block ────────────────────────────────────
+function ProDetail({ label, children }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 8 }}>
+        {label}
+      </div>
+      {children}
     </div>
   );
 }
