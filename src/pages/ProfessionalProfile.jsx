@@ -614,25 +614,23 @@ export default function ProfessionalProfile() {
             </span>
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-              {pro.name}
-            </div>
-            <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
-              {pro.role} · {pro.location}
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15, minWidth: 0 }}>
+                {pro.name}
+              </div>
               {pro.distance && (
-                <>
-                  <span style={{ color: '#d1d5db' }}> · </span>
-                  <span style={{ color: '#0f1a16', fontWeight: 600 }}>{pro.distance}</span>
-                </>
+                <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500, flexShrink: 0 }}>
+                  {pro.distance}
+                </div>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#0f1a16', fontWeight: 600 }}>
-                <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
-                <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17 }}>{pro.rating.toFixed(1)}</span>
-                <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13 }}>({pro.reviews} reviews)</span>
-              </div>
-              <LastLoginPill days={getLastLoginDays(pro)} />
+            <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
+              {pro.role}
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 14, color: '#0f1a16', fontWeight: 600 }}>
+              <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
+              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17 }}>{pro.rating.toFixed(1)}</span>
+              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13 }}>({pro.reviews} reviews)</span>
             </div>
           </div>
         </div>
@@ -760,6 +758,9 @@ export default function ProfessionalProfile() {
                 </p>
               </ProDetail>
             )}
+            <ProDetail label="Last active">
+              <LastLoginPill days={getLastLoginDays(pro)} />
+            </ProDetail>
             {pro.openTo?.length > 0 && (
               <ProDetail label="Open to">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
