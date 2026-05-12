@@ -239,8 +239,12 @@ export default function ProfessionalProfile() {
       const lastName = user?.lastName || 'Onwu';
       let storedPhoto = null;
       try { storedPhoto = localStorage.getItem('kazi_profile_photo'); } catch {}
+      // Stable per-user seed for the placeholder portrait so the
+      // preview doesn't look like a generic "me" face. Real photo
+      // (localStorage > Clerk imageUrl) still wins when present.
+      const seedId = user?.id || 'me-self';
       setPro(buildMockPro({
-        id: 'me',
+        id: seedId,
         name: `${firstName} ${lastName}`.trim(),
         initials: `${firstName[0] || 'R'}${lastName[0] || 'O'}`.toUpperCase(),
         avatarUrl: storedPhoto || user?.imageUrl || null,
@@ -553,12 +557,21 @@ export default function ProfessionalProfile() {
             overflow: 'hidden',
             boxShadow: '0 4px 14px rgba(15,29,27,0.12)',
           }}>
-            {pro.avatarUrl ? (
-              <img src={pro.avatarUrl} alt={pro.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              pro.initials
+            {/* Initials underneath; img overlays. If the img fails to
+                load (or the URL is missing), onError hides it and the
+                initials show through against the sage gradient. */}
+            <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 32 }}>
+              {pro.initials}
+            </span>
+            {pro.avatarUrl && (
+              <img
+                src={pro.avatarUrl}
+                alt={pro.name}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
             )}
-            <span style={{ position: 'absolute', bottom: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#1a7f5e', border: '3px solid #fff', display: 'grid', placeItems: 'center' }}>
+            <span style={{ position: 'absolute', bottom: 4, right: 4, width: 22, height: 22, borderRadius: '50%', background: '#1a7f5e', border: '3px solid #fff', display: 'grid', placeItems: 'center', zIndex: 2 }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
