@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
@@ -187,8 +187,13 @@ export default function ProfessionalProfile() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { getToken } = useAuth();
   const { user } = useUser();
+  // "Preview" mode — provider previewing their own page as offices see it.
+  // Triggered by /professionals/me?preview=1. Renders a top banner with an
+  // Exit-Preview affordance that returns to the editable self-view.
+  const isPreviewMode = id === 'me' && searchParams.get('preview') === '1';
 
   const [pro, setPro] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -407,7 +412,50 @@ export default function ProfessionalProfile() {
       className="bg-[#f9f8f6] min-h-screen pb-[180px]"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
-      <TopBar role="office" />
+      <TopBar role={isPreviewMode ? 'provider' : 'office'} />
+      {/* Preview-mode banner — only when a provider is viewing their own
+          profile via ?preview=1. "Exit Preview" returns to the editable
+          self-view at /my-profile. */}
+      {isPreviewMode && (
+        <div
+          style={{
+            background: '#fef6e4',
+            color: '#8b6914',
+            padding: '10px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: 13,
+            fontWeight: 600,
+            fontFamily: "'DM Sans', sans-serif",
+            borderBottom: '1px solid #f5e3b8',
+          }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b6914" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            Preview · how offices see you
+          </span>
+          <button
+            onClick={() => navigate('/my-profile')}
+            style={{
+              background: '#fff',
+              color: '#8b6914',
+              border: '1px solid #f5e3b8',
+              padding: '5px 12px',
+              borderRadius: 100,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Exit preview
+          </button>
+        </div>
+      )}
       {/* Top bar */}
       <div className="bg-white px-5 py-3.5 flex items-center gap-3.5 border-b border-[#f3f3f3] sticky top-0 z-50">
         <button

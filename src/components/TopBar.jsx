@@ -26,7 +26,7 @@ const COLORS = {
 const PROVIDER_ITEMS = {
   account: [
     { icon: 'bell', label: 'Notifications', path: '/notifications' },
-    { icon: 'eye', label: 'How offices view me', path: '/provider-profile-preview' },
+    { icon: 'eye', label: 'How offices view me', path: '/professionals/me?preview=1' },
     { icon: 'doc', label: 'Documents & Credentials', path: '/provider-documents' },
     { icon: 'cal', label: 'Availability', path: '/provider-availability' },
     { icon: 'dollar', label: 'Finance', path: '/finance' },

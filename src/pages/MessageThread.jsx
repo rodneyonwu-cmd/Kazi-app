@@ -243,7 +243,7 @@ export default function MessageThread() {
 
   const handleViewProfile = () => {
     if (role === 'OFFICE') {
-      navigate(`/provider/${providerId}`);
+      navigate(`/professionals/${providerId}`);
     } else {
       navigate(`/office/${officeId}`);
     }

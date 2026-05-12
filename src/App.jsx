@@ -45,7 +45,6 @@ import ProviderRequests from './pages/ProviderRequests'
 import RequestDetail from './pages/RequestDetail'
 import ApplyShift from './pages/ApplyShift'
 import ProviderMyProfile from './pages/ProviderMyProfile'
-import ProviderProfilePreview from './pages/ProviderProfilePreview'
 import OfficePublicProfile from './pages/OfficePublicProfile'
 import OfficeMyProfile from './pages/OfficeMyProfile'
 import ShiftDetails from './pages/ShiftDetails'
@@ -57,7 +56,6 @@ import FavoriteOffices from './pages/FavoriteOffices'
 import ProviderFinance from './pages/ProviderFinance'
 import ProviderHelpCenter from './pages/ProviderHelpCenter'
 import ProviderSettings from './pages/ProviderSettings'
-import ProviderProfile from './pages/ProviderProfile'
 import ProfessionalProfile from './pages/ProfessionalProfile'
 import ProviderAvailability from './pages/ProviderAvailability'
 import AdminLayout from './pages/admin/AdminLayout'
@@ -130,8 +128,10 @@ function App() {
       <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
       <Route path="/messages/:conversationId" element={<RequireAuth><MessageThread /></RequireAuth>} />
       <Route path="/shift/:id" element={<RequireAuth><ShiftDetails /></RequireAuth>} />
-      <Route path="/provider-profile/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
-      <Route path="/provider/:id" element={<RequireAuth><ProviderProfile /></RequireAuth>} />
+      {/* Legacy aliases — both point at the canonical ProfessionalProfile.
+          Old in-app links and bookmarks keep working. */}
+      <Route path="/provider-profile/:id" element={<RequireAuth><ProfessionalProfile /></RequireAuth>} />
+      <Route path="/provider/:id" element={<RequireAuth><ProfessionalProfile /></RequireAuth>} />
 
       {/* Provider-only routes */}
       <Route path="/provider" element={<ProviderOnly><ProviderDashboard /></ProviderOnly>} />
@@ -165,7 +165,9 @@ function App() {
       <Route path="/account/profile-photo" element={<RequireAuth><ProviderProfilePhoto /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/my-profile" element={<ProviderOnly><ProviderMyProfile /></ProviderOnly>} />
-      <Route path="/provider-profile-preview" element={<ProviderOnly><ProviderProfilePreview /></ProviderOnly>} />
+      {/* Legacy alias — preview mode now lives at the canonical
+          /professionals/me?preview=1 path on ProfessionalProfile. */}
+      <Route path="/provider-profile-preview" element={<Navigate to="/professionals/me?preview=1" replace />} />
       <Route path="/provider-availability" element={<ProviderOnly><ProviderAvailability /></ProviderOnly>} />
       <Route path="/lounge" element={<ProviderOnly><Lounge /></ProviderOnly>} />
       <Route path="/lounge/u/:handle" element={<ProviderOnly><LoungeProfile /></ProviderOnly>} />

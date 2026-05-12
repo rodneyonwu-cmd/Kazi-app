@@ -361,7 +361,7 @@ export default function ProviderMyProfile() {
           <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
         </button>
         <div className="topbar-title">My Profile <span style={{ fontSize: 9, color: '#1a7f5e', background: '#e8f5f0', padding: '2px 6px', borderRadius: 100, marginLeft: 6, verticalAlign: 'middle' }}>v2</span></div>
-        <button className="preview-btn" onClick={() => navigate('/provider-profile-preview')}>
+        <button className="preview-btn" onClick={() => navigate('/professionals/me?preview=1')}>
           <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
           Preview
         </button>

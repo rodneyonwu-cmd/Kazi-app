@@ -11,8 +11,8 @@ import { useUser, useClerk } from '@clerk/clerk-react';
  *
  * This is a NEW component. Do not confuse with:
  *   - ProviderMyProfile (the provider's editable profile — from bottom nav)
- *   - ProviderProfilePreview (read-only preview of own profile)
- *   - ProviderProfile (the profile offices see when browsing Find Pros)
+ *   - ProfessionalProfile (the office-facing profile, also reachable via
+ *     /professionals/me?preview=1 for the provider's own preview)
  *
  * Page title shown to user: "Profile"
  * Sections: Identity + Kazi Profile Score card, Account, Settings and support
@@ -71,7 +71,7 @@ export default function ProviderAccountMenu() {
     {
       label: 'How offices view me',
       icon: IconEye,
-      onTap: () => navigate('/provider-profile-preview'),
+      onTap: () => navigate('/professionals/me?preview=1'),
     },
     {
       label: 'Availability',

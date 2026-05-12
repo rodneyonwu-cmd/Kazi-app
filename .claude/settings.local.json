@@ -78,7 +78,19 @@
       "Bash(python3 -m json.tool)",
       "Bash(vercel curl:*)",
       "Bash(grep -c \"buildPendingGroups\\\\|pendingApps\" dist/assets/*.js)",
-      "Bash(grep -c \"Sent to.*professional\" dist/assets/*.js)"
+      "Bash(grep -c \"Sent to.*professional\" dist/assets/*.js)",
+      "Bash(railway redeploy *)",
+      "WebFetch(domain:neonstatus.com)",
+      "Read(//c/Users/ronwu/Desktop/files222/**)",
+      "Read(//c/Users/ronwu/Desktop/**)",
+      "Bash(npx eslint *)",
+      "Bash(git commit -m ' *)",
+      "Bash(gh pr create --base main --head feature/lounge-mvp --title 'Lounge MVP: verified-provider community feature' --body ' *)",
+      "Bash(git fetch *)",
+      "Bash(grep -rEo \"\\(color|background|text-\\\\[|bg-\\\\[\\)[^,;}]*#[0-9a-fA-F]{3,6}\" src/pages/ProviderDashboard.jsx src/components/TempShiftCard.jsx src/components/PermJobCard.jsx)",
+      "Bash(grep -oE \"#[0-9a-fA-F]{3,6}\")",
+      "Bash(grep -nE \"^\\\\s*//|<TopBar|<BottomNav|BookingSheet|<Calendar|<button|<h1|<h2|setBookingOpen|<.*Avatar\" src/pages/ProfessionalProfile.jsx)",
+      "Bash(git rm *)"
     ]
   }
 }
