@@ -49,6 +49,14 @@ const GROUPS = {
 // TODO: replace ME with `useUserRole()` + Clerk user data
 const ME = { initials: 'AO', name: 'You', role: 'Dental Assistant', roleId: 'da' };
 
+// Strip a trailing " · N yrs" suffix off an author role string. The
+// thread/reply mock data combines role + years into one field
+// (e.g. "DA · 4 yrs"); on Lounge cards we only want the role part.
+function stripYears(role) {
+  if (!role) return role;
+  return role.replace(/\s*·\s*\d+\s*yrs?$/i, '').trim();
+}
+
 // ── Mock threads (replace with fetchThreads(scope, roleType?)) ──
 const MOCK_THREADS = [
   {
@@ -380,7 +388,7 @@ function ThreadCard({ thread, onOpen, onVote, onAuthorTap }) {
             {thread.author.name}
           </span>
           <span> · </span>
-          <span>{thread.author.role}</span>
+          <span>{stripYears(thread.author.role)}</span>
           <span> · </span>
           <span>{thread.time}</span>
         </div>
