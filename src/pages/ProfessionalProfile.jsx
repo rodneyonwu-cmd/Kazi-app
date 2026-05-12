@@ -447,8 +447,15 @@ export default function ProfessionalProfile() {
     </div>
   );
 
-  // Reliability color — green ≥95, amber 85-94, coral <85.
-  const reliabilityColor = pro.reliability >= 95 ? '#1a7f5e' : pro.reliability >= 85 ? '#c98b16' : '#e8734a';
+  // Reliability tier — same palette the Find Pros card uses so the
+  // tile reads the same when the office tabs from search → profile.
+  const reliabilityTier = (() => {
+    const r = pro.reliability;
+    if (r >= 95) return { bg: '#f1f9f5', color: '#1a7f5e', border: '#e8f3ee' };
+    if (r >= 85) return { bg: '#f1ebfa', color: '#7c3aed', border: '#e4d7f7' };
+    if (r >= 70) return { bg: '#fef3e6', color: '#d97706', border: '#fce0bf' };
+    return { bg: '#fdecec', color: '#dc2626', border: '#f9d4d4' };
+  })();
 
   return (
     <div
@@ -609,12 +616,22 @@ export default function ProfessionalProfile() {
           </p>
         )}
 
-        {/* Stats row — hairline above + below */}
-        <div style={{ display: 'flex', gap: 4, padding: '14px 0', borderTop: '1px solid #f0eee8', borderBottom: '1px solid #f0eee8', marginBottom: 14 }}>
-          <ProStat label="Reliability" value={`${pro.reliability}%`} valueColor={reliabilityColor} />
-          <ProStat label="Response" value={pro.responseTime} valueColor="#0f1a16" />
-          <ProStat label="Bookings" value={pro.bookings} valueColor="#0f1a16" />
-          <ProStat label="Score" value={pro.score} valueColor="#1a7f5e" />
+        {/* Stats tiles — same aesthetic as the Find Pros card so the
+            visual language stays consistent when the office tabs from
+            search into the profile. Reliability picks up the colored
+            tier bg; the rest stay on the off-white tile. */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, marginBottom: 14, paddingTop: 14, borderTop: '1px solid #f3f3f3' }}>
+          <ProStatTile
+            label="Reliability"
+            value={`${pro.reliability}%`}
+            tileBg={reliabilityTier.bg}
+            tileBorder={reliabilityTier.border}
+            valueColor={reliabilityTier.color}
+            labelColor={reliabilityTier.color}
+          />
+          <ProStatTile label="Response" value={pro.responseTime} />
+          <ProStatTile label="Bookings" value={pro.bookings} />
+          <ProStatTile label="Score" value={pro.score} valueColor="#1a7f5e" />
         </div>
 
         {/* Action row — Book + Message below the stats */}
@@ -846,15 +863,49 @@ export default function ProfessionalProfile() {
 }
 
 // ── Stats row item ─────────────────────────────────────────────
-function ProStat({ label, value, valueColor, prefix, suffix }) {
+// Tile-style stat — matches the Find Pros (Professionals.jsx) card.
+// Off-white #f9f8f6 background by default; colored variants pass
+// tileBg / tileBorder / valueColor / labelColor.
+function ProStatTile({ label, value, tileBg, tileBorder, valueColor, labelColor }) {
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 17, color: valueColor || '#0f1a16', letterSpacing: '-0.01em', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>
-        {prefix}
-        {value}
-        {suffix && <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 500, marginLeft: 1 }}>{suffix}</span>}
+    <div
+      style={{
+        flex: 1,
+        background: tileBg || '#f9f8f6',
+        border: `1px solid ${tileBorder || 'transparent'}`,
+        borderRadius: 12,
+        padding: '10px 8px',
+        textAlign: 'center',
+        minWidth: 0,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          color: labelColor || '#8a8a8a',
+          marginBottom: 4,
+        }}
+      >
+        {label}
       </div>
-      <div style={{ fontSize: 11.5, color: '#6b7875', fontWeight: 500, marginTop: 4 }}>{label}</div>
+      <div
+        style={{
+          fontFamily: "'Outfit', sans-serif",
+          fontWeight: 700,
+          fontSize: 14,
+          color: valueColor || '#1a1a1a',
+          lineHeight: 1,
+          letterSpacing: '-0.01em',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }
