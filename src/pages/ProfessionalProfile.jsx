@@ -640,7 +640,7 @@ export default function ProfessionalProfile() {
             search into the profile. Reliability picks up the colored
             tier bg; the rest stay on the off-white tile. */}
         <div style={{ display: 'flex', gap: 8, marginTop: 14, marginBottom: 14, paddingTop: 14, borderTop: '1px solid #f3f3f3' }}>
-          <ProStatTile label="Rate" value={`$${pro.rate}/hr`} valueColor="#1a7f5e" />
+          <ProStatTile label="Rate" value={`$${pro.rate}/hr`} />
           <ProStatTile
             label="Reliability"
             value={`${pro.reliability}%`}
@@ -650,7 +650,7 @@ export default function ProfessionalProfile() {
             labelColor={reliabilityTier.color}
           />
           <ProStatTile label="Bookings" value={pro.bookings} />
-          <ProStatTile label="Score" value={pro.score} valueColor="#1a7f5e" />
+          <ProStatTile label="Score" value={pro.score} />
         </div>
 
         {/* Action row — Book + Message below the stats */}
