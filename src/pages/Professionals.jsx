@@ -230,22 +230,26 @@ function ProCard({ pro, onClick, onSave, onBook, onMessage }) {
         </div>
       </div>
 
-      {/* Stats strip */}
+      {/* Stats strip — Rate · Reliability · Bookings · Score */}
       <div className="flex gap-2 mt-3.5 pt-3.5 border-t border-[#f3f3f3]">
-        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
+        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center min-w-0">
           <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Rate</div>
-          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.rate}</div>
-        </div>
-        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center">
-          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Bookings</div>
-          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.bookings}</div>
+          <div className="text-sm font-bold truncate" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.rate}</div>
         </div>
         <div
-          className="flex-1 rounded-xl py-2.5 px-2 text-center border"
+          className="flex-1 rounded-xl py-2.5 px-2 text-center border min-w-0"
           style={{ background: tier.bg, borderColor: tier.border }}
         >
           <div className="text-[9px] uppercase tracking-wider font-semibold mb-0.5" style={{ color: tier.color }}>Reliability</div>
-          <div className="text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif", color: tier.color }}>{pro.reliability}%</div>
+          <div className="text-sm font-bold truncate" style={{ fontFamily: "'Outfit', sans-serif", color: tier.color }}>{pro.reliability}%</div>
+        </div>
+        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center min-w-0">
+          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Bookings</div>
+          <div className="text-sm font-bold truncate" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.bookings}</div>
+        </div>
+        <div className="flex-1 bg-[#f9f8f6] rounded-xl py-2.5 px-2 text-center min-w-0">
+          <div className="text-[9px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-0.5">Score</div>
+          <div className="text-sm font-bold truncate" style={{ fontFamily: "'Outfit', sans-serif" }}>{pro.score ?? 720}</div>
         </div>
       </div>
 
@@ -613,6 +617,9 @@ export default function FindProfessionals() {
               rate: p.hourlyRate ? `$${p.hourlyRate}/hr` : '$0/hr',
               bookings: p.shiftsCompleted || 0,
               reliability: p.reliabilityScore || 100,
+              // Profile score — mock until /api/providers returns it.
+              // Stable per pro id so the value is consistent across renders.
+              score: p.profileScore || (650 + ((Array.from(String(p.id)).reduce((a, c) => a + c.charCodeAt(0), 0)) % 200)),
               badges: ['Background Verified', ...(p.skills || []).slice(0, 2)],
               avatarUrl: u.avatarUrl || null,
               bio: p.bio || null,
