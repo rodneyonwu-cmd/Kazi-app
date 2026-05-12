@@ -87,6 +87,7 @@ import ProviderPhoneNumber from './pages/ProviderPhoneNumber'
 import ProviderDateOfBirth from './pages/ProviderDateOfBirth'
 import ProviderHomeAddress from './pages/ProviderHomeAddress'
 import ProviderProfilePhoto from './pages/ProviderProfilePhoto'
+import ProviderName from './pages/ProviderName'
 import Lounge from './pages/provider/Lounge'
 import LoungeProfile from './pages/provider/LoungeProfile'
 
@@ -163,6 +164,7 @@ function App() {
       <Route path="/account/date-of-birth" element={<ProviderOnly><ProviderDateOfBirth /></ProviderOnly>} />
       <Route path="/account/home-address" element={<RequireAuth><ProviderHomeAddress /></RequireAuth>} />
       <Route path="/account/profile-photo" element={<RequireAuth><ProviderProfilePhoto /></RequireAuth>} />
+      <Route path="/account/name" element={<RequireAuth><ProviderName /></RequireAuth>} />
       <Route path="/provider-profile" element={<Navigate to="/my-profile" replace />} />
       <Route path="/my-profile" element={<ProviderOnly><ProviderMyProfile /></ProviderOnly>} />
       {/* Legacy alias — preview mode now lives at the canonical

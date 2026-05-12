@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import ProviderBottomNav from '../components/ProviderBottomNav';
@@ -487,6 +488,31 @@ export default function ProviderDashboard() {
   const [available, setAvailable] = useState(true);
   const [scheduleView, setScheduleView] = useState('week');
 
+  // Live avatar — reads the user's edited photo from localStorage,
+  // falls back to their Clerk image, then to the mock placeholder.
+  // Re-reads on focus + custom event so editing the photo on
+  // /account/profile-photo and tapping back updates the home avatar
+  // without a hard refresh.
+  const { user: clerkUser } = useUser();
+  const [storedPhoto, setStoredPhoto] = useState(() => {
+    try { return localStorage.getItem('kazi_profile_photo'); } catch { return null; }
+  });
+  useEffect(() => {
+    const refresh = () => {
+      try { setStoredPhoto(localStorage.getItem('kazi_profile_photo')); } catch { /* no localStorage */ }
+    };
+    window.addEventListener('focus', refresh);
+    window.addEventListener('storage', refresh);
+    window.addEventListener('kazi:profile-photo', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('storage', refresh);
+      window.removeEventListener('kazi:profile-photo', refresh);
+    };
+  }, []);
+  const liveAvatarUrl = storedPhoto || clerkUser?.imageUrl || provider.avatarUrl;
+  const liveFirstName = clerkUser?.firstName || provider.firstName;
+
   const handleFindShifts = () => {
     navigate('/find-shifts');
   };
@@ -547,11 +573,11 @@ export default function ProviderDashboard() {
               Bottom row: "Available for shifts" toggle. */}
           <div className="kazi-rise" style={{ animationDelay: '0ms' }}>
             <ProfileStrip
-              firstName={provider.firstName}
+              firstName={liveFirstName}
               role="Dental Hygienist"
               rating={provider.stats?.rating}
               shiftsCompleted={provider.stats?.shiftsCompleted}
-              avatarUrl={provider.avatarUrl}
+              avatarUrl={liveAvatarUrl}
               available={available}
               onToggleAvailable={setAvailable}
               onTap={() => navigate('/account')}

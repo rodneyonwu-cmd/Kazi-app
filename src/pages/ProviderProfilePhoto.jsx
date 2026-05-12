@@ -48,7 +48,11 @@ export default function ProviderProfilePhoto() {
       } else {
         localStorage.setItem(STORAGE_KEY, preview);
       }
-    } catch {}
+      // Notify other in-app surfaces (dashboard avatar, account
+      // menu, etc.) to re-read the photo without waiting for the
+      // window to lose and regain focus.
+      window.dispatchEvent(new Event('kazi:profile-photo'));
+    } catch { /* localStorage / dispatch unavailable */ }
     navigate(-1);
   };
 
