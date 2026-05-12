@@ -348,11 +348,28 @@ export default function LoungeProfile() {
     // TODO: route to a real lounge-DM thread; for now use existing messages.
     navigate('/messages');
   };
+  const handleShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const text = `${user.name} (${user.roleShort}${user.location ? ` · ${user.location}` : ''}) on the Kazi Lounge`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: `${user.name} on Kazi`, text, url });
+        return;
+      } catch {
+        /* user cancelled — fall through to copy */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} — ${url}`);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#ffffff', fontFamily: FONT_DM, paddingBottom: 90 }}>
       {/* Sticky topbar */}
-      {/* Sticky topbar — circular back button only, no name. */}
+      {/* Sticky topbar — circular back (left) + circular share (right). */}
       <div
         style={{
           position: 'sticky',
@@ -362,6 +379,7 @@ export default function LoungeProfile() {
           padding: '14px 16px',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
         <button
@@ -382,6 +400,30 @@ export default function LoungeProfile() {
         >
           <Svg size={16} stroke="#1a1a1a" strokeWidth={2.4}>
             <polyline points="15 18 9 12 15 6" />
+          </Svg>
+        </button>
+        <button
+          onClick={handleShare}
+          aria-label="Share profile"
+          className="kazi-tap"
+          style={{
+            width: 36,
+            height: 36,
+            display: 'grid',
+            placeItems: 'center',
+            background: '#f9f8f6',
+            border: '1px solid #ececec',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+        >
+          <Svg size={16} stroke="#1a1a1a" strokeWidth={2.2}>
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
           </Svg>
         </button>
       </div>
