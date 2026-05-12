@@ -349,7 +349,8 @@ function Avatar({ author, size = 36, showVerify = true, onClick }) {
 
 // ── Thread card (feed list item) ─────────────────────────────
 function ThreadCard({ thread, onOpen, onVote, onAuthorTap }) {
-  const upvotes = thread.score + thread.downvotes;
+  // Net score (Reddit-style: upvotes - downvotes shown in one pill).
+  const netScore = thread.score;
   const upActive = thread.vote === 'up';
   const downActive = thread.vote === 'down';
   const canTapAuthor = !thread.author.anon && onAuthorTap;
@@ -358,83 +359,70 @@ function ThreadCard({ thread, onOpen, onVote, onAuthorTap }) {
       onClick={onOpen}
       style={{
         background: '#fff',
-        border: `1px solid ${CARD_BORDER}`,
-        borderRadius: 14,
-        padding: '16px 18px',
-        marginBottom: 12,
+        borderBottom: `1px solid ${SOFT_DIVIDER}`,
+        padding: '14px 16px',
         cursor: 'pointer',
-        overflow: 'hidden',
-        transition: 'box-shadow 0.15s',
         fontFamily: FONT_DM,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-        <Avatar author={thread.author} size={36} onClick={canTapAuthor ? onAuthorTap : undefined} />
-        <div style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35 }}>
-          <div>
-            <span
-              onClick={canTapAuthor ? (e) => { e.stopPropagation(); onAuthorTap(); } : undefined}
-              style={{ fontWeight: 700, color: '#1a1a1a', cursor: canTapAuthor ? 'pointer' : 'default' }}
-            >
-              {thread.author.name}
-            </span>
-            {' — '}
-            <span style={{ color: '#1a1a1a', fontWeight: 600 }}>{thread.author.role}</span>
-          </div>
-          {thread.location && (
-            <div style={{ marginTop: 2 }}>
-              <span style={{ color: '#1a1a1a', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <Svg size={12} stroke="#1a1a1a">{ICONS.pin}</Svg>
-                {thread.location}
-              </span>
-            </div>
-          )}
+      {/* Header — small avatar + author meta + time */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <Avatar author={thread.author} size={26} showVerify={false} onClick={canTapAuthor ? onAuthorTap : undefined} />
+        <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: '#6b7875', fontWeight: 500, lineHeight: 1.3 }}>
+          <span
+            onClick={canTapAuthor ? (e) => { e.stopPropagation(); onAuthorTap(); } : undefined}
+            style={{ fontWeight: 600, color: '#1a1a1a', cursor: canTapAuthor ? 'pointer' : 'default' }}
+          >
+            {thread.author.name}
+          </span>
+          <span> · </span>
+          <span>{thread.author.role}</span>
+          <span> · </span>
+          <span>{thread.time}</span>
         </div>
-        <span style={{ fontSize: 12, color: '#666', flexShrink: 0 }}>{thread.time}</span>
+        {thread.tag && (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 9px',
+              borderRadius: 100,
+              background: 'rgba(26,127,94,0.1)',
+              color: GREEN,
+              fontSize: 11,
+              fontWeight: 600,
+              flexShrink: 0,
+            }}
+          >
+            {thread.tag}
+          </span>
+        )}
       </div>
 
-      {thread.tag && (
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '4px 12px',
-            borderRadius: 100,
-            background: 'rgba(26,127,94,0.1)',
-            color: GREEN,
-            fontSize: 12,
-            fontWeight: 600,
-            marginBottom: 12,
-          }}
-        >
-          <Svg size={12}>{ICONS.tag}</Svg>
-          {thread.tag}
-        </div>
-      )}
-
+      {/* Title */}
       <div
         style={{
           fontFamily: FONT_OUTFIT,
-          fontSize: 19,
-          fontWeight: 700,
-          lineHeight: 1.25,
+          fontSize: 16.5,
+          fontWeight: 600,
+          lineHeight: 1.3,
           color: '#1a1a1a',
-          letterSpacing: '-0.3px',
-          marginBottom: 10,
+          letterSpacing: '-0.2px',
+          marginBottom: 6,
         }}
       >
         {thread.title}
       </div>
 
+      {/* Body preview */}
       <div
         style={{
-          fontSize: 14,
+          fontSize: 13.5,
           lineHeight: 1.5,
-          color: '#444',
-          marginBottom: 14,
+          color: '#5a5a5a',
+          marginBottom: 12,
           display: '-webkit-box',
-          WebkitLineClamp: 3,
+          WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
         }}
@@ -442,35 +430,119 @@ function ThreadCard({ thread, onOpen, onVote, onAuthorTap }) {
         {thread.body}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-        <div
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            cursor: 'pointer',
-            padding: '6px 8px',
-            margin: '-6px -8px',
-            borderRadius: 6,
-            userSelect: 'none',
-            fontSize: 13,
-            fontWeight: 600,
-            color: GREEN,
-          }}
-        >
-          <Svg size={16} stroke={GREEN}>{ICONS.comment}</Svg>
-          <span>{thread.replyCount} comments</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <VoteButton active={upActive} direction="up" onClick={(e) => { e.stopPropagation(); onVote('up'); }} count={upvotes} />
-          <VoteButton active={downActive} direction="down" onClick={(e) => { e.stopPropagation(); onVote('down'); }} count={thread.downvotes} />
-        </div>
+      {/* Reddit-style action row: combined vote pill + comments pill */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+        <RedditVoteBar
+          netScore={netScore}
+          upActive={upActive}
+          downActive={downActive}
+          onUp={(e) => { e.stopPropagation(); onVote('up'); }}
+          onDown={(e) => { e.stopPropagation(); onVote('down'); }}
+        />
+        <ActionPill onClick={(e) => { e.stopPropagation(); onOpen(); }} icon={ICONS.comment} label={thread.replyCount} />
       </div>
     </div>
   );
 }
 
+// Combined up/down vote pill — Reddit-style. Net score sits between
+// the arrows and shifts color based on the user's current vote.
+function RedditVoteBar({ netScore, upActive, downActive, onUp, onDown }) {
+  const scoreColor = upActive ? GREEN : downActive ? CORAL : '#1a1a1a';
+  const bg = upActive
+    ? 'rgba(26,127,94,0.10)'
+    : downActive
+      ? 'rgba(232,115,74,0.10)'
+      : '#f3f4f6';
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 4px',
+        borderRadius: 100,
+        background: bg,
+        userSelect: 'none',
+        fontFamily: FONT_DM,
+        transition: 'background 0.15s',
+      }}
+    >
+      <button
+        onClick={onUp}
+        aria-label="Upvote"
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: '50%',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+          padding: 0,
+        }}
+      >
+        <Svg size={16} stroke={upActive ? GREEN : '#1a1a1a'} strokeWidth={upActive ? 2.6 : 2.2}>
+          {ICONS.arrowUp}
+        </Svg>
+      </button>
+      <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor, minWidth: 18, textAlign: 'center' }}>
+        {netScore}
+      </span>
+      <button
+        onClick={onDown}
+        aria-label="Downvote"
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: '50%',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'grid',
+          placeItems: 'center',
+          padding: 0,
+        }}
+      >
+        <Svg size={16} stroke={downActive ? CORAL : '#1a1a1a'} strokeWidth={downActive ? 2.6 : 2.2}>
+          {ICONS.arrowDown}
+        </Svg>
+      </button>
+    </div>
+  );
+}
+
+// Generic Reddit-style action pill (icon + count). Used for the
+// comment count on each thread card.
+function ActionPill({ onClick, icon, label }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '6px 10px',
+        borderRadius: 100,
+        background: '#f3f4f6',
+        border: 'none',
+        cursor: 'pointer',
+        userSelect: 'none',
+        fontFamily: FONT_DM,
+        fontSize: 13,
+        fontWeight: 600,
+        color: '#1a1a1a',
+      }}
+    >
+      <Svg size={14} stroke="#1a1a1a" strokeWidth={2.2}>{icon}</Svg>
+      {label}
+    </button>
+  );
+}
+
+// Kept for the thread-detail sheet which still uses the old
+// VoteButton for its top-right vote/downvote display.
 function VoteButton({ active, direction, onClick, count }) {
   const color = active ? (direction === 'up' ? GREEN : CORAL) : '#444';
   return (
@@ -1465,19 +1537,22 @@ export default function Lounge() {
 
           <div
             style={{
-              background: BG,
-              padding: '18px 16px 10px',
+              background: '#ffffff',
+              padding: '14px 16px 8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              borderBottom: `1px solid ${SOFT_DIVIDER}`,
             }}
           >
-            <h2 style={{ fontFamily: FONT_OUTFIT, fontSize: 22, fontWeight: 700, letterSpacing: '-0.4px' }}>Trending</h2>
+            <h2 style={{ fontFamily: FONT_OUTFIT, fontSize: 18, fontWeight: 700, letterSpacing: '-0.3px' }}>Trending</h2>
           </div>
 
-          <div style={{ padding: '0 12px', background: BG, minHeight: 'calc(100vh - 200px)' }}>
+          <div style={{ background: '#ffffff', minHeight: 'calc(100vh - 200px)' }}>
             {visibleThreads.length === 0 ? (
-              <EmptyState message="Be the first to start a conversation here." />
+              <div style={{ padding: 12 }}>
+                <EmptyState message="Be the first to start a conversation here." />
+              </div>
             ) : (
               visibleThreads.map((t) => (
                 <ThreadCard
@@ -1560,9 +1635,11 @@ export default function Lounge() {
             </button>
           </div>
 
-          <div style={{ padding: '12px', background: BG }}>
+          <div style={{ background: '#ffffff' }}>
             {visibleThreads.length === 0 ? (
-              <EmptyState message="Be the first to post in this group." />
+              <div style={{ padding: 12 }}>
+                <EmptyState message="Be the first to post in this group." />
+              </div>
             ) : (
               visibleThreads.map((t) => (
                 <ThreadCard
