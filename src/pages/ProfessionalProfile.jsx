@@ -46,6 +46,17 @@ function fallbackOpenTo(id) {
   return variants[hashId(id) % variants.length];
 }
 
+// Mock resume placeholder so the Resume row renders for every pro
+// during the design pass. Real upload will replace this — see
+// Provider.resumeUrl / resumeName in the schema.
+const MOCK_RESUME_URL = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+function fallbackResumeName(firstName) {
+  return `${(firstName || 'pro').toLowerCase()}_resume.pdf`;
+}
+function fallbackResumePages(id) {
+  return 1 + (hashId(id) % 3); // 1, 2, or 3 pages
+}
+
 function buildMockPro(mock) {
   const firstName = (mock.name || '').split(' ')[0] || 'Pro';
   const cred = mock.cred || 'RDH';
@@ -92,9 +103,9 @@ function buildMockPro(mock) {
     openTo: mock.openTo || fallbackOpenTo(id),
     // Resume — mock placeholder so the row renders. Real value
     // comes from /api/providers (Provider.resumeUrl + resumeName).
-    resumeUrl: mock.resumeUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    resumeName: mock.resumeName || `${firstName.toLowerCase()}_resume.pdf`,
-    resumePages: mock.resumePages || 2,
+    resumeUrl: mock.resumeUrl || MOCK_RESUME_URL,
+    resumeName: mock.resumeName || fallbackResumeName(firstName),
+    resumePages: mock.resumePages || fallbackResumePages(id),
     reviewsList: [
       { office: 'Missouri City Dental', date: 'Mar 14, 2026', stars: 5, text: `${firstName} was a pleasure to work with. On time, prepared, and great with patients.` },
       { office: 'Sugar Land Family Dental', date: 'Feb 28, 2026', stars: 5, text: 'Quick to pick up our flow and kept up with a packed schedule without complaint.' },
@@ -356,9 +367,11 @@ export default function ProfessionalProfile() {
             // TODO API: source openTo from /api/providers/:id once the
             // onboarding flow stores it. For now default to both.
             openTo: data.openTo || fallbackOpenTo(data.id),
-            resumeUrl: data.resumeUrl || null,
-            resumeName: data.resumeName || (data.resumeUrl ? `${firstName.toLowerCase() || 'pro'}_resume.pdf` : null),
-            resumePages: data.resumePages || null,
+            // Mock fallbacks so the resume row renders for every pro
+            // until the real upload flow lands.
+            resumeUrl: data.resumeUrl || MOCK_RESUME_URL,
+            resumeName: data.resumeName || fallbackResumeName(firstName),
+            resumePages: data.resumePages || fallbackResumePages(data.id),
             reviewsList: reviews.map(r => ({
               office: 'Verified Practice',
               date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
