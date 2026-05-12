@@ -23,6 +23,28 @@ function fallbackAvatarUrl(id) {
   return `https://i.pravatar.cc/240?u=${seed}`;
 }
 
+// Hash a string id to a small unsigned int — used to deterministically
+// pick a mock variant per provider so the same pro always renders the
+// same value across reloads.
+function hashId(id) {
+  const s = String(id || '');
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+// Real source: provider onboarding will save this. For now, vary it
+// per provider so the mock list shows a realistic mix of "open to
+// both" / "temp only" / "perm only".
+function fallbackOpenTo(id) {
+  const variants = [
+    ['Temp shifts', 'Permanent'],
+    ['Temp shifts'],
+    ['Permanent'],
+  ];
+  return variants[hashId(id) % variants.length];
+}
+
 function buildMockPro(mock) {
   const firstName = (mock.name || '').split(' ')[0] || 'Pro';
   const cred = mock.cred || 'RDH';
@@ -66,7 +88,7 @@ function buildMockPro(mock) {
     // What the provider is open to. Decided during onboarding (TODO);
     // for now defaulted to both. Possible values: 'Temp shifts',
     // 'Permanent'. Shown on the office-facing profile under Availability.
-    openTo: mock.openTo || ['Temp shifts', 'Permanent'],
+    openTo: mock.openTo || fallbackOpenTo(id),
     reviewsList: [
       { office: 'Missouri City Dental', date: 'Mar 14, 2026', stars: 5, text: `${firstName} was a pleasure to work with. On time, prepared, and great with patients.` },
       { office: 'Sugar Land Family Dental', date: 'Feb 28, 2026', stars: 5, text: 'Quick to pick up our flow and kept up with a packed schedule without complaint.' },
@@ -327,7 +349,7 @@ export default function ProfessionalProfile() {
             availableDays: [...availDaysSet],
             // TODO API: source openTo from /api/providers/:id once the
             // onboarding flow stores it. For now default to both.
-            openTo: data.openTo || ['Temp shifts', 'Permanent'],
+            openTo: data.openTo || fallbackOpenTo(data.id),
             reviewsList: reviews.map(r => ({
               office: 'Verified Practice',
               date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -605,12 +627,6 @@ export default function ProfessionalProfile() {
           </div>
         </div>
 
-        {pro.about && (
-          <p style={{ fontSize: 14, lineHeight: 1.5, color: '#444', marginBottom: 14 }}>
-            {pro.about}
-          </p>
-        )}
-
         {/* Stats tiles — same aesthetic as the Find Pros card so the
             visual language stays consistent when the office tabs from
             search into the profile. Reliability picks up the colored
@@ -727,6 +743,13 @@ export default function ProfessionalProfile() {
       <section style={{ padding: '14px 20px 30px' }}>
         {tab === 'about' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {pro.about && (
+              <ProDetail label="Summary">
+                <p style={{ fontSize: 14, lineHeight: 1.55, color: '#444', margin: 0 }}>
+                  {pro.about}
+                </p>
+              </ProDetail>
+            )}
             {pro.openTo?.length > 0 && (
               <ProDetail label="Open to">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
