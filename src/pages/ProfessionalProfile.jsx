@@ -5,6 +5,7 @@ import Calendar from '../components/Calendar';
 import BookingSheet from '../components/BookingSheet';
 import BottomNav from '../components/BottomNav';
 import ProviderBottomNav from '../components/ProviderBottomNav';
+import LastLoginPill, { getLastLoginDays } from '../components/LastLoginPill';
 import TopBar from '../components/TopBar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -618,11 +619,20 @@ export default function ProfessionalProfile() {
             </div>
             <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
               {pro.role} · {pro.location}
+              {pro.distance && (
+                <>
+                  <span style={{ color: '#d1d5db' }}> · </span>
+                  <span style={{ color: '#0f1a16', fontWeight: 600 }}>{pro.distance}</span>
+                </>
+              )}
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 14, color: '#0f1a16', fontWeight: 600 }}>
-              <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
-              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17 }}>{pro.rating.toFixed(1)}</span>
-              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13 }}>({pro.reviews} reviews)</span>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#0f1a16', fontWeight: 600 }}>
+                <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
+                <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17 }}>{pro.rating.toFixed(1)}</span>
+                <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13 }}>({pro.reviews} reviews)</span>
+              </div>
+              <LastLoginPill days={getLastLoginDays(pro)} />
             </div>
           </div>
         </div>
