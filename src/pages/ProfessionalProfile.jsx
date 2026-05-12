@@ -13,6 +13,15 @@ const ROLE_MAP = { hygienist: 'Dental Hygienist', assistant: 'Dental Assistant',
 // strip passes the clicked record via navigation state. We expand it
 // into a fully populated profile here so the page renders against the
 // same person the user clicked on.
+// Stable seeded fallback portrait when no real avatarUrl is available.
+// Uses pravatar.cc keyed off the provider id so each provider gets a
+// consistent placeholder image. Real headshots from /api/providers
+// will replace these once the field is wired.
+function fallbackAvatarUrl(id) {
+  const seed = encodeURIComponent(id || 'pro');
+  return `https://i.pravatar.cc/240?u=${seed}`;
+}
+
 function buildMockPro(mock) {
   const firstName = (mock.name || '').split(' ')[0] || 'Pro';
   const cred = mock.cred || 'RDH';
@@ -24,12 +33,13 @@ function buildMockPro(mock) {
   for (let d = today.getDate(); d <= daysInMonth; d++) {
     if (d % 3 !== 0) availableDays.push(d);
   }
+  const id = mock.id || 'mock';
   return {
-    id: mock.id || 'mock',
+    id,
     name: mock.name || 'Unknown',
     firstName,
     initials: mock.initials || firstName.slice(0, 2).toUpperCase(),
-    avatarUrl: mock.avatarUrl || null,
+    avatarUrl: mock.avatarUrl || fallbackAvatarUrl(id),
     role: mock.role || 'Dental Professional',
     location: mock.location || 'Houston, TX',
     creds: [cred, 'BLS'],
@@ -48,6 +58,10 @@ function buildMockPro(mock) {
     experience: ['Operative', 'Crowns & bridges', 'Periodontal care', 'Pediatric'],
     languages: [{ name: 'English', level: 'Native', native: true }, { name: 'Spanish', level: 'Conversational', native: false }],
     availableDays,
+    // What the provider is open to. Decided during onboarding (TODO);
+    // for now defaulted to both. Possible values: 'Temp shifts',
+    // 'Permanent'. Shown on the office-facing profile under Availability.
+    openTo: mock.openTo || ['Temp shifts', 'Permanent'],
     reviewsList: [
       { office: 'Missouri City Dental', date: 'Mar 14, 2026', stars: 5, text: `${firstName} was a pleasure to work with. On time, prepared, and great with patients.` },
       { office: 'Sugar Land Family Dental', date: 'Feb 28, 2026', stars: 5, text: 'Quick to pick up our flow and kept up with a packed schedule without complaint.' },
@@ -282,7 +296,7 @@ export default function ProfessionalProfile() {
             name: displayName,
             firstName,
             initials,
-            avatarUrl: u.avatarUrl || null,
+            avatarUrl: u.avatarUrl || fallbackAvatarUrl(data.id),
             role: ROLE_MAP[data.role] || data.role || 'Professional',
             location: data.city && data.state ? `${data.city}, ${data.state}` : 'Houston, TX',
             creds: (data.credentials || []).map(c => c.type).slice(0, 5),
@@ -301,6 +315,9 @@ export default function ProfessionalProfile() {
             experience: data.skills || [],
             languages: [{ name: 'English', level: 'Native', native: true }],
             availableDays: [...availDaysSet],
+            // TODO API: source openTo from /api/providers/:id once the
+            // onboarding flow stores it. For now default to both.
+            openTo: data.openTo || ['Temp shifts', 'Permanent'],
             reviewsList: reviews.map(r => ({
               office: 'Verified Practice',
               date: new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -726,8 +743,37 @@ export default function ProfessionalProfile() {
         )}
 
         {tab === 'availability' && (
-          <div style={{ background: '#ffffff', border: '1px solid #e8e6e1', borderRadius: 16, padding: 16 }}>
-            <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* Open to — work types this provider accepts. Sourced from
+                onboarding once that flow saves the field; mock for now. */}
+            {pro.openTo?.length > 0 && (
+              <ProDetail label="Open to">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {pro.openTo.map((o) => (
+                    <span
+                      key={o}
+                      style={{
+                        padding: '5px 11px',
+                        background: '#e8f5f0',
+                        border: '1px solid #c5e3d5',
+                        borderRadius: 100,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: '#1a7f5e',
+                        fontFamily: "'Outfit', sans-serif",
+                      }}
+                    >
+                      {o}
+                    </span>
+                  ))}
+                </div>
+              </ProDetail>
+            )}
+            <ProDetail label="Calendar">
+              <div style={{ background: '#ffffff', border: '1px solid #e8e6e1', borderRadius: 16, padding: 16 }}>
+                <Calendar availableDays={pro.availableDays} onDayClick={handleDayClick} />
+              </div>
+            </ProDetail>
           </div>
         )}
 
