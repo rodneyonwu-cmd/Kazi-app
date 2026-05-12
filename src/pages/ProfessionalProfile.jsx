@@ -609,8 +609,16 @@ export default function ProfessionalProfile() {
           </p>
         )}
 
-        {/* Action row — Book + Message inline (no sticky bottom bar) */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+        {/* Stats row — hairline above + below */}
+        <div style={{ display: 'flex', gap: 4, padding: '14px 0', borderTop: '1px solid #f0eee8', borderBottom: '1px solid #f0eee8', marginBottom: 14 }}>
+          <ProStat label="Reliability" value={`${pro.reliability}%`} valueColor={reliabilityColor} />
+          <ProStat label="Response" value={pro.responseTime} valueColor="#0f1a16" />
+          <ProStat label="Bookings" value={pro.bookings} valueColor="#0f1a16" />
+          <ProStat label="Score" value={pro.score} valueColor="#1a7f5e" />
+        </div>
+
+        {/* Action row — Book + Message below the stats */}
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={handleBookButtonClick}
             className="kazi-tap"
@@ -664,14 +672,6 @@ export default function ProfessionalProfile() {
             </svg>
             Message
           </button>
-        </div>
-
-        {/* Stats row — flat, hairline-divided */}
-        <div style={{ display: 'flex', gap: 4, paddingTop: 14, borderTop: '1px solid #f0eee8' }}>
-          <ProStat label="Reliability" value={`${pro.reliability}%`} valueColor={reliabilityColor} />
-          <ProStat label="Response" value={pro.responseTime} valueColor="#0f1a16" />
-          <ProStat label="Bookings" value={pro.bookings} valueColor="#0f1a16" />
-          <ProStat label="Score" value={pro.score} valueColor="#1a7f5e" />
         </div>
       </section>
 
