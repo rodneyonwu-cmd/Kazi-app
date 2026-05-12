@@ -147,16 +147,92 @@ function Stat({ label, value }) {
   );
 }
 
-// ── Post card (reusable list item) ──────────────────────────
+// ── Reddit-style vote bar (matches Lounge feed) ─────────────
+// Inline copy of the same pattern used on the Lounge feed cards so
+// the profile's posts/comments tabs share the visual language.
+function RedditVoteBar({ netScore, upActive, downActive, onUp, onDown }) {
+  const scoreColor = upActive ? GREEN : downActive ? CORAL : '#1a1a1a';
+  const bg = upActive
+    ? 'rgba(26,127,94,0.10)'
+    : downActive
+      ? 'rgba(232,115,74,0.10)'
+      : '#f3f4f6';
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '4px 4px',
+        borderRadius: 100,
+        background: bg,
+        userSelect: 'none',
+        fontFamily: FONT_DM,
+      }}
+    >
+      <button
+        onClick={onUp}
+        aria-label="Upvote"
+        style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}
+      >
+        <Svg size={18} stroke={upActive ? GREEN : '#5a5a5a'} fill={upActive ? GREEN : 'none'} strokeWidth={2}>
+          <polygon points="12 5 20 16 4 16" />
+        </Svg>
+      </button>
+      <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor, minWidth: 18, textAlign: 'center' }}>
+        {netScore}
+      </span>
+      <button
+        onClick={onDown}
+        aria-label="Downvote"
+        style={{ width: 28, height: 28, borderRadius: '50%', background: 'transparent', border: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0 }}
+      >
+        <Svg size={18} stroke={downActive ? CORAL : '#5a5a5a'} fill={downActive ? CORAL : 'none'} strokeWidth={2}>
+          <polygon points="12 19 20 8 4 8" />
+        </Svg>
+      </button>
+    </div>
+  );
+}
+
+function ActionPill({ onClick, label, icon }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '6px 10px',
+        borderRadius: 100,
+        background: '#f3f4f6',
+        border: 'none',
+        cursor: 'pointer',
+        userSelect: 'none',
+        fontFamily: FONT_DM,
+        fontSize: 13,
+        fontWeight: 600,
+        color: '#1a1a1a',
+      }}
+    >
+      <Svg size={14} stroke="#1a1a1a" strokeWidth={2.2}>{icon}</Svg>
+      {label}
+    </button>
+  );
+}
+
+// ── Post card (Reddit-style row, no author meta) ────────────
+// On a profile we already know who the user is, so we drop the
+// author header from the post card. Each post is a row separated
+// by a hairline divider — matches the Lounge feed.
 function PostCard({ post }) {
   const tag = TAG_COLORS[post.tag] || { bg: '#f3f4f6', text: '#374151', border: '#e5e7eb' };
   return (
     <div
       style={{
         background: '#ffffff',
-        border: `1px solid ${CARD_BORDER}`,
-        borderRadius: 16,
-        padding: 14,
+        borderBottom: `1px solid ${SOFT_DIVIDER}`,
+        padding: '14px 16px',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
@@ -167,7 +243,7 @@ function PostCard({ post }) {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            padding: '3px 10px',
+            padding: '2px 9px',
             borderRadius: 100,
             background: tag.bg,
             color: tag.text,
@@ -181,64 +257,53 @@ function PostCard({ post }) {
         </span>
         <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 500 }}>{post.time}</span>
       </div>
-      <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 600, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.01em', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 600, fontSize: 16.5, color: '#1a1a1a', letterSpacing: '-0.2px', lineHeight: 1.3 }}>
         {post.title}
       </div>
       {post.body && (
-        <div style={{ fontSize: 13.5, color: '#5a5a5a', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <div style={{ fontSize: 13.5, color: '#5a5a5a', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {post.body}
         </div>
       )}
-      <div className="flex items-center gap-[14px] pt-[2px]">
-        <span className="inline-flex items-center gap-[4px] text-[12px] font-semibold text-[#1a7f5e]">
-          <Svg size={12} stroke={GREEN} strokeWidth={2.2}>
-            <line x1="12" y1="19" x2="12" y2="5" />
-            <polyline points="5 12 12 5 19 12" />
-          </Svg>
-          {post.score}
-        </span>
-        <span className="inline-flex items-center gap-[4px] text-[12px] font-semibold text-[#6b7875]">
-          <Svg size={12} stroke="#6b7875">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </Svg>
-          {post.replyCount}
-        </span>
+      <div className="flex items-center gap-[8px] mt-[4px]">
+        <RedditVoteBar netScore={post.score} upActive={false} downActive={false} onUp={() => {}} onDown={() => {}} />
+        <ActionPill
+          icon={<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />}
+          label={post.replyCount}
+          onClick={() => {}}
+        />
       </div>
     </div>
   );
 }
 
-// ── Comment card ────────────────────────────────────────────
+// ── Comment card (Reddit-style row) ─────────────────────────
 function CommentCard({ comment }) {
   return (
     <div
       style={{
         background: '#ffffff',
-        border: `1px solid ${CARD_BORDER}`,
-        borderRadius: 16,
-        padding: 14,
+        borderBottom: `1px solid ${SOFT_DIVIDER}`,
+        padding: '14px 16px',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
       }}
     >
-      <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-        Replied to
+      <div className="flex items-center justify-between">
+        <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+          Replied to
+        </div>
+        <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 500 }}>{comment.time}</span>
       </div>
-      <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 600, fontSize: 14.5, color: '#0f1a16', lineHeight: 1.3 }}>
+      <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 600, fontSize: 14.5, color: '#1a1a1a', lineHeight: 1.3, letterSpacing: '-0.1px' }}>
         {comment.parentTitle}
       </div>
-      <div style={{ borderLeft: `2px solid ${SOFT_DIVIDER}`, paddingLeft: 10, fontSize: 13.5, color: '#333', lineHeight: 1.45 }}>
+      <div style={{ borderLeft: `2px solid ${SOFT_DIVIDER}`, paddingLeft: 10, fontSize: 13.5, color: '#444', lineHeight: 1.5 }}>
         {comment.text}
       </div>
-      <div className="flex items-center gap-[14px] pt-[2px]">
-        <span className="inline-flex items-center gap-[4px] text-[12px] font-semibold text-[#e8734a]">
-          <Svg size={12} stroke={CORAL} strokeWidth={2.2} fill={CORAL}>
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </Svg>
-          {comment.score}
-        </span>
-        <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 500 }}>{comment.time}</span>
+      <div className="flex items-center gap-[8px] mt-[2px]">
+        <RedditVoteBar netScore={comment.score} upActive={false} downActive={false} onUp={() => {}} onDown={() => {}} />
       </div>
     </div>
   );
@@ -488,13 +553,18 @@ export default function LoungeProfile() {
         </div>
       </section>
 
-      {/* Tab content */}
-      <section style={{ padding: '14px 16px 30px' }}>
+      {/* Tab content. Posts and comments tabs run as continuous
+          white feeds with hairline dividers between rows — same
+          pattern as the Lounge feed. About tab keeps the rounded
+          card style since it's a single info panel. */}
+      <section style={{ padding: '0 0 30px' }}>
         {tab === 'posts' && (
           posts.length === 0 ? (
-            <EmptyTab label={`${user.name.split(' ')[0]} hasn't posted in the Lounge yet.`} />
+            <div style={{ padding: '14px 16px' }}>
+              <EmptyTab label={`${user.name.split(' ')[0]} hasn't posted in the Lounge yet.`} />
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ background: '#ffffff', borderTop: `1px solid ${SOFT_DIVIDER}` }}>
               {posts.map((p) => <PostCard key={p.id} post={p} />)}
             </div>
           )
@@ -502,15 +572,18 @@ export default function LoungeProfile() {
 
         {tab === 'comments' && (
           comments.length === 0 ? (
-            <EmptyTab label={`${user.name.split(' ')[0]} hasn't commented in the Lounge yet.`} />
+            <div style={{ padding: '14px 16px' }}>
+              <EmptyTab label={`${user.name.split(' ')[0]} hasn't commented in the Lounge yet.`} />
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ background: '#ffffff', borderTop: `1px solid ${SOFT_DIVIDER}` }}>
               {comments.map((c) => <CommentCard key={c.id} comment={c} />)}
             </div>
           )
         )}
 
         {tab === 'about' && (
+          <div style={{ padding: '14px 16px' }}>
           <div
             style={{
               background: '#ffffff',
@@ -575,6 +648,7 @@ export default function LoungeProfile() {
               />
             )}
             <AboutRow label="Joined" value={user.joinedDate} isLast />
+          </div>
           </div>
         )}
       </section>
