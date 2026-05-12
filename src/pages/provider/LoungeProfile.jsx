@@ -350,7 +350,7 @@ export default function LoungeProfile() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, fontFamily: FONT_DM, paddingBottom: 90 }}>
+    <div style={{ minHeight: '100vh', background: '#ffffff', fontFamily: FONT_DM, paddingBottom: 90 }}>
       {/* Sticky topbar */}
       <div
         style={{
@@ -392,123 +392,98 @@ export default function LoungeProfile() {
         </div>
       </div>
 
-      {/* Hero card */}
-      <section style={{ padding: '20px 16px 8px' }}>
-        <div
-          style={{
-            background: '#ffffff',
-            border: `1px solid ${CARD_BORDER}`,
-            borderRadius: 18,
-            padding: 18,
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Subtle banner gradient */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 70,
-              background: 'linear-gradient(135deg, #d9efe2 0%, #f1f9f5 100%)',
-              borderTopLeftRadius: 18,
-              borderTopRightRadius: 18,
-            }}
-          />
-
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
-            <HeroAvatar user={user} />
-            <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
-              <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-                {user.name}
-              </div>
-              <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
-                {user.roleShort} · {user.yearsExperience} yrs · {user.location}
-              </div>
+      {/* Hero — flows flat on the white page, no bordered card */}
+      <section style={{ padding: '18px 20px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
+          <HeroAvatar user={user} />
+          <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
+            <div style={{ fontFamily: FONT_OUTFIT, fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+              {user.name}
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
+              {user.roleShort} · {user.yearsExperience} yrs · {user.location}
             </div>
           </div>
+        </div>
 
-          {user.bio && (
-            <p style={{ position: 'relative', fontSize: 14, lineHeight: 1.5, color: '#444', marginBottom: 14 }}>
-              {user.bio}
-            </p>
-          )}
+        {user.bio && (
+          <p style={{ fontSize: 14, lineHeight: 1.5, color: '#444', marginBottom: 14 }}>
+            {user.bio}
+          </p>
+        )}
 
-          {/* Action row */}
-          <div style={{ position: 'relative', display: 'flex', gap: 8, marginBottom: 14 }}>
-            <button
-              onClick={handleFollow}
-              className="kazi-tap"
-              style={{
-                flex: 1,
-                background: following ? '#ffffff' : GREEN,
-                color: following ? GREEN : '#ffffff',
-                border: following ? `1px solid ${GREEN}` : 'none',
-                borderRadius: 100,
-                padding: '10px 16px',
-                fontSize: 13.5,
-                fontWeight: 700,
-                fontFamily: FONT_DM,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                cursor: 'pointer',
-              }}
-            >
-              <Svg size={14} stroke={following ? GREEN : '#ffffff'} strokeWidth={2.4}>
-                {following ? (
-                  <polyline points="20 6 9 17 4 12" />
-                ) : (
-                  <>
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </>
-                )}
-              </Svg>
-              {following ? 'Following' : 'Follow'}
-            </button>
-            <button
-              onClick={handleMessage}
-              className="kazi-tap"
-              style={{
-                flex: 1,
-                background: '#ffffff',
-                color: '#0f1a16',
-                border: `1px solid ${CARD_BORDER}`,
-                borderRadius: 100,
-                padding: '10px 16px',
-                fontSize: 13.5,
-                fontWeight: 700,
-                fontFamily: FONT_DM,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                cursor: 'pointer',
-              }}
-            >
-              <Svg size={14} stroke="#0f1a16" strokeWidth={2.2}>
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </Svg>
-              Message
-            </button>
-          </div>
+        {/* Action row */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <button
+            onClick={handleFollow}
+            className="kazi-tap"
+            style={{
+              flex: 1,
+              background: following ? '#ffffff' : GREEN,
+              color: following ? GREEN : '#ffffff',
+              border: following ? `1px solid ${GREEN}` : 'none',
+              borderRadius: 100,
+              padding: '10px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: FONT_DM,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+            }}
+          >
+            <Svg size={14} stroke={following ? GREEN : '#ffffff'} strokeWidth={2.4}>
+              {following ? (
+                <polyline points="20 6 9 17 4 12" />
+              ) : (
+                <>
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </>
+              )}
+            </Svg>
+            {following ? 'Following' : 'Follow'}
+          </button>
+          <button
+            onClick={handleMessage}
+            className="kazi-tap"
+            style={{
+              flex: 1,
+              background: '#ffffff',
+              color: '#0f1a16',
+              border: `1px solid ${CARD_BORDER}`,
+              borderRadius: 100,
+              padding: '10px 16px',
+              fontSize: 13.5,
+              fontWeight: 700,
+              fontFamily: FONT_DM,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              cursor: 'pointer',
+            }}
+          >
+            <Svg size={14} stroke="#0f1a16" strokeWidth={2.2}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </Svg>
+            Message
+          </button>
+        </div>
 
-          {/* Stats row — Upvotes (green) + Posts. Downvotes and
-              Followers intentionally omitted; aggregated reputation
-              score deferred. */}
-          <div style={{ position: 'relative', display: 'flex', gap: 4, paddingTop: 14, borderTop: `1px solid ${SOFT_DIVIDER}` }}>
-            <Stat label="Upvotes" value={user.upvoteCount} valueColor="#1a7f5e" />
-            <Stat label="Posts" value={user.postCount} />
-          </div>
+        {/* Stats row — Upvotes (green) + Posts. Downvotes and
+            Followers intentionally omitted; aggregated reputation
+            score deferred. */}
+        <div style={{ display: 'flex', gap: 4, paddingTop: 14, borderTop: `1px solid ${SOFT_DIVIDER}` }}>
+          <Stat label="Upvotes" value={user.upvoteCount} valueColor="#1a7f5e" />
+          <Stat label="Posts" value={user.postCount} />
         </div>
       </section>
 
       {/* Tab strip */}
-      <section style={{ padding: '0 16px', position: 'sticky', top: 65, zIndex: 30, background: BG }}>
+      <section style={{ padding: '0 20px', position: 'sticky', top: 65, zIndex: 30, background: '#ffffff' }}>
         <div style={{ display: 'flex', gap: 24, borderBottom: `1px solid ${SOFT_DIVIDER}` }}>
           {[
             { id: 'posts', label: `Posts · ${user.postCount}` },
