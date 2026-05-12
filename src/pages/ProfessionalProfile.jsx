@@ -584,21 +584,21 @@ export default function ProfessionalProfile() {
             </span>
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15, minWidth: 0 }}>
                 {pro.name}
               </div>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: '#1a7f5e', lineHeight: 1, letterSpacing: '-0.01em' }}>
-                ${pro.rate}<span style={{ fontSize: 11, color: '#9aa5a1', fontWeight: 600, marginLeft: 1 }}>/hr</span>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a7f5e', lineHeight: 1, letterSpacing: '-0.02em', flexShrink: 0 }}>
+                ${pro.rate}<span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 600, marginLeft: 1 }}>/hr</span>
               </div>
             </div>
             <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
               {pro.role} · {pro.location}
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 13, color: '#0f1a16', fontWeight: 600 }}>
-              <span style={{ color: '#f4b740', fontSize: 16, lineHeight: 1 }}>★</span>
-              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{pro.rating.toFixed(1)}</span>
-              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 12 }}>({pro.reviews} reviews)</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 14, color: '#0f1a16', fontWeight: 600 }}>
+              <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
+              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17 }}>{pro.rating.toFixed(1)}</span>
+              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13 }}>({pro.reviews} reviews)</span>
             </div>
           </div>
         </div>
@@ -849,10 +849,10 @@ export default function ProfessionalProfile() {
 function ProStat({ label, value, valueColor, prefix, suffix }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: valueColor || '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>
+      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 17, color: valueColor || '#0f1a16', letterSpacing: '-0.01em', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>
         {prefix}
         {value}
-        {suffix && <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 600, marginLeft: 1 }}>{suffix}</span>}
+        {suffix && <span style={{ fontSize: 12, color: '#9aa5a1', fontWeight: 500, marginLeft: 1 }}>{suffix}</span>}
       </div>
       <div style={{ fontSize: 11.5, color: '#6b7875', fontWeight: 500, marginTop: 4 }}>{label}</div>
     </div>
