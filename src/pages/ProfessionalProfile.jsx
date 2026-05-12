@@ -52,6 +52,10 @@ function buildMockPro(mock) {
     bookings: mock.bookings || 142,
     reliability: mock.reliability || 98,
     responseTime: '< 1 hr',
+    // Profile score — combined trust metric. Mocked for now;
+    // will eventually be derived server-side from rating, reliability,
+    // shift count, response time, etc. Range 300–850 (credit-style).
+    score: mock.score || 720,
     badges: ['Background Verified', 'Top 5%'],
     about: `${firstName} is a dedicated ${cred} with years of experience in busy practice environments. Known for reliability, patient rapport, and a calm, organized approach on complex days.`,
     credentialsList: [cred, 'BLS'],
@@ -313,6 +317,7 @@ export default function ProfessionalProfile() {
             bookings: data.shiftsCompleted || 0,
             reliability: data.reliabilityScore || 100,
             responseTime: data.responseTime || '< 1 hr',
+            score: data.profileScore || 720,
             badges: ['Background Verified', ...(data.skills || []).slice(0, 2)],
             about: data.bio || 'No bio available.',
             credentialsList: (data.credentials || []).map(c => c.type),
@@ -579,8 +584,13 @@ export default function ProfessionalProfile() {
             </span>
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
-              {pro.name}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15 }}>
+                {pro.name}
+              </div>
+              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: '#1a7f5e', lineHeight: 1, letterSpacing: '-0.01em' }}>
+                ${pro.rate}<span style={{ fontSize: 11, color: '#9aa5a1', fontWeight: 600, marginLeft: 1 }}>/hr</span>
+              </div>
             </div>
             <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
               {pro.role} · {pro.location}
@@ -658,10 +668,10 @@ export default function ProfessionalProfile() {
 
         {/* Stats row — flat, hairline-divided */}
         <div style={{ display: 'flex', gap: 4, paddingTop: 14, borderTop: '1px solid #f0eee8' }}>
-          <ProStat label="Rating" value={pro.rating.toFixed(1)} valueColor="#0f1a16" prefix={<span style={{ color: '#f4b740', fontSize: 14, lineHeight: 1, marginRight: 2 }}>★</span>} />
           <ProStat label="Reliability" value={`${pro.reliability}%`} valueColor={reliabilityColor} />
+          <ProStat label="Response" value={pro.responseTime} valueColor="#0f1a16" />
           <ProStat label="Bookings" value={pro.bookings} valueColor="#0f1a16" />
-          <ProStat label="Rate" value={`$${pro.rate}`} suffix="/hr" valueColor="#1a7f5e" />
+          <ProStat label="Score" value={pro.score} valueColor="#1a7f5e" />
         </div>
       </section>
 
