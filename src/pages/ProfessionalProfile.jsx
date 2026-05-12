@@ -555,16 +555,16 @@ export default function ProfessionalProfile() {
       <section style={{ padding: '4px 20px 8px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
           <div style={{
-            width: 72,
-            height: 72,
-            borderRadius: 18,
+            width: 84,
+            height: 84,
+            borderRadius: 20,
             background: 'linear-gradient(135deg, #a8c9b8 0%, #7ab8a8 100%)',
             display: 'grid',
             placeItems: 'center',
             color: '#fff',
             fontFamily: "'Outfit', sans-serif",
             fontWeight: 700,
-            fontSize: 24,
+            fontSize: 28,
             flexShrink: 0,
             position: 'relative',
             overflow: 'hidden',
@@ -573,7 +573,7 @@ export default function ProfessionalProfile() {
             {/* Initials underneath; img overlays. If the img fails to
                 load (or the URL is missing), onError hides it and the
                 initials show through against the sage gradient. */}
-            <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 24 }}>
+            <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 28 }}>
               {pro.initials}
             </span>
             {pro.avatarUrl && (
@@ -584,8 +584,8 @@ export default function ProfessionalProfile() {
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
             )}
-            <span style={{ position: 'absolute', bottom: 2, right: 2, width: 18, height: 18, borderRadius: '50%', background: '#1a7f5e', border: '2.5px solid #fff', display: 'grid', placeItems: 'center', zIndex: 2 }}>
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <span style={{ position: 'absolute', bottom: 3, right: 3, width: 20, height: 20, borderRadius: '50%', background: '#1a7f5e', border: '2.5px solid #fff', display: 'grid', placeItems: 'center', zIndex: 2 }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>
