@@ -265,6 +265,10 @@ const ICONS = {
   comment: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
   arrowUp: <><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></>,
   arrowDown: <><line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" /></>,
+  // Reddit-style fat arrows — wide triangle/chevron shape that
+  // fills in when the user has voted that direction.
+  triUp: <polygon points="12 5 20 16 4 16" />,
+  triDown: <polygon points="12 19 20 8 4 8" />,
   check: <polyline points="20 6 9 17 4 12" />,
   back: <polyline points="15 18 9 12 15 6" />,
   chevR: <polyline points="9 18 15 12 9 6" />,
@@ -483,8 +487,13 @@ function RedditVoteBar({ netScore, upActive, downActive, onUp, onDown }) {
           padding: 0,
         }}
       >
-        <Svg size={16} stroke={upActive ? GREEN : '#1a1a1a'} strokeWidth={upActive ? 2.6 : 2.2}>
-          {ICONS.arrowUp}
+        <Svg
+          size={18}
+          stroke={upActive ? GREEN : '#5a5a5a'}
+          fill={upActive ? GREEN : 'none'}
+          strokeWidth={2}
+        >
+          {ICONS.triUp}
         </Svg>
       </button>
       <span style={{ fontSize: 13, fontWeight: 700, color: scoreColor, minWidth: 18, textAlign: 'center' }}>
@@ -505,8 +514,13 @@ function RedditVoteBar({ netScore, upActive, downActive, onUp, onDown }) {
           padding: 0,
         }}
       >
-        <Svg size={16} stroke={downActive ? CORAL : '#1a1a1a'} strokeWidth={downActive ? 2.6 : 2.2}>
-          {ICONS.arrowDown}
+        <Svg
+          size={18}
+          stroke={downActive ? CORAL : '#5a5a5a'}
+          fill={downActive ? CORAL : 'none'}
+          strokeWidth={2}
+        >
+          {ICONS.triDown}
         </Svg>
       </button>
     </div>
