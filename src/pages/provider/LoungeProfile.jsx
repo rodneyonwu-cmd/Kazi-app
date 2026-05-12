@@ -352,44 +352,38 @@ export default function LoungeProfile() {
   return (
     <div style={{ minHeight: '100vh', background: '#ffffff', fontFamily: FONT_DM, paddingBottom: 90 }}>
       {/* Sticky topbar */}
+      {/* Sticky topbar — circular back button only, no name. */}
       <div
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 41,
-          background: 'rgba(255,255,255,0.92)',
-          backdropFilter: 'blur(16px)',
+          background: '#ffffff',
           padding: '14px 16px',
-          borderBottom: '1px solid #f0f0f0',
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
         }}
       >
         <button
           onClick={() => navigate(-1)}
           aria-label="Back"
+          className="kazi-tap"
           style={{
             width: 36,
             height: 36,
             display: 'grid',
             placeItems: 'center',
-            background: 'transparent',
-            border: 'none',
+            background: '#f9f8f6',
+            border: '1px solid #ececec',
+            borderRadius: '50%',
             cursor: 'pointer',
-            borderRadius: 10,
+            padding: 0,
           }}
         >
-          <Svg size={20} stroke="#1a1a1a" strokeWidth={2.3}>
+          <Svg size={16} stroke="#1a1a1a" strokeWidth={2.4}>
             <polyline points="15 18 9 12 15 6" />
           </Svg>
         </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: FONT_OUTFIT, fontSize: 15, fontWeight: 700, color: '#0f1a16', lineHeight: 1.1, letterSpacing: '-0.01em' }}>
-            {user.name}
-          </div>
-          <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500 }}>u/{user.handle}</div>
-        </div>
       </div>
 
       {/* Hero — flows flat on the white page, no bordered card */}
