@@ -698,7 +698,7 @@ export default function FindProfessionals() {
       <div
         style={{
           position: 'relative',
-          background: 'linear-gradient(135deg, #1a7f5e 0%, #2fa37d 60%, #34b58a 100%)',
+          background: 'linear-gradient(135deg, #1a2e2c 0%, #0f1d1b 100%)',
           padding: '20px 20px 44px',
           overflow: 'hidden',
         }}
