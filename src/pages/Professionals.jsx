@@ -694,58 +694,23 @@ export default function FindProfessionals() {
         </div>
       )}
 
-      {/* Hero band — branded color block */}
-      <div
-        style={{
-          position: 'relative',
-          background: 'linear-gradient(135deg, #163d34 0%, #235e4f 100%)',
-          padding: '20px 20px 44px',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Decorative dot grid (top-right) */}
-        <svg
-          viewBox="0 0 120 120"
-          aria-hidden="true"
-          style={{ position: 'absolute', top: -10, right: -20, width: 180, height: 180, opacity: 0.18, pointerEvents: 'none' }}
-        >
-          <defs>
-            <pattern id="kazi-dots" width="14" height="14" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1.4" fill="white" />
-            </pattern>
-          </defs>
-          <rect width="120" height="120" fill="url(#kazi-dots)" />
-        </svg>
-        {/* Soft radial highlight (top-left) */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: -60,
-            left: -40,
-            width: 220,
-            height: 220,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+      {/* Header band — title + stats on a clean white surface */}
+      <div style={{ position: 'relative', background: 'white', padding: '18px 20px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
             <div
               style={{
                 fontFamily: "'Outfit', sans-serif",
                 fontWeight: 800,
                 fontSize: 26,
-                color: 'white',
+                color: '#1a1a1a',
                 letterSpacing: '-0.02em',
                 lineHeight: 1.1,
               }}
             >
               Find Professionals
             </div>
-            <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.78)', marginTop: 4, fontWeight: 500 }}>
+            <div style={{ fontSize: 12.5, color: '#8a8a8a', marginTop: 4, fontWeight: 500 }}>
               Houston, TX · 12 mile radius
             </div>
           </div>
@@ -756,15 +721,14 @@ export default function FindProfessionals() {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.18)',
-              border: '1px solid rgba(255,255,255,0.25)',
+              background: '#f9f8f6',
+              border: '1px solid #f3f3f3',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white',
+              color: '#1a1a1a',
               cursor: 'pointer',
               flexShrink: 0,
-              backdropFilter: 'blur(6px)',
             }}
           >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -774,11 +738,11 @@ export default function FindProfessionals() {
         </div>
 
         {/* Micro-stat pills */}
-        <div style={{ position: 'relative', display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
           {[
-            { label: `${totalCount || 247} verified pros`, dot: '#7be3b8' },
-            { label: '89 active now', dot: '#fef08a' },
-            { label: '4.9★ avg rating', dot: '#fde2c7' },
+            { label: `${totalCount || 247} verified pros`, dot: '#1a7f5e' },
+            { label: '89 active now', dot: '#f4b740' },
+            { label: '4.9★ avg rating', dot: '#e8734a' },
           ].map((s) => (
             <span
               key={s.label}
@@ -788,13 +752,12 @@ export default function FindProfessionals() {
                 gap: 6,
                 padding: '5px 10px',
                 borderRadius: 100,
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.2)',
+                background: '#f9f8f6',
+                border: '1px solid #f3f3f3',
                 fontSize: 11,
                 fontWeight: 700,
-                color: 'white',
+                color: '#1a1a1a',
                 letterSpacing: '-0.01em',
-                backdropFilter: 'blur(6px)',
               }}
             >
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot }} />
@@ -804,11 +767,8 @@ export default function FindProfessionals() {
         </div>
       </div>
 
-      {/* Top bar — search + chips, pulled up to overlap hero */}
-      <div
-        className="bg-white px-5 pt-4 pb-3 border-b border-[#f3f3f3] sticky top-0 z-50"
-        style={{ marginTop: -28, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-      >
+      {/* Top bar — search + chips */}
+      <div className="bg-white px-5 pt-2 pb-3 border-b border-[#f3f3f3] sticky top-0 z-50">
         {/* Search trigger */}
         <button
           onClick={() => setSheetOpen(true)}
