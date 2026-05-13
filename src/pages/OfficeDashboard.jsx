@@ -26,12 +26,25 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const mockOffice = {
   ownerFirstName: 'O',
   officeName: 'Missouri City Dental',
+  officeAvatarUrl: null,
   date: 'Tuesday, April 7',
   todayStats: {
     activeToday: 2,
     pending: 3,
     unfilled: 1,
   },
+  // Open shifts that still need coverage. Drives the "Open shifts"
+  // mini-list under the hero (only renders when length > 0).
+  openShifts: [
+    {
+      id: 'open_1',
+      role: 'Hygienist',
+      date: 'Fri, Apr 10',
+      timeRange: '8:00a – 5:00p',
+      rate: '$58/hr',
+      applicantCount: 3,
+    },
+  ],
   currentMonth: 'April 2026',
   // Calendar days for April 2026 (starts Wednesday)
   // status: 'empty' | 'normal' | 'today' | 'booked' | 'booked-open'
@@ -93,7 +106,6 @@ export default function OfficeDashboard() {
   const office = mockOffice;
 
   const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
-  const [chooserOpen, setChooserOpen] = useState(false);
   const [findProsOpen, setFindProsOpen] = useState(false);
   // Map of mock on-site id → real Prisma provider id, resolved once on mount.
   const [onsiteRealIds, setOnsiteRealIds] = useState({});
@@ -128,12 +140,8 @@ export default function OfficeDashboard() {
     return () => { cancelled = true; };
   }, [getToken, office.onsiteNow]);
 
-  const handlePostJob = () => {
-    setChooserOpen(true);
-  };
-  const closeChooser = () => setChooserOpen(false);
-  const goToTemp = () => { closeChooser(); navigate('/post/temp'); };
-  const goToPermanent = () => { closeChooser(); navigate('/post/permanent'); };
+  const goToTemp = () => navigate('/post/temp');
+  const goToPermanent = () => navigate('/post/permanent');
 
   const handleFindPros = () => {
     setFindProsOpen(true);
@@ -191,21 +199,29 @@ export default function OfficeDashboard() {
       <TopBar />
 
       <div className="bg-[#f9f8f6] min-h-full pb-6">
-        {/* Greeting */}
-        <section className="px-5 pt-4 pb-5">
-          <h1 className="font-[Outfit] font-bold text-[22px] leading-[1.15] tracking-[-0.02em] text-[#0f1a16] mb-1">
-            Good morning, Dr. {office.ownerFirstName} 👋
-          </h1>
-          <div className="text-[14px] font-medium text-[#6b7875]">
-            {office.officeName} · {office.date}
-          </div>
-        </section>
+        {/* Hero — dark forest greeting + inlined stats */}
+        <OfficeHeroStrip
+          office={office}
+          stats={office.todayStats}
+          onStatTap={handleStatTap}
+        />
 
-        {/* Post a Job (Need coverage?) */}
-        <PostJobCard onPostJob={handlePostJob} onFindPros={handleFindPros} />
+        {/* Quick actions */}
+        <QuickActionsRow
+          onPostTemp={goToTemp}
+          onPostPerm={goToPermanent}
+          onFindPros={handleFindPros}
+          onSavedPros={() => navigate('/professionals?saved=1')}
+        />
 
-        {/* Today's overview */}
-        <TodaysOverview stats={office.todayStats} onStatTap={handleStatTap} />
+        {/* Open shifts mini-list — only renders when there are unfilled shifts */}
+        {office.openShifts && office.openShifts.length > 0 && (
+          <OpenShiftsMini
+            shifts={office.openShifts}
+            onView={(s) => navigate(`/bookings?shift=${s.id}`)}
+            onBoost={(s) => navigate(`/bookings?shift=${s.id}&boost=1`)}
+          />
+        )}
 
         {/* Calendar (Week / Month) */}
         <CalendarSection
@@ -226,14 +242,6 @@ export default function OfficeDashboard() {
 
       <BottomNav />
 
-      {/* Post a Job chooser modal */}
-      <PostJobChooser
-        open={chooserOpen}
-        onClose={closeChooser}
-        onPickTemp={goToTemp}
-        onPickPermanent={goToPermanent}
-      />
-
       {/* Find Pros criteria sheet */}
       <FindProsSheet
         open={findProsOpen}
@@ -244,139 +252,374 @@ export default function OfficeDashboard() {
   );
 }
 
-// ── Post a Job card ──────────────────────────────────────────
-function PostJobCard({ onPostJob, onFindPros }) {
+// ── Office hero strip — dark forest greeting + inlined stats ─
+// Mirrors the dashboard's PendingInvitesCard treatment so the office
+// home gets the same dark-anchor moment the provider home has.
+function OfficeHeroStrip({ office, stats, onStatTap }) {
+  const initial = (office.officeName || 'O').charAt(0).toUpperCase();
   return (
-    <div className="mx-4 bg-[#e8f2ed] border border-[#d4e7dd] rounded-[20px] p-[22px_22px_20px] relative overflow-hidden cursor-pointer">
-      {/* Decorative glows */}
+    <section className="mx-4 mt-3" style={{ position: 'relative' }}>
       <div
-        className="absolute -top-[30px] -right-[30px] w-[140px] h-[140px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(26,127,94,0.08) 0%, transparent 70%)' }}
-      />
-      <div
-        className="absolute -bottom-[40px] right-[40px] w-[100px] h-[100px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(232,115,74,0.12) 0%, transparent 70%)' }}
-      />
+        style={{
+          position: 'relative',
+          background: 'linear-gradient(135deg, #1a2e2c 0%, #0f1d1b 100%)',
+          color: '#ffffff',
+          borderRadius: 22,
+          padding: '20px 20px 16px',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Decorative blur orb */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: -50,
+            right: -50,
+            width: 180,
+            height: 180,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            bottom: -40,
+            left: -30,
+            width: 140,
+            height: 140,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(122, 184, 168, 0.18), transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
 
-      <div className="relative z-10">
-        <h2 className="font-[Outfit] font-bold text-[20px] tracking-[-0.01em] text-[#0f1a16] mb-[6px] leading-[1.2]">
-          Need coverage?
-        </h2>
-        <p className="text-[13.5px] text-[#6b7875] font-medium mb-4 leading-[1.35]">
-          Post a shift and top-rated Houston pros will respond fast.
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={onPostJob}
-            className="flex-1 px-[14px] py-3 rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-[#1a7f5e] text-white inline-flex items-center justify-center gap-[6px]"
-          >
-            <svg className="w-[14px] h-[14px] stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Post a Job
-          </button>
-          <button
-            onClick={onFindPros}
-            className="flex-1 px-[14px] py-3 rounded-full font-[DM_Sans] font-semibold text-[13.5px] bg-white text-[#1a7f5e] border border-[#d4e7dd] inline-flex items-center justify-center gap-[6px]"
-          >
-            <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            Find Pros
-          </button>
+        {/* Header row: avatar + office + date */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12 }}>
+          {office.officeAvatarUrl ? (
+            <img
+              src={office.officeAvatarUrl}
+              alt={office.officeName}
+              style={{ width: 44, height: 44, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: '1px solid rgba(255,255,255,0.15)' }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
+                color: '#0f1d1b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 800,
+                fontSize: 17,
+                flexShrink: 0,
+              }}
+            >
+              {initial}
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 800,
+                fontSize: 17,
+                color: '#ffffff',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.15,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {office.officeName}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, fontWeight: 500 }}>
+              {office.date}
+            </div>
+          </div>
+        </div>
+
+        {/* Greeting */}
+        <div
+          style={{
+            position: 'relative',
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 700,
+            fontSize: 22,
+            color: '#ffffff',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
+            marginTop: 14,
+          }}
+        >
+          Good morning, Dr. {office.ownerFirstName} 👋
+        </div>
+
+        {/* Stats row — translucent tiles on dark bg */}
+        <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 16 }}>
+          <DarkStatTile dot="#7be3b8" value={stats.activeToday} label="Active today" onTap={() => onStatTap('active')} />
+          <DarkStatTile dot="#fed98a" value={stats.pending} label="Pending" onTap={() => onStatTap('pending')} />
+          <DarkStatTile dot="#ff9b7e" value={stats.unfilled} label="Unfilled" onTap={() => onStatTap('unfilled')} />
         </div>
       </div>
+    </section>
+  );
+}
+
+function DarkStatTile({ dot, value, label, onTap }) {
+  return (
+    <button
+      onClick={onTap}
+      style={{
+        textAlign: 'left',
+        padding: '11px 12px',
+        borderRadius: 14,
+        background: 'rgba(255,255,255,0.07)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        color: '#ffffff',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot }} />
+        <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.7)' }}>
+          {label}
+        </span>
+      </div>
+      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, lineHeight: 1, letterSpacing: '-0.02em' }}>
+        {value}
+      </div>
+    </button>
+  );
+}
+
+// ── Quick actions row — compact pills replace the chunky card ──
+function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
+  const actions = [
+    {
+      key: 'temp',
+      label: 'Post Temp',
+      onClick: onPostTemp,
+      tint: '#f1f9f5',
+      stroke: '#1a7f5e',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      ),
+    },
+    {
+      key: 'perm',
+      label: 'Post Perm',
+      onClick: onPostPerm,
+      tint: '#f1ebfa',
+      stroke: '#7c3aed',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
+    {
+      key: 'find',
+      label: 'Find Pros',
+      onClick: onFindPros,
+      tint: '#eaf3ff',
+      stroke: '#1f6feb',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      ),
+    },
+    {
+      key: 'saved',
+      label: 'Saved Pros',
+      onClick: onSavedPros,
+      tint: '#fdf4e1',
+      stroke: '#c98b16',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 mt-3 pb-1">
+      {actions.map((a) => (
+        <button
+          key={a.key}
+          onClick={a.onClick}
+          style={{
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+            padding: '9px 14px',
+            background: 'white',
+            border: '1px solid #ececec',
+            borderRadius: 100,
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 700,
+            fontSize: 12.5,
+            color: '#1a1a1a',
+            cursor: 'pointer',
+            letterSpacing: '-0.01em',
+          }}
+        >
+          <span
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              background: a.tint,
+              color: a.stroke,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {a.icon}
+          </span>
+          {a.label}
+        </button>
+      ))}
     </div>
   );
 }
 
-// ── Today's overview (stats) ─────────────────────────────────
-function TodaysOverview({ stats, onStatTap }) {
+// ── Open shifts mini-list ─────────────────────────────────────
+// Shows the actual unfilled shifts inline with View / Boost actions
+// so the office can act without bouncing into a separate screen.
+function OpenShiftsMini({ shifts, onView, onBoost }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
-          Today's overview
+        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0 inline-flex items-center gap-2">
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8734a' }} />
+          Open shifts
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6b7875', fontWeight: 600 }}>
+            ({shifts.length})
+          </span>
         </h3>
       </div>
 
-      <div className="grid grid-cols-3 gap-[10px] px-4">
-        <StatCard
-          icon="check"
-          iconVariant="green"
-          value={stats.activeToday}
-          label="Active today"
-          onTap={() => onStatTap('active')}
-        />
-        <StatCard
-          icon="clock"
-          iconVariant="amber"
-          value={stats.pending}
-          label="Pending"
-          onTap={() => onStatTap('pending')}
-        />
-        <StatCard
-          icon="alert"
-          iconVariant="coral"
-          value={stats.unfilled}
-          label="Unfilled"
-          onTap={() => onStatTap('unfilled')}
-        />
+      <div className="px-4 flex flex-col gap-[10px]">
+        {shifts.map((s) => (
+          <div
+            key={s.id}
+            className="bg-white border border-[#e8e6e1] rounded-[16px] p-[14px]"
+            style={{ position: 'relative' }}
+          >
+            {/* Coral accent rail */}
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: 14,
+                bottom: 14,
+                left: 0,
+                width: 3,
+                borderRadius: '0 3px 3px 0',
+                background: '#e8734a',
+              }}
+            />
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: '#b85a32',
+                      background: '#fdeee7',
+                      padding: '3px 8px',
+                      borderRadius: 100,
+                    }}
+                  >
+                    Unfilled
+                  </span>
+                  {s.applicantCount > 0 && (
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1a7f5e' }}>
+                      {s.applicantCount} applicant{s.applicantCount === 1 ? '' : 's'}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.01em' }}>
+                  {s.role} · {s.date}
+                </div>
+                <div style={{ fontSize: 12.5, color: '#6b7875', fontWeight: 500, marginTop: 3 }}>
+                  {s.timeRange} · {s.rate}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button
+                onClick={() => onView(s)}
+                style={{
+                  flex: 1,
+                  padding: '9px 12px',
+                  borderRadius: 100,
+                  background: '#1a7f5e',
+                  color: 'white',
+                  border: 'none',
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {s.applicantCount > 0 ? `View applicants` : 'View shift'}
+              </button>
+              <button
+                onClick={() => onBoost(s)}
+                style={{
+                  flex: 1,
+                  padding: '9px 12px',
+                  borderRadius: 100,
+                  background: 'white',
+                  color: '#1a1a1a',
+                  border: '1px solid #ececec',
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  cursor: 'pointer',
+                  letterSpacing: '-0.01em',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                Boost
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </>
-  );
-}
-
-function StatCard({ icon, iconVariant, value, label, onTap }) {
-  const iconBgMap = {
-    green: 'bg-[#e8f2ed]',
-    amber: 'bg-[#fdf4e1]',
-    coral: 'bg-[#fdeee7]',
-  };
-  const iconStrokeMap = {
-    green: 'stroke-[#1a7f5e]',
-    amber: 'stroke-[#c98b16]',
-    coral: 'stroke-[#e8734a]',
-  };
-
-  const iconSvg = {
-    check: (
-      <svg className={`w-[18px] h-[18px] ${iconStrokeMap[iconVariant]}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12" />
-      </svg>
-    ),
-    clock: (
-      <svg className={`w-[18px] h-[18px] ${iconStrokeMap[iconVariant]}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    alert: (
-      <svg className={`w-[18px] h-[18px] ${iconStrokeMap[iconVariant]}`} viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    ),
-  };
-
-  return (
-    <div
-      onClick={onTap}
-      className="bg-white border border-[#e8e6e1] rounded-[16px] p-[16px_14px] cursor-pointer active:scale-[0.98] transition-transform"
-    >
-      <div className={`w-9 h-9 rounded-[11px] grid place-items-center mb-3 ${iconBgMap[iconVariant]}`}>
-        {iconSvg[icon]}
-      </div>
-      <div className="font-[Outfit] font-bold text-[24px] leading-none tracking-[-0.02em] text-[#0f1a16]">
-        {value}
-      </div>
-      <div className="text-[12px] text-[#6b7875] font-medium mt-[6px]">
-        {label}
-      </div>
-    </div>
   );
 }
 
@@ -660,139 +903,3 @@ function OnsiteCard({ provider, onTap }) {
   );
 }
 
-// ── Post a Job chooser (temp vs permanent) ───────────────────
-// Restored from the pre-redesign office dashboard. Green = temp,
-// purple = permanent — matches the Jobs subtabs color coding used
-// elsewhere in the app.
-const CHOOSER_COLORS = {
-  green: '#1a7f5e',
-  greenTint: '#f1f9f5',
-  purple: '#7c3aed',
-  purpleSoft: '#f1ebfa',
-  bg: '#f9f8f6',
-  card: '#ffffff',
-  text: '#1a1a1a',
-  textMid: '#5a5a5a',
-  border: '#ececec',
-};
-
-function PostJobChooser({ open, onClose, onPickTemp, onPickPermanent }) {
-  if (!open) return null;
-  return (
-    <>
-      <style>{`
-        @keyframes kazi-fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes kazi-scaleIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-      `}</style>
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(3px)', zIndex: 100, animation: 'kazi-fadeIn 0.3s',
-        }}
-      />
-      <div
-        style={{
-          position: 'fixed', left: '50%', top: '50%',
-          transform: 'translate(-50%, -50%)', background: 'white',
-          borderRadius: 28, zIndex: 101, paddingBottom: 24,
-          width: 'calc(100% - 40px)', maxWidth: 400,
-          maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
-          animation: 'kazi-scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        }}
-      >
-        <div style={{ padding: '24px 24px 8px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1.15, color: CHOOSER_COLORS.text }}>Post a Job</div>
-            <div style={{ fontSize: 14, color: CHOOSER_COLORS.textMid, marginTop: 6, lineHeight: 1.4 }}>What kind of position are you hiring for?</div>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              width: 38, height: 38, borderRadius: '50%',
-              background: CHOOSER_COLORS.bg, border: 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke={CHOOSER_COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-        <div style={{ padding: '24px 20px 8px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <ChoiceCard
-            type="temp"
-            tag="Single day"
-            title="Temp Shift"
-            onClick={onPickTemp}
-            icon={(
-              <svg viewBox="0 0 24 24" fill="none" stroke={CHOOSER_COLORS.green} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}>
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-            )}
-          />
-          <ChoiceCard
-            type="perm"
-            tag="Long-term hire"
-            title="Permanent Role"
-            onClick={onPickPermanent}
-            icon={(
-              <svg viewBox="0 0 24 24" fill="none" stroke={CHOOSER_COLORS.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}>
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            )}
-          />
-        </div>
-      </div>
-    </>
-  );
-}
-
-function ChoiceCard({ type, icon, tag, title, onClick }) {
-  const [hover, setHover] = useState(false);
-  const isPerm = type === 'perm';
-  const accent = isPerm ? CHOOSER_COLORS.purple : CHOOSER_COLORS.green;
-  const accentSoft = isPerm ? CHOOSER_COLORS.purpleSoft : CHOOSER_COLORS.greenTint;
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        background: 'white',
-        border: `2px solid ${hover ? accent : CHOOSER_COLORS.border}`,
-        borderRadius: 22, padding: 22, cursor: 'pointer',
-        textAlign: 'left', width: '100%', fontFamily: 'inherit',
-        transition: 'all 0.2s', position: 'relative', overflow: 'hidden',
-        transform: hover ? 'translateY(-2px)' : 'none',
-        boxShadow: hover ? `0 8px 24px ${isPerm ? 'rgba(124, 58, 237, 0.15)' : 'rgba(26, 127, 94, 0.15)'}` : 'none',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 52, height: 52, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: accentSoft }}>
-          {icon}
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'inline-block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, padding: '4px 10px', borderRadius: 100, marginBottom: 6, background: accentSoft, color: accent }}>
-            {tag}
-          </div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: CHOOSER_COLORS.text, lineHeight: 1.15 }}>
-            {title}
-          </div>
-        </div>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: accent, transform: hover ? 'translateX(3px)' : 'none', transition: 'transform 0.2s' }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </div>
-      </div>
-    </button>
-  );
-}
