@@ -694,22 +694,126 @@ export default function FindProfessionals() {
         </div>
       )}
 
-      {/* Top bar */}
-      <div className="bg-white px-5 pt-3 pb-3 border-b border-[#f3f3f3] sticky top-0 z-50">
-        <div className="flex items-center justify-between mb-3.5">
-          <div>
-            <div className="text-[22px] font-extrabold" style={{ fontFamily: "'Outfit', sans-serif" }}>Find Professionals</div>
-            <div className="text-xs text-[#8a8a8a] mt-0.5">Houston, TX · 12 mile radius</div>
+      {/* Hero band — branded color block */}
+      <div
+        style={{
+          position: 'relative',
+          background: 'linear-gradient(135deg, #1a7f5e 0%, #2fa37d 60%, #34b58a 100%)',
+          padding: '20px 20px 44px',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Decorative dot grid (top-right) */}
+        <svg
+          viewBox="0 0 120 120"
+          aria-hidden="true"
+          style={{ position: 'absolute', top: -10, right: -20, width: 180, height: 180, opacity: 0.18, pointerEvents: 'none' }}
+        >
+          <defs>
+            <pattern id="kazi-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.4" fill="white" />
+            </pattern>
+          </defs>
+          <rect width="120" height="120" fill="url(#kazi-dots)" />
+        </svg>
+        {/* Soft radial highlight (top-left) */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: -60,
+            left: -40,
+            width: 220,
+            height: 220,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 800,
+                fontSize: 26,
+                color: 'white',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
+            >
+              Find Professionals
+            </div>
+            <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.78)', marginTop: 4, fontWeight: 500 }}>
+              Houston, TX · 12 mile radius
+            </div>
           </div>
-          <button onClick={() => setFilterOpen(true)} className="w-10 h-10 rounded-full bg-[#f9f8f6] flex items-center justify-center relative">
-            <Icon.Filter />
+          <button
+            onClick={() => setFilterOpen(true)}
+            aria-label="Filters"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              cursor: 'pointer',
+              flexShrink: 0,
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="6" x2="20" y2="6" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="10" y1="18" x2="14" y2="18" />
+            </svg>
           </button>
         </div>
 
+        {/* Micro-stat pills */}
+        <div style={{ position: 'relative', display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+          {[
+            { label: `${totalCount || 247} verified pros`, dot: '#7be3b8' },
+            { label: '89 active now', dot: '#fef08a' },
+            { label: '4.9★ avg rating', dot: '#fde2c7' },
+          ].map((s) => (
+            <span
+              key={s.label}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 10px',
+                borderRadius: 100,
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                fontSize: 11,
+                fontWeight: 700,
+                color: 'white',
+                letterSpacing: '-0.01em',
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot }} />
+              {s.label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Top bar — search + chips, pulled up to overlap hero */}
+      <div
+        className="bg-white px-5 pt-4 pb-3 border-b border-[#f3f3f3] sticky top-0 z-50"
+        style={{ marginTop: -28, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+      >
         {/* Search trigger */}
         <button
           onClick={() => setSheetOpen(true)}
           className="w-full px-4 py-3.5 bg-[#f9f8f6] border border-[#f3f3f3] rounded-full flex items-center gap-3 active:scale-[0.99] transition-transform mb-3"
+          style={{ boxShadow: '0 4px 14px rgba(26,127,94,0.08)' }}
         >
           <span className="text-[#8a8a8a]"><Icon.Calendar /></span>
           <span className={`flex-1 text-left text-sm ${criteriaLabel === 'Add date & time' ? 'text-[#8a8a8a] font-medium' : 'text-[#1a1a1a] font-semibold'}`}>

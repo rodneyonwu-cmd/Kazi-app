@@ -90,7 +90,10 @@
       "Bash(grep -rEo \"\\(color|background|text-\\\\[|bg-\\\\[\\)[^,;}]*#[0-9a-fA-F]{3,6}\" src/pages/ProviderDashboard.jsx src/components/TempShiftCard.jsx src/components/PermJobCard.jsx)",
       "Bash(grep -oE \"#[0-9a-fA-F]{3,6}\")",
       "Bash(grep -nE \"^\\\\s*//|<TopBar|<BottomNav|BookingSheet|<Calendar|<button|<h1|<h2|setBookingOpen|<.*Avatar\" src/pages/ProfessionalProfile.jsx)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(grep -n \"avatarUrl: u\\\\\\\\.avatarUrl\\\\|reviewsList: reviews\" src/pages/ProfessionalProfile.jsx)",
+      "Bash(grep -n \"pro.about\\\\|pro\\\\\\\\.openTo\\\\|openTo:\" src/pages/ProfessionalProfile.jsx)",
+      "Bash(grep -n \"reliability: p\\\\\\\\.reliabilityScore\\\\|score:\" src/pages/Professionals.jsx)"
     ]
   }
 }
