@@ -187,7 +187,7 @@ export default function OfficeDashboard() {
   return (
     <div
       style={{
-        background: '#f9f8f6',
+        background: '#ffffff',
         maxWidth: 480,
         margin: '0 auto',
         minHeight: '100vh',
@@ -198,7 +198,7 @@ export default function OfficeDashboard() {
     >
       <TopBar />
 
-      <div className="bg-[#f9f8f6] min-h-full pb-6">
+      <div className="bg-white min-h-full pb-6">
         {/* Hero — dark forest greeting + inlined stats */}
         <OfficeHeroStrip
           office={office}
