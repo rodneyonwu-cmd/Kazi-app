@@ -353,9 +353,10 @@ export default function MessageThread() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 800,
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
                 fontSize: 13,
+                letterSpacing: '-0.01em',
                 flexShrink: 0,
               }}
             >
@@ -370,10 +371,11 @@ export default function MessageThread() {
           >
             <div
               style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 800,
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
                 fontSize: 15,
                 color: COLORS.text,
+                letterSpacing: '-0.02em',
                 lineHeight: 1.15,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -385,8 +387,11 @@ export default function MessageThread() {
             {otherSubtitle && (
               <div
                 style={{
-                  fontSize: 11,
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: 12.5,
                   color: COLORS.textLight,
+                  fontWeight: 500,
+                  letterSpacing: '-0.01em',
                   marginTop: 2,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -407,9 +412,10 @@ export default function MessageThread() {
               border: 'none',
               borderRadius: 100,
               padding: '9px 14px',
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: "'Outfit', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              fontFamily: "'DM Sans', sans-serif",
+              letterSpacing: '-0.01em',
               flexShrink: 0,
               cursor: 'pointer',
             }}
@@ -437,7 +443,10 @@ export default function MessageThread() {
               textAlign: 'center',
               padding: '40px 0',
               color: COLORS.textLight,
+              fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
             }}
           >
             Loading messages…
@@ -448,7 +457,10 @@ export default function MessageThread() {
               textAlign: 'center',
               padding: '40px 0',
               color: COLORS.textLight,
+              fontFamily: "'DM Sans', sans-serif",
               fontSize: 13,
+              fontWeight: 500,
+              letterSpacing: '-0.01em',
             }}
           >
             No messages yet. Say hello!
@@ -464,9 +476,11 @@ export default function MessageThread() {
                   <div
                     style={{
                       alignSelf: 'center',
-                      fontSize: 11,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 12.5,
                       color: COLORS.textLight,
-                      fontWeight: 600,
+                      fontWeight: 500,
+                      letterSpacing: '-0.01em',
                       margin: '12px 0 6px',
                     }}
                   >
@@ -508,7 +522,9 @@ export default function MessageThread() {
             padding: '11px 16px',
             fontSize: 13,
             color: COLORS.text,
-            fontFamily: 'inherit',
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 500,
+            letterSpacing: '-0.01em',
             outline: 'none',
           }}
         />
@@ -560,7 +576,10 @@ function Bubble({ msg, isMine }) {
         maxWidth: '78%',
         padding: '10px 14px',
         borderRadius: 18,
+        fontFamily: "'DM Sans', sans-serif",
         fontSize: 14,
+        fontWeight: 500,
+        letterSpacing: '-0.01em',
         lineHeight: 1.45,
         background: isMine ? COLORS.green : COLORS.card,
         color: isMine ? 'white' : COLORS.text,

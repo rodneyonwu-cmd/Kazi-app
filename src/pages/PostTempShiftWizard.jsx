@@ -90,10 +90,10 @@ export default function PostTempShiftWizard() {
               <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: COLORS.text, lineHeight: 1 }}>Post Temp Shift</div>
-              <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 3, fontWeight: 600 }}>Step {step} of {totalSteps}</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: COLORS.text, letterSpacing: '-0.02em', lineHeight: 1 }}>Post Temp Shift</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, marginTop: 3, fontWeight: 500, letterSpacing: '-0.01em' }}>Step {step} of {totalSteps}</div>
             </div>
-            <div style={{ background: COLORS.greenTint, color: COLORS.green, padding: '5px 11px', borderRadius: 100, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Temp</div>
+            <div style={{ background: COLORS.greenTint, color: COLORS.green, padding: '5px 11px', borderRadius: 100, fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Temp</div>
           </div>
           <div style={{ height: 6, background: COLORS.borderSoft, borderRadius: 100, overflow: 'hidden' }}>
             <div style={{ height: '100%', background: `linear-gradient(90deg, ${COLORS.green} 0%, #5eb896 100%)`, borderRadius: 100, width: `${(step / totalSteps) * 100}%`, transition: 'width 0.4s cubic-bezier(0.32, 0.72, 0, 1)' }} />
@@ -109,8 +109,8 @@ export default function PostTempShiftWizard() {
           {step === 7 && <Step7Review formatTime={formatTime} formatDate={formatDate} role={role} selectedDate={selectedDate} startTime={startTime} endTime={endTime} lunchOn={lunchOn} lunchDuration={lunchDuration} rate={rate} notes={notes} jumpTo={jumpTo} />}
         </div>
         <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', maxWidth: 480, width: '100%', background: 'white', padding: '14px 20px 26px', borderTop: `1px solid ${COLORS.borderSoft}`, zIndex: 50, display: 'flex', gap: 10 }}>
-          <button onClick={prev} disabled={step === 1} style={{ background: COLORS.bg, color: COLORS.text, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: '16px 22px', fontSize: 14, fontWeight: 700, cursor: step === 1 ? 'not-allowed' : 'pointer', opacity: step === 1 ? 0.4 : 1, flexShrink: 0 }}>Back</button>
-          <button onClick={next} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: 16, fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button onClick={prev} disabled={step === 1} style={{ background: COLORS.bg, color: COLORS.text, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: '16px 22px', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: step === 1 ? 'not-allowed' : 'pointer', opacity: step === 1 ? 0.4 : 1, flexShrink: 0 }}>Back</button>
+          <button onClick={next} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: 16, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {step === totalSteps ? 'Post Shift' : 'Continue'}
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>{step === totalSteps ? <polyline points="20 6 9 17 4 12" /> : <><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></>}</svg>
           </button>
@@ -129,7 +129,7 @@ function Step1Role({ role, setRole }) {
       {ROLES.map((r) => { const selected = role === r.name; return (
         <button key={r.name} onClick={() => setRole(r.name)} style={{ background: selected ? COLORS.greenTint : 'white', border: `2px solid ${selected ? COLORS.green : COLORS.border}`, borderRadius: 18, padding: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: selected ? COLORS.green : COLORS.greenTint, color: selected ? 'white' : COLORS.green, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{r.icon}</div>
-          <div style={{ flex: 1, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 21, color: COLORS.text, textAlign: 'left', lineHeight: 1.2 }}>{r.name}</div>
+          <div style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: COLORS.text, letterSpacing: '-0.02em', textAlign: 'left', lineHeight: 1.2 }}>{r.name}</div>
           <div style={{ width: 26, height: 26, borderRadius: '50%', border: `2px solid ${selected ? COLORS.green : COLORS.border}`, background: selected ? COLORS.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {selected && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}><polyline points="20 6 9 17 4 12" /></svg>}
           </div>
@@ -157,7 +157,7 @@ function Step2Date({ selectedDate, setSelectedDate }) {
       <button onClick={() => changeMonth(-1)} disabled={isCurrentMonth} style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isCurrentMonth ? 'not-allowed' : 'pointer', opacity: isCurrentMonth ? 0.35 : 1 }}>
         <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><polyline points="15 18 9 12 15 6" /></svg>
       </button>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16 }}>{FULL_MONTHS[viewMonth]} {viewYear}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>{FULL_MONTHS[viewMonth]} {viewYear}</div>
       <button onClick={() => changeMonth(1)} style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
         <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><polyline points="9 18 15 12 9 6" /></svg>
       </button>
@@ -165,9 +165,9 @@ function Step2Date({ selectedDate, setSelectedDate }) {
     <div className="date-strip" style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', margin: '0 -20px', padding: '0 20px 8px' }}>
       {cells.map((d, i) => { const sel = d.getFullYear() === selectedDate.getFullYear() && d.getMonth() === selectedDate.getMonth() && d.getDate() === selectedDate.getDate(); return (
         <div key={i} onClick={() => setSelectedDate(d)} style={{ flexShrink: 0, width: 64, padding: '14px 8px', background: sel ? COLORS.green : 'white', border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`, borderRadius: 16, textAlign: 'center', cursor: 'pointer' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: sel ? 'white' : COLORS.textLight, textTransform: 'uppercase' }}>{days[d.getDay()]}</div>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 700, color: sel ? 'white' : COLORS.text, marginTop: 4, lineHeight: 1 }}>{d.getDate()}</div>
-          <div style={{ fontSize: 10, color: sel ? 'white' : COLORS.textLight, marginTop: 3, fontWeight: 600 }}>{months[d.getMonth()]}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: sel ? 'white' : COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{days[d.getDay()]}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 22, fontWeight: 700, color: sel ? 'white' : COLORS.text, letterSpacing: '-0.02em', marginTop: 4, lineHeight: 1 }}>{d.getDate()}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: sel ? 'white' : COLORS.textLight, marginTop: 3, fontWeight: 600, letterSpacing: '-0.01em' }}>{months[d.getMonth()]}</div>
         </div>
       ); })}
     </div>
@@ -192,7 +192,7 @@ function TimePickerCard({ open, value, displayValue, onToggle, onChange }) {
   return (
     <div style={{ background: 'white', border: `1.5px solid ${open ? COLORS.green : COLORS.border}`, borderRadius: 18, overflow: 'hidden' }}>
       <div onClick={onToggle} style={{ padding: '16px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 19, fontWeight: 700 }}>{displayValue}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>{displayValue}</div>
         <svg viewBox="0 0 24 24" fill="none" stroke={open ? COLORS.green : COLORS.textLight} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, transform: open ? 'rotate(180deg)' : 'none' }}><polyline points="6 9 12 15 18 9" /></svg>
       </div>
       {open && <div style={{ padding: '8px 0 16px', borderTop: `1px solid ${COLORS.borderSoft}` }}><TimeWheel value={value} onChange={onChange} /></div>}
@@ -220,7 +220,7 @@ function WheelColumn({ items, selected, onSelect }) {
   return (
     <div ref={colRef} className="wheel-col" onScroll={handleScroll} style={{ flex: 1, height: 168, overflowY: 'scroll', scrollSnapType: 'y mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch', position: 'relative', zIndex: 1, WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)', maskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)' }}>
       <div style={{ padding: '64px 0' }}>
-        {items.map((item, idx) => <div key={item.value} onClick={() => { if (colRef.current) colRef.current.scrollTo({ top: idx * ITEM_HEIGHT, behavior: 'smooth' }); }} style={{ height: 40, lineHeight: '40px', textAlign: 'center', fontFamily: "'Outfit', sans-serif", fontWeight: idx === activeIdx ? 800 : 600, fontSize: 22, color: idx === activeIdx ? COLORS.text : COLORS.textLight, scrollSnapAlign: 'center', cursor: 'pointer' }}>{item.label}</div>)}
+        {items.map((item, idx) => <div key={item.value} onClick={() => { if (colRef.current) colRef.current.scrollTo({ top: idx * ITEM_HEIGHT, behavior: 'smooth' }); }} style={{ height: 40, lineHeight: '40px', textAlign: 'center', fontFamily: "'DM Sans', sans-serif", fontWeight: idx === activeIdx ? 700 : 500, fontSize: 22, letterSpacing: '-0.02em', color: idx === activeIdx ? COLORS.text : COLORS.textLight, scrollSnapAlign: 'center', cursor: 'pointer' }}>{item.label}</div>)}
       </div>
     </div>
   );
@@ -232,13 +232,13 @@ function Step4Lunch({ lunchOn, setLunchOn, lunchDuration, setLunchDuration }) {
     <div style={questionStyle}>Lunch break?</div>
     <div style={helperStyle}>Unpaid break during the shift. Choose a duration.</div>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, background: 'white', border: `1.5px solid ${COLORS.border}`, borderRadius: 16, padding: '14px 18px' }}>
-      <div><div style={{ fontSize: 14, fontWeight: 700 }}>Provide lunch break</div><div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>Toggle off if no break</div></div>
+      <div><div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}>Provide lunch break</div><div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>Toggle off if no break</div></div>
       <button onClick={() => setLunchOn(!lunchOn)} style={{ position: 'relative', width: 46, height: 26, background: lunchOn ? COLORS.green : COLORS.border, borderRadius: 100, cursor: 'pointer', border: 'none' }}>
         <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, background: 'white', borderRadius: '50%', transform: lunchOn ? 'translateX(20px)' : 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
       </button>
     </div>
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, opacity: lunchOn ? 1 : 0.4, pointerEvents: lunchOn ? 'auto' : 'none' }}>
-      {options.map((opt) => { const sel = lunchDuration === opt; return <button key={opt} onClick={() => setLunchDuration(opt)} style={{ background: sel ? COLORS.green : 'white', border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`, borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 600, color: sel ? 'white' : COLORS.textMid, cursor: 'pointer' }}>{opt}</button>; })}
+      {options.map((opt) => { const sel = lunchDuration === opt; return <button key={opt} onClick={() => setLunchDuration(opt)} style={{ background: sel ? COLORS.green : 'white', border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`, borderRadius: 100, padding: '12px 18px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', color: sel ? 'white' : COLORS.textMid, cursor: 'pointer' }}>{opt}</button>; })}
     </div>
   </>);
 }
@@ -252,16 +252,16 @@ function Step5Rate({ role, rate, setRate }) {
     <div style={questionStyle}>What's the hourly rate?</div>
     <div style={helperStyle}>What you'll pay per hour.</div>
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, justifyContent: 'center', margin: '16px 0 6px' }}>
-      <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 700 }}>$</span>
-      <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 64, fontWeight: 800, color: COLORS.green, lineHeight: 1 }}>{rate}</span>
-      <span style={{ fontSize: 16, color: COLORS.textLight, fontWeight: 600 }}>/hr</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>$</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 64, fontWeight: 700, color: COLORS.green, letterSpacing: '-0.03em', lineHeight: 1 }}>{rate}</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>/hr</span>
     </div>
-    <div style={{ textAlign: 'center', fontSize: 12, color: COLORS.textLight, fontWeight: 600, marginBottom: 24 }}>Houston average for {data.plural}: <strong style={{ color: COLORS.green, fontWeight: 700 }}>${data.avg}/hr</strong></div>
+    <div style={{ textAlign: 'center', fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginBottom: 24 }}>Houston average for {data.plural}: <strong style={{ color: COLORS.green, fontWeight: 700, letterSpacing: '-0.01em' }}>${data.avg}/hr</strong></div>
     <div ref={sliderRef} onMouseDown={(e) => { setDragging(true); setRateFromX(e.clientX); }} onTouchStart={(e) => { setDragging(true); setRateFromX(e.touches[0].clientX); }} style={{ height: 8, background: COLORS.bg, borderRadius: 100, position: 'relative', margin: '0 12px', cursor: 'pointer' }}>
       <div style={{ position: 'absolute', height: '100%', left: 0, width: `${pct}%`, background: COLORS.green, borderRadius: 100 }} />
       <div style={{ position: 'absolute', top: '50%', left: `${pct}%`, transform: 'translate(-50%, -50%)', width: 26, height: 26, background: 'white', border: `3px solid ${COLORS.green}`, borderRadius: '50%', boxShadow: '0 3px 8px rgba(0,0,0,0.15)' }} />
     </div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, fontSize: 11, color: COLORS.textLight, fontWeight: 600, padding: '0 8px' }}><span>${data.min}</span><span>${data.max}</span></div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', padding: '0 8px' }}><span>${data.min}</span><span>${data.max}</span></div>
   </>);
 }
 
@@ -269,7 +269,7 @@ function Step6Notes({ notes, setNotes }) {
   return (<>
     <div style={questionStyle}>Any notes for the pro?</div>
     <div style={helperStyle}>Parking, dress code, where to check in. Optional.</div>
-    <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. Please wear navy scrubs. Park in lot B. Ask for Maria at the front desk." style={{ width: '100%', background: 'white', border: `2px solid ${COLORS.border}`, borderRadius: 16, padding: '16px 18px', fontFamily: 'inherit', fontSize: 14, color: COLORS.text, resize: 'none', outline: 'none', minHeight: 120, lineHeight: 1.5 }} />
+    <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. Please wear navy scrubs. Park in lot B. Ask for Maria at the front desk." style={{ width: '100%', background: 'white', border: `2px solid ${COLORS.border}`, borderRadius: 16, padding: '16px 18px', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', color: COLORS.text, resize: 'none', outline: 'none', minHeight: 120, lineHeight: 1.5 }} />
   </>);
 }
 
@@ -282,7 +282,7 @@ function Step7Review({ formatTime, formatDate, role, selectedDate, startTime, en
     <ReviewCard title="Hours" onEdit={() => jumpTo(3)}>{formatTime(startTime)} – {formatTime(endTime)}</ReviewCard>
     <ReviewCard title="Lunch break" onEdit={() => jumpTo(4)}>{lunchOn ? lunchDuration : 'None'}</ReviewCard>
     <ReviewCard title="Hourly rate" onEdit={() => jumpTo(5)}>${rate}/hr</ReviewCard>
-    <ReviewCard title="Notes" onEdit={() => jumpTo(6)}>{notes && notes.trim() ? <span style={{ fontSize: 14, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{notes}</span> : <span style={{ fontStyle: 'italic', color: COLORS.textLight, fontWeight: 500, fontSize: 13 }}>No notes added</span>}</ReviewCard>
+    <ReviewCard title="Notes" onEdit={() => jumpTo(6)}>{notes && notes.trim() ? <span style={{ fontSize: 14, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>{notes}</span> : <span style={{ fontStyle: 'italic', color: COLORS.textLight, fontWeight: 500, fontSize: 13, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>No notes added</span>}</ReviewCard>
   </>);
 }
 
@@ -290,12 +290,12 @@ function ReviewCard({ title, onEdit, children }) {
   return (
     <div style={{ background: 'white', border: `1.5px solid ${COLORS.border}`, borderRadius: 18, padding: '16px 18px', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 12, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>{title}</div>
-        <button onClick={onEdit} style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: '6px 14px', fontSize: 11, fontWeight: 700, color: COLORS.green, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{title}</div>
+        <button onClick={onEdit} style={{ background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: '6px 14px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: '-0.01em', color: COLORS.green, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>Edit
         </button>
       </div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 16, fontWeight: 700, color: COLORS.text, lineHeight: 1.4 }}>{children}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em', lineHeight: 1.4 }}>{children}</div>
     </div>
   );
 }
@@ -306,11 +306,11 @@ function SuccessModal({ onClose }) {
     <div style={{ position: 'fixed', left: '50%', top: '50%', background: 'white', borderRadius: 28, padding: '32px 24px 24px', width: 'calc(100% - 48px)', maxWidth: 360, zIndex: 201, textAlign: 'center', boxShadow: '0 24px 60px rgba(0,0,0,0.35)', animation: 'scaleIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', transform: 'translate(-50%, -50%)' }}>
       <Confetti />
       <div style={{ display: 'inline-block', marginBottom: 18 }}><div style={{ fontSize: 64, lineHeight: 1, animation: 'iconBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both, iconWiggle 2.5s ease-in-out 1s infinite', transformOrigin: 'bottom center' }}>🎉</div></div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, marginBottom: 10, lineHeight: 1.15 }}>Your shift is live!</div>
-      <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.5, marginBottom: 22 }}>Qualified Houston dental pros are being notified now.</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em', marginBottom: 10, lineHeight: 1.15 }}>Your shift is live!</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5, marginBottom: 22 }}>Qualified Houston dental pros are being notified now.</div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={onClose} style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Post another</button>
-        <button onClick={onClose} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>View shift</button>
+        <button onClick={onClose} style={{ flex: 1, background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer' }}>Post another</button>
+        <button onClick={onClose} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer' }}>View shift</button>
       </div>
     </div>
   </>);
@@ -321,6 +321,6 @@ function Confetti() {
   return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible' }}>{pieces.map((p, i) => <span key={i} style={{ position: 'absolute', top: -20, left: p.left, width: 10, height: 14, borderRadius: 2, background: p.bg, transform: `rotate(${p.rotate})`, animation: `confettiFall 2.4s ease-in ${p.delay} forwards` }} />)}</div>;
 }
 
-const questionStyle = { fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, lineHeight: 1.2, color: COLORS.text, marginBottom: 8 };
-const helperStyle = { fontSize: 14, color: COLORS.textMid, marginBottom: 28, lineHeight: 1.5 };
-const fieldLabelStyle = { fontSize: 11, fontWeight: 700, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 };
+const questionStyle = { fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, lineHeight: 1.2, color: COLORS.text, letterSpacing: '-0.02em', marginBottom: 8 };
+const helperStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', marginBottom: 28, lineHeight: 1.5 };
+const fieldLabelStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 };

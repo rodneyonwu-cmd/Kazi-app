@@ -9,13 +9,13 @@ const styles = `
 .kazi-settings .topbar{position:sticky;top:0;z-index:30;background:var(--card);padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-soft)}
 .kazi-settings .icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .kazi-settings .icon-btn svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none}
-.kazi-settings .topbar-title{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;flex:1;letter-spacing:-.01em}
+.kazi-settings .topbar-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;flex:1;letter-spacing:-.02em}
 .kazi-settings .search-wrap{padding:14px 20px 0;position:relative}
 .kazi-settings .search-input{width:100%;padding:12px 16px 12px 42px;background:var(--card);border:1.5px solid var(--border);border-radius:100px;font-family:inherit;font-size:13px;outline:none;font-weight:500}
 .kazi-settings .search-input:focus{border-color:var(--green)}
 .kazi-settings .search-input::placeholder{color:var(--text-light)}
 .kazi-settings .search-icon{position:absolute;left:36px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--text-light);fill:none;stroke-width:2.2}
-.kazi-settings .section-label{font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;margin:22px 24px 8px}
+.kazi-settings .section-label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;margin:22px 24px 8px}
 .kazi-settings .card{background:var(--card);margin:0 20px;border-radius:14px;border:1.5px solid var(--border);overflow:hidden}
 .kazi-settings .row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border-soft);cursor:pointer;min-height:56px}
 .kazi-settings .row:last-child{border-bottom:none}
@@ -38,7 +38,7 @@ const styles = `
 .kazi-settings .row.master .row-icon svg{stroke:var(--green)}
 .kazi-settings .row.master .row-label{font-weight:700;color:var(--green)}
 .kazi-settings .app-footer{padding:30px 20px 20px;text-align:center}
-.kazi-settings .app-logo{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--green);letter-spacing:-.02em;margin-bottom:4px}
+.kazi-settings .app-logo{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--green);letter-spacing:-.02em;margin-bottom:4px}
 .kazi-settings .app-version{font-size:10px;color:var(--text-light);font-weight:600}
 `;
 

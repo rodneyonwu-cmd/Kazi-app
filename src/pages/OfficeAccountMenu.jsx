@@ -124,7 +124,7 @@ export default function OfficeAccountMenu() {
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <div className="font-[Outfit] font-bold text-[22px] text-[#0f1a16] tracking-[-0.02em] flex-1 ml-1">
+        <div className="flex-1 ml-1" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}>
           Profile
         </div>
         <div className="flex items-center gap-[10px]">
@@ -141,7 +141,8 @@ export default function OfficeAccountMenu() {
           </button>
           <button
             onClick={handleHelp}
-            className="bg-[#e8f2ed] text-[#1a7f5e] border-none px-[14px] py-2 rounded-full font-[DM_Sans] font-semibold text-[13.5px] cursor-pointer"
+            className="bg-[#e8f2ed] text-[#1a7f5e] border-none px-[14px] py-2 rounded-full cursor-pointer"
+            style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}
           >
             Get help
           </button>
@@ -151,8 +152,8 @@ export default function OfficeAccountMenu() {
       {/* Identity */}
       <section className="px-5 pt-3 pb-6 flex items-center gap-4">
         <div
-          className="w-[88px] h-[88px] rounded-[24px] text-white font-[Outfit] font-bold text-[30px] tracking-[-0.01em] grid place-items-center flex-shrink-0 relative"
-          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
+          className="w-[88px] h-[88px] rounded-[24px] text-white grid place-items-center flex-shrink-0 relative"
+          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 30, letterSpacing: '-0.02em' }}
         >
           {initials}
           <button
@@ -167,26 +168,26 @@ export default function OfficeAccountMenu() {
           </button>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-[Outfit] font-bold text-[22px] text-[#0f1a16] tracking-[-0.02em] mb-[6px] leading-[1.15]">
+          <div className="mb-[6px] leading-[1.15]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}>
             {displayName}
           </div>
           <div className="flex gap-4 flex-wrap">
             <div className="flex flex-col gap-[2px]">
-              <span className="font-[Outfit] font-bold text-[16px] text-[#0f1a16] tracking-[-0.01em]">
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.02em' }}>
                 {mockStats.shiftsFilled}
               </span>
-              <span className="text-[10.5px] text-[#6b7875] font-semibold uppercase tracking-[0.06em]">
+              <span className="uppercase" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10.5, color: '#6b7875', fontWeight: 700, letterSpacing: '0.06em' }}>
                 Shifts filled
               </span>
             </div>
             <div className="flex flex-col gap-[2px]">
-              <span className="font-[Outfit] font-bold text-[16px] text-[#0f1a16] tracking-[-0.01em] inline-flex items-center gap-[3px]">
+              <span className="inline-flex items-center gap-[3px]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.02em' }}>
                 <svg className="w-[13px] h-[13px]" viewBox="0 0 24 24" fill="#f4b740">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 {mockStats.rating.toFixed(1)}
               </span>
-              <span className="text-[10.5px] text-[#6b7875] font-semibold uppercase tracking-[0.06em]">
+              <span className="uppercase" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10.5, color: '#6b7875', fontWeight: 700, letterSpacing: '0.06em' }}>
                 Rating
               </span>
             </div>
@@ -202,18 +203,18 @@ export default function OfficeAccountMenu() {
           borderColor: '#d4e7dd',
         }}
       >
-        <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#6b7875] mb-2">
+        <div className="uppercase mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: '#6b7875' }}>
           Office Rating
         </div>
         <div className="inline-flex items-baseline gap-[6px] mb-1">
           <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#f4b740" style={{ alignSelf: 'center' }}>
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
           </svg>
-          <span className="font-[Outfit] font-extrabold text-[52px] text-[#1a7f5e] leading-none tracking-[-0.03em]">
+          <span className="leading-none" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 52, color: '#1a7f5e', letterSpacing: '-0.03em' }}>
             {mockStats.rating.toFixed(1)}
           </span>
         </div>
-        <div className="text-[12.5px] text-[#6b7875] font-medium mb-[14px]">
+        <div className="mb-[14px]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em' }}>
           {mockStats.officeName} · {mockStats.reviewCount} reviews
         </div>
 
@@ -228,7 +229,8 @@ export default function OfficeAccountMenu() {
 
         <button
           onClick={handlePostJob}
-          className="inline-flex items-center justify-center w-full py-[13px] px-5 bg-[#1a7f5e] text-white border-none rounded-full font-[DM_Sans] font-semibold text-[14.5px] cursor-pointer gap-[6px]"
+          className="inline-flex items-center justify-center w-full py-[13px] px-5 bg-[#1a7f5e] text-white border-none rounded-full cursor-pointer gap-[6px]"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '-0.01em' }}
         >
           <svg className="w-[15px] h-[15px] stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -240,7 +242,7 @@ export default function OfficeAccountMenu() {
 
       {/* Account section */}
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+        <h3 className="m-0" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
           Account
         </h3>
       </div>
@@ -258,7 +260,7 @@ export default function OfficeAccountMenu() {
 
       {/* Settings and support section */}
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+        <h3 className="m-0" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
           Settings and support
         </h3>
       </div>
@@ -275,7 +277,7 @@ export default function OfficeAccountMenu() {
       </div>
 
       {/* Version */}
-      <div className="text-center text-[12px] text-[#9aa5a1] font-medium py-6">
+      <div className="text-center py-6" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#9aa5a1', fontWeight: 500, letterSpacing: '-0.01em' }}>
         Kazi · Version 1.0.0
       </div>
     </div>
@@ -286,10 +288,10 @@ export default function OfficeAccountMenu() {
 function MiniStat({ value, label }) {
   return (
     <div className="flex-1 flex flex-col items-center gap-1 py-1">
-      <span className="font-[Outfit] font-bold text-[18px] text-[#0f1a16] tracking-[-0.01em] leading-none">
+      <span className="leading-none" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
         {value}
       </span>
-      <span className="text-[10.5px] text-[#6b7875] font-semibold uppercase tracking-[0.04em]">
+      <span className="uppercase" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10.5, color: '#6b7875', fontWeight: 700, letterSpacing: '0.06em' }}>
         {label}
       </span>
     </div>
@@ -307,7 +309,7 @@ function AccountRow({ label, IconComp, onTap, isLast }) {
       <div className="w-8 h-8 rounded-[10px] bg-[#f5faf7] grid place-items-center flex-shrink-0">
         <IconComp stroke="#1a7f5e" />
       </div>
-      <div className="flex-1 text-[14px] font-semibold text-[#0f1a16]">
+      <div className="flex-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#0f1a16', letterSpacing: '-0.01em' }}>
         {label}
       </div>
     </div>
@@ -328,9 +330,10 @@ function ManageRow({ label, IconComp, onTap, danger }) {
         <IconComp stroke={danger ? '#d64545' : '#1a7f5e'} />
       </div>
       <div
-        className={`flex-1 text-[14.5px] font-semibold ${
+        className={`flex-1 ${
           danger ? 'text-[#d64545]' : 'text-[#0f1a16]'
         }`}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}
       >
         {label}
       </div>

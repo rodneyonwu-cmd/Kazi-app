@@ -376,7 +376,7 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
       >
         <div className="w-10 h-1 bg-[#ececec] rounded-full mx-auto mt-3 mb-1" />
         <div className="px-6 pt-3 pb-5 flex items-center justify-between">
-          <div className="text-[22px] font-extrabold" style={{ fontFamily: "'Outfit', sans-serif" }}>Booking details</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>Booking details</div>
           <button onClick={onClose} className="w-9 h-9 rounded-full bg-[#f9f8f6] flex items-center justify-center text-[#1a1a1a]">
             <Icon.Close />
           </button>
@@ -392,7 +392,7 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><polyline points="15 18 9 12 15 6" /></svg>
             </button>
-            <div className="text-[17px] font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{fullMonths[viewMonth]} {viewYear}</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>{fullMonths[viewMonth]} {viewYear}</div>
             <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-full bg-[#f9f8f6] border border-[#f3f3f3] flex items-center justify-center">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><polyline points="9 18 15 12 9 6" /></svg>
             </button>
@@ -407,8 +407,8 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
                   onClick={() => setSelectedDate(d)}
                   className={`flex-shrink-0 w-[60px] py-3 px-2 rounded-2xl border-[1.5px] text-center cursor-pointer ${sel ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'bg-[#f9f8f6] border-[#f3f3f3]'}`}
                 >
-                  <div className={`text-[10px] font-bold uppercase tracking-wide ${sel ? 'text-white' : 'text-[#8a8a8a]'}`}>{days[d.getDay()]}</div>
-                  <div className={`text-[22px] font-bold mt-1 leading-none ${sel ? 'text-white' : 'text-[#1a1a1a]'}`} style={{ fontFamily: "'Outfit', sans-serif" }}>{d.getDate()}</div>
+                  <div className={`uppercase ${sel ? 'text-white' : 'text-[#8a8a8a]'}`} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em' }}>{days[d.getDay()]}</div>
+                  <div className={`mt-1 leading-none ${sel ? 'text-white' : 'text-[#1a1a1a]'}`} style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>{d.getDate()}</div>
                 </div>
               );
             })}
@@ -417,27 +417,27 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
 
         {/* Time pickers */}
         <div className="px-6 pb-5">
-          <div className="text-[11px] font-bold text-[#8a8a8a] uppercase tracking-wider mb-2.5">Shift hours</div>
+          <div className="text-[#8a8a8a] uppercase mb-2.5" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em' }}>Shift hours</div>
           <div className="grid grid-cols-2 gap-2.5">
             <div onClick={() => setStartIdx((startIdx + 1) % startTimes.length)} className="bg-[#f9f8f6] border-[1.5px] border-[#f3f3f3] rounded-2xl px-4 py-3.5 cursor-pointer">
-              <div className="text-[10px] font-bold text-[#8a8a8a] uppercase tracking-wider">Start time</div>
-              <div className="text-[18px] font-bold mt-1" style={{ fontFamily: "'Outfit', sans-serif" }}>{startTimes[startIdx]}</div>
+              <div className="text-[#8a8a8a] uppercase" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em' }}>Start time</div>
+              <div className="mt-1" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>{startTimes[startIdx]}</div>
             </div>
             <div onClick={() => setEndIdx((endIdx + 1) % endTimes.length)} className="bg-[#f9f8f6] border-[1.5px] border-[#f3f3f3] rounded-2xl px-4 py-3.5 cursor-pointer">
-              <div className="text-[10px] font-bold text-[#8a8a8a] uppercase tracking-wider">End time</div>
-              <div className="text-[18px] font-bold mt-1" style={{ fontFamily: "'Outfit', sans-serif" }}>{endTimes[endIdx]}</div>
+              <div className="text-[#8a8a8a] uppercase" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em' }}>End time</div>
+              <div className="mt-1" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>{endTimes[endIdx]}</div>
             </div>
           </div>
         </div>
 
         {/* Lunch break */}
         <div className="px-6 pb-5">
-          <div className="text-[11px] font-bold text-[#8a8a8a] uppercase tracking-wider mb-2.5">Lunch break</div>
+          <div className="text-[#8a8a8a] uppercase mb-2.5" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em' }}>Lunch break</div>
           <div className="bg-[#f9f8f6] border-[1.5px] border-[#f3f3f3] rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold">Provide a lunch break</div>
-                <div className="text-[11px] text-[#8a8a8a] mt-0.5">Unpaid break during the shift</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}>Provide a lunch break</div>
+                <div className="text-[#8a8a8a] mt-0.5" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, letterSpacing: '-0.01em' }}>Unpaid break during the shift</div>
               </div>
               <button
                 onClick={() => setLunchOn(!lunchOn)}
@@ -453,7 +453,8 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
                     <button
                       key={m}
                       onClick={() => setLunchMins(m)}
-                      className={`px-4 py-2 rounded-full text-[13px] font-semibold border-[1.5px] ${lunchMins === m ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'bg-white text-[#5a5a5a] border-[#ececec]'}`}
+                      className={`px-4 py-2 rounded-full border-[1.5px] ${lunchMins === m ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]' : 'bg-white text-[#5a5a5a] border-[#ececec]'}`}
+                      style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em' }}
                     >
                       {m === 60 ? '1 hour' : `${m} min`}
                     </button>
@@ -466,13 +467,14 @@ function BookingCriteriaSheet({ open, onClose, onApply }) {
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-white px-6 pt-4 pb-7 border-t border-[#f3f3f3]">
-          <div className="flex items-center justify-between mb-3 text-xs">
-            <span className="text-[#8a8a8a] font-semibold">Total shift</span>
-            <span className="font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>{totalDisplay()}</span>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[#8a8a8a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Total shift</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '-0.01em' }}>{totalDisplay()}</span>
           </div>
           <button
             onClick={() => onApply({ date: selectedDate, start: startTimes[startIdx], end: endTimes[endIdx], lunchOn, lunchMins })}
-            className="w-full bg-[#1a7f5e] text-white rounded-full py-4 font-bold text-[15px]"
+            className="w-full bg-[#1a7f5e] text-white rounded-full py-4"
+            style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '-0.01em' }}
           >
             Show available professionals
           </button>
@@ -685,12 +687,12 @@ export default function FindProfessionals() {
             <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" className="w-5 h-5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-white text-sm font-bold">Rapid Fill Mode</div>
-            <div className="text-white/75 text-xs">
+            <div className="text-white" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em' }}>Rapid Fill Mode</div>
+            <div className="text-white/75" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, letterSpacing: '-0.01em' }}>
               {rfContext?.primary ? `Backups for ${rfContext.primary} · ` : ''}Select up to 9 professionals
             </div>
           </div>
-          <button onClick={() => navigate(-1)} className="text-white/75 text-xs font-bold underline flex-shrink-0">Cancel</button>
+          <button onClick={() => navigate(-1)} className="text-white/75 underline flex-shrink-0" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em' }}>Cancel</button>
         </div>
       )}
 
@@ -700,9 +702,9 @@ export default function FindProfessionals() {
           <div style={{ minWidth: 0 }}>
             <div
               style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 800,
-                fontSize: 26,
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 22,
                 color: '#1a1a1a',
                 letterSpacing: '-0.02em',
                 lineHeight: 1.1,
@@ -710,7 +712,7 @@ export default function FindProfessionals() {
             >
               Find Professionals
             </div>
-            <div style={{ fontSize: 12.5, color: '#8a8a8a', marginTop: 4, fontWeight: 500 }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#8a8a8a', marginTop: 4, fontWeight: 500, letterSpacing: '-0.01em' }}>
               Houston, TX · 12 mile radius
             </div>
           </div>
@@ -754,8 +756,9 @@ export default function FindProfessionals() {
                 borderRadius: 100,
                 background: '#f9f8f6',
                 border: '1px solid #f3f3f3',
-                fontSize: 11,
-                fontWeight: 700,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: 12,
+                fontWeight: 600,
                 color: '#1a1a1a',
                 letterSpacing: '-0.01em',
               }}
@@ -776,7 +779,7 @@ export default function FindProfessionals() {
           style={{ boxShadow: '0 4px 14px rgba(26,127,94,0.08)' }}
         >
           <span className="text-[#8a8a8a]"><Icon.Calendar /></span>
-          <span className={`flex-1 text-left text-sm ${criteriaLabel === 'Add date & time' ? 'text-[#8a8a8a] font-medium' : 'text-[#1a1a1a] font-semibold'}`}>
+          <span className={`flex-1 text-left ${criteriaLabel === 'Add date & time' ? 'text-[#8a8a8a]' : 'text-[#1a1a1a]'}`} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: criteriaLabel === 'Add date & time' ? 500 : 600, letterSpacing: '-0.01em' }}>
             {criteriaLabel}
           </span>
           <span className="text-[#8a8a8a]"><Icon.Chevron /></span>
@@ -788,11 +791,12 @@ export default function FindProfessionals() {
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`flex-shrink-0 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap border ${
+              className={`flex-shrink-0 px-3.5 py-2 rounded-full whitespace-nowrap border ${
                 activeFilter === f
                   ? 'bg-[#1a7f5e] text-white border-[#1a7f5e]'
                   : 'bg-[#f9f8f6] text-[#5a5a5a] border-[#f3f3f3]'
               }`}
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em' }}
             >
               {f}
             </button>
@@ -802,8 +806,8 @@ export default function FindProfessionals() {
 
       {/* Results meta */}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between">
-        <div className="text-[13px] text-[#5a5a5a]"><strong className="text-[#1a1a1a] font-bold">{totalCount}</strong> available professionals</div>
-        <button className="text-[13px] font-bold text-[#1a7f5e] flex items-center gap-1">
+        <div className="text-[#5a5a5a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}><strong className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{totalCount}</strong> available professionals</div>
+        <button className="text-[#1a7f5e] flex items-center gap-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>
           Best Match <Icon.ChevronDown />
         </button>
       </div>
@@ -814,7 +818,7 @@ export default function FindProfessionals() {
           {preRole && (
             <button
               onClick={() => { setPreRole(null); setActiveFilter('All Roles'); }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12.5, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', cursor: 'pointer' }}
             >
               {preRole}
               <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -823,7 +827,7 @@ export default function FindProfessionals() {
           {preDate && (
             <button
               onClick={() => { setPreDate(null); setCriteriaDate(null); setCriteriaLabel('Add date & time'); }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12.5, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', cursor: 'pointer' }}
             >
               {new Date(preDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -832,7 +836,7 @@ export default function FindProfessionals() {
           {preStart && preEnd && (
             <button
               onClick={() => { setPreStart(null); setPreEnd(null); }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12.5, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', cursor: 'pointer' }}
             >
               {(() => { const fmt = (t) => { const [h, m] = t.split(':').map(Number); const ampm = h >= 12 ? 'PM' : 'AM'; return `${h % 12 || 12}${m ? ':' + String(m).padStart(2, '0') : ''}${ampm.toLowerCase().slice(0,1)}`; }; return `${fmt(preStart)}–${fmt(preEnd)}`; })()}
               <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -841,7 +845,7 @@ export default function FindProfessionals() {
           {preLunch && (
             <button
               onClick={() => setPreLunch(null)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#f1f9f5', border: '1.5px solid #e8f3ee', color: '#1a7f5e', borderRadius: 100, padding: '7px 12px 7px 14px', fontSize: 12.5, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', cursor: 'pointer' }}
             >
               {preLunch === '60' ? '1hr lunch' : `${preLunch}min lunch`}
               <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -854,7 +858,7 @@ export default function FindProfessionals() {
       {loading && (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-10 h-10 border-4 border-[#e8f3ee] border-t-[#1a7f5e] rounded-full animate-spin mb-3" />
-          <div className="text-sm text-[#8a8a8a] font-medium">Loading professionals...</div>
+          <div className="text-[#8a8a8a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>Loading professionals...</div>
         </div>
       )}
 
@@ -893,8 +897,8 @@ export default function FindProfessionals() {
       {/* Empty state */}
       {!loading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-          <div className="text-lg font-bold text-[#1a1a1a] mb-1" style={{ fontFamily: "'Outfit', sans-serif" }}>No professionals found</div>
-          <div className="text-sm text-[#8a8a8a]">Try adjusting your filters or check back later.</div>
+          <div className="text-[#1a1a1a] mb-1" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>No professionals found</div>
+          <div className="text-[#8a8a8a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>Try adjusting your filters or check back later.</div>
         </div>
       )}
 
@@ -920,15 +924,15 @@ export default function FindProfessionals() {
               const showEllipsis = prev && p - prev > 1;
               return (
                 <span key={p} className="flex items-center gap-2">
-                  {showEllipsis && <span className="text-[#8a8a8a] font-bold">…</span>}
+                  {showEllipsis && <span className="text-[#8a8a8a]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>…</span>}
                   <button
                     onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className={`min-w-[40px] h-10 rounded-full text-[13px] font-bold transition-colors ${
+                    className={`min-w-[40px] h-10 rounded-full transition-colors ${
                       currentPage === p
                         ? 'bg-[#1a7f5e] text-white'
                         : 'bg-white text-[#1a1a1a] border border-[#ececec]'
                     }`}
-                    style={{ fontFamily: "'Outfit', sans-serif" }}
+                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}
                   >
                     {p}
                   </button>
@@ -980,32 +984,33 @@ export default function FindProfessionals() {
                   {rfBackups.slice(0, 5).map((b, i) => (
                     <div
                       key={b.id}
-                      className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white text-[10px] font-bold border-2 border-white"
-                      style={{ background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', marginLeft: i === 0 ? 0 : -6, fontFamily: "'Outfit', sans-serif" }}
+                      className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white border-2 border-white"
+                      style={{ background: 'linear-gradient(135deg, #7ab8d4 0%, #88c9a1 100%)', marginLeft: i === 0 ? 0 : -6, fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '-0.01em' }}
                     >
                       {b.initials}
                     </div>
                   ))}
                   {rfBackups.length > 5 && (
-                    <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white text-[10px] font-bold border-2 border-white bg-[#1a7f5e]" style={{ marginLeft: -6 }}>
+                    <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-white border-2 border-white bg-[#1a7f5e]" style={{ marginLeft: -6, fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '-0.01em' }}>
                       +{rfBackups.length - 5}
                     </div>
                   )}
                 </div>
-                <span className="text-sm font-semibold text-[#1a1a1a]">{rfBackups.length} backup{rfBackups.length !== 1 ? 's' : ''} selected</span>
+                <span className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>{rfBackups.length} backup{rfBackups.length !== 1 ? 's' : ''} selected</span>
               </>
             ) : (
-              <span className="text-sm text-[#8a8a8a]">Tap professionals to add as backups</span>
+              <span className="text-[#8a8a8a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>Tap professionals to add as backups</span>
             )}
           </div>
           <button
             onClick={handleRfDone}
             disabled={rfBackups.length === 0}
-            className={`w-full py-4 rounded-full font-bold text-[15px] transition-colors ${
+            className={`w-full py-4 rounded-full transition-colors ${
               rfBackups.length > 0
                 ? 'bg-[#1a7f5e] text-white'
                 : 'bg-[#f3f3f3] text-[#8a8a8a] cursor-not-allowed'
             }`}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, letterSpacing: '-0.01em' }}
           >
             {rfBackups.length > 0 ? `Done — ${rfBackups.length} backup${rfBackups.length !== 1 ? 's' : ''} added` : 'Select at least 1 backup'}
           </button>
@@ -1091,7 +1096,7 @@ function FilterSheet({ open, onClose }) {
         <div style={{ width: 40, height: 4, background: '#ececec', borderRadius: 100, margin: '12px auto 4px', flexShrink: 0 }} />
 
         <div style={{ padding: '14px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f3f3f3', flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: '#1a1a1a', letterSpacing: '-0.3px' }}>Filters</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#1a1a1a', letterSpacing: '-0.02em' }}>Filters</div>
           <button onClick={onClose} style={{ width: 38, height: 38, borderRadius: '50%', background: '#f9f8f6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit' }} aria-label="Close filters">
             <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
@@ -1104,7 +1109,7 @@ function FilterSheet({ open, onClose }) {
           <FilterDivider />
           <FilterGroup label="Hourly rate" value={`$${rateMin} – $${rateMax}`}>
             <RangeSlider min={15} max={80} valueMin={rateMin} valueMax={rateMax} onChange={(lo, hi) => { setRateMin(lo); setRateMax(hi); }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#8a8a8a', fontWeight: 600, marginTop: 8 }}><span>$15</span><span>$80+</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#8a8a8a', fontWeight: 500, letterSpacing: '-0.01em', marginTop: 8 }}><span>$15</span><span>$80+</span></div>
           </FilterGroup>
           <FilterDivider />
           <FilterGroup label="Reliability" sub="Filter by Kazi's trust score">
@@ -1136,8 +1141,8 @@ function FilterSheet({ open, onClose }) {
         </div>
 
         <div style={{ padding: '14px 20px 26px', borderTop: '1px solid #f3f3f3', background: 'white', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={resetAll} style={{ background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, color: '#5a5a5a', cursor: 'pointer', padding: '14px 4px', textDecoration: 'underline', flexShrink: 0 }}>Reset all</button>
-          <button onClick={onClose} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>Show 247 professionals</button>
+          <button onClick={resetAll} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', color: '#5a5a5a', cursor: 'pointer', padding: '14px 4px', textDecoration: 'underline', flexShrink: 0 }}>Reset all</button>
+          <button onClick={onClose} style={{ flex: 1, background: '#1a7f5e', color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', cursor: 'pointer' }}>Show 247 professionals</button>
         </div>
       </div>
     </>
@@ -1148,10 +1153,10 @@ function FilterGroup({ label, sub, value, children }) {
   return (
     <div style={{ padding: '20px 24px 18px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: sub ? 2 : 12 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: '#1a1a1a' }}>{label}</div>
-        {value != null && <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 700, color: '#1a7f5e' }}>{value}</div>}
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: '#1a1a1a', letterSpacing: '-0.02em' }}>{label}</div>
+        {value != null && <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#1a7f5e', letterSpacing: '-0.01em' }}>{value}</div>}
       </div>
-      {sub && <div style={{ fontSize: 12, color: '#8a8a8a', marginBottom: 12, lineHeight: 1.4 }}>{sub}</div>}
+      {sub && <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#8a8a8a', fontWeight: 500, letterSpacing: '-0.01em', marginBottom: 12, lineHeight: 1.4 }}>{sub}</div>}
       {children}
     </div>
   );
@@ -1167,7 +1172,7 @@ function FilterPills({ options, selected, onSelect }) {
       {options.map((opt) => {
         const isSel = selected === opt;
         return (
-          <button key={opt} onClick={() => onSelect(opt)} style={{ background: isSel ? '#1a7f5e' : '#ffffff', border: `1.5px solid ${isSel ? '#1a7f5e' : '#ececec'}`, borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 700, color: isSel ? 'white' : '#5a5a5a', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>{opt}</button>
+          <button key={opt} onClick={() => onSelect(opt)} style={{ background: isSel ? '#1a7f5e' : '#ffffff', border: `1.5px solid ${isSel ? '#1a7f5e' : '#ececec'}`, borderRadius: 100, padding: '10px 18px', fontSize: 12.5, fontWeight: 600, color: isSel ? 'white' : '#5a5a5a', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', transition: 'all 0.15s' }}>{opt}</button>
         );
       })}
     </div>
@@ -1178,7 +1183,7 @@ function ReliabilityPill({ label, tier, selected, onClick }) {
   const tierColors = { excellent: { bg: '#1a7f5e', border: '#1a7f5e' }, great: { bg: '#7c3aed', border: '#7c3aed' }, good: { bg: '#d97706', border: '#d97706' }, any: { bg: '#1a7f5e', border: '#1a7f5e' } };
   const c = tierColors[tier];
   return (
-    <button onClick={onClick} style={{ background: selected ? c.bg : '#ffffff', border: `1.5px solid ${selected ? c.border : '#ececec'}`, borderRadius: 100, padding: '10px 18px', fontSize: 13, fontWeight: 700, color: selected ? 'white' : '#5a5a5a', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}>{label}</button>
+    <button onClick={onClick} style={{ background: selected ? c.bg : '#ffffff', border: `1.5px solid ${selected ? c.border : '#ececec'}`, borderRadius: 100, padding: '10px 18px', fontSize: 12.5, fontWeight: 600, color: selected ? 'white' : '#5a5a5a', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', transition: 'all 0.15s' }}>{label}</button>
   );
 }
 
@@ -1189,7 +1194,7 @@ function MultiSelectDropdown({ open, onToggle, options, selected, onChange, plac
   return (
     <div style={{ background: '#ffffff', border: `1.5px solid ${open ? '#1a7f5e' : '#ececec'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color 0.15s' }}>
       <div onClick={onToggle} style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 10 }}>
-        <div style={{ flex: 1, fontSize: 13, fontWeight: hasSelection ? 700 : 500, color: hasSelection ? '#1a1a1a' : '#8a8a8a', fontFamily: hasSelection ? "'Outfit', sans-serif" : "'DM Sans', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{summary}</div>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: hasSelection ? 600 : 500, color: hasSelection ? '#1a1a1a' : '#8a8a8a', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{summary}</div>
         <svg viewBox="0 0 24 24" fill="none" stroke={open ? '#1a7f5e' : '#8a8a8a'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><polyline points="6 9 12 15 18 9" /></svg>
       </div>
       {open && (
@@ -1201,7 +1206,7 @@ function MultiSelectDropdown({ open, onToggle, options, selected, onChange, plac
                 <div style={{ width: 20, height: 20, borderRadius: 6, background: isSel ? '#1a7f5e' : 'white', border: `1.5px solid ${isSel ? '#1a7f5e' : '#ececec'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {isSel && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}><polyline points="20 6 9 17 4 12" /></svg>}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{opt}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#1a1a1a', letterSpacing: '-0.01em' }}>{opt}</div>
               </div>
             );
           })}
@@ -1215,8 +1220,8 @@ function ToggleRow({ title, sub, value, onChange, isFirst }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px', borderTop: isFirst ? 'none' : '1px solid #f3f3f3' }}>
       <div style={{ flex: 1, paddingRight: 16 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1a1a', fontFamily: "'Outfit', sans-serif" }}>{title}</div>
-        <div style={{ fontSize: 11, color: '#8a8a8a', marginTop: 2 }}>{sub}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: '#8a8a8a', marginTop: 2, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: '-0.01em' }}>{sub}</div>
       </div>
       <button onClick={() => onChange(!value)} style={{ position: 'relative', width: 46, height: 26, background: value ? '#1a7f5e' : '#ececec', borderRadius: 100, border: 'none', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0, padding: 0 }} aria-label={title}>
         <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: 'transform 0.2s', transform: value ? 'translateX(20px)' : 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />

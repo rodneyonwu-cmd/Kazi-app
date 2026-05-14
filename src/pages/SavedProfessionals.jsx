@@ -122,10 +122,10 @@ export default function SavedProfessionals() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-[22px] sm:text-[24px] font-extrabold text-[#1a1a1a] mb-1">Saved Professionals</h1>
-            <p className="text-[13px] sm:text-[14px] text-[#9ca3af]">{filtered.length} professional{filtered.length !== 1 ? 's' : ''} saved</p>
+            <h1 className="text-[#1a1a1a] mb-1" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>Saved Professionals</h1>
+            <p className="text-[#9ca3af]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>{filtered.length} professional{filtered.length !== 1 ? 's' : ''} saved</p>
           </div>
-          <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-5 py-3 sm:py-2.5 rounded-full text-sm transition flex items-center justify-center gap-2 w-full sm:w-auto">
+          <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white px-5 py-3 sm:py-2.5 rounded-full transition flex items-center justify-center gap-2 w-full sm:w-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             Browse professionals
           </button>
@@ -137,7 +137,8 @@ export default function SavedProfessionals() {
             <button
               key={role}
               onClick={() => setSelectedRole(role)}
-              className={`px-4 py-2 rounded-full text-[13px] sm:text-sm font-semibold border-[1.5px] transition flex-shrink-0 ${selectedRole === role ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white font-bold' : 'border-[#e5e7eb] text-[#374151] bg-white hover:border-[#1a7f5e]'}`}
+              className={`px-4 py-2 rounded-full border-[1.5px] transition flex-shrink-0 ${selectedRole === role ? 'bg-[#1a7f5e] border-[#1a7f5e] text-white' : 'border-[#e5e7eb] text-[#374151] bg-white hover:border-[#1a7f5e]'}`}
+              style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 12.5, letterSpacing: '-0.01em' }}
             >
               {role}
             </button>
@@ -150,18 +151,18 @@ export default function SavedProfessionals() {
             <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mb-4">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             </div>
-            <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">
+            <p className="text-[#1a1a1a] mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>
               {selectedRole !== 'All' ? `No saved ${selectedRole}s` : 'No saved professionals'}
             </p>
-            <p className="text-[14px] text-[#9ca3af] leading-relaxed mb-6 max-w-[260px]">
+            <p className="text-[#9ca3af] leading-relaxed mb-6 max-w-[260px]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>
               {selectedRole !== 'All' ? 'Try a different role filter or browse professionals to save more.' : 'Professionals you save will appear here for quick access and rebooking.'}
             </p>
             {selectedRole !== 'All' ? (
-              <button onClick={() => setSelectedRole('All')} className="border-[1.5px] border-[#e5e7eb] text-[#374151] font-bold px-6 py-2.5 rounded-full text-sm hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition">
+              <button onClick={() => setSelectedRole('All')} className="border-[1.5px] border-[#e5e7eb] text-[#374151] px-6 py-2.5 rounded-full hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}>
                 Clear filter
               </button>
             ) : (
-              <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-6 py-2.5 rounded-full text-sm transition">
+              <button onClick={() => navigate('/professionals')} className="bg-[#1a7f5e] hover:bg-[#156649] text-white px-6 py-2.5 rounded-full transition" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}>
                 Browse professionals
               </button>
             )}
@@ -187,22 +188,22 @@ export default function SavedProfessionals() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <span className="text-[15px] font-extrabold text-[#1a1a1a]">{pro.name}</span>
+                      <span className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em' }}>{pro.name}</span>
                       {pro.available
-                        ? <span className="text-[11px] font-semibold text-[#1a7f5e]">● Available</span>
-                        : <span className="text-[11px] font-semibold text-[#9ca3af]">○ Unavailable</span>
+                        ? <span className="text-[#1a7f5e]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '-0.01em' }}>● Available</span>
+                        : <span className="text-[#9ca3af]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '-0.01em' }}>○ Unavailable</span>
                       }
                     </div>
-                    <p className="text-[13px] text-[#6b7280] mb-1.5">{pro.role}{pro.miles != null ? ` · ${pro.miles} mi` : ''}{pro.rate != null ? ` · $${pro.rate}/hr` : ''}</p>
+                    <p className="text-[#6b7280] mb-1.5" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, letterSpacing: '-0.01em' }}>{pro.role}{pro.miles != null ? ` · ${pro.miles} mi` : ''}{pro.rate != null ? ` · $${pro.rate}/hr` : ''}</p>
                     <div className="flex items-center gap-2 flex-wrap">
                       {pro.rating != null && (
-                        <span className="text-sm font-bold text-[#F97316]">★ {pro.rating} {pro.reviews != null && <span className="text-xs font-normal text-[#9ca3af]">({pro.reviews})</span>}</span>
+                        <span className="text-[#F97316]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em' }}>★ {pro.rating} {pro.reviews != null && <span className="text-[#9ca3af]" style={{ fontWeight: 500, fontSize: 12 }}>({pro.reviews})</span>}</span>
                       )}
                       {pro.reliability != null && (
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${rel.bg} ${rel.color}`}>{rel.label} · {pro.reliability}%</span>
+                        <span className={`px-2 py-0.5 rounded-full uppercase ${rel.bg} ${rel.color}`} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.04em' }}>{rel.label} · {pro.reliability}%</span>
                       )}
                       {(pro.software || []).slice(0, 2).map(s => (
-                        <span key={s} className="text-[11px] font-semibold text-[#0f4d38] bg-[#e8f5f0] px-2 py-0.5 rounded-full">{s}</span>
+                        <span key={s} className="text-[#0f4d38] bg-[#e8f5f0] px-2 py-0.5 rounded-full" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '-0.01em' }}>{s}</span>
                       ))}
                     </div>
                   </div>
@@ -212,13 +213,15 @@ export default function SavedProfessionals() {
                   <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                     <button
                       onClick={() => navigate('/profile')}
-                      className="flex-1 sm:flex-initial border-[1.5px] border-[#e5e7eb] text-[#374151] font-semibold px-4 py-2.5 sm:py-2 rounded-full text-[13px] hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition"
+                      className="flex-1 sm:flex-initial border-[1.5px] border-[#e5e7eb] text-[#374151] px-4 py-2.5 sm:py-2 rounded-full hover:border-[#1a7f5e] hover:text-[#1a7f5e] transition"
+                      style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}
                     >
                       View
                     </button>
                     <button
                       onClick={() => navigate('/professionals')}
-                      className="flex-1 sm:flex-initial bg-[#1a7f5e] hover:bg-[#156649] text-white font-bold px-4 py-2.5 sm:py-2 rounded-full text-[13px] transition"
+                      className="flex-1 sm:flex-initial bg-[#1a7f5e] hover:bg-[#156649] text-white px-4 py-2.5 sm:py-2 rounded-full transition"
+                      style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}
                     >
                       Invite
                     </button>
@@ -239,7 +242,7 @@ export default function SavedProfessionals() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-sm font-semibold px-5 py-3 rounded-full z-50 shadow-lg flex items-center gap-2">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white px-5 py-3 rounded-full z-50 shadow-lg flex items-center gap-2" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13, letterSpacing: '-0.01em' }}>
           <div className="w-5 h-5 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
             <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>

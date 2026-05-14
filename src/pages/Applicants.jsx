@@ -168,8 +168,8 @@ export default function Applicants() {
 
         {/* TOP BAR */}
         <div style={{ background: 'white', padding: '18px 18px 0', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0, position: 'sticky', top: 0, zIndex: 20 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: '-0.5px', lineHeight: 1.1 }}>Applicants</div>
-          <div style={{ fontSize: 12, color: COLORS.textLight, marginTop: 4 }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em', lineHeight: 1.1 }}>Applicants</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 4 }}>
             {isTemp ? `${countTemp('all')} across ${tempShifts.length} shifts` : `${countPerm('all')} across ${permJobs.length} jobs`}
           </div>
 
@@ -250,7 +250,7 @@ export default function Applicants() {
 
       {/* TOAST */}
       {toast && (
-        <div style={{ position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)', background: toast.color, color: 'white', padding: '12px 22px', borderRadius: 100, fontSize: 13, fontWeight: 800, zIndex: 400, boxShadow: '0 10px 30px rgba(0,0,0,.2)', whiteSpace: 'nowrap', animation: 'kaziToastIn 0.3s ease-out', fontFamily: "'DM Sans', sans-serif" }}>{toast.msg}</div>
+        <div style={{ position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)', background: toast.color, color: 'white', padding: '12px 22px', borderRadius: 100, fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', zIndex: 400, boxShadow: '0 10px 30px rgba(0,0,0,.2)', whiteSpace: 'nowrap', animation: 'kaziToastIn 0.3s ease-out', fontFamily: "'DM Sans', sans-serif" }}>{toast.msg}</div>
       )}
     </>
   );
@@ -269,9 +269,9 @@ function TypeToggle({ activeType, setActiveType, tempCount, permCount }) {
       {tabs.map(t => {
         const isActive = activeType === t.id;
         return (
-          <button key={t.id} onClick={() => setActiveType(t.id)} style={{ flex: 1, background: isActive ? t.color : 'transparent', border: 'none', padding: '10px 8px', fontSize: 12, fontWeight: 700, color: isActive ? 'white' : COLORS.textLight, borderRadius: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s' }}>
+          <button key={t.id} onClick={() => setActiveType(t.id)} style={{ flex: 1, background: isActive ? t.color : 'transparent', border: 'none', padding: '10px 8px', fontSize: 12.5, fontWeight: 600, color: isActive ? 'white' : COLORS.textLight, borderRadius: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', transition: 'all 0.2s' }}>
             {t.label}
-            <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 100, background: isActive ? 'rgba(255,255,255,0.25)' : COLORS.bg, color: isActive ? 'white' : COLORS.textLight }}>{t.count}</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 100, background: isActive ? 'rgba(255,255,255,0.25)' : COLORS.bg, color: isActive ? 'white' : COLORS.textLight, letterSpacing: '0.04em' }}>{t.count}</span>
           </button>
         );
       })}
@@ -284,9 +284,9 @@ function TypeToggle({ activeType, setActiveType, tempCount, permCount }) {
 // ============================================================
 function SubTab({ label, count, active, onClick }) {
   return (
-    <button onClick={onClick} style={{ flexShrink: 0, background: active ? COLORS.text : 'white', border: `1px solid ${active ? COLORS.text : COLORS.borderSoft}`, color: active ? 'white' : COLORS.textLight, fontSize: 12, fontWeight: 700, padding: '8px 14px', borderRadius: 100, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', fontFamily: 'inherit' }}>
+    <button onClick={onClick} style={{ flexShrink: 0, background: active ? COLORS.text : 'white', border: `1px solid ${active ? COLORS.text : COLORS.borderSoft}`, color: active ? 'white' : COLORS.textLight, fontSize: 12.5, fontWeight: 600, padding: '8px 14px', borderRadius: 100, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>
       {label}
-      <span style={{ fontSize: 10, fontWeight: 800, background: active ? 'rgba(255,255,255,0.2)' : COLORS.bg, color: active ? 'white' : COLORS.textLight, padding: '1px 6px', borderRadius: 100 }}>{count}</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, background: active ? 'rgba(255,255,255,0.2)' : COLORS.bg, color: active ? 'white' : COLORS.textLight, padding: '1px 6px', borderRadius: 100, letterSpacing: '0.04em' }}>{count}</span>
     </button>
   );
 }
@@ -305,36 +305,36 @@ function TempShiftCard({ shift, filter, isCollapsed, onToggle, onAccept, onDecli
       <div onClick={onToggle} style={{ padding: '16px 18px', borderBottom: isCollapsed ? 'none' : `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
         <DateBlock month={shift.month} day={shift.day} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: '-0.2px', lineHeight: 1.15, marginBottom: 2 }}>{shift.role}</div>
-          <div style={{ fontSize: 12, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 5 }}>
-            {shift.dateShort} <Sep /> {shift.timeShort} <Sep /> <span style={{ color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>${shift.hourlyRate}/hr</span>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: 2 }}>{shift.role}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 5 }}>
+            {shift.dateShort} <Sep /> {shift.timeShort} <Sep /> <span style={{ color: COLORS.textMid, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>${shift.hourlyRate}/hr</span>
           </div>
         </div>
-        <span style={{ fontSize: 10, fontWeight: 800, padding: '5px 10px', borderRadius: 100, background: cntBg, color: cntColor }}>{cnt} applicant{cnt !== 1 ? 's' : ''}</span>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, padding: '5px 10px', borderRadius: 100, background: cntBg, color: cntColor, letterSpacing: '0.04em' }}>{cnt} applicant{cnt !== 1 ? 's' : ''}</span>
         <Chevron isCollapsed={isCollapsed} />
       </div>
       {!isCollapsed && (
         <>
           {filtered.length === 0 && cnt === 0 && (
             <div style={{ padding: '36px 18px', textAlign: 'center' }}>
-              <div style={{ fontSize: 13, color: COLORS.textLight }}>No applicants yet</div>
-              <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 4 }}>Applicants will appear here when providers apply</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>No applicants yet</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 4 }}>Applicants will appear here when providers apply</div>
             </div>
           )}
           {filtered.length === 0 && cnt > 0 && (
-            <div style={{ padding: '28px 18px', textAlign: 'center', fontSize: 13, color: COLORS.textLight }}>No applicants in this filter</div>
+            <div style={{ padding: '28px 18px', textAlign: 'center', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>No applicants in this filter</div>
           )}
           {filtered.map(a => (
             <div key={a.id} onClick={() => onOpenDetail(a)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
               <Initials text={a.initials} url={a.avatarUrl} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: '-0.2px', lineHeight: 1.15, marginBottom: 2 }}>{a.name}</div>
-                <div style={{ fontSize: 12, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: 2 }}>{a.name}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span>{a.cred}</span>
                   <Sep />
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: COLORS.gold, fontSize: 15, lineHeight: 1 }}>★</span>
-                    <span style={{ color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13 }}>{a.stars}</span>
+                    <span style={{ color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '-0.01em' }}>{a.stars}</span>
                   </span>
                   <Sep />
                   <span>{a.dist}</span>
@@ -347,7 +347,7 @@ function TempShiftCard({ shift, filter, isCollapsed, onToggle, onAccept, onDecli
                 </div>
               )}
               {a.status === 'accepted' && <ConfirmedPill />}
-              {a.status === 'declined' && <span style={{ fontSize: 10, color: COLORS.textLight, fontWeight: 700, fontStyle: 'italic' }}>Declined</span>}
+              {a.status === 'declined' && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', fontStyle: 'italic' }}>Declined</span>}
             </div>
           ))}
         </>
@@ -369,34 +369,34 @@ function PermJobCard({ job, filter, isCollapsed, onToggle, onOpenDetail, onOpenP
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" /></svg>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: '-0.2px', marginBottom: 2 }}>{job.title}</div>
-          <div style={{ fontSize: 12, color: COLORS.textLight }}><span style={{ color: COLORS.purple, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{job.salary}</span> <Sep /> Posted {job.posted}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', marginBottom: 2 }}>{job.title}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}><span style={{ color: COLORS.purple, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>{job.salary}</span> <Sep /> Posted {job.posted}</div>
         </div>
-        <span style={{ fontSize: 9, fontWeight: 800, color: COLORS.purple, background: COLORS.purpleSoft, padding: '4px 9px', borderRadius: 100, textTransform: 'uppercase', flexShrink: 0 }}>{job.type}</span>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: COLORS.purple, background: COLORS.purpleSoft, padding: '4px 9px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>{job.type}</span>
         <Chevron isCollapsed={isCollapsed} />
       </div>
       {!isCollapsed && (
         <>
           {filtered.length === 0 && (
-            <div style={{ padding: '28px 18px', textAlign: 'center', fontSize: 13, color: COLORS.textLight }}>No applicants in this stage</div>
+            <div style={{ padding: '28px 18px', textAlign: 'center', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>No applicants in this stage</div>
           )}
           {filtered.map(a => (
             <div key={a.id} onClick={() => onOpenDetail(a)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: `1px solid ${COLORS.borderSoft}`, cursor: 'pointer' }}>
               <Initials text={a.initials} url={a.avatarUrl} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: '-0.2px', lineHeight: 1.15, marginBottom: 2 }}>{a.name}</div>
-                <div style={{ fontSize: 12, color: COLORS.textLight, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: 2 }}>{a.name}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span>{a.cred} · {a.exp}</span>
                   <Sep />
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: COLORS.gold, fontSize: 15, lineHeight: 1 }}>★</span>
-                    <span style={{ color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13 }}>{a.stars}</span>
+                    <span style={{ color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '-0.01em' }}>{a.stars}</span>
                   </span>
                   <Sep />
                   <span>{a.dist}</span>
                 </div>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); onOpenPipeline(a); }} style={{ fontSize: 9, fontWeight: 800, padding: '5px 11px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: 0.3, background: STAGE_BG[a.stage], color: STAGE_COLOR[a.stage], border: 'none', cursor: 'pointer' }}>{STAGE_LABELS[a.stage]}</button>
+              <button onClick={(e) => { e.stopPropagation(); onOpenPipeline(a); }} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, padding: '5px 11px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: '0.06em', background: STAGE_BG[a.stage], color: STAGE_COLOR[a.stage], border: 'none', cursor: 'pointer' }}>{STAGE_LABELS[a.stage]}</button>
             </div>
           ))}
         </>
@@ -445,7 +445,7 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
               <SheetLabel text="Temp shift applicant" />
               <SheetTitle text={shift.date} />
               <SheetSub text={`${shift.time} · ${shift.hours} hours`} />
-              <InfoChip variant="green">Applied <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{data.appliedAgo}</strong></InfoChip>
+              <InfoChip variant="green">Applied <strong style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{data.appliedAgo}</strong></InfoChip>
               <ApplicantStrip applicant={data} subLine={`${shift.role} · ${data.cred}`} onNavigate={goToProfile} />
               <SectionTitle text="Shift details" />
               <InfoRow label="Date" value={shift.date} />
@@ -460,8 +460,8 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
               <SheetTitle text={job.title} />
               <SheetSub text={`${job.salary} · ${job.type}`} />
               <InfoChip variant="purple">
-                Applied <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{data.appliedAgo}</strong> · Stage:&nbsp;
-                <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{STAGE_LABELS[data.stage]}</strong>
+                Applied <strong style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{data.appliedAgo}</strong> · Stage:&nbsp;
+                <strong style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{STAGE_LABELS[data.stage]}</strong>
               </InfoChip>
               <ApplicantStrip applicant={data} subLine={`${data.cred} · ${data.exp}`} onNavigate={goToProfile} />
               <SectionTitle text="Job details" />
@@ -479,17 +479,17 @@ function DetailSheet({ selected, onClose, onAccept, onDecline, onOpenPipeline })
               <button onClick={() => onDecline(shift.id, data.id, data.name)} style={{ width: 52, height: 52, borderRadius: '50%', border: '1.5px solid #fca5a5', background: COLORS.redSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.red} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
-              <button onClick={() => onAccept(shift.id, data.id, data.name)} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              <button onClick={() => onAccept(shift.id, data.id, data.name)} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><polyline points="20 6 9 17 4 12" /></svg>
                 Accept applicant
               </button>
             </>
           )}
           {type === 'temp' && data.status !== 'new' && (
-            <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>View profile</button>
+            <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>View profile</button>
           )}
           {type === 'perm' && (
-            <button onClick={() => onOpenPipeline(job.id, data.id, data.name, data.stage)} style={{ flex: 1, background: COLORS.purple, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>Update status</button>
+            <button onClick={() => onOpenPipeline(job.id, data.id, data.name, data.stage)} style={{ flex: 1, background: COLORS.purple, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>Update status</button>
           )}
         </div>
       </div>
@@ -508,13 +508,13 @@ function ConfirmModal({ action, onClose, onConfirm }) {
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, animation: 'kaziOverlayFade 0.2s ease-out' }} />
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: 'white', borderRadius: '28px 28px 0 0', zIndex: 301, boxShadow: '0 -10px 40px rgba(0,0,0,0.2)', animation: 'kaziSheetSlide 0.3s cubic-bezier(0.32, 0.72, 0, 1)', fontFamily: "'DM Sans', sans-serif", padding: '20px 24px 32px' }}>
         <div style={{ width: 40, height: 4, background: COLORS.border, borderRadius: 100, margin: '0 auto 18px' }} />
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, marginBottom: 6 }}>{isAccept ? 'Accept' : 'Decline'} {action.name}?</div>
-        <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.5, marginBottom: 20 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em', marginBottom: 6 }}>{isAccept ? 'Accept' : 'Decline'} {action.name}?</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5, marginBottom: 20 }}>
           {isAccept ? `This will confirm ${action.name} for this shift. You can message them to coordinate details.` : `${action.name} will be notified they were not selected for this shift.`}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: 14, borderRadius: 100, border: `1.5px solid ${COLORS.border}`, background: COLORS.bg, color: COLORS.text, fontSize: 14, fontWeight: 800 }}>Cancel</button>
-          <button onClick={onConfirm} style={{ flex: 1, padding: 14, borderRadius: 100, border: 'none', background: isAccept ? COLORS.green : COLORS.red, color: 'white', fontSize: 14, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>{isAccept ? 'Accept' : 'Decline'}</button>
+          <button onClick={onClose} style={{ flex: 1, padding: 14, borderRadius: 100, border: `1.5px solid ${COLORS.border}`, background: COLORS.bg, color: COLORS.text, fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>Cancel</button>
+          <button onClick={onConfirm} style={{ flex: 1, padding: 14, borderRadius: 100, border: 'none', background: isAccept ? COLORS.green : COLORS.red, color: 'white', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>{isAccept ? 'Accept' : 'Decline'}</button>
         </div>
       </div>
     </>
@@ -533,8 +533,8 @@ function PipelineModal({ target, onClose, onApply }) {
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, animation: 'kaziOverlayFade 0.2s ease-out' }} />
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: 'white', borderRadius: '28px 28px 0 0', zIndex: 301, boxShadow: '0 -10px 40px rgba(0,0,0,0.2)', animation: 'kaziSheetSlide 0.3s cubic-bezier(0.32, 0.72, 0, 1)', fontFamily: "'DM Sans', sans-serif", padding: '20px 24px 32px', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ width: 40, height: 4, background: COLORS.border, borderRadius: 100, margin: '0 auto 18px' }} />
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, marginBottom: 6 }}>Update {target.name}</div>
-        <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.5, marginBottom: 16 }}>Move this applicant to a new stage</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em', marginBottom: 6 }}>Update {target.name}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5, marginBottom: 16 }}>Move this applicant to a new stage</div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {STAGE_LIST.map(s => (
             <div key={s.id} onClick={() => setSelected(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: selected === s.id ? COLORS.purpleSoft : COLORS.bg, border: `1.5px solid ${selected === s.id ? COLORS.purple : COLORS.border}`, borderRadius: 14, cursor: 'pointer', marginBottom: 8 }}>
@@ -542,15 +542,15 @@ function PipelineModal({ target, onClose, onApply }) {
                 {selected === s.id && <div style={{ width: 8, height: 8, background: 'white', borderRadius: '50%' }} />}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>{s.label}</div>
-                <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>{s.desc}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}>{s.label}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>{s.desc}</div>
               </div>
             </div>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: 14, borderRadius: 100, border: `1.5px solid ${COLORS.border}`, background: COLORS.bg, color: COLORS.text, fontSize: 14, fontWeight: 800 }}>Cancel</button>
-          <button onClick={() => onApply(selected)} style={{ flex: 1, padding: 14, borderRadius: 100, border: 'none', background: COLORS.purple, color: 'white', fontSize: 14, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>Update</button>
+          <button onClick={onClose} style={{ flex: 1, padding: 14, borderRadius: 100, border: `1.5px solid ${COLORS.border}`, background: COLORS.bg, color: COLORS.text, fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>Cancel</button>
+          <button onClick={() => onApply(selected)} style={{ flex: 1, padding: 14, borderRadius: 100, border: 'none', background: COLORS.purple, color: 'white', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>Update</button>
         </div>
       </div>
     </>
@@ -563,8 +563,8 @@ function PipelineModal({ target, onClose, onApply }) {
 function DateBlock({ month, day }) {
   return (
     <div style={{ width: 48, height: 48, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 9, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>{month}</div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: COLORS.text, marginTop: 3, letterSpacing: '-0.5px' }}>{day}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 10, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{month}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: COLORS.text, marginTop: 3, letterSpacing: '-0.02em' }}>{day}</div>
     </div>
   );
 }
@@ -574,7 +574,7 @@ function Initials({ text, url, size = 42 }) {
     return <img src={url} alt={text} style={{ width: size, height: size, borderRadius: 12, objectFit: 'cover', border: `1px solid ${COLORS.borderSoft}`, flexShrink: 0 }} />;
   }
   return (
-    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{text}</div>
+    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '-0.02em', flexShrink: 0 }}>{text}</div>
   );
 }
 
@@ -606,7 +606,7 @@ function DeclineBtn({ onClick }) {
 
 function ConfirmedPill() {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.4, padding: '5px 10px', borderRadius: 100, background: COLORS.green, color: 'white' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '5px 10px', borderRadius: 100, background: COLORS.green, color: 'white' }}>
       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 8, height: 8 }}><polyline points="20 6 9 17 4 12" /></svg>
       Confirmed
     </span>
@@ -629,10 +629,10 @@ function MessageBtn() {
   );
 }
 
-function SheetLabel({ text }) { return <div style={{ fontSize: 10, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 800, letterSpacing: 0.6, marginBottom: 8 }}>{text}</div>; }
-function SheetTitle({ text }) { return <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: '-0.6px', lineHeight: 1.1 }}>{text}</div>; }
-function SheetSub({ text }) { return <div style={{ fontSize: 14, color: COLORS.textMid, marginTop: 6 }}>{text}</div>; }
-function SectionTitle({ text }) { return <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12, marginTop: 22 }}>{text}</div>; }
+function SheetLabel({ text }) { return <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em', marginBottom: 8 }}>{text}</div>; }
+function SheetTitle({ text }) { return <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em', lineHeight: 1.1 }}>{text}</div>; }
+function SheetSub({ text }) { return <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 6 }}>{text}</div>; }
+function SectionTitle({ text }) { return <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12, marginTop: 22 }}>{text}</div>; }
 
 function InfoChip({ variant, children }) {
   const map = {
@@ -642,7 +642,7 @@ function InfoChip({ variant, children }) {
   };
   const s = map[variant] || map.green;
   return (
-    <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, background: s.bg, border: `1px solid ${s.border}`, color: s.fg }}>
+    <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', background: s.bg, border: `1px solid ${s.border}`, color: s.fg }}>
       <svg viewBox="0 0 24 24" fill="none" stroke={s.fg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
@@ -658,18 +658,18 @@ function ApplicantStrip({ applicant, subLine, onNavigate }) {
       {applicant.avatarUrl ? (
         <img src={applicant.avatarUrl} alt={applicant.name} style={{ width: 50, height: 50, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
       ) : (
-        <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, flexShrink: 0, letterSpacing: '-0.3px' }}>
+        <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, flexShrink: 0, letterSpacing: '-0.02em' }}>
           {applicant.initials}
         </div>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.3px', marginBottom: 4 }}>{applicant.name}</div>
-        <div style={{ fontSize: 12, color: COLORS.textMid, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 4 }}>{applicant.name}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span>{subLine}</span>
           <Sep />
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
             <span style={{ color: COLORS.gold, fontSize: 18, lineHeight: 1 }}>★</span>
-            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.text, fontSize: 15 }}>{applicant.stars}</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, color: COLORS.text, fontSize: 15, letterSpacing: '-0.02em' }}>{applicant.stars}</span>
             <span style={{ color: COLORS.textLight, marginLeft: 2 }}>({applicant.reviews})</span>
           </span>
         </div>
@@ -687,8 +687,8 @@ function RatingRow({ stars, reviews }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
       <span style={{ color: COLORS.gold, fontSize: 20 }}>★</span>
-      <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20 }}>{stars}</span>
-      <span style={{ fontSize: 13, color: COLORS.textLight }}>({reviews} reviews)</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}>{stars}</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>({reviews} reviews)</span>
     </div>
   );
 }
@@ -696,8 +696,8 @@ function RatingRow({ stars, reviews }) {
 function InfoRow({ label, value, valueColor, valueLarge }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${COLORS.borderSoft}` }}>
-      <div style={{ fontSize: 13, color: COLORS.textMid }}>{label}</div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: valueLarge ? 16 : 14, color: valueColor || COLORS.text, textAlign: 'right' }} dangerouslySetInnerHTML={{ __html: value }} />
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em' }}>{label}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: valueLarge ? 16 : 14, letterSpacing: '-0.01em', color: valueColor || COLORS.text, textAlign: 'right' }} dangerouslySetInnerHTML={{ __html: value }} />
     </div>
   );
 }

@@ -14,8 +14,8 @@ const styles = `
 .kazi-settings .topbar{position:sticky;top:0;z-index:30;background:var(--card);padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-soft)}
 .kazi-settings .icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .kazi-settings .icon-btn svg{width:16px;height:16px;stroke:var(--text);stroke-width:2;fill:none}
-.kazi-settings .topbar-title{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;flex:1;letter-spacing:-.01em}
-.kazi-settings .section-label{font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;margin:22px 24px 8px}
+.kazi-settings .topbar-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;flex:1;letter-spacing:-.02em}
+.kazi-settings .section-label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;margin:22px 24px 8px}
 .kazi-settings .card{background:var(--card);margin:0 20px;border-radius:14px;border:1.5px solid var(--border);overflow:hidden}
 .kazi-settings .row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border-soft);cursor:pointer;min-height:56px}
 .kazi-settings .row:last-child{border-bottom:none}
@@ -32,7 +32,7 @@ const styles = `
 .kazi-settings .profile-avatar .cam{position:absolute;bottom:-3px;right:-3px;width:22px;height:22px;background:var(--text);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2.5px solid var(--card)}
 .kazi-settings .profile-avatar .cam svg{width:10px;height:10px;stroke:white;stroke-width:2.5;fill:none}
 .kazi-settings .profile-info{flex:1;min-width:0}
-.kazi-settings .profile-name{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-bottom:2px;letter-spacing:-.01em}
+.kazi-settings .profile-name{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;margin-bottom:2px;letter-spacing:-.02em}
 .kazi-settings .profile-email{font-size:12px;color:var(--text-light)}
 `;
 

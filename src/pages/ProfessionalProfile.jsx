@@ -230,8 +230,8 @@ function Section({ title, children }) {
   return (
     <div className="bg-white mx-4 mb-3 rounded-[20px] p-5 border border-[#f3f3f3]">
       <div
-        className="text-base font-bold mb-3.5 text-[#1a1a1a]"
-        style={{ fontFamily: "'Outfit', sans-serif" }}
+        className="mb-3.5 text-[#1a1a1a]"
+        style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}
       >
         {title}
       </div>
@@ -515,8 +515,10 @@ export default function ProfessionalProfile() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: 13,
             fontWeight: 600,
+            letterSpacing: '-0.01em',
             borderBottom: '1px solid #f5e3b8',
           }}
         >
@@ -529,7 +531,7 @@ export default function ProfessionalProfile() {
           </span>
           <button
             onClick={() => navigate('/my-profile')}
-            style={{ background: '#fff', color: '#8b6914', border: '1px solid #f5e3b8', padding: '5px 12px', borderRadius: 100, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ background: '#fff', color: '#8b6914', border: '1px solid #f5e3b8', padding: '5px 12px', borderRadius: 100, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}
           >
             Exit preview
           </button>
@@ -606,9 +608,10 @@ export default function ProfessionalProfile() {
             display: 'grid',
             placeItems: 'center',
             color: '#fff',
-            fontFamily: "'Outfit', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700,
             fontSize: 28,
+            letterSpacing: '-0.02em',
             flexShrink: 0,
             position: 'relative',
             overflow: 'hidden',
@@ -617,7 +620,7 @@ export default function ProfessionalProfile() {
             {/* Initials underneath; img overlays. If the img fails to
                 load (or the URL is missing), onError hides it and the
                 initials show through against the sage gradient. */}
-            <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 28 }}>
+            <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: '-0.02em' }}>
               {pro.initials}
             </span>
             {pro.avatarUrl && (
@@ -636,22 +639,22 @@ export default function ProfessionalProfile() {
           </div>
           <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15, minWidth: 0 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15, minWidth: 0 }}>
                 {pro.name}
               </div>
               {pro.distance && (
-                <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500, flexShrink: 0 }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#9aa5a1', fontWeight: 500, letterSpacing: '-0.01em', flexShrink: 0 }}>
                   {pro.distance}
                 </div>
               )}
             </div>
-            <div style={{ fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 2 }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>
               {pro.role}
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 14, color: '#0f1a16', fontWeight: 600 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#0f1a16', fontWeight: 600, letterSpacing: '-0.01em' }}>
               <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
-              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 17 }}>{pro.rating.toFixed(1)}</span>
-              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13 }}>({pro.reviews} reviews)</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>{pro.rating.toFixed(1)}</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", color: '#9aa5a1', fontWeight: 500, fontSize: 13, letterSpacing: '-0.01em' }}>({pro.reviews} reviews)</span>
             </div>
           </div>
         </div>
@@ -686,8 +689,9 @@ export default function ProfessionalProfile() {
               border: 'none',
               borderRadius: 100,
               padding: '10px 16px',
-              fontSize: 13.5,
-              fontWeight: 700,
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
               fontFamily: "'DM Sans', sans-serif",
               display: 'inline-flex',
               alignItems: 'center',
@@ -714,8 +718,9 @@ export default function ProfessionalProfile() {
               border: '1px solid #e8e6e1',
               borderRadius: 100,
               padding: '10px 16px',
-              fontSize: 13.5,
-              fontWeight: 700,
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
               fontFamily: "'DM Sans', sans-serif",
               display: 'inline-flex',
               alignItems: 'center',
@@ -749,13 +754,13 @@ export default function ProfessionalProfile() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  fontFamily: "'Outfit', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: 14,
                   fontWeight: 600,
                   color: active ? '#0f1a16' : '#9aa5a1',
                   padding: '12px 0',
                   position: 'relative',
-                  letterSpacing: '-0.1px',
+                  letterSpacing: '-0.01em',
                 }}
               >
                 {t.label}
@@ -777,7 +782,7 @@ export default function ProfessionalProfile() {
             </ProDetail>
             {pro.about && (
               <ProDetail label="Summary">
-                <p style={{ fontSize: 14, lineHeight: 1.55, color: '#444', margin: 0 }}>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.55, color: '#444', margin: 0 }}>
                   {pro.about}
                 </p>
               </ProDetail>
@@ -820,11 +825,11 @@ export default function ProfessionalProfile() {
                     </svg>
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#0f1a16', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', color: '#0f1a16', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {pro.resumeName}
                     </div>
                     {pro.resumePages && (
-                      <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500, marginTop: 2 }}>
+                      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#9aa5a1', fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>
                         {pro.resumePages} {pro.resumePages === 1 ? 'page' : 'pages'} · PDF
                       </div>
                     )}
@@ -838,8 +843,9 @@ export default function ProfessionalProfile() {
                       borderRadius: 100,
                       background: '#1a7f5e',
                       color: '#ffffff',
-                      fontSize: 12,
-                      fontWeight: 700,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      letterSpacing: '-0.01em',
                       fontFamily: "'DM Sans', sans-serif",
                       flexShrink: 0,
                     }}
@@ -869,10 +875,11 @@ export default function ProfessionalProfile() {
                           background: palette.bg,
                           border: `1px solid ${palette.border}`,
                           borderRadius: 100,
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontWeight: 600,
+                          letterSpacing: '-0.01em',
                           color: palette.text,
-                          fontFamily: "'Outfit', sans-serif",
+                          fontFamily: "'DM Sans', sans-serif",
                         }}
                       >
                         {o}
@@ -885,7 +892,7 @@ export default function ProfessionalProfile() {
             <ProDetail label="Credentials">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {pro.credentialsList.map((c) => (
-                  <span key={c} style={{ padding: '5px 11px', background: '#e8f5f0', border: '1px solid #c5e3d5', borderRadius: 100, fontSize: 12, fontWeight: 600, color: '#1a7f5e', fontFamily: "'Outfit', sans-serif" }}>
+                  <span key={c} style={{ padding: '5px 11px', background: '#e8f5f0', border: '1px solid #c5e3d5', borderRadius: 100, fontSize: 12.5, fontWeight: 600, color: '#1a7f5e', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>
                     {c}
                   </span>
                 ))}
@@ -894,7 +901,7 @@ export default function ProfessionalProfile() {
             <ProDetail label="Practice software">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {pro.software.map((s) => (
-                  <span key={s} style={{ padding: '5px 11px', background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 100, fontSize: 12, fontWeight: 600, color: '#0f1a16', fontFamily: "'Outfit', sans-serif" }}>
+                  <span key={s} style={{ padding: '5px 11px', background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 100, fontSize: 12.5, fontWeight: 600, color: '#0f1a16', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>
                     {s}
                   </span>
                 ))}
@@ -903,7 +910,7 @@ export default function ProfessionalProfile() {
             <ProDetail label="Experience">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {pro.experience.map((e) => (
-                  <span key={e} style={{ padding: '5px 11px', background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 100, fontSize: 12, fontWeight: 600, color: '#0f1a16', fontFamily: "'Outfit', sans-serif" }}>
+                  <span key={e} style={{ padding: '5px 11px', background: '#f9f8f6', border: '1px solid #e8e6e1', borderRadius: 100, fontSize: 12.5, fontWeight: 600, color: '#0f1a16', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>
                     {e}
                   </span>
                 ))}
@@ -922,8 +929,8 @@ export default function ProfessionalProfile() {
                       borderBottom: i !== pro.languages.length - 1 ? '1px solid #f0eee8' : 'none',
                     }}
                   >
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#0f1a16' }}>{l.name}</span>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, padding: '3px 10px', borderRadius: 100, color: l.native ? '#1a7f5e' : '#6b7875', background: l.native ? '#e8f5f0' : '#f9f8f6' }}>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', color: '#0f1a16' }}>{l.name}</span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100, letterSpacing: '0.06em', textTransform: 'uppercase', color: l.native ? '#1a7f5e' : '#6b7875', background: l.native ? '#e8f5f0' : '#f9f8f6' }}>
                       {l.level}
                     </span>
                   </div>
@@ -942,8 +949,8 @@ export default function ProfessionalProfile() {
         {tab === 'reviews' && (
           pro.reviewsList.length === 0 ? (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: '#6b7875' }}>
-              <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 14, color: '#0f1a16', marginBottom: 4 }}>No reviews yet</p>
-              <p style={{ fontSize: 13 }}>Office reviews of {pro.firstName || pro.name} will appear here.</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.02em', marginBottom: 4 }}>No reviews yet</p>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>Office reviews of {pro.firstName || pro.name} will appear here.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -956,11 +963,11 @@ export default function ProfessionalProfile() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                    <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: '#0f1a16' }}>{r.office}</div>
-                    <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 500 }}>{r.date}</div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: '#0f1a16', letterSpacing: '-0.02em' }}>{r.office}</div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#9aa5a1', fontWeight: 500, letterSpacing: '-0.01em' }}>{r.date}</div>
                   </div>
                   <div style={{ color: '#f4b740', fontSize: 13, marginBottom: 6, letterSpacing: '0.5px' }}>{'★'.repeat(r.stars)}</div>
-                  <div style={{ fontSize: 13.5, lineHeight: 1.5, color: '#444' }}>{r.text}</div>
+                  <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5, color: '#444' }}>{r.text}</div>
                 </div>
               ))}
             </div>
@@ -1002,8 +1009,9 @@ function ProStatTile({ label, value, tileBg, tileBorder, valueColor, labelColor 
     >
       <div
         style={{
-          fontSize: 9,
-          fontWeight: 600,
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 10,
+          fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
           color: labelColor || '#8a8a8a',
@@ -1014,12 +1022,12 @@ function ProStatTile({ label, value, tileBg, tileBorder, valueColor, labelColor 
       </div>
       <div
         style={{
-          fontFamily: "'Outfit', sans-serif",
+          fontFamily: "'DM Sans', sans-serif",
           fontWeight: 700,
           fontSize: 14,
           color: valueColor || '#1a1a1a',
           lineHeight: 1,
-          letterSpacing: '-0.01em',
+          letterSpacing: '-0.02em',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -1035,7 +1043,7 @@ function ProStatTile({ label, value, tileBg, tileBorder, valueColor, labelColor 
 function ProDetail({ label, children }) {
   return (
     <div>
-      <div style={{ fontSize: 11.5, color: '#9aa5a1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 8 }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#9aa5a1', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
         {label}
       </div>
       {children}

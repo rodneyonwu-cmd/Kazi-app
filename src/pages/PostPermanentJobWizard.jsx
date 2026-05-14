@@ -182,14 +182,14 @@ export default function PostPermanentJobWizard() {
               </svg>
             </button>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: COLORS.text, lineHeight: 1 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: COLORS.text, letterSpacing: '-0.02em', lineHeight: 1 }}>
                 Post Permanent Job
               </div>
-              <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 3, fontWeight: 600 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, marginTop: 3, fontWeight: 500, letterSpacing: '-0.01em' }}>
                 Step {step} of {totalSteps}
               </div>
             </div>
-            <div style={{ background: COLORS.purpleSoft, color: COLORS.purple, padding: '5px 11px', borderRadius: 100, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>
+            <div style={{ background: COLORS.purpleSoft, color: COLORS.purple, padding: '5px 11px', borderRadius: 100, fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
               Permanent
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function PostPermanentJobWizard() {
             disabled={step === 1}
             style={{
               background: COLORS.bg, color: COLORS.text, border: `1px solid ${COLORS.border}`,
-              borderRadius: 100, padding: '16px 22px', fontSize: 14, fontWeight: 700,
+              borderRadius: 100, padding: '16px 22px', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em',
               cursor: step === 1 ? 'not-allowed' : 'pointer', opacity: step === 1 ? 0.4 : 1, flexShrink: 0,
             }}
           >
@@ -239,7 +239,7 @@ export default function PostPermanentJobWizard() {
             onClick={next}
             style={{
               flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100,
-              padding: 16, fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              padding: 16, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
@@ -301,7 +301,7 @@ function PillRow({ options, selected, onSelect }) {
             style={{
               background: sel ? COLORS.green : 'white',
               border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`,
-              borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 600,
+              borderRadius: 100, padding: '12px 18px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em',
               color: sel ? 'white' : COLORS.textMid, cursor: 'pointer',
             }}
           >
@@ -325,7 +325,7 @@ function MultiPillRow({ options, selected, onToggle }) {
             style={{
               background: sel ? COLORS.green : 'white',
               border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`,
-              borderRadius: 100, padding: '12px 18px', fontSize: 14, fontWeight: 600,
+              borderRadius: 100, padding: '12px 18px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em',
               color: sel ? 'white' : COLORS.textMid, cursor: 'pointer',
             }}
           >
@@ -346,7 +346,7 @@ function Dropdown({ value, open, onToggle, options }) {
           background: 'white', border: `1.5px solid ${open ? COLORS.green : COLORS.border}`,
           borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', cursor: 'pointer',
-          fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 700, color: COLORS.text,
+          fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: COLORS.text,
         }}
       >
         <span>{value}</span>
@@ -366,7 +366,7 @@ function Dropdown({ value, open, onToggle, options }) {
               key={i}
               onClick={opt.onClick}
               style={{
-                padding: '12px 18px', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                padding: '12px 18px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em',
                 color: opt.color || COLORS.text,
                 borderBottom: i < options.length - 1 ? `1px solid ${COLORS.borderSoft}` : 'none',
               }}
@@ -423,7 +423,7 @@ function Step2Schedule({
                   border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`,
                   color: sel ? 'white' : COLORS.textMid,
                   borderRadius: 100, padding: '12px 16px', fontSize: 13, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: "'Outfit', sans-serif", minWidth: 50,
+                  cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', minWidth: 50,
                 }}
               >
                 {day}
@@ -466,8 +466,8 @@ function Step2Schedule({
             </svg>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.text }}>Different hours on some days?</div>
-            <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>Set unique hours per day</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: COLORS.text, letterSpacing: '-0.01em' }}>Different hours on some days?</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>Set unique hours per day</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textLight} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ width: 14, height: 14, transition: 'transform 0.2s', transform: customHoursOn ? 'rotate(180deg)' : 'none' }}>
@@ -484,7 +484,7 @@ function Step2Schedule({
               return (
                 <div key={day} style={{ display: 'flex', flexDirection: 'column', borderBottom: i < days.length - 1 ? `1px solid ${COLORS.borderSoft}` : 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', padding: '12px 14px', gap: 12 }}>
-                    <div style={{ width: 50, fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13, color: COLORS.text, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ width: 50, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, color: COLORS.text, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 5 }}>
                       {day}
                       {dayData.edited && <span style={{ width: 6, height: 6, background: COLORS.green, borderRadius: '50%' }} />}
                     </div>
@@ -495,21 +495,21 @@ function Step2Schedule({
                           background: startActive ? COLORS.green : (dayData.edited ? COLORS.greenTint : COLORS.bg),
                           border: `1px solid ${startActive ? COLORS.green : (dayData.edited ? COLORS.greenSoft : COLORS.borderSoft)}`,
                           borderRadius: 10, padding: '7px 12px',
-                          fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13,
+                          fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '-0.01em',
                           color: startActive ? 'white' : (dayData.edited ? COLORS.green : COLORS.text),
                           cursor: 'pointer', minWidth: 78, textAlign: 'center',
                         }}
                       >
                         {formatTime(dayData.start)}
                       </div>
-                      <span style={{ color: COLORS.textLight, fontSize: 14, fontWeight: 700 }}>→</span>
+                      <span style={{ color: COLORS.textLight, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em' }}>→</span>
                       <div
                         onClick={() => toggleTimePicker(`day-${day}-end`)}
                         style={{
                           background: endActive ? COLORS.green : (dayData.edited ? COLORS.greenTint : COLORS.bg),
                           border: `1px solid ${endActive ? COLORS.green : (dayData.edited ? COLORS.greenSoft : COLORS.borderSoft)}`,
                           borderRadius: 10, padding: '7px 12px',
-                          fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 13,
+                          fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: '-0.01em',
                           color: endActive ? 'white' : (dayData.edited ? COLORS.green : COLORS.text),
                           cursor: 'pointer', minWidth: 78, textAlign: 'center',
                         }}
@@ -532,7 +532,7 @@ function Step2Schedule({
 
       <div>
         <div style={fieldLabelStyle}>
-          Ideal start date <span style={{ color: COLORS.textLight, fontWeight: 600, textTransform: 'none', letterSpacing: 0 }}>· Optional</span>
+          Ideal start date <span style={{ fontFamily: "'DM Sans', sans-serif", color: COLORS.textLight, fontWeight: 500, textTransform: 'none', letterSpacing: '-0.01em' }}>· Optional</span>
         </div>
         <Dropdown
           value={startDateLabel}
@@ -590,7 +590,7 @@ function DatePickerSheet({ onClose, onSelect }) {
       }}>
         <div style={{ width: 40, height: 4, background: COLORS.border, borderRadius: 100, margin: '12px auto 4px' }} />
         <div style={{ padding: '14px 24px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.text }}>Pick a start date</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, letterSpacing: '-0.02em' }}>Pick a start date</div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -604,7 +604,7 @@ function DatePickerSheet({ onClose, onSelect }) {
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text, letterSpacing: '-0.02em' }}>
             {FULL_MONTHS[viewMonth]} {viewYear}
           </div>
           <button onClick={() => changeMonth(1)} style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -616,9 +616,9 @@ function DatePickerSheet({ onClose, onSelect }) {
         <div className="date-strip" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 24px 8px', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           {cells.map((d, i) => (
             <div key={i} onClick={() => onSelect(d)} style={{ flexShrink: 0, width: 60, padding: '12px 8px', background: COLORS.bg, border: `1.5px solid ${COLORS.borderSoft}`, borderRadius: 14, textAlign: 'center', cursor: 'pointer' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: COLORS.textLight, textTransform: 'uppercase' }}>{SHORT_DAYS[d.getDay()]}</div>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 700, color: COLORS.text, marginTop: 4, lineHeight: 1 }}>{d.getDate()}</div>
-              <div style={{ fontSize: 10, color: COLORS.textLight, marginTop: 3, fontWeight: 600 }}>{SHORT_MONTHS[d.getMonth()]}</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{SHORT_DAYS[d.getDay()]}</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 22, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em', marginTop: 4, lineHeight: 1 }}>{d.getDate()}</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: COLORS.textLight, marginTop: 3, fontWeight: 600, letterSpacing: '-0.01em' }}>{SHORT_MONTHS[d.getMonth()]}</div>
             </div>
           ))}
         </div>
@@ -634,7 +634,7 @@ function TimePickerCard({ open, value, displayValue, onToggle, onChange }) {
   return (
     <div style={{ background: 'white', border: `1.5px solid ${open ? COLORS.green : COLORS.border}`, borderRadius: 18, overflow: 'hidden', transition: 'border-color 0.2s' }}>
       <div onClick={onToggle} style={{ padding: '16px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 19, fontWeight: 700, color: COLORS.text }}>{displayValue}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em' }}>{displayValue}</div>
         <svg viewBox="0 0 24 24" fill="none" stroke={open ? COLORS.green : COLORS.textLight} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ width: 14, height: 14, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }}>
           <polyline points="6 9 12 15 18 9" />
@@ -708,9 +708,9 @@ function WheelColumn({ items, selected, onSelect }) {
             onClick={() => { if (colRef.current) colRef.current.scrollTo({ top: idx * ITEM_HEIGHT, behavior: 'smooth' }); }}
             style={{
               height: 40, lineHeight: '40px', textAlign: 'center',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: idx === activeIdx ? 800 : 600,
-              fontSize: 22, color: idx === activeIdx ? COLORS.text : COLORS.textLight,
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: idx === activeIdx ? 700 : 500,
+              fontSize: 22, letterSpacing: '-0.02em', color: idx === activeIdx ? COLORS.text : COLORS.textLight,
               scrollSnapAlign: 'center', cursor: 'pointer',
               transition: 'color 0.15s, font-weight 0.15s',
             }}
@@ -745,7 +745,7 @@ function Step3Pay({ payType, setPayType, payMin, setPayMin, payMax, setPayMax })
               flex: 1, padding: 12,
               background: payType === type ? COLORS.green : 'none',
               color: payType === type ? 'white' : COLORS.textLight,
-              border: 'none', borderRadius: 100, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              border: 'none', borderRadius: 100, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer',
             }}
           >
             {type === 'hourly' ? 'Hourly' : 'Salary'}
@@ -757,21 +757,21 @@ function Step3Pay({ payType, setPayType, payMin, setPayMin, payMax, setPayMax })
         <div>
           <div style={{ ...fieldLabelStyle, fontSize: 10, marginBottom: 6 }}>Minimum</div>
           <div style={{ background: 'white', border: `1.5px solid ${COLORS.border}`, borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text }}>$</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em' }}>$</span>
             <input value={payMin} onChange={(e) => setPayMin(e.target.value.replace(/[^0-9]/g, ''))}
-              style={{ flex: 1, border: 'none', outline: 'none', background: 'none', fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, width: '100%' }} />
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em', width: '100%' }} />
           </div>
         </div>
         <div>
           <div style={{ ...fieldLabelStyle, fontSize: 10, marginBottom: 6 }}>Maximum</div>
           <div style={{ background: 'white', border: `1.5px solid ${COLORS.border}`, borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text }}>$</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em' }}>$</span>
             <input value={payMax} onChange={(e) => setPayMax(e.target.value.replace(/[^0-9]/g, ''))}
-              style={{ flex: 1, border: 'none', outline: 'none', background: 'none', fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, width: '100%' }} />
+              style={{ flex: 1, border: 'none', outline: 'none', background: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em', width: '100%' }} />
           </div>
         </div>
       </div>
-      <div style={{ marginTop: 10, fontSize: 11, color: COLORS.textLight, fontWeight: 600, textAlign: 'center' }}>
+      <div style={{ marginTop: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', textAlign: 'center' }}>
         {payType === 'hourly' ? 'Per hour' : 'Per year'}
       </div>
     </>
@@ -842,7 +842,7 @@ function Step6SoftwareBenefits({ software, setSoftware, benefits, setBenefits })
                 style={{
                   background: sel ? COLORS.greenTint : 'white',
                   border: `1.5px solid ${sel ? COLORS.green : COLORS.border}`,
-                  borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
+                  borderRadius: 14, padding: '12px 14px', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em',
                   color: sel ? COLORS.green : COLORS.textMid, cursor: 'pointer',
                   textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8,
                 }}
@@ -904,10 +904,10 @@ function Step7AIBuilder({ formData, formatTime, aiGenerated, setAiGenerated, sty
                 <path d="M12 2l1.88 5.76L20 9.27l-4.5 4.39 1.06 6.18L12 16.77l-4.56 2.4 1.06-6.18L4 9.27l6.12-1.51L12 2z" />
               </svg>
             </div>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 19, color: COLORS.text, marginBottom: 6 }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: COLORS.text, letterSpacing: '-0.02em', marginBottom: 6 }}>
               AI Job Description Builder
             </div>
-            <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.5 }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5 }}>
               Tap below to generate. Flip through 10 different writing styles to find the perfect tone.
             </div>
           </div>
@@ -916,7 +916,7 @@ function Step7AIBuilder({ formData, formatTime, aiGenerated, setAiGenerated, sty
             onClick={handleGenerate}
             style={{
               width: '100%', background: COLORS.purple, color: 'white', border: 'none',
-              borderRadius: 100, padding: 16, fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              borderRadius: 100, padding: 16, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
               position: 'relative', overflow: 'hidden',
@@ -940,14 +940,14 @@ function Step7AIBuilder({ formData, formatTime, aiGenerated, setAiGenerated, sty
         <div style={{ background: 'white', border: `1.5px solid #e4d7f7`, borderRadius: 18, padding: '20px 22px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ background: COLORS.purpleSoft, color: COLORS.purple, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              <div style={{ background: COLORS.purpleSoft, color: COLORS.purple, fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 Style {styleIndex + 1} of {AI_STYLES.length}
               </div>
-              <div style={{ fontSize: 11, color: COLORS.textLight, fontWeight: 600 }}>{currentStyle.name}</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>{currentStyle.name}</div>
             </div>
           </div>
 
-          <div style={{ fontSize: 16, lineHeight: 1.65, color: COLORS.text }} dangerouslySetInnerHTML={{ __html: generatedHtml }} />
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.65, color: COLORS.text }} dangerouslySetInnerHTML={{ __html: generatedHtml }} />
 
           <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
             <button
@@ -955,7 +955,7 @@ function Step7AIBuilder({ formData, formatTime, aiGenerated, setAiGenerated, sty
               style={{
                 flex: 1, background: COLORS.purpleSoft, color: COLORS.purple,
                 border: `1.5px solid #e4d7f7`, borderRadius: 100, padding: 14,
-                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               }}
             >
@@ -980,14 +980,14 @@ const AI_STYLES = [
     name: 'Professional',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">About Missouri City Dental</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">About Missouri City Dental</h4>`;
       h += `We are a ${d.practiceType} practice in the Houston area looking for a dedicated ${d.role} to join our team.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Position Summary</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Position Summary</h4>`;
       h += `${d.employmentType} ${d.role} position. ${scheduleLine(d, formatTime)}`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Compensation</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Compensation</h4>`;
       h += `${payLine(d)}. ${startDateLine(d)}`;
-      if (d.credentials.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Required Credentials</h4>${bulletList(d.credentials)}`;
-      if (d.benefits.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Benefits</h4>${bulletList(d.benefits)}`;
+      if (d.credentials.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Required Credentials</h4>${bulletList(d.credentials)}`;
+      if (d.benefits.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Benefits</h4>${bulletList(d.benefits)}`;
       return h;
     },
   },
@@ -995,11 +995,11 @@ const AI_STYLES = [
     name: 'Warm & inviting',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">Hi, we're Missouri City Dental 👋</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">Hi, we're Missouri City Dental 👋</h4>`;
       h += `We're a friendly ${d.practiceType.toLowerCase()} office in Fort Bend, and we're growing! We're hoping to welcome a ${d.role.toLowerCase()} to our close-knit team.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What you'd be doing</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What you'd be doing</h4>`;
       h += `Joining us ${d.employmentType.toLowerCase()}, working alongside our amazing crew. ${scheduleLine(d, formatTime)}`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What we offer</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What we offer</h4>`;
       h += `${payLine(d)}, plus ${d.benefits.length ? d.benefits.slice(0, 3).join(', ').toLowerCase() : 'great benefits'} and more.`;
       return h;
     },
@@ -1008,13 +1008,13 @@ const AI_STYLES = [
     name: 'Energetic',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">🚀 We're Hiring a ${d.role}!</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">🚀 We're Hiring a ${d.role}!</h4>`;
       h += `Tired of the same old boring practice? Missouri City Dental is looking for someone who LOVES dentistry as much as we do.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">The Gig</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">The Gig</h4>`;
       h += `${d.employmentType} role. ${scheduleLine(d, formatTime)} Pay? ${payLine(d)}.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What You Bring</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What You Bring</h4>`;
       h += `${d.experience} of experience, ${d.credentials.length ? d.credentials.join(' / ') : 'the right credentials'}, and ENERGY!`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Ready?</h4>Apply today. ${startDateLine(d)}`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Ready?</h4>Apply today. ${startDateLine(d)}`;
       return h;
     },
   },
@@ -1022,11 +1022,11 @@ const AI_STYLES = [
     name: 'Story-driven',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">Our Story</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">Our Story</h4>`;
       h += `Missouri City Dental was built on the belief that dental care should feel personal. Today, we're a ${d.practiceType.toLowerCase()} practice serving Fort Bend families with care.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">The Chapter We're Writing Now</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">The Chapter We're Writing Now</h4>`;
       h += `We need a ${d.role.toLowerCase()} who shares our values. ${scheduleLine(d, formatTime)} Compensation: ${payLine(d)}.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Could That Be You?</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Could That Be You?</h4>`;
       h += `If you have ${d.experience} of experience and are ready to be part of something meaningful, we'd love to hear from you.`;
       return h;
     },
@@ -1035,10 +1035,10 @@ const AI_STYLES = [
     name: 'Bullet-heavy',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">The Practice</h4>${bulletList(['Type: ' + d.practiceType, 'Location: Missouri City, TX', 'Team-focused environment'])}`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">The Role</h4>${bulletList(['Position: ' + d.role, 'Type: ' + d.employmentType, 'Schedule: ' + scheduleLine(d, formatTime).replace(d.employmentType + ', ', ''), 'Pay: ' + payLine(d), 'Experience: ' + d.experience, 'Start: ' + d.startDateLabel])}`;
-      if (d.credentials.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Credentials</h4>${bulletList(d.credentials)}`;
-      if (d.benefits.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Benefits</h4>${bulletList(d.benefits)}`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">The Practice</h4>${bulletList(['Type: ' + d.practiceType, 'Location: Missouri City, TX', 'Team-focused environment'])}`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">The Role</h4>${bulletList(['Position: ' + d.role, 'Type: ' + d.employmentType, 'Schedule: ' + scheduleLine(d, formatTime).replace(d.employmentType + ', ', ''), 'Pay: ' + payLine(d), 'Experience: ' + d.experience, 'Start: ' + d.startDateLabel])}`;
+      if (d.credentials.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Credentials</h4>${bulletList(d.credentials)}`;
+      if (d.benefits.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Benefits</h4>${bulletList(d.benefits)}`;
       return h;
     },
   },
@@ -1046,11 +1046,11 @@ const AI_STYLES = [
     name: 'Conversational Q&A',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">What's the role?</h4>${d.role}, ${d.employmentType.toLowerCase()}.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What's the schedule like?</h4>${scheduleLine(d, formatTime)} ${startDateLine(d)}`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What does it pay?</h4>${payLine(d)}.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What do you need from me?</h4>${d.experience} of experience${d.credentials.length ? ' and credentials in: ' + d.credentials.join(', ') : ''}.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What's in it for me?</h4>${d.benefits.length ? 'Solid benefits including ' + d.benefits.slice(0, 4).join(', ') + '.' : 'A great work environment and growth opportunities.'}`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">What's the role?</h4>${d.role}, ${d.employmentType.toLowerCase()}.`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What's the schedule like?</h4>${scheduleLine(d, formatTime)} ${startDateLine(d)}`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What does it pay?</h4>${payLine(d)}.`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What do you need from me?</h4>${d.experience} of experience${d.credentials.length ? ' and credentials in: ' + d.credentials.join(', ') : ''}.`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What's in it for me?</h4>${d.benefits.length ? 'Solid benefits including ' + d.benefits.slice(0, 4).join(', ') + '.' : 'A great work environment and growth opportunities.'}`;
       return h;
     },
   },
@@ -1058,11 +1058,11 @@ const AI_STYLES = [
     name: 'Mission-focused',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">Our Mission</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">Our Mission</h4>`;
       h += `At Missouri City Dental, we believe every patient deserves compassionate, expert care. As a ${d.practiceType.toLowerCase()} practice, we put people first — patients and team members alike.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">How You'd Contribute</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">How You'd Contribute</h4>`;
       h += `As our next ${d.role}, you'd be on the front lines of our mission. ${scheduleLine(d, formatTime)}`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">What We Invest In You</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">What We Invest In You</h4>`;
       h += `${payLine(d)}${d.benefits.length ? ', plus ' + d.benefits.slice(0, 3).join(', ').toLowerCase() : ''}.`;
       return h;
     },
@@ -1071,11 +1071,11 @@ const AI_STYLES = [
     name: 'Detail-rich',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">Position Details</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">Position Details</h4>`;
       h += `Title: ${d.role}<br>Type: ${d.employmentType}<br>Practice: ${d.practiceType}<br>Location: Missouri City, TX (Fort Bend County)<br>${scheduleLine(d, formatTime)}<br>Compensation: ${payLine(d)}<br>Start: ${d.startDateLabel}`;
-      if (d.credentials.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Credential Requirements</h4>${bulletList(d.credentials)}`;
-      if (d.software.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Software</h4>Practice uses: ${d.software.join(', ')}.`;
-      if (d.benefits.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Benefits Package</h4>${bulletList(d.benefits)}`;
+      if (d.credentials.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Credential Requirements</h4>${bulletList(d.credentials)}`;
+      if (d.software.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Software</h4>Practice uses: ${d.software.join(', ')}.`;
+      if (d.benefits.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Benefits Package</h4>${bulletList(d.benefits)}`;
       return h;
     },
   },
@@ -1083,11 +1083,11 @@ const AI_STYLES = [
     name: 'Candidate-first',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">This Could Be Your Next Move</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">This Could Be Your Next Move</h4>`;
       h += `If you're a ${d.role.toLowerCase()} with ${d.experience} of experience looking for a meaningful next step, read on.`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Why You'll Love It Here</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Why You'll Love It Here</h4>`;
       h += `${d.benefits.length ? bulletList(d.benefits.slice(0, 5)) : 'Great culture and supportive team.'}`;
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">The Practical Stuff</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">The Practical Stuff</h4>`;
       h += `${d.employmentType} role. ${scheduleLine(d, formatTime)} ${payLine(d)}. ${startDateLine(d)}`;
       return h;
     },
@@ -1096,9 +1096,9 @@ const AI_STYLES = [
     name: 'Concise',
     fn: (d, formatTime) => {
       let h = '';
-      h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:0;margin-bottom:10px">${d.role} — Missouri City Dental</h4>`;
+      h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:0;margin-bottom:10px">${d.role} — Missouri City Dental</h4>`;
       h += `${d.employmentType} ${d.role.toLowerCase()} role at a ${d.practiceType.toLowerCase()} practice. ${scheduleLine(d, formatTime)} ${payLine(d)}. ${d.experience} of experience required${d.credentials.length ? '. ' + d.credentials.join(', ') + ' preferred' : ''}.`;
-      if (d.benefits.length) h += `<h4 style="font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;margin-top:22px;margin-bottom:10px">Benefits</h4>${d.benefits.join(' · ')}`;
+      if (d.benefits.length) h += `<h4 style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-top:22px;margin-bottom:10px">Benefits</h4>${d.benefits.join(' · ')}`;
       return h;
     },
   },
@@ -1187,7 +1187,7 @@ function Step8Review({ formData, formatTime, styleIndex, aiGenerated, jumpTo }) 
         marginBottom: 10, maxHeight: 240, overflow: 'hidden', position: 'relative',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 12, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Job Description
           </div>
           <button onClick={() => jumpTo(7)} style={{
@@ -1203,9 +1203,9 @@ function Step8Review({ formData, formatTime, styleIndex, aiGenerated, jumpTo }) 
           </button>
         </div>
         {aiHtml ? (
-          <div style={{ fontSize: 12, lineHeight: 1.55, color: COLORS.text }} dangerouslySetInnerHTML={{ __html: aiHtml }} />
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.55, color: COLORS.text }} dangerouslySetInnerHTML={{ __html: aiHtml }} />
         ) : (
-          <div style={{ fontStyle: 'italic', color: COLORS.textLight, fontSize: 13, fontWeight: 500 }}>
+          <div style={{ fontStyle: 'italic', color: COLORS.textLight, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>
             No description generated yet. Go back to step 7 to create one.
           </div>
         )}
@@ -1219,14 +1219,14 @@ function Step8Review({ formData, formatTime, styleIndex, aiGenerated, jumpTo }) 
 }
 
 function Empty() {
-  return <span style={{ fontStyle: 'italic', color: COLORS.textLight, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>None selected</span>;
+  return <span style={{ fontStyle: 'italic', color: COLORS.textLight, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: '-0.01em' }}>None selected</span>;
 }
 
 function TagsList({ tags }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
       {tags.map((t) => (
-        <span key={t} style={{ background: COLORS.greenTint, color: COLORS.green, padding: '4px 10px', borderRadius: 100, fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600 }}>
+        <span key={t} style={{ background: COLORS.greenTint, color: COLORS.green, padding: '4px 10px', borderRadius: 100, fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, fontWeight: 600, letterSpacing: '-0.01em' }}>
           {t}
         </span>
       ))}
@@ -1238,12 +1238,12 @@ function ReviewCard({ title, onEdit, children }) {
   return (
     <div style={{ background: 'white', border: `1.5px solid ${COLORS.border}`, borderRadius: 18, padding: '16px 18px', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 12, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {title}
         </div>
         <button onClick={onEdit} style={{
           background: COLORS.bg, border: `1px solid ${COLORS.border}`, borderRadius: 100,
-          padding: '6px 14px', fontSize: 11, fontWeight: 700, color: COLORS.green, cursor: 'pointer',
+          padding: '6px 14px', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: '-0.01em', color: COLORS.green, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 11, height: 11 }}>
@@ -1253,7 +1253,7 @@ function ReviewCard({ title, onEdit, children }) {
           Edit
         </button>
       </div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 16, fontWeight: 700, color: COLORS.text, lineHeight: 1.4 }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, color: COLORS.text, letterSpacing: '-0.02em', lineHeight: 1.4 }}>
         {children}
       </div>
     </div>
@@ -1285,17 +1285,17 @@ function SuccessModal({ onClose }) {
             🎉
           </div>
         </div>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 24, color: COLORS.text, marginBottom: 10, lineHeight: 1.15 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, letterSpacing: '-0.02em', marginBottom: 10, lineHeight: 1.15 }}>
           Your job is live!
         </div>
-        <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.5, marginBottom: 22, padding: '0 4px' }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5, marginBottom: 22, padding: '0 4px' }}>
           Qualified Houston dental professionals are being notified right now. You'll get a notification when applications start rolling in.
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={onClose} style={{ flex: 1, background: COLORS.bg, color: COLORS.text, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ flex: 1, background: COLORS.bg, color: COLORS.text, border: `1px solid ${COLORS.border}`, borderRadius: 100, padding: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer' }}>
             Post another
           </button>
-          <button onClick={onClose} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: 14, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: 14, fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer' }}>
             View posting
           </button>
         </div>
@@ -1337,26 +1337,31 @@ function Confetti() {
 // SHARED INLINE STYLES
 // ============================================================
 const questionStyle = {
-  fontFamily: "'Outfit', sans-serif",
-  fontWeight: 800,
-  fontSize: 26,
+  fontFamily: "'DM Sans', sans-serif",
+  fontWeight: 700,
+  fontSize: 22,
   lineHeight: 1.2,
   color: COLORS.text,
+  letterSpacing: '-0.02em',
   marginBottom: 8,
 };
 
 const helperStyle = {
+  fontFamily: "'DM Sans', sans-serif",
   fontSize: 14,
+  fontWeight: 500,
+  letterSpacing: '-0.01em',
   color: COLORS.textMid,
   marginBottom: 28,
   lineHeight: 1.5,
 };
 
 const fieldLabelStyle = {
+  fontFamily: "'DM Sans', sans-serif",
   fontSize: 11,
   fontWeight: 700,
   color: COLORS.textLight,
   textTransform: 'uppercase',
-  letterSpacing: 0.6,
+  letterSpacing: '0.06em',
   marginBottom: 10,
 };

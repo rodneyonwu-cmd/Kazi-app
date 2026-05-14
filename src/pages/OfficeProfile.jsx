@@ -176,7 +176,8 @@ export default function OfficeProfile() {
         {isExternalView && (
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-[13px] font-semibold text-[#6b7280] hover:text-[#1a1a1a] transition mb-5"
+            className="flex items-center gap-1.5 text-[#6b7280] hover:text-[#1a1a1a] transition mb-5"
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <polyline points="15 18 9 12 15 6"/>
@@ -201,7 +202,7 @@ export default function OfficeProfile() {
                 />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-[#1a7f5e] flex items-center justify-center">
-                  <span className="text-white text-[28px] font-extrabold">{officeInitials}</span>
+                  <span className="text-white" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em' }}>{officeInitials}</span>
                 </div>
               )}
               {isOwner && (
@@ -218,11 +219,11 @@ export default function OfficeProfile() {
 
             {/* Name & meta */}
             <div className="flex-1 min-w-0">
-              <h1 className="text-[18px] md:text-[22px] font-extrabold text-[#1a1a1a] mb-0.5 break-words">{officeName}</h1>
-              <p className="text-[13px] md:text-[14px] text-[#6b7280] mb-2">{officeSpecialty}{officeLocation ? ` · ${officeLocation}` : ''}</p>
+              <h1 className="text-[#1a1a1a] mb-0.5 break-words" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{officeName}</h1>
+              <p className="text-[#6b7280] mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>{officeSpecialty}{officeLocation ? ` · ${officeLocation}` : ''}</p>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[#F97316] font-bold text-[14px]">★ {avgRating}</span>
-                <span className="text-[13px] text-[#6b7280]">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
+                <span className="text-[#F97316]" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: '-0.01em' }}>★ {avgRating}</span>
+                <span className="text-[#6b7280]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span>
               </div>
             </div>
           </div>
@@ -255,11 +256,12 @@ export default function OfficeProfile() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 md:px-6 py-3.5 text-[13px] md:text-[14px] font-semibold transition border-b-2 whitespace-nowrap flex-shrink-0 ${
+                className={`px-4 md:px-6 py-3.5 transition border-b-2 whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id
                     ? 'text-[#1a7f5e] border-[#1a7f5e]'
                     : 'text-[#6b7280] border-transparent hover:text-[#1a1a1a]'
                 }`}
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}
               >
                 {tab.label}
               </button>
@@ -270,38 +272,38 @@ export default function OfficeProfile() {
           {activeTab === 'overview' && (
             <div className="p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[15px] font-extrabold text-[#1a1a1a]">About</h2>
-                {isOwner && !editingBio && <button onClick={() => { setEditBio(officeBio); setEditingBio(true) }} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline cursor-pointer bg-none border-none" style={{ fontFamily: 'inherit' }}>Edit</button>}
+                <h2 className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>About</h2>
+                {isOwner && !editingBio && <button onClick={() => { setEditBio(officeBio); setEditingBio(true) }} className="text-[#1a7f5e] hover:underline cursor-pointer bg-none border-none" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Edit</button>}
               </div>
               {editingBio ? (
                 <div className="mb-6">
-                  <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={4} className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#1a7f5e] resize-none leading-relaxed" style={{ fontFamily: 'inherit' }} />
+                  <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={4} className="w-full border border-[#e5e7eb] rounded-xl px-4 py-3 outline-none focus:border-[#1a7f5e] resize-none leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em' }} />
                   <div className="flex gap-2 mt-2">
-                    <button onClick={() => setEditingBio(false)} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] border border-[#e5e7eb] rounded-full text-[13px] font-bold text-[#374151] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={async () => { if (await saveField({ bio: editBio })) setEditingBio(false) }} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] bg-[#1a7f5e] text-white rounded-full text-[13px] font-bold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
+                    <button onClick={() => setEditingBio(false)} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] border border-[#e5e7eb] rounded-full text-[#374151] bg-white cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Cancel</button>
+                    <button onClick={async () => { if (await saveField({ bio: editBio })) setEditingBio(false) }} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] bg-[#1a7f5e] text-white rounded-full border-none cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Save</button>
                   </div>
                 </div>
               ) : officeBio ? (
-                <p className="text-[14px] text-[#374151] leading-relaxed mb-6">{officeBio}</p>
+                <p className="text-[#374151] leading-relaxed mb-6" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em' }}>{officeBio}</p>
               ) : (
-                <p className="text-[14px] text-[#9ca3af] leading-relaxed mb-6">{isOwner ? 'Click Edit to add an office bio.' : 'No bio added yet.'}</p>
+                <p className="text-[#9ca3af] leading-relaxed mb-6" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em' }}>{isOwner ? 'Click Edit to add an office bio.' : 'No bio added yet.'}</p>
               )}
 
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[15px] font-extrabold text-[#1a1a1a]">Office details</h2>
-                {isOwner && !editingDetails && <button onClick={() => { setEditDetails({ specialty: officeSpecialty, phone: officePhone, website: officeWebsite, address: office?.address || '', city: officeCity, state: officeState, zip: office?.zip || '' }); setEditingDetails(true) }} className="text-[13px] font-semibold text-[#1a7f5e] hover:underline cursor-pointer bg-none border-none" style={{ fontFamily: 'inherit' }}>Edit</button>}
+                <h2 className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>Office details</h2>
+                {isOwner && !editingDetails && <button onClick={() => { setEditDetails({ specialty: officeSpecialty, phone: officePhone, website: officeWebsite, address: office?.address || '', city: officeCity, state: officeState, zip: office?.zip || '' }); setEditingDetails(true) }} className="text-[#1a7f5e] hover:underline cursor-pointer bg-none border-none" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Edit</button>}
               </div>
               {editingDetails ? (
                 <div className="bg-[#f9f8f6] rounded-xl p-4 mb-6">
                   {[['Specialty', 'specialty'], ['Phone', 'phone'], ['Website', 'website'], ['Address', 'address'], ['City', 'city'], ['State', 'state'], ['Zip', 'zip']].map(([label, key]) => (
                     <div key={key} className="mb-3">
-                      <label className="block text-[11px] font-bold text-[#9ca3af] uppercase tracking-wider mb-1">{label}</label>
+                      <label className="block text-[#9ca3af] uppercase mb-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em' }}>{label}</label>
                       <input value={editDetails[key] || ''} onChange={e => setEditDetails(prev => ({ ...prev, [key]: e.target.value }))} className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#1a7f5e] bg-white" />
                     </div>
                   ))}
                   <div className="flex gap-2 mt-1">
-                    <button onClick={() => setEditingDetails(false)} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] border border-[#e5e7eb] rounded-full text-[13px] font-bold text-[#374151] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                    <button onClick={async () => { if (await saveField(editDetails)) setEditingDetails(false) }} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] bg-[#1a7f5e] text-white rounded-full text-[13px] font-bold border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
+                    <button onClick={() => setEditingDetails(false)} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] border border-[#e5e7eb] rounded-full text-[#374151] bg-white cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Cancel</button>
+                    <button onClick={async () => { if (await saveField(editDetails)) setEditingDetails(false) }} className="flex-1 sm:flex-none px-4 py-2.5 min-h-[40px] bg-[#1a7f5e] text-white rounded-full border-none cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Save</button>
                   </div>
                 </div>
               ) : (
@@ -313,8 +315,8 @@ export default function OfficeProfile() {
                   { label: 'Location', value: officeAddress || 'Not set' },
                 ].map(({ label, value }, i, arr) => (
                   <div key={label} className={`flex items-center justify-between px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f3f4f6]' : ''}`}>
-                    <span className="text-[13px] text-[#9ca3af] font-medium">{label}</span>
-                    <span className="text-[13px] font-semibold text-[#1a1a1a]">{value}</span>
+                    <span className="text-[#9ca3af]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>{label}</span>
+                    <span className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -330,7 +332,7 @@ export default function OfficeProfile() {
                   <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                   </div>
-                  <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">No open positions</p>
+                  <p className="text-[#1a1a1a] mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>No open positions</p>
                   <p className="text-[14px] text-[#9ca3af] leading-relaxed max-w-[280px] mx-auto">This office doesn't have any open shifts or jobs right now.</p>
                 </div>
               ) : (
@@ -338,10 +340,10 @@ export default function OfficeProfile() {
                   {/* Temporary Shifts */}
                   {tempShifts.length > 0 && (
                     <>
-                      <h2 className="text-[15px] font-extrabold text-[#1a1a1a] mb-3 flex items-center gap-2">
+                      <h2 className="text-[#1a1a1a] mb-3 flex items-center gap-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         Temporary Shifts
-                        <span className="text-[12px] font-bold text-[#9ca3af] ml-1">({tempShifts.length})</span>
+                        <span className="text-[#9ca3af] ml-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, letterSpacing: '-0.01em' }}>({tempShifts.length})</span>
                       </h2>
                       <div className="flex flex-col gap-2 mb-6">
                         {tempShifts.map(shift => {
@@ -353,20 +355,20 @@ export default function OfficeProfile() {
                             <div key={shift.id} onClick={() => setSelectedShift(shift)} className="bg-[#f9f8f6] border border-[#e5e7eb] rounded-xl p-4 hover:border-[#1a7f5e] transition cursor-pointer">
                               <div className="flex items-start justify-between mb-2">
                                 <div>
-                                  <p className="text-[14px] font-bold text-[#1a1a1a]">{shift.role}</p>
+                                  <p className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em' }}>{shift.role}</p>
                                   <p className="text-[12px] text-[#6b7280]">{dateStr} · {shift.startTime} – {shift.endTime}</p>
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  <p className="text-[16px] font-black text-[#1a7f5e]">${shift.hourlyRate}/hr</p>
-                                  {estPay && <p className="text-[11px] text-[#6b7280]">Est. {estPay}</p>}
+                                  <p className="text-[#1a7f5e]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, letterSpacing: '-0.02em' }}>${shift.hourlyRate}/hr</p>
+                                  {estPay && <p className="text-[#6b7280]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '-0.01em' }}>Est. {estPay}</p>}
                                 </div>
                               </div>
                               {shift.description && <p className="text-[12px] text-[#6b7280] mb-2 line-clamp-2">{shift.description}</p>}
                               <div className="flex items-center gap-2 flex-wrap">
                                 {(shift.software || []).map(sw => (
-                                  <span key={sw} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#e8f5f0] text-[#1a7f5e]">{sw}</span>
+                                  <span key={sw} className="px-2 py-0.5 rounded-full bg-[#e8f5f0] text-[#1a7f5e]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: '-0.01em' }}>{sw}</span>
                                 ))}
-                                {shift.isRapidFill && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#fef9c3] text-[#92400e]">Rapid Fill</span>}
+                                {shift.isRapidFill && <span className="px-2 py-0.5 rounded-full bg-[#fef9c3] text-[#92400e]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '-0.01em' }}>Rapid Fill</span>}
                               </div>
                             </div>
                           )
@@ -378,10 +380,10 @@ export default function OfficeProfile() {
                   {/* Permanent Jobs */}
                   {permJobs.length > 0 && (
                     <>
-                      <h2 className="text-[15px] font-extrabold text-[#1a1a1a] mb-3 flex items-center gap-2">
+                      <h2 className="text-[#1a1a1a] mb-3 flex items-center gap-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                         Permanent Positions
-                        <span className="text-[12px] font-bold text-[#9ca3af] ml-1">({permJobs.length})</span>
+                        <span className="text-[#9ca3af] ml-1" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, letterSpacing: '-0.01em' }}>({permJobs.length})</span>
                       </h2>
                       <div className="flex flex-col gap-3">
                         {permJobs.map(job => (
@@ -403,7 +405,7 @@ export default function OfficeProfile() {
                   <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                   </div>
-                  <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">No reviews yet</p>
+                  <p className="text-[#1a1a1a] mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>No reviews yet</p>
                   <p className="text-[14px] text-[#9ca3af] leading-relaxed max-w-[280px] mx-auto">Reviews from professionals who have worked at your office will appear here.</p>
                 </div>
               ) : (
@@ -411,7 +413,7 @@ export default function OfficeProfile() {
                   {/* Rating summary */}
                   <div className="flex items-center gap-4 md:gap-5 mb-6 pb-6 border-b border-[#f3f4f6]">
                     <div className="text-center">
-                      <p className="text-[40px] md:text-[48px] font-extrabold text-[#1a1a1a] leading-none">{avgRating}</p>
+                      <p className="text-[#1a1a1a] leading-none" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 44, fontWeight: 700, letterSpacing: '-0.03em' }}>{avgRating}</p>
                       <Stars count={Math.round(parseFloat(avgRating))} />
                       <p className="text-[12px] text-[#9ca3af] mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
                     </div>
@@ -421,7 +423,7 @@ export default function OfficeProfile() {
                         const pct = Math.round((count / reviews.length) * 100)
                         return (
                           <div key={star} className="flex items-center gap-2">
-                            <span className="text-[12px] font-semibold text-[#6b7280] w-2">{star}</span>
+                            <span className="text-[#6b7280] w-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, letterSpacing: '-0.01em' }}>{star}</span>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="#F97316"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                             <div className="flex-1 h-1.5 bg-[#f3f4f6] rounded-full overflow-hidden">
                               <div className="h-full bg-[#F97316] rounded-full" style={{ width: `${pct}%` }} />
@@ -440,7 +442,7 @@ export default function OfficeProfile() {
                         <div className="flex items-center gap-3 mb-2">
                           <InitialsAvatar name={review.reviewerName || review.providerName || 'U'} size={40} />
                           <div>
-                            <p className="text-[14px] font-bold text-[#1a1a1a]">{review.reviewerName || review.providerName || 'Anonymous'}</p>
+                            <p className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em' }}>{review.reviewerName || review.providerName || 'Anonymous'}</p>
                             <p className="text-[12px] text-[#9ca3af]">{review.role || 'Professional'} · {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                           </div>
                           <div className="ml-auto">
@@ -464,7 +466,7 @@ export default function OfficeProfile() {
                   <div className="w-16 h-16 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                   </div>
-                  <p className="text-[17px] font-extrabold text-[#1a1a1a] mb-2">No photos yet</p>
+                  <p className="text-[#1a1a1a] mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>No photos yet</p>
                   <p className="text-[14px] text-[#9ca3af] leading-relaxed max-w-[280px] mx-auto">Add photos of your office to help professionals know what to expect.</p>
                 </div>
               ) : (
@@ -488,7 +490,7 @@ export default function OfficeProfile() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[12px] font-semibold px-4 py-2.5 rounded-full z-[300] flex items-center gap-2 shadow-xl whitespace-nowrap">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white px-4 py-2.5 rounded-full z-[300] flex items-center gap-2 shadow-xl whitespace-nowrap" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>
           <div className="w-4 h-4 rounded-full bg-[#1a7f5e] flex items-center justify-center flex-shrink-0">
             <svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
           </div>
@@ -514,39 +516,39 @@ export default function OfficeProfile() {
             <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setSelectedShift(null)} />
             <div className="fixed top-0 right-0 bottom-0 left-0 md:left-auto w-full md:max-w-[440px] bg-white z-50 flex flex-col shadow-2xl">
               <div className="px-5 py-4 border-b border-[#f3f4f6] flex-shrink-0">
-                <button onClick={() => setSelectedShift(null)} className="flex items-center gap-1.5 text-[13px] font-bold text-[#6b7280] mb-4 bg-none border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>
+                <button onClick={() => setSelectedShift(null)} className="flex items-center gap-1.5 text-[#6b7280] mb-4 bg-none border-none cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
                   Back
                 </button>
                 <div className="flex items-start gap-3">
-                  <div className={`w-14 h-14 rounded-[14px] flex items-center justify-center text-[14px] font-black flex-shrink-0 ${isPerm ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`}>{oInitials}</div>
+                  <div className={`w-14 h-14 rounded-[14px] flex items-center justify-center flex-shrink-0 ${isPerm ? 'bg-[#e8f5f0] text-[#1a7f5e]' : 'bg-[#e8f5f0] text-[#1a7f5e]'}`} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700, letterSpacing: '-0.02em' }}>{oInitials}</div>
                   <div className="flex-1">
-                    <p className="text-[20px] font-black text-[#1a1a1a]">{oName}</p>
-                    <p className="text-[13px] text-[#6b7280]">{s.role}</p>
-                    {isPerm && <span className="text-[11px] font-bold text-[#1a7f5e]">Permanent Position</span>}
+                    <p className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{oName}</p>
+                    <p className="text-[#6b7280]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>{s.role}</p>
+                    {isPerm && <span className="text-[#1a7f5e]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '-0.01em' }}>Permanent Position</span>}
                   </div>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 <div className={`rounded-[14px] px-4 py-3 mb-5 ${isPerm ? 'bg-[#e8f5f0]' : 'bg-[#e8f5f0]'}`}>
-                  <p className={`text-[11px] font-semibold uppercase tracking-wider mb-0.5 ${isPerm ? 'text-[#1a7f5e]' : 'text-[#6b9e8a]'}`}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
-                  <p className={`text-[22px] font-black ${isPerm ? 'text-[#1a7f5e]' : 'text-[#0f4d38]'}`}>{isPerm ? rate : estPay}</p>
+                  <p className={`uppercase mb-0.5 ${isPerm ? 'text-[#1a7f5e]' : 'text-[#6b9e8a]'}`} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.06em' }}>{isPerm ? 'Compensation' : 'Estimated pay'}</p>
+                  <p className={`${isPerm ? 'text-[#1a7f5e]' : 'text-[#0f4d38]'}`} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>{isPerm ? rate : estPay}</p>
                 </div>
-                <p className="text-[16px] font-semibold text-[#374151] mb-3">{isPerm ? 'Job details' : 'Shift details'}</p>
+                <p className="text-[#374151] mb-3" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, letterSpacing: '-0.02em' }}>{isPerm ? 'Job details' : 'Shift details'}</p>
                 <div className="bg-[#f9f8f6] rounded-[14px] overflow-hidden mb-5">
                   {(isPerm
                     ? [['Role', s.role || '—'], ['Type', 'Full-time · Permanent'], ['Rate', rate], ['Software', software]]
                     : [['Date', dateStr], ['Time', timeStr], ['Hourly Rate', rate], ['Role', s.role || '—'], ['Software', software]]
                   ).map(([label, value], i, arr) => (
                     <div key={label} className={`flex justify-between px-4 py-3 ${i < arr.length - 1 ? 'border-b border-[#f0efed]' : ''}`}>
-                      <span className="text-[14px] text-[#9ca3af]">{label}</span>
-                      <span className="text-[14px] font-medium text-[#1a1a1a]">{value}</span>
+                      <span className="text-[#9ca3af]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>{label}</span>
+                      <span className="text-[#1a1a1a]" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>{value}</span>
                     </div>
                   ))}
                 </div>
                 {editingShift ? (
                   <div className="mb-5">
-                    <p className="text-[15px] font-semibold text-[#374151] mb-3">Edit posting</p>
+                    <p className="text-[#374151] mb-3" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em' }}>Edit posting</p>
                     <div className="mb-3">
                       <label className="block text-[11px] font-bold text-[#9ca3af] uppercase tracking-wider mb-1">Role</label>
                       <input value={shiftEdit.role || ''} onChange={e => setShiftEdit(p => ({ ...p, role: e.target.value }))} className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#1a7f5e] bg-white" />
@@ -557,19 +559,19 @@ export default function OfficeProfile() {
                     </div>
                     <div className="mb-3">
                       <label className="block text-[11px] font-bold text-[#9ca3af] uppercase tracking-wider mb-1">Description</label>
-                      <textarea value={shiftEdit.description || ''} onChange={e => setShiftEdit(p => ({ ...p, description: e.target.value }))} className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 text-[13px] outline-none focus:border-[#1a7f5e] bg-white resize-none h-24" style={{ fontFamily: 'inherit' }} />
+                      <textarea value={shiftEdit.description || ''} onChange={e => setShiftEdit(p => ({ ...p, description: e.target.value }))} className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 outline-none focus:border-[#1a7f5e] bg-white resize-none h-24" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }} />
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingShift(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px] bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel</button>
-                      <button onClick={saveShiftEdit} className="flex-1 bg-[#1a7f5e] text-white font-bold py-3 min-h-[44px] rounded-full text-[13px] border-none cursor-pointer" style={{ fontFamily: 'inherit' }}>Save</button>
+                      <button onClick={() => setEditingShift(false)} className="flex-1 border border-[#e5e7eb] text-[#374151] py-3 min-h-[44px] rounded-full bg-white cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Cancel</button>
+                      <button onClick={saveShiftEdit} className="flex-1 bg-[#1a7f5e] text-white py-3 min-h-[44px] rounded-full border-none cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Save</button>
                     </div>
                   </div>
                 ) : (
                   <>
                     {s.description && (
                       <div className="mb-5">
-                        <p className="text-[15px] font-semibold text-[#374151] mb-2">Description</p>
-                        <p className="text-[13px] text-[#374151] leading-relaxed whitespace-pre-line">{s.description}</p>
+                        <p className="text-[#374151] mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em' }}>Description</p>
+                        <p className="text-[#374151] leading-relaxed whitespace-pre-line" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, letterSpacing: '-0.01em' }}>{s.description}</p>
                       </div>
                     )}
                   </>
@@ -590,8 +592,8 @@ export default function OfficeProfile() {
                         else { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to apply') }
                       } catch { showToast('Failed to apply') }
                     }}
-                    className={`flex-1 font-bold py-3 rounded-full text-[14px] transition border-none cursor-pointer ${'bg-[#1a7f5e] hover:bg-[#156649]'} text-white`}
-                    style={{ fontFamily: 'inherit' }}
+                    className={`flex-1 py-3 rounded-full transition border-none cursor-pointer ${'bg-[#1a7f5e] hover:bg-[#156649]'} text-white`}
+                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}
                   >
                     {isPerm ? 'Apply Now' : 'Apply'}
                   </button>
@@ -600,11 +602,11 @@ export default function OfficeProfile() {
               {isOwner && !editingShift && (
                 <div className="px-5 py-4 border-t border-[#f3f4f6] flex flex-col gap-2 flex-shrink-0 bg-white">
                   <button onClick={() => { setShiftEdit({ role: s.role, hourlyRate: s.hourlyRate, description: s.description || '' }); setEditingShift(true) }}
-                    className="w-full flex items-center justify-center gap-1.5 border border-[#e5e7eb] text-[#374151] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
+                    className="w-full flex items-center justify-center gap-1.5 border border-[#e5e7eb] text-[#374151] py-3 min-h-[44px] rounded-full hover:border-[#1a7f5e] transition bg-white cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     Edit this post
                   </button>
-                  <button onClick={cancelShift} className="w-full border border-[#fee2e2] text-[#ef4444] font-bold py-3 min-h-[44px] rounded-full text-[13px] hover:bg-[#fef2f2] transition cursor-pointer" style={{ fontFamily: 'inherit' }}>Cancel posting</button>
+                  <button onClick={cancelShift} className="w-full border border-[#fee2e2] text-[#ef4444] py-3 min-h-[44px] rounded-full hover:bg-[#fef2f2] transition cursor-pointer" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}>Cancel posting</button>
                 </div>
               )}
             </div>

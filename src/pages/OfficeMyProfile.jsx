@@ -10,25 +10,25 @@ const styles = `
 .kazi-omp .topbar { position: sticky; top: 0; z-index: 50; background: var(--card); padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-soft); }
 .kazi-omp .icon-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .kazi-omp .icon-btn svg { width: 16px; height: 16px; stroke: var(--text); stroke-width: 2; fill: none; }
-.kazi-omp .topbar-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 18px; flex: 1; letter-spacing: -.01em; }
+.kazi-omp .topbar-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 18px; flex: 1; letter-spacing: -.02em; }
 .kazi-omp .preview-btn { background: var(--green-soft); color: var(--green); border: none; padding: 8px 14px; border-radius: 100px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 .kazi-omp .preview-btn svg { width: 12px; height: 12px; stroke: var(--green); stroke-width: 2.5; fill: none; }
 .kazi-omp .hero-card { text-align: center; padding: 20px 20px 24px; position: relative; }
 .kazi-omp .logo-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto 18px; }
-.kazi-omp .office-logo { width: 96px; height: 96px; border-radius: 24px; background: linear-gradient(135deg,#a8c9b8,#7ab8a8); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 30px; letter-spacing: -.02em; box-shadow: 0 6px 20px rgba(26,127,94,.15); }
+.kazi-omp .office-logo { width: 96px; height: 96px; border-radius: 24px; background: linear-gradient(135deg,#a8c9b8,#7ab8a8); display: flex; align-items: center; justify-content: center; color: white; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -.02em; box-shadow: 0 6px 20px rgba(26,127,94,.15); }
 .kazi-omp .verified-badge { position: absolute; bottom: -2px; right: -2px; width: 26px; height: 26px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--card); }
 .kazi-omp .verified-badge svg { width: 12px; height: 12px; stroke: white; stroke-width: 3; fill: none; }
 .kazi-omp .photo-edit { position: absolute; top: -3px; right: -3px; width: 26px; height: 26px; background: var(--text); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--bg); cursor: pointer; z-index: 2; }
 .kazi-omp .photo-edit svg { width: 11px; height: 11px; stroke: white; stroke-width: 2.5; fill: none; }
-.kazi-omp .office-name { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 6px; }
+.kazi-omp .office-name { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin-bottom: 6px; }
 .kazi-omp .office-type { font-size: 14px; color: var(--text-light); margin-bottom: 14px; }
 .kazi-omp .rating-row { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1.5px solid var(--border); border-radius: 100px; padding: 7px 16px; font-size: 14px; font-weight: 700; }
 .kazi-omp .tabs { display: flex; gap: 4px; background: var(--card); margin: 14px 20px 0; border-radius: 14px; padding: 5px; border: 1.5px solid var(--border); }
-.kazi-omp .tab { flex: 1; background: none; border: none; padding: 10px 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-mid); cursor: pointer; border-radius: 10px; }
+.kazi-omp .tab { flex: 1; background: none; border: none; padding: 10px 6px; font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; color: var(--text-mid); cursor: pointer; border-radius: 10px; }
 .kazi-omp .tab.active { background: var(--green); color: white; }
 .kazi-omp .section { background: var(--card); margin: 14px 20px 0; border-radius: 14px; padding: 20px; border: 1.5px solid var(--border); }
 .kazi-omp .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.kazi-omp .section-title { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+.kazi-omp .section-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -.02em; }
 .kazi-omp .edit-btn { background: none; border: none; color: var(--green); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .kazi-omp .about-text { font-size: 14px; line-height: 1.6; color: var(--text-mid); }
 .kazi-omp .about-text.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -46,13 +46,13 @@ const styles = `
 .kazi-omp .map-pin::after { content: ''; width: 14px; height: 14px; background: white; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
 .kazi-omp .loc-meta { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
 .kazi-omp .loc-addr { font-size: 14px; color: var(--text); line-height: 1.5; font-weight: 500; }
-.kazi-omp .loc-dist { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800; color: var(--green); flex-shrink: 0; }
+.kazi-omp .loc-dist { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -.02em; color: var(--green); flex-shrink: 0; }
 .kazi-omp .subtabs { display: flex; gap: 8px; margin-bottom: 14px; }
 .kazi-omp .subtab { flex: 1; padding: 9px 10px; border-radius: 100px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-mid); display: flex; align-items: center; justify-content: center; gap: 6px; }
 .kazi-omp .subtab.active { background: var(--green-soft); color: var(--green); border-color: #cfe8de; }
 .kazi-omp .subtab.perm { color: var(--purple); border-color: var(--purple-soft); background: #faf7fc; }
 .kazi-omp .subtab.perm.active { background: var(--purple); color: white; border-color: var(--purple); }
-.kazi-omp .subtab-count { font-size: 10px; background: var(--card); color: var(--text-mid); padding: 1px 7px; border-radius: 100px; font-weight: 800; }
+.kazi-omp .subtab-count { font-size: 10px; background: var(--card); color: var(--text-mid); padding: 1px 7px; border-radius: 100px; font-weight: 700; letter-spacing: .04em; }
 .kazi-omp .subtab.active .subtab-count { background: var(--card); color: var(--green); }
 .kazi-omp .subtab.perm.active .subtab-count { background: rgba(255,255,255,.25); color: white; }
 .kazi-omp .shift-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-soft); align-items: center; cursor: pointer; }
@@ -60,29 +60,29 @@ const styles = `
 .kazi-omp .shift-item:first-child { padding-top: 0; }
 .kazi-omp .shift-date { width: 54px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 4px; text-align: center; flex-shrink: 0; }
 .kazi-omp .shift-date.gold { background: var(--amber-soft); border-color: #f5e3b8; }
-.kazi-omp .shift-day-num { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; line-height: 1; }
+.kazi-omp .shift-day-num { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
 .kazi-omp .shift-day-name { font-size: 9px; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-top: 3px; }
 .kazi-omp .shift-info { flex: 1; min-width: 0; }
-.kazi-omp .shift-role { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.kazi-omp .shift-role { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 2px; }
 .kazi-omp .shift-meta { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
-.kazi-omp .shift-pay { font-size: 13px; font-weight: 800; color: var(--green); display: inline-block; margin-right: 8px; }
+.kazi-omp .shift-pay { font-size: 13px; font-weight: 700; letter-spacing: -.01em; color: var(--green); display: inline-block; margin-right: 8px; }
 .kazi-omp .applicant-count { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
 .kazi-omp .applicant-count svg { width: 10px; height: 10px; stroke: var(--text-mid); stroke-width: 2; fill: none; }
 .kazi-omp .shift-arrow { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); border: 1.5px solid #cfe8de; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .kazi-omp .shift-arrow svg { width: 14px; height: 14px; stroke: var(--green); stroke-width: 3; fill: none; }
 .kazi-omp .perm-card { background: linear-gradient(135deg,#faf7fc,#ffffff); border: 1.5px solid var(--purple-soft); border-radius: 14px; padding: 16px; margin-bottom: 10px; position: relative; }
 .kazi-omp .perm-card:last-child { margin-bottom: 0; }
-.kazi-omp .perm-badge { position: absolute; top: 12px; right: 12px; background: var(--purple); color: white; font-size: 9px; font-weight: 800; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: .4px; }
+.kazi-omp .perm-badge { position: absolute; top: 12px; right: 12px; background: var(--purple); color: white; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: .06em; }
 .kazi-omp .perm-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--purple-soft); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
 .kazi-omp .perm-icon svg { width: 16px; height: 16px; stroke: var(--purple); fill: none; stroke-width: 2; }
-.kazi-omp .perm-title { font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 3px; letter-spacing: -.01em; }
+.kazi-omp .perm-title { font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 3px; letter-spacing: -.02em; }
 .kazi-omp .perm-type { font-size: 11px; color: var(--text-light); font-weight: 600; margin-bottom: 10px; }
-.kazi-omp .perm-salary { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 800; color: var(--green); margin-bottom: 10px; }
+.kazi-omp .perm-salary { font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.02em; color: var(--green); margin-bottom: 10px; }
 .kazi-omp .perm-benefits { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
 .kazi-omp .benefit { background: var(--card); border: 1px solid var(--border); color: var(--text-mid); font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 100px; }
 .kazi-omp .perm-apply { width: 100%; background: var(--purple); color: white; border: none; border-radius: 100px; padding: 10px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .kazi-omp .rating-summary { display: flex; gap: 16px; align-items: center; padding: 4px 0 16px; border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; }
-.kazi-omp .rating-big { font-family: 'Outfit', sans-serif; font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.kazi-omp .rating-big { font-family: 'DM Sans', sans-serif; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
 .kazi-omp .rating-meta { flex: 1; }
 .kazi-omp .rating-stars { color: #f4b740; font-size: 15px; letter-spacing: 1px; margin-bottom: 3px; }
 .kazi-omp .rating-count { font-size: 12px; color: var(--text-light); font-weight: 600; }
@@ -95,7 +95,7 @@ const styles = `
 .kazi-omp .review { padding: 14px 0; border-bottom: 1px solid var(--border-soft); }
 .kazi-omp .review:last-child { border-bottom: none; }
 .kazi-omp .review-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.kazi-omp .reviewer-avatar { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg,#c8a8d4,#e8a87c); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+.kazi-omp .reviewer-avatar { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg,#c8a8d4,#e8a87c); display: flex; align-items: center; justify-content: center; color: white; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: -.01em; flex-shrink: 0; }
 .kazi-omp .reviewer-info { flex: 1; }
 .kazi-omp .reviewer-name { font-size: 13px; font-weight: 700; }
 .kazi-omp .review-date { font-size: 11px; color: var(--text-light); margin-top: 1px; }
@@ -162,8 +162,8 @@ export default function OfficeMyProfile() {
         <div className="office-type">Houston, TX · Galleria area</div>
         <div className="rating-row">
           <span style={{ color: '#f4b740', fontSize: '15px' }}>★</span>
-          <span style={{ color: 'var(--text)', fontWeight: 800 }}>4.8</span>
-          <span style={{ color: 'var(--text-light)', fontWeight: 500 }}>(18 reviews)</span>
+          <span style={{ color: 'var(--text)', fontWeight: 700, letterSpacing: '-0.02em' }}>4.8</span>
+          <span style={{ color: 'var(--text-light)', fontWeight: 500, letterSpacing: '-0.01em' }}>(18 reviews)</span>
         </div>
       </div>
 

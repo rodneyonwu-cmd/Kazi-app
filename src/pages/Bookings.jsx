@@ -135,8 +135,8 @@ export default function Bookings() {
         <div style={{ background: 'white', padding: '14px 18px 16px', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0, position: 'sticky', top: 0, zIndex: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: COLORS.text, letterSpacing: '-0.5px', lineHeight: 1.1 }}>Bookings</div>
-              <div style={{ fontSize: 12, color: COLORS.textLight, marginTop: 4 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, letterSpacing: '-0.02em', lineHeight: 1.1 }}>Bookings</div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 4 }}>
                 {MOCK_PENDING.length + MOCK_RAPID_FILL.length} awaiting · {MOCK_UPCOMING.length} upcoming · {MOCK_COMPLETED.filter((c) => c.status === 'completed').length} completed
               </div>
             </div>
@@ -158,7 +158,7 @@ export default function Bookings() {
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by pro name or date" style={{ flex: 1, fontSize: 13, color: COLORS.text, background: 'none', border: 'none', fontFamily: 'inherit', fontWeight: 500 }} />
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by pro name or date" style={{ flex: 1, fontSize: 13, color: COLORS.text, background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: '-0.01em' }} />
             </div>
           )}
         </div>
@@ -207,9 +207,9 @@ function Tabs({ activeTab, setActiveTab, counts }) {
       {tabs.map((t) => {
         const isActive = activeTab === t.id;
         return (
-          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ flex: 1, background: isActive ? COLORS.green : 'none', border: 'none', padding: '10px 8px', fontSize: 12, fontWeight: 700, color: isActive ? 'white' : COLORS.textLight, borderRadius: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontFamily: "'Outfit', sans-serif", transition: 'all 0.2s' }}>
+          <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ flex: 1, background: isActive ? COLORS.green : 'none', border: 'none', padding: '10px 8px', fontSize: 12.5, fontWeight: 600, color: isActive ? 'white' : COLORS.textLight, borderRadius: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', transition: 'all 0.2s' }}>
             {t.label}
-            <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 100, background: isActive ? 'rgba(255,255,255,0.25)' : COLORS.bg, color: isActive ? 'white' : COLORS.textLight, minWidth: 16 }}>{t.count}</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 100, background: isActive ? 'rgba(255,255,255,0.25)' : COLORS.bg, color: isActive ? 'white' : COLORS.textLight, minWidth: 16, letterSpacing: '0.04em' }}>{t.count}</span>
           </button>
         );
       })}
@@ -226,13 +226,13 @@ function PendingCard({ item, onOpen }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <Avatar url={item.avatarUrl} initials={item.initials} size={48} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px', marginBottom: 2 }}>{item.name}</div>
-          <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.02em', marginBottom: 2 }}>{item.name}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
             <span>{item.role.replace('Dental ', '')}</span>
             <Sep />
             <span>{item.timeShort}</span>
             <Sep />
-            <span style={{ color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{item.rate}</span>
+            <span style={{ color: COLORS.textMid, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>{item.rate}</span>
           </div>
         </div>
         <div style={{ flexShrink: 0 }}>
@@ -240,15 +240,15 @@ function PendingCard({ item, onOpen }) {
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
-        <div style={{ fontSize: 11, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+        <div style={{ fontSize: 12.5, color: COLORS.textMid, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: '-0.01em' }}>
           {item.dateLong}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: COLORS.amber, fontWeight: 700 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.amber, fontWeight: 600, letterSpacing: '-0.01em' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{item.expiresIn}</span>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{item.expiresIn}</span>
         </div>
       </div>
     </div>
@@ -272,15 +272,15 @@ function RapidFillCard({ item, onOpen }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-            <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>Rapid Fill</span>
-            <span style={{ background: COLORS.green, color: 'white', fontSize: 9, fontWeight: 800, padding: '3px 7px', borderRadius: 100, fontFamily: "'Outfit', sans-serif", letterSpacing: 0.3 }}>SENT TO {item.sentCount}</span>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.02em' }}>Rapid Fill</span>
+            <span style={{ background: COLORS.green, color: 'white', fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 100, fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.06em' }}>SENT TO {item.sentCount}</span>
           </div>
-          <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
             <span>{item.roleShort}</span>
             <Sep />
             <span>{item.timeShort}</span>
             <Sep />
-            <span style={{ color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{item.rate}</span>
+            <span style={{ color: COLORS.textMid, fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.01em' }}>{item.rate}</span>
           </div>
         </div>
         <div style={{ flexShrink: 0 }}>
@@ -306,32 +306,32 @@ function RapidFillCard({ item, onOpen }) {
               {p.avatarUrl ? (
                 <img src={p.avatarUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, color: COLORS.text }}>{p.initials}</span>
+                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: COLORS.text, letterSpacing: '-0.01em' }}>{p.initials}</span>
               )}
             </div>
           ))}
           {remaining > 0 && (
             <div style={{ width: 32, height: 32, borderRadius: 10, border: '2px solid white', marginLeft: -8, background: COLORS.green, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, color: 'white' }}>+{remaining}</span>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: 'white', letterSpacing: '-0.01em' }}>+{remaining}</span>
             </div>
           )}
         </div>
-        <div style={{ fontSize: 11, color: COLORS.textMid, lineHeight: 1.3 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.3 }}>
           First to accept gets it
         </div>
       </div>
 
       {/* Footer: date + expires */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}` }}>
-        <div style={{ fontSize: 11, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>
+        <div style={{ fontSize: 12.5, color: COLORS.textMid, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: '-0.01em' }}>
           {item.dateLong}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: COLORS.amber, fontWeight: 700 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.amber, fontWeight: 600, letterSpacing: '-0.01em' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{item.expiresIn}</span>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{item.expiresIn}</span>
         </div>
       </div>
     </div>
@@ -347,8 +347,8 @@ function UpcomingCard({ item, onOpen }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <Avatar url={item.avatarUrl} initials={item.initials} size={48} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px', marginBottom: 2 }}>{item.name}</div>
-          <div style={{ fontSize: 12, color: COLORS.textLight, lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.02em', marginBottom: 2 }}>{item.name}</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.35, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
             <span>{item.roleShort}</span>
             <Sep />
             <span>{item.timeShort}</span>
@@ -365,9 +365,9 @@ function UpcomingCard({ item, onOpen }) {
           </StatusPill>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}`, fontSize: 11, color: COLORS.textMid }}>
-        <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700 }}>{item.dateLong} · {item.dayLabel}</span>
-        <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, color: COLORS.green, fontSize: 13 }}>${item.total}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${COLORS.borderSoft}`, fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textMid, letterSpacing: '-0.01em' }}>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: '-0.01em' }}>{item.dateLong} · {item.dayLabel}</span>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, color: COLORS.green, fontSize: 13, letterSpacing: '-0.01em' }}>${item.total}</span>
       </div>
     </div>
   );
@@ -386,8 +386,8 @@ function CompletedPanel({ items, searchQuery, onOpen }) {
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </div>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, marginBottom: 6 }}>No matches found</div>
-        <div style={{ fontSize: 13, color: COLORS.textLight }}>Try a different name or date</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text, letterSpacing: '-0.02em', marginBottom: 6 }}>No matches found</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em' }}>Try a different name or date</div>
       </div>
     );
   }
@@ -402,8 +402,8 @@ function CompletedPanel({ items, searchQuery, onOpen }) {
       <div style={{ margin: '0 16px 12px', background: 'white', padding: 16, borderRadius: 18, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', gap: 12 }}>
         {[{ num: '124', label: 'Completed' }, { num: '$48.2k', label: 'Spent' }, { num: '8', label: 'To Review' }].map((s, i) => (
           <div key={i} style={{ flex: 1, textAlign: 'center', borderLeft: i > 0 ? `1px solid ${COLORS.borderSoft}` : 'none' }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 20, color: COLORS.text, lineHeight: 1, letterSpacing: '-0.5px' }}>{s.num}</div>
-            <div style={{ fontSize: 9, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 700, marginTop: 5, letterSpacing: 0.4 }}>{s.label}</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, lineHeight: 1, letterSpacing: '-0.02em' }}>{s.num}</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 700, marginTop: 5, letterSpacing: '0.06em' }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -419,24 +419,24 @@ function CompletedRow({ row, isLast, onOpen }) {
     <div onClick={isClickable ? onOpen : undefined} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: isLast ? 'none' : `1px solid ${COLORS.borderSoft}`, cursor: isClickable ? 'pointer' : 'default', opacity: isExpired ? 0.5 : 1 }}>
       <Avatar url={row.avatarUrl} initials={row.initials} size={44} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>{row.name}</div>
-        <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.02em' }}>{row.name}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>
           {row.dateShort}, {row.year}
           {row.roleShort && ` · ${row.roleShort}`}
           {row.total != null && row.status === 'completed' && ` · $${row.total}`}
         </div>
       </div>
       <div style={{ flexShrink: 0 }}>
-        {row.status === 'completed' && row.reviewed && <span style={{ color: COLORS.green, fontSize: 16, fontWeight: 800 }}>✓</span>}
+        {row.status === 'completed' && row.reviewed && <span style={{ color: COLORS.green, fontSize: 16, fontWeight: 700 }}>✓</span>}
         {row.status === 'completed' && !row.reviewed && (
-          <button onClick={(e) => { e.stopPropagation(); onOpen(); }} style={{ background: COLORS.amberSoft, color: COLORS.amber, border: '1px solid #fce0bf', borderRadius: 100, padding: '6px 12px', fontSize: 10, fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+          <button onClick={(e) => { e.stopPropagation(); onOpen(); }} style={{ background: COLORS.amberSoft, color: COLORS.amber, border: '1px solid #fce0bf', borderRadius: 100, padding: '6px 12px', fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.06em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.amber} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 9, height: 9 }}>
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
             Rate
           </button>
         )}
-        {isExpired && <span style={{ fontSize: 10, color: COLORS.textLight, fontWeight: 700, fontStyle: 'italic' }}>{row.status === 'expired' ? 'Expired' : 'Declined'}</span>}
+        {isExpired && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', fontStyle: 'italic' }}>{row.status === 'expired' ? 'Expired' : 'Declined'}</span>}
       </div>
     </div>
   );
@@ -480,7 +480,7 @@ function PendingDetailBody({ b }) {
   return (
     <>
       <DetailHero label="Pending request" title={b.dateLong} sub={`${b.timeRange} · ${b.hours} hours`} />
-      <InfoChip variant="amber">Expires in <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{b.expiresIn}</strong></InfoChip>
+      <InfoChip variant="amber">Expires in <strong style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{b.expiresIn}</strong></InfoChip>
       <ProStrip b={b} />
       <DetailSection title="Request details">
         <InfoRow label="Hourly rate" value={`$${b.hourlyRate}/hr`} />
@@ -500,16 +500,16 @@ function RapidFillDetailBody({ rf }) {
           <svg viewBox="0 0 24 24" fill={COLORS.green} stroke={COLORS.green} strokeWidth="1.5" style={{ width: 12, height: 12 }}>
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
-          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 10, color: COLORS.green, letterSpacing: 0.4, textTransform: 'uppercase' }}>Rapid Fill request</span>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 10, color: COLORS.green, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Rapid Fill request</span>
         </div>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, letterSpacing: '-0.4px', lineHeight: 1.15 }}>{rf.dateLong}</div>
-        <div style={{ fontSize: 13, color: COLORS.textMid, marginTop: 4 }}>{rf.timeRange} · {rf.hours} hours</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, letterSpacing: '-0.02em', lineHeight: 1.15 }}>{rf.dateLong}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 4 }}>{rf.timeRange} · {rf.hours} hours</div>
       </div>
 
-      <InfoChip variant="amber">Expires in <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{rf.expiresIn}</strong></InfoChip>
+      <InfoChip variant="amber">Expires in <strong style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{rf.expiresIn}</strong></InfoChip>
 
       <DetailSection title={`Sent to ${rf.providers.length} professionals`}>
-        <div style={{ fontSize: 12, color: COLORS.textLight, marginBottom: 12, lineHeight: 1.5 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginBottom: 12, lineHeight: 1.5 }}>
           First to accept the shift gets it. The rest will be notified that the shift was filled.
         </div>
         <div style={{ background: 'white', border: `1px solid ${COLORS.borderSoft}`, borderRadius: 14, overflow: 'hidden' }}>
@@ -517,8 +517,8 @@ function RapidFillDetailBody({ rf }) {
             <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: idx === rf.providers.length - 1 ? 'none' : `1px solid ${COLORS.borderSoft}` }}>
               <Avatar url={p.avatarUrl} initials={p.initials} size={40} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.2px' }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 2 }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text, lineHeight: 1.15, letterSpacing: '-0.02em' }}>{p.name}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>
                   {p.status === 'viewed' ? 'Viewed request' : 'Awaiting response'}
                 </div>
               </div>
@@ -529,7 +529,7 @@ function RapidFillDetailBody({ rf }) {
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: COLORS.textMid, fontFamily: "'Outfit', sans-serif", letterSpacing: 0.2 }}>VIEWED</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: COLORS.textMid, fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.06em' }}>VIEWED</span>
                   </div>
                 ) : (
                   <div style={{ width: 8, height: 8, background: COLORS.amber, borderRadius: '50%' }} />
@@ -554,7 +554,7 @@ function UpcomingDetailBody({ b }) {
   return (
     <>
       <DetailHero label="Confirmed shift" title={b.dateLong} sub={`${b.timeRange} · ${b.hours} hours`} />
-      <InfoChip variant="green">Starts in <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{b.startsIn}</strong></InfoChip>
+      <InfoChip variant="green">Starts in <strong style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.01em' }}>{b.startsIn}</strong></InfoChip>
       <ProStrip b={b} />
       <DetailSection title="Shift details">
         <InfoRow label="Hourly rate" value={`$${b.hourlyRate}/hr`} />
@@ -588,10 +588,10 @@ function CompletedDetailBody({ b, reviewed }) {
       ) : (
         <div style={{ background: COLORS.amberSoft, border: '1px solid #fce0bf', borderRadius: 14, padding: '16px 18px', marginTop: 18, display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.amber, lineHeight: 1.2 }}>Rate {b.name.split(' ')[0]}'s work</div>
-            <div style={{ fontSize: 12, color: COLORS.amber, marginTop: 3, opacity: 0.85 }}>Help other offices find great pros</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.amber, letterSpacing: '-0.02em', lineHeight: 1.2 }}>Rate {b.name.split(' ')[0]}'s work</div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.amber, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 3, opacity: 0.85 }}>Help other offices find great pros</div>
           </div>
-          <button style={{ background: COLORS.amber, color: 'white', border: 'none', borderRadius: 100, padding: '9px 14px', fontSize: 11, fontWeight: 800, fontFamily: "'Outfit', sans-serif", flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+          <button style={{ background: COLORS.amber, color: 'white', border: 'none', borderRadius: 100, padding: '9px 14px', fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
             <svg viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1.5" style={{ width: 11, height: 11 }}>
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
@@ -630,7 +630,7 @@ function DetailFooter({ type }) {
         </button>
       )}
       {showAddCal && (
-        <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
             <rect x="3" y="4" width="18" height="18" rx="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
@@ -641,7 +641,7 @@ function DetailFooter({ type }) {
         </button>
       )}
       {showBookAgain && (
-        <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        <button style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
             <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
             <polyline points="21 3 21 8 16 8" />
@@ -672,7 +672,7 @@ function FilterSheet({ filters, setFilters, onClose, resultCount }) {
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: 'white', borderRadius: '28px 28px 0 0', zIndex: 201, maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 40px rgba(0,0,0,0.2)', animation: 'kaziSheetSlide 0.35s cubic-bezier(0.32, 0.72, 0, 1)', fontFamily: "'DM Sans', sans-serif" }}>
         <div style={{ width: 40, height: 4, background: COLORS.border, borderRadius: 100, margin: '12px auto 4px', flexShrink: 0 }} />
         <div style={{ padding: '14px 24px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${COLORS.borderSoft}`, flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text, letterSpacing: '-0.3px' }}>Filter completed</div>
+          <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, letterSpacing: '-0.02em' }}>Filter completed</div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: '50%', background: COLORS.bg, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close">
             <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.text} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -694,8 +694,8 @@ function FilterSheet({ filters, setFilters, onClose, resultCount }) {
           <div style={{ height: 20 }} />
         </div>
         <div style={{ padding: '14px 20px 26px', borderTop: `1px solid ${COLORS.borderSoft}`, background: 'white', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
-          <button onClick={reset} style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 700, color: COLORS.textMid, padding: '14px 4px', textDecoration: 'underline', flexShrink: 0 }}>Reset all</button>
-          <button onClick={apply} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 15, fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>Show {resultCount} shifts</button>
+          <button onClick={reset} style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: COLORS.textMid, letterSpacing: '-0.01em', padding: '14px 4px', textDecoration: 'underline', flexShrink: 0 }}>Reset all</button>
+          <button onClick={apply} style={{ flex: 1, background: COLORS.green, color: 'white', border: 'none', borderRadius: 100, padding: '16px 20px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em' }}>Show {resultCount} shifts</button>
         </div>
       </div>
     </>
@@ -705,7 +705,7 @@ function FilterSheet({ filters, setFilters, onClose, resultCount }) {
 function FilterGroup({ label, children }) {
   return (
     <div style={{ padding: '20px 24px 18px' }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 14, color: COLORS.text, marginBottom: 12 }}>{label}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, color: COLORS.text, letterSpacing: '-0.02em', marginBottom: 12 }}>{label}</div>
       {children}
     </div>
   );
@@ -717,7 +717,7 @@ function PillGroup({ options, selected, onSelect }) {
       {options.map((opt) => {
         const isSel = selected === opt;
         return (
-          <button key={opt} onClick={() => onSelect(opt)} style={{ background: isSel ? COLORS.green : 'white', border: `1.5px solid ${isSel ? COLORS.green : COLORS.border}`, borderRadius: 100, padding: '10px 16px', fontSize: 12, fontWeight: 700, color: isSel ? 'white' : COLORS.textMid }}>
+          <button key={opt} onClick={() => onSelect(opt)} style={{ background: isSel ? COLORS.green : 'white', border: `1.5px solid ${isSel ? COLORS.green : COLORS.border}`, borderRadius: 100, padding: '10px 16px', fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em', color: isSel ? 'white' : COLORS.textMid }}>
             {opt}
           </button>
         );
@@ -730,8 +730,8 @@ function ToggleRow({ title, sub, value, onChange, isFirst }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 24px', borderTop: isFirst ? 'none' : `1px solid ${COLORS.borderSoft}` }}>
       <div style={{ flex: 1, paddingRight: 16 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 14, color: COLORS.text, lineHeight: 1.2 }}>{title}</div>
-        <div style={{ fontSize: 11, color: COLORS.textLight, marginTop: 3 }}>{sub}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 14, color: COLORS.text, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{title}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textLight, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 3 }}>{sub}</div>
       </div>
       <button onClick={() => onChange(!value)} style={{ position: 'relative', width: 46, height: 26, background: value ? COLORS.green : COLORS.border, borderRadius: 100, border: 'none', flexShrink: 0, padding: 0 }}>
         <div style={{ position: 'absolute', top: 3, left: 3, width: 20, height: 20, background: 'white', borderRadius: '50%', transition: 'transform 0.2s', transform: value ? 'translateX(20px)' : 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }} />
@@ -746,15 +746,15 @@ function ToggleRow({ title, sub, value, onChange, isFirst }) {
 function DateBlock({ month, day }) {
   return (
     <div style={{ width: 48, height: 48, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 9, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 }}>{month}</div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 18, color: COLORS.text, marginTop: 3, letterSpacing: '-0.5px' }}>{day}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 10, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{month}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: COLORS.text, marginTop: 3, letterSpacing: '-0.02em' }}>{day}</div>
     </div>
   );
 }
 
 function Initials({ text }) {
   return (
-    <div style={{ width: 42, height: 42, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
+    <div style={{ width: 42, height: 42, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 13, flexShrink: 0, letterSpacing: '-0.02em' }}>
       {text}
     </div>
   );
@@ -771,7 +771,7 @@ function Avatar({ url, initials, size = 48 }) {
     );
   }
   return (
-    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: size >= 48 ? 14 : 13, flexShrink: 0, letterSpacing: '-0.3px' }}>
+    <div style={{ width: size, height: size, borderRadius: 12, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: size >= 48 ? 14 : 13, flexShrink: 0, letterSpacing: '-0.02em' }}>
       {initials}
     </div>
   );
@@ -787,7 +787,7 @@ function StatusPill({ variant, children }) {
     confirmed: { background: COLORS.green, color: 'white' },
   };
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.4, padding: '5px 10px', borderRadius: 100, ...styles[variant] }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '5px 10px', borderRadius: 100, ...styles[variant] }}>
       {children}
     </span>
   );
@@ -796,9 +796,9 @@ function StatusPill({ variant, children }) {
 function DetailHero({ label, title, sub }) {
   return (
     <>
-      <div style={{ fontSize: 10, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 800, letterSpacing: 0.6, marginBottom: 8 }}>{label}</div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 26, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.6px' }}>{title}</div>
-      <div style={{ fontSize: 14, color: COLORS.textMid, marginTop: 6 }}>{sub}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em', marginBottom: 8 }}>{label}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.02em' }}>{title}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', marginTop: 6 }}>{sub}</div>
     </>
   );
 }
@@ -810,7 +810,7 @@ function InfoChip({ variant, children }) {
   };
   const stroke = variant === 'amber' ? COLORS.amber : COLORS.green;
   return (
-    <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, ...styles[variant] }}>
+    <div style={{ marginTop: 14, padding: '10px 14px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', ...styles[variant] }}>
       <svg viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
@@ -840,15 +840,15 @@ function ProStrip({ b }) {
       {b.avatarUrl ? (
         <img src={b.avatarUrl} alt={b.name} style={{ width: 50, height: 50, borderRadius: 14, objectFit: 'cover', flexShrink: 0, border: `1px solid ${COLORS.borderSoft}` }} />
       ) : (
-        <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 15, flexShrink: 0, letterSpacing: '-0.3px' }}>
+        <div style={{ width: 50, height: 50, borderRadius: 14, background: COLORS.bg, border: `1px solid ${COLORS.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, flexShrink: 0, letterSpacing: '-0.02em' }}>
           {b.initials}
         </div>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.3px', marginBottom: 3 }}>{b.name}</div>
-        <div style={{ fontSize: 12, color: COLORS.textMid, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.text, lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 3 }}>{b.name}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span>{b.role}</span>
-          {b.cred && <span style={{ background: COLORS.greenTint, color: COLORS.green, fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 100, letterSpacing: 0.2, fontFamily: "'Outfit', sans-serif" }}>{b.cred}</span>}
+          {b.cred && <span style={{ background: COLORS.greenTint, color: COLORS.green, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 100, letterSpacing: '0.06em', fontFamily: "'DM Sans', sans-serif", textTransform: 'uppercase' }}>{b.cred}</span>}
         </div>
       </div>
       <div style={{ color: COLORS.textLight, flexShrink: 0 }}>
@@ -863,7 +863,7 @@ function ProStrip({ b }) {
 function DetailSection({ title, children }) {
   return (
     <div style={{ marginTop: 22 }}>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12 }}>{title}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 11, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>{title}</div>
       {children}
     </div>
   );
@@ -872,8 +872,8 @@ function DetailSection({ title, children }) {
 function InfoRow({ label, value, valueText, valueGreen }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${COLORS.borderSoft}` }}>
-      <div style={{ fontSize: 13, color: COLORS.textMid }}>{label}</div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: valueText ? 12 : valueGreen ? 16 : 14, color: valueText ? COLORS.textMid : valueGreen ? COLORS.green : COLORS.text, textAlign: 'right' }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em' }}>{label}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: valueText ? 12.5 : valueGreen ? 16 : 14, letterSpacing: '-0.01em', color: valueText ? COLORS.textMid : valueGreen ? COLORS.green : COLORS.text, textAlign: 'right' }}>
         {value || valueText}
       </div>
     </div>
@@ -882,9 +882,9 @@ function InfoRow({ label, value, valueText, valueGreen }) {
 
 function ReceiptLine({ label, amount, isTotal }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isTotal ? '14px 0 10px' : '10px 0', fontSize: isTotal ? 16 : 13, color: isTotal ? COLORS.text : COLORS.textMid, borderTop: isTotal ? `1px solid ${COLORS.borderSoft}` : 'none', marginTop: isTotal ? 6 : 0, fontFamily: isTotal ? "'Outfit', sans-serif" : "'DM Sans', sans-serif", fontWeight: isTotal ? 800 : 400 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isTotal ? '14px 0 10px' : '10px 0', fontSize: isTotal ? 16 : 13, color: isTotal ? COLORS.text : COLORS.textMid, borderTop: isTotal ? `1px solid ${COLORS.borderSoft}` : 'none', marginTop: isTotal ? 6 : 0, fontFamily: "'DM Sans', sans-serif", fontWeight: isTotal ? 700 : 500, letterSpacing: isTotal ? '-0.02em' : '-0.01em' }}>
       <span>{label}</span>
-      <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: isTotal ? 800 : 700, color: isTotal ? COLORS.green : COLORS.text, fontSize: isTotal ? 18 : undefined }}>{amount}</span>
+      <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: isTotal ? 700 : 600, letterSpacing: isTotal ? '-0.02em' : '-0.01em', color: isTotal ? COLORS.green : COLORS.text, fontSize: isTotal ? 18 : undefined }}>{amount}</span>
     </div>
   );
 }
@@ -894,10 +894,10 @@ function ReviewBlock({ rating, text, date }) {
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
         <div style={{ color: COLORS.gold, fontSize: 22, letterSpacing: 2 }}>★★★★★</div>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, color: COLORS.text }}>{rating?.toFixed(1)}</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: COLORS.text, letterSpacing: '-0.02em' }}>{rating?.toFixed(1)}</div>
       </div>
-      <div style={{ fontSize: 13, color: COLORS.textMid, lineHeight: 1.55, fontStyle: 'italic' }}>"{text}"</div>
-      <div style={{ fontSize: 10, color: COLORS.textLight, marginTop: 8, fontWeight: 600, letterSpacing: 0.3 }}>REVIEWED {date}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: COLORS.textMid, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.55, fontStyle: 'italic' }}>"{text}"</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, color: COLORS.textLight, marginTop: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>REVIEWED {date}</div>
     </>
   );
 }

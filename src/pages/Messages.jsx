@@ -190,11 +190,11 @@ export default function Messages() {
         >
           <div
             style={{
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 24,
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: 22,
               color: COLORS.text,
-              letterSpacing: '-0.4px',
+              letterSpacing: '-0.02em',
             }}
           >
             Messages
@@ -265,8 +265,9 @@ export default function Messages() {
               outline: 'none',
               fontSize: 13,
               color: COLORS.text,
-              fontFamily: 'inherit',
+              fontFamily: "'DM Sans', sans-serif",
               fontWeight: 500,
+              letterSpacing: '-0.01em',
             }}
           />
         </div>
@@ -347,9 +348,10 @@ function ConversationRow({ conv, gradient, onClick }) {
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
               fontSize: 14,
+              letterSpacing: '-0.01em',
             }}
           >
             {conv.initials}
@@ -370,10 +372,11 @@ function ConversationRow({ conv, gradient, onClick }) {
         >
           <div
             style={{
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 800,
-              fontSize: 14,
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: 15,
               color: COLORS.text,
+              letterSpacing: '-0.02em',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -383,10 +386,12 @@ function ConversationRow({ conv, gradient, onClick }) {
           </div>
           <div
             style={{
-              fontSize: 11,
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: 12.5,
               color: COLORS.textLight,
               flexShrink: 0,
               fontWeight: 500,
+              letterSpacing: '-0.01em',
             }}
           >
             {conv.time}
@@ -394,9 +399,11 @@ function ConversationRow({ conv, gradient, onClick }) {
         </div>
         <div
           style={{
-            fontSize: 12,
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 13,
             color: isUnread ? COLORS.text : COLORS.textMid,
-            fontWeight: isUnread ? 700 : 400,
+            fontWeight: isUnread ? 600 : 500,
+            letterSpacing: '-0.01em',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -418,8 +425,9 @@ function ConversationRow({ conv, gradient, onClick }) {
             background: COLORS.green,
             color: 'white',
             fontSize: 10,
-            fontWeight: 800,
-            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 700,
+            fontFamily: "'DM Sans', sans-serif",
+            letterSpacing: '0.04em',
             padding: '3px 7px',
             borderRadius: 100,
             minWidth: 18,
@@ -525,10 +533,11 @@ function EmptyState({ searchQuery, role }) {
       </div>
       <div
         style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontWeight: 800,
+          fontFamily: "'DM Sans', sans-serif",
+          fontWeight: 700,
           fontSize: 16,
           color: COLORS.text,
+          letterSpacing: '-0.02em',
           marginBottom: 6,
         }}
       >
@@ -536,8 +545,11 @@ function EmptyState({ searchQuery, role }) {
       </div>
       <div
         style={{
+          fontFamily: "'DM Sans', sans-serif",
           fontSize: 13,
           color: COLORS.textLight,
+          fontWeight: 500,
+          letterSpacing: '-0.01em',
           lineHeight: 1.5,
         }}
       >
