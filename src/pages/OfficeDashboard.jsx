@@ -308,17 +308,17 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
           ) : (
             <div
               style={{
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
                 borderRadius: 14,
                 background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
                 color: '#0f1d1b',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 800,
-                fontSize: 17,
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 18,
                 flexShrink: 0,
               }}
             >
@@ -328,11 +328,11 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontFamily: "'Outfit', sans-serif",
-                fontWeight: 800,
-                fontSize: 17,
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: 19,
                 color: '#ffffff',
-                letterSpacing: '-0.01em',
+                letterSpacing: '-0.02em',
                 lineHeight: 1.15,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -341,7 +341,7 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
             >
               {office.officeName}
             </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, fontWeight: 500 }}>
+            <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.65)', marginTop: 3, fontWeight: 500, letterSpacing: '-0.01em' }}>
               {office.date}
             </div>
           </div>
@@ -351,13 +351,13 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
         <div
           style={{
             position: 'relative',
-            fontFamily: "'Outfit', sans-serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700,
-            fontSize: 22,
+            fontSize: 26,
             color: '#ffffff',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.2,
-            marginTop: 14,
+            letterSpacing: '-0.03em',
+            lineHeight: 1.15,
+            marginTop: 16,
           }}
         >
           Good morning, Dr. {office.ownerFirstName} 👋
@@ -380,7 +380,7 @@ function DarkStatTile({ dot, value, label, onTap }) {
       onClick={onTap}
       style={{
         textAlign: 'left',
-        padding: '11px 12px',
+        padding: '12px 13px 13px',
         borderRadius: 14,
         background: 'rgba(255,255,255,0.07)',
         border: '1px solid rgba(255,255,255,0.10)',
@@ -389,13 +389,13 @@ function DarkStatTile({ dot, value, label, onTap }) {
         fontFamily: 'inherit',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot }} />
-        <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.7)' }}>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)', letterSpacing: '-0.01em' }}>
           {label}
         </span>
       </div>
-      <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 22, lineHeight: 1, letterSpacing: '-0.02em' }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 28, lineHeight: 1, letterSpacing: '-0.03em' }}>
         {value}
       </div>
     </button>
@@ -459,7 +459,7 @@ function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
   ];
 
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 mt-3 pb-1">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 mt-4 pb-1">
       {actions.map((a) => (
         <button
           key={a.key}
@@ -468,14 +468,14 @@ function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
             flexShrink: 0,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 7,
-            padding: '9px 14px',
+            gap: 8,
+            padding: '10px 16px 10px 12px',
             background: 'white',
             border: '1px solid #ececec',
             borderRadius: 100,
             fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 700,
-            fontSize: 12.5,
+            fontWeight: 600,
+            fontSize: 14,
             color: '#1a1a1a',
             cursor: 'pointer',
             letterSpacing: '-0.01em',
@@ -483,8 +483,8 @@ function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
         >
           <span
             style={{
-              width: 22,
-              height: 22,
+              width: 24,
+              height: 24,
               borderRadius: '50%',
               background: a.tint,
               color: a.stroke,
@@ -510,10 +510,13 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0 inline-flex items-center gap-2">
+        <h3
+          className="m-0 inline-flex items-center gap-2"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}
+        >
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8734a' }} />
           Open shifts
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#6b7875', fontWeight: 600 }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em' }}>
             ({shifts.length})
           </span>
         </h3>
@@ -523,7 +526,7 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
         {shifts.map((s) => (
           <div
             key={s.id}
-            className="bg-white border border-[#e8e6e1] rounded-[16px] p-[14px]"
+            className="bg-white border border-[#e8e6e1] rounded-[16px] p-[16px]"
             style={{ position: 'relative' }}
           >
             {/* Coral accent rail */}
@@ -531,8 +534,8 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
               aria-hidden="true"
               style={{
                 position: 'absolute',
-                top: 14,
-                bottom: 14,
+                top: 16,
+                bottom: 16,
                 left: 0,
                 width: 3,
                 borderRadius: '0 3px 3px 0',
@@ -541,49 +544,50 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
             />
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span
                     style={{
-                      fontSize: 10,
-                      fontWeight: 800,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: 11,
+                      fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '0.06em',
                       color: '#b85a32',
                       background: '#fdeee7',
-                      padding: '3px 8px',
+                      padding: '4px 9px',
                       borderRadius: 100,
                     }}
                   >
                     Unfilled
                   </span>
                   {s.applicantCount > 0 && (
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#1a7f5e' }}>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, color: '#1a7f5e', letterSpacing: '-0.01em' }}>
                       {s.applicantCount} applicant{s.applicantCount === 1 ? '' : 's'}
                     </span>
                   )}
                 </div>
-                <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.01em' }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
                   {s.role} · {s.date}
                 </div>
-                <div style={{ fontSize: 12.5, color: '#6b7875', fontWeight: 500, marginTop: 3 }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6b7875', fontWeight: 500, marginTop: 4, letterSpacing: '-0.01em' }}>
                   {s.timeRange} · {s.rate}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
               <button
                 onClick={() => onView(s)}
                 style={{
                   flex: 1,
-                  padding: '9px 12px',
+                  padding: '11px 14px',
                   borderRadius: 100,
                   background: '#1a7f5e',
                   color: 'white',
                   border: 'none',
                   fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 700,
-                  fontSize: 12.5,
+                  fontWeight: 600,
+                  fontSize: 14.5,
                   cursor: 'pointer',
                   letterSpacing: '-0.01em',
                 }}
@@ -594,23 +598,23 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
                 onClick={() => onBoost(s)}
                 style={{
                   flex: 1,
-                  padding: '9px 12px',
+                  padding: '11px 14px',
                   borderRadius: 100,
                   background: 'white',
                   color: '#1a1a1a',
                   border: '1px solid #ececec',
                   fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 700,
-                  fontSize: 12.5,
+                  fontWeight: 600,
+                  fontSize: 14.5,
                   cursor: 'pointer',
                   letterSpacing: '-0.01em',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 5,
+                  gap: 6,
                 }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                 </svg>
                 Boost
@@ -656,23 +660,28 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+        <h3
+          className="m-0"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}
+        >
           {view === 'week' ? 'This week' : 'This month'}
         </h3>
         <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
           <button
             onClick={() => onChangeView('week')}
-            className={`border-none font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full ${
+            className={`border-none px-[14px] py-[7px] rounded-full ${
               view === 'week' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
             }`}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, letterSpacing: '-0.01em' }}
           >
             Week
           </button>
           <button
             onClick={() => onChangeView('month')}
-            className={`border-none font-[DM_Sans] text-[12.5px] font-semibold px-[14px] py-[6px] rounded-full ${
+            className={`border-none px-[14px] py-[7px] rounded-full ${
               view === 'month' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
             }`}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, letterSpacing: '-0.01em' }}
           >
             Month
           </button>
@@ -697,7 +706,7 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-            <div className="font-[Outfit] font-bold text-[16px] text-[#0f1a16] tracking-[-0.01em]">
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
               {monthLabel}
             </div>
             <button
@@ -712,7 +721,11 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
 
           <div className="grid grid-cols-7 gap-[3px]">
             {DOW_LETTERS.map((dow, i) => (
-              <div key={i} className="text-[11px] font-bold text-[#9aa5a1] text-center py-[6px_0_10px] tracking-[0.05em]">
+              <div
+                key={i}
+                className="text-center py-[6px_0_10px]"
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#9aa5a1', letterSpacing: '0.04em' }}
+              >
                 {dow}
               </div>
             ))}
@@ -723,15 +736,24 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
 
           {/* Legend */}
           <div className="flex items-center justify-center gap-[18px] pt-[14px] mt-3 border-t border-[#efede8]">
-            <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+            <div
+              className="inline-flex items-center gap-[6px]"
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
+            >
               <span className="w-3 h-3 rounded-[4px] bg-[#1a7f5e]" />
               Today
             </div>
-            <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+            <div
+              className="inline-flex items-center gap-[6px]"
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
+            >
               <span className="w-3 h-3 rounded-[4px] bg-[#f5faf7] border border-[#e8f2ed]" />
               Booked
             </div>
-            <div className="inline-flex items-center gap-[6px] text-[11.5px] text-[#6b7875] font-medium">
+            <div
+              className="inline-flex items-center gap-[6px]"
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
+            >
               <span className="w-[6px] h-[6px] rounded-full bg-[#e8734a]" />
               Open shift
             </div>
@@ -780,13 +802,22 @@ function OfficeDayCard({ day, onTap }) {
 
   return (
     <div className={classes} onClick={onTap}>
-      <div className={`text-[10.5px] font-bold uppercase tracking-[0.06em] ${dowColor} mb-1`}>
+      <div
+        className={`${dowColor} mb-1`}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+      >
         {day.dow}
       </div>
-      <div className={`font-[Outfit] font-bold text-[22px] leading-none tracking-[-0.02em] ${numColor} mb-2`}>
+      <div
+        className={`leading-none ${numColor} mb-2`}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 26, letterSpacing: '-0.03em' }}
+      >
         {day.date}
       </div>
-      <div className={`text-[10.5px] font-semibold uppercase tracking-[0.04em] ${statusColor} min-h-[13px]`}>
+      <div
+        className={`${statusColor} min-h-[14px]`}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+      >
         {statusText}
       </div>
     </div>
@@ -798,7 +829,8 @@ function CalendarDay({ day, onTap }) {
     return <div className="aspect-square" />;
   }
 
-  let classes = 'aspect-square grid place-items-center text-[14px] font-semibold rounded-[12px] cursor-pointer relative';
+  let classes = 'aspect-square grid place-items-center rounded-[12px] cursor-pointer relative';
+  let textStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' };
   let showDot = false;
 
   if (day.status === 'today') {
@@ -813,7 +845,7 @@ function CalendarDay({ day, onTap }) {
   }
 
   return (
-    <div className={classes} onClick={onTap}>
+    <div className={classes} style={textStyle} onClick={onTap}>
       {day.date}
       {showDot && (
         <span className="absolute bottom-[5px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#e8734a]" />
@@ -829,10 +861,17 @@ function OnsiteNowSection({ providers, onProviderTap }) {
   return (
     <>
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3 className="font-[Outfit] font-bold text-[18px] tracking-[-0.01em] text-[#0f1a16] m-0">
+        <h3
+          className="m-0"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}
+        >
           On-site now
         </h3>
-        <a href="#" className="text-[13px] font-semibold text-[#1a7f5e] inline-flex items-center gap-[3px]">
+        <a
+          href="#"
+          className="text-[#1a7f5e] inline-flex items-center gap-[3px]"
+          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}
+        >
           View all
           <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
@@ -863,19 +902,22 @@ function OnsiteCard({ provider, onTap }) {
         />
       ) : (
         <div
-          className="w-12 h-12 rounded-[14px] text-white font-[Outfit] font-bold text-[15px] grid place-items-center flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)' }}
+          className="w-12 h-12 rounded-[14px] text-white grid place-items-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: '-0.01em' }}
         >
           {provider.initials}
         </div>
       )}
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-[3px]">
-          <span className="text-[15px] font-semibold text-[#0f1a16]">
+        <div className="flex items-center gap-2 mb-[4px]">
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: '#0f1a16', letterSpacing: '-0.02em' }}>
             {provider.name}
           </span>
-          <span className="inline-flex items-center gap-1 bg-[#e8f2ed] text-[#1a7f5e] px-2 py-[2px] rounded-full text-[10.5px] font-bold tracking-[0.04em] uppercase">
+          <span
+            className="inline-flex items-center gap-1 bg-[#e8f2ed] text-[#1a7f5e] px-2 py-[2px] rounded-full"
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}
+          >
             <span
               className="w-[6px] h-[6px] rounded-full bg-[#1a7f5e]"
               style={{ animation: 'kazi-pulse 1.8s ease-out infinite' }}
@@ -883,7 +925,7 @@ function OnsiteCard({ provider, onTap }) {
             Live
           </span>
         </div>
-        <div className="text-[12.5px] font-medium text-[#6b7875]">
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}>
           {provider.role} · {provider.timeRange} · Checked in {provider.checkedInAt}
         </div>
       </div>
