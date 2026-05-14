@@ -308,8 +308,8 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
           ) : (
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 44,
+                height: 44,
                 borderRadius: 14,
                 background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
                 color: '#0f1d1b',
@@ -318,7 +318,7 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
                 justifyContent: 'center',
                 fontFamily: "'DM Sans', sans-serif",
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: 16,
                 flexShrink: 0,
               }}
             >
@@ -330,7 +330,7 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
               style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontWeight: 700,
-                fontSize: 19,
+                fontSize: 17,
                 color: '#ffffff',
                 letterSpacing: '-0.02em',
                 lineHeight: 1.15,
@@ -341,7 +341,7 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
             >
               {office.officeName}
             </div>
-            <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.65)', marginTop: 3, fontWeight: 500, letterSpacing: '-0.01em' }}>
+            <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.65)', marginTop: 2, fontWeight: 500, letterSpacing: '-0.01em' }}>
               {office.date}
             </div>
           </div>
@@ -353,11 +353,11 @@ function OfficeHeroStrip({ office, stats, onStatTap }) {
             position: 'relative',
             fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700,
-            fontSize: 26,
+            fontSize: 22,
             color: '#ffffff',
-            letterSpacing: '-0.03em',
-            lineHeight: 1.15,
-            marginTop: 16,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
+            marginTop: 14,
           }}
         >
           Good morning, Dr. {office.ownerFirstName} 👋
@@ -389,13 +389,13 @@ function DarkStatTile({ dot, value, label, onTap }) {
         fontFamily: 'inherit',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot }} />
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.7)', letterSpacing: '-0.01em' }}>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.7)', letterSpacing: '-0.01em' }}>
           {label}
         </span>
       </div>
-      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 28, lineHeight: 1, letterSpacing: '-0.03em' }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 24, lineHeight: 1, letterSpacing: '-0.02em' }}>
         {value}
       </div>
     </button>
@@ -468,14 +468,14 @@ function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
             flexShrink: 0,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 8,
-            padding: '10px 16px 10px 12px',
+            gap: 7,
+            padding: '9px 14px 9px 11px',
             background: 'white',
             border: '1px solid #ececec',
             borderRadius: 100,
             fontFamily: "'DM Sans', sans-serif",
             fontWeight: 600,
-            fontSize: 14,
+            fontSize: 13,
             color: '#1a1a1a',
             cursor: 'pointer',
             letterSpacing: '-0.01em',
@@ -483,8 +483,8 @@ function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
         >
           <span
             style={{
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               borderRadius: '50%',
               background: a.tint,
               color: a.stroke,
@@ -512,11 +512,11 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
         <h3
           className="m-0 inline-flex items-center gap-2"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}
         >
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8734a' }} />
           Open shifts
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em' }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em' }}>
             ({shifts.length})
           </span>
         </h3>
@@ -544,32 +544,32 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
             />
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                   <span
                     style={{
                       fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '0.06em',
                       color: '#b85a32',
                       background: '#fdeee7',
-                      padding: '4px 9px',
+                      padding: '3px 8px',
                       borderRadius: 100,
                     }}
                   >
                     Unfilled
                   </span>
                   {s.applicantCount > 0 && (
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, color: '#1a7f5e', letterSpacing: '-0.01em' }}>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#1a7f5e', letterSpacing: '-0.01em' }}>
                       {s.applicantCount} applicant{s.applicantCount === 1 ? '' : 's'}
                     </span>
                   )}
                 </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.02em' }}>
                   {s.role} · {s.date}
                 </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#6b7875', fontWeight: 500, marginTop: 4, letterSpacing: '-0.01em' }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 3, letterSpacing: '-0.01em' }}>
                   {s.timeRange} · {s.rate}
                 </div>
               </div>
@@ -580,14 +580,14 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
                 onClick={() => onView(s)}
                 style={{
                   flex: 1,
-                  padding: '11px 14px',
+                  padding: '10px 12px',
                   borderRadius: 100,
                   background: '#1a7f5e',
                   color: 'white',
                   border: 'none',
                   fontFamily: "'DM Sans', sans-serif",
                   fontWeight: 600,
-                  fontSize: 14.5,
+                  fontSize: 13,
                   cursor: 'pointer',
                   letterSpacing: '-0.01em',
                 }}
@@ -598,23 +598,23 @@ function OpenShiftsMini({ shifts, onView, onBoost }) {
                 onClick={() => onBoost(s)}
                 style={{
                   flex: 1,
-                  padding: '11px 14px',
+                  padding: '10px 12px',
                   borderRadius: 100,
                   background: 'white',
                   color: '#1a1a1a',
                   border: '1px solid #ececec',
                   fontFamily: "'DM Sans', sans-serif",
                   fontWeight: 600,
-                  fontSize: 14.5,
+                  fontSize: 13,
                   cursor: 'pointer',
                   letterSpacing: '-0.01em',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 6,
+                  gap: 5,
                 }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                 </svg>
                 Boost
@@ -662,26 +662,26 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
         <h3
           className="m-0"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}
         >
           {view === 'week' ? 'This week' : 'This month'}
         </h3>
         <div className="inline-flex bg-white border border-[#e8e6e1] rounded-full p-[3px] gap-[2px]">
           <button
             onClick={() => onChangeView('week')}
-            className={`border-none px-[14px] py-[7px] rounded-full ${
+            className={`border-none px-[13px] py-[6px] rounded-full ${
               view === 'week' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
             }`}
-            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, letterSpacing: '-0.01em' }}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em' }}
           >
             Week
           </button>
           <button
             onClick={() => onChangeView('month')}
-            className={`border-none px-[14px] py-[7px] rounded-full ${
+            className={`border-none px-[13px] py-[6px] rounded-full ${
               view === 'month' ? 'bg-[#1a7f5e] text-white' : 'bg-transparent text-[#6b7875]'
             }`}
-            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 600, letterSpacing: '-0.01em' }}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em' }}
           >
             Month
           </button>
@@ -706,7 +706,7 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.02em' }}>
               {monthLabel}
             </div>
             <button
@@ -724,7 +724,7 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
               <div
                 key={i}
                 className="text-center py-[6px_0_10px]"
-                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#9aa5a1', letterSpacing: '0.04em' }}
+                style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: '#9aa5a1', letterSpacing: '0.04em' }}
               >
                 {dow}
               </div>
@@ -738,21 +738,21 @@ function CalendarSection({ monthLabel, days, view, onChangeView, onDayTap, onNav
           <div className="flex items-center justify-center gap-[18px] pt-[14px] mt-3 border-t border-[#efede8]">
             <div
               className="inline-flex items-center gap-[6px]"
-              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
             >
               <span className="w-3 h-3 rounded-[4px] bg-[#1a7f5e]" />
               Today
             </div>
             <div
               className="inline-flex items-center gap-[6px]"
-              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
             >
               <span className="w-3 h-3 rounded-[4px] bg-[#f5faf7] border border-[#e8f2ed]" />
               Booked
             </div>
             <div
               className="inline-flex items-center gap-[6px]"
-              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
+              style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}
             >
               <span className="w-[6px] h-[6px] rounded-full bg-[#e8734a]" />
               Open shift
@@ -804,19 +804,19 @@ function OfficeDayCard({ day, onTap }) {
     <div className={classes} onClick={onTap}>
       <div
         className={`${dowColor} mb-1`}
-        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}
       >
         {day.dow}
       </div>
       <div
         className={`leading-none ${numColor} mb-2`}
-        style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 26, letterSpacing: '-0.03em' }}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, letterSpacing: '-0.02em' }}
       >
         {day.date}
       </div>
       <div
-        className={`${statusColor} min-h-[14px]`}
-        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+        className={`${statusColor} min-h-[13px]`}
+        style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}
       >
         {statusText}
       </div>
@@ -830,7 +830,7 @@ function CalendarDay({ day, onTap }) {
   }
 
   let classes = 'aspect-square grid place-items-center rounded-[12px] cursor-pointer relative';
-  let textStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' };
+  let textStyle = { fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' };
   let showDot = false;
 
   if (day.status === 'today') {
@@ -863,14 +863,14 @@ function OnsiteNowSection({ providers, onProviderTap }) {
       <div className="flex items-center justify-between px-5 pt-7 pb-3">
         <h3
           className="m-0"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}
         >
           On-site now
         </h3>
         <a
           href="#"
           className="text-[#1a7f5e] inline-flex items-center gap-[3px]"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em' }}
         >
           View all
           <svg className="w-[14px] h-[14px] stroke-[#1a7f5e]" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -903,20 +903,20 @@ function OnsiteCard({ provider, onTap }) {
       ) : (
         <div
           className="w-12 h-12 rounded-[14px] text-white grid place-items-center flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, letterSpacing: '-0.01em' }}
+          style={{ background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '-0.01em' }}
         >
           {provider.initials}
         </div>
       )}
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-[4px]">
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, color: '#0f1a16', letterSpacing: '-0.02em' }}>
+        <div className="flex items-center gap-2 mb-[3px]">
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, color: '#0f1a16', letterSpacing: '-0.02em' }}>
             {provider.name}
           </span>
           <span
             className="inline-flex items-center gap-1 bg-[#e8f2ed] text-[#1a7f5e] px-2 py-[2px] rounded-full"
-            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}
+            style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}
           >
             <span
               className="w-[6px] h-[6px] rounded-full bg-[#1a7f5e]"
@@ -925,7 +925,7 @@ function OnsiteCard({ provider, onTap }) {
             Live
           </span>
         </div>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13.5, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 500, color: '#6b7875', letterSpacing: '-0.01em' }}>
           {provider.role} · {provider.timeRange} · Checked in {provider.checkedInAt}
         </div>
       </div>
