@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
 
@@ -97,7 +97,12 @@ const MOCK_COMPLETED = [
 // MAIN COMPONENT
 // ============================================================
 export default function Bookings() {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [searchParams] = useSearchParams();
+  // Honor `?tab=...` so the office dashboard's hero stat tiles can deep-link
+  // into the right view (e.g., tapping Pending or Unfilled lands on Pending).
+  const tabParam = searchParams.get('tab');
+  const initialTab = tabParam === 'upcoming' || tabParam === 'completed' ? tabParam : 'pending';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);

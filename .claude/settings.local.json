@@ -93,7 +93,9 @@
       "Bash(git rm *)",
       "Bash(grep -n \"avatarUrl: u\\\\\\\\.avatarUrl\\\\|reviewsList: reviews\" src/pages/ProfessionalProfile.jsx)",
       "Bash(grep -n \"pro.about\\\\|pro\\\\\\\\.openTo\\\\|openTo:\" src/pages/ProfessionalProfile.jsx)",
-      "Bash(grep -n \"reliability: p\\\\\\\\.reliabilityScore\\\\|score:\" src/pages/Professionals.jsx)"
+      "Bash(grep -n \"reliability: p\\\\\\\\.reliabilityScore\\\\|score:\" src/pages/Professionals.jsx)",
+      "Bash(sed -i '489,612d' src/pages/OfficeDashboard.jsx)",
+      "Bash(sed -n '485,495p' src/pages/OfficeDashboard.jsx)"
     ]
   }
 }

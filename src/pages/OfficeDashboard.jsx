@@ -33,18 +33,6 @@ const mockOffice = {
     pending: 3,
     unfilled: 1,
   },
-  // Open shifts that still need coverage. Drives the "Open shifts"
-  // mini-list under the hero (only renders when length > 0).
-  openShifts: [
-    {
-      id: 'open_1',
-      role: 'Hygienist',
-      date: 'Fri, Apr 10',
-      timeRange: '8:00a – 5:00p',
-      rate: '$58/hr',
-      applicantCount: 3,
-    },
-  ],
   currentMonth: 'April 2026',
   // Calendar days for April 2026 (starts Wednesday)
   // status: 'empty' | 'normal' | 'today' | 'booked' | 'booked-open'
@@ -160,7 +148,11 @@ export default function OfficeDashboard() {
   };
 
   const handleStatTap = (statName) => {
-    navigate(`/bookings?filter=${statName}`);
+    // Active today = booked shifts for today → Upcoming tab.
+    // Pending and Unfilled both belong on the Pending tab (awaiting
+    // a provider response or no one has accepted yet).
+    const tab = statName === 'active' ? 'upcoming' : 'pending';
+    navigate(`/bookings?tab=${tab}`);
   };
 
   const handleCalendarDayTap = (day) => {
@@ -213,15 +205,6 @@ export default function OfficeDashboard() {
           onFindPros={handleFindPros}
           onSavedPros={() => navigate('/professionals?saved=1')}
         />
-
-        {/* Open shifts mini-list — only renders when there are unfilled shifts */}
-        {office.openShifts && office.openShifts.length > 0 && (
-          <OpenShiftsMini
-            shifts={office.openShifts}
-            onView={(s) => navigate(`/bookings?shift=${s.id}`)}
-            onBoost={(s) => navigate(`/bookings?shift=${s.id}&boost=1`)}
-          />
-        )}
 
         {/* Calendar (Week / Month) */}
         <CalendarSection
@@ -500,130 +483,6 @@ function QuickActionsRow({ onPostTemp, onPostPerm, onFindPros, onSavedPros }) {
         </button>
       ))}
     </div>
-  );
-}
-
-// ── Open shifts mini-list ─────────────────────────────────────
-// Shows the actual unfilled shifts inline with View / Boost actions
-// so the office can act without bouncing into a separate screen.
-function OpenShiftsMini({ shifts, onView, onBoost }) {
-  return (
-    <>
-      <div className="flex items-center justify-between px-5 pt-7 pb-3">
-        <h3
-          className="m-0 inline-flex items-center gap-2"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, color: '#0f1a16', letterSpacing: '-0.02em' }}
-        >
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8734a' }} />
-          Open shifts
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em' }}>
-            ({shifts.length})
-          </span>
-        </h3>
-      </div>
-
-      <div className="px-4 flex flex-col gap-[10px]">
-        {shifts.map((s) => (
-          <div
-            key={s.id}
-            className="bg-white border border-[#e8e6e1] rounded-[16px] p-[16px]"
-            style={{ position: 'relative' }}
-          >
-            {/* Coral accent rail */}
-            <span
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                top: 16,
-                bottom: 16,
-                left: 0,
-                width: 3,
-                borderRadius: '0 3px 3px 0',
-                background: '#e8734a',
-              }}
-            />
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                  <span
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#b85a32',
-                      background: '#fdeee7',
-                      padding: '3px 8px',
-                      borderRadius: 100,
-                    }}
-                  >
-                    Unfilled
-                  </span>
-                  {s.applicantCount > 0 && (
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, color: '#1a7f5e', letterSpacing: '-0.01em' }}>
-                      {s.applicantCount} applicant{s.applicantCount === 1 ? '' : 's'}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#0f1a16', letterSpacing: '-0.02em' }}>
-                  {s.role} · {s.date}
-                </div>
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6b7875', fontWeight: 500, marginTop: 3, letterSpacing: '-0.01em' }}>
-                  {s.timeRange} · {s.rate}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-              <button
-                onClick={() => onView(s)}
-                style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  borderRadius: 100,
-                  background: '#1a7f5e',
-                  color: 'white',
-                  border: 'none',
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {s.applicantCount > 0 ? `View applicants` : 'View shift'}
-              </button>
-              <button
-                onClick={() => onBoost(s)}
-                style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  borderRadius: 100,
-                  background: 'white',
-                  color: '#1a1a1a',
-                  border: '1px solid #ececec',
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  letterSpacing: '-0.01em',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 5,
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                </svg>
-                Boost
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
   );
 }
 
