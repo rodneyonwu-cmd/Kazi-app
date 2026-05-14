@@ -106,6 +106,9 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
         @keyframes kaziFPOverlayFade { from { opacity: 0; } to { opacity: 1; } }
         .kazi-fp-sheet * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         .kazi-fp-sheet .scroll-hide::-webkit-scrollbar { display: none; }
+        /* Cap height with dvh so iOS Safari's address bar doesn't push the
+           top of the sheet behind the URL bar; vh fallback for older browsers. */
+        .kazi-fp-sheet { max-height: 85vh; max-height: 85dvh; }
       `}</style>
 
       {/* Overlay */}
@@ -123,7 +126,7 @@ export default function FindProsSheet({ open, onClose, onSubmit }) {
         style={{
           position: 'fixed', bottom: 0, left: '50%', transform: 'translate(-50%, 0)',
           width: '100%', maxWidth: 480, background: 'white',
-          borderRadius: '28px 28px 0 0', zIndex: 201, maxHeight: '92vh',
+          borderRadius: '28px 28px 0 0', zIndex: 201,
           display: 'flex', flexDirection: 'column',
           fontFamily: "'DM Sans', sans-serif", color: COLORS.text,
           WebkitFontSmoothing: 'antialiased',
