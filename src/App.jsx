@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthenticateWithRedirectCallback, useAuth } from '@clerk/clerk-react'
 import ScrollToTop from './components/ScrollToTop'
+import SwipeBackGesture from './components/SwipeBackGesture'
 import RoleGuard from './components/RoleGuard'
 import RoleSwitch from './components/RoleSwitch'
 
@@ -95,6 +96,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+      <SwipeBackGesture />
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
