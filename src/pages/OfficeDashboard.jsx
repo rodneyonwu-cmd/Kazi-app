@@ -5,6 +5,7 @@ import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import FindProsSheet from '../components/FindProsSheet';
 import DayBookingsSheet from '../components/DayBookingsSheet';
+import UpcomingBookingPopup from '../components/UpcomingBookingPopup';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -27,14 +28,18 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 // dashboard calendar. Each booked day gets a deterministic slice
 // based on its date so the day-sheet has something to show until
 // the API is wired up.
+// Each entry carries the full UpcomingBookingPopup data shape so a
+// tap from the day sheet can open the office-side "Confirmed shift"
+// detail popup directly — matching the popup shown in Bookings →
+// Upcoming → tap provider.
 const MOCK_PROVIDER_POOL = [
-  { providerName: 'Sarah K.',    providerInitials: 'SK', avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg', role: 'RDH',          timeRange: '8:00am–5:00pm', status: 'confirmed', shiftId: 'mock-1' },
-  { providerName: 'Mike R.',     providerInitials: 'MR', avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',   role: 'Dental Assistant', timeRange: '8:00am–4:00pm', status: 'confirmed', shiftId: 'mock-2' },
-  { providerName: 'Lisa P.',     providerInitials: 'LP', avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg', role: 'Front Desk',   timeRange: '9:00am–5:00pm', status: 'confirmed', shiftId: 'mock-3' },
-  { providerName: 'Dr. James W.',providerInitials: 'JW', avatarUrl: 'https://randomuser.me/api/portraits/men/52.jpg',   role: 'Dentist',      timeRange: '8:00am–6:00pm', status: 'confirmed', shiftId: 'mock-4' },
-  { providerName: 'Emma T.',     providerInitials: 'ET', avatarUrl: 'https://randomuser.me/api/portraits/women/22.jpg', role: 'Hygienist',    timeRange: '8:30am–5:30pm', status: 'confirmed', shiftId: 'mock-5' },
-  { providerName: 'Carlos M.',   providerInitials: 'CM', avatarUrl: 'https://randomuser.me/api/portraits/men/77.jpg',   role: 'Dental Assistant', timeRange: '7:30am–3:30pm', status: 'pending',   shiftId: 'mock-6' },
-  { providerName: 'Aisha N.',    providerInitials: 'AN', avatarUrl: 'https://randomuser.me/api/portraits/women/89.jpg', role: 'RDH',          timeRange: '10:00am–6:00pm',status: 'confirmed', shiftId: 'mock-7' },
+  { providerName: 'Sarah K.',    providerInitials: 'SK', avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg', role: 'Dental Hygienist',  cred: 'RDH',  shortRole: 'RDH',          timeShort: '8:00am–5:00pm', timeRange: '8:00 AM – 5:00 PM',  hours: 8.5, hourlyRate: 58, total: 493, status: 'confirmed', shiftId: 'sarah-upcoming' },
+  { providerName: 'Mike R.',     providerInitials: 'MR', avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',   role: 'Dental Assistant',  cred: 'RDA',  shortRole: 'Dental Assistant', timeShort: '8:00am–4:00pm', timeRange: '8:00 AM – 4:00 PM',  hours: 8,   hourlyRate: 28, total: 224, status: 'confirmed', shiftId: 'mike-upcoming' },
+  { providerName: 'Lisa P.',     providerInitials: 'LP', avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg', role: 'Front Desk',        cred: null,   shortRole: 'Front Desk',     timeShort: '9:00am–5:00pm', timeRange: '9:00 AM – 5:00 PM',  hours: 8,   hourlyRate: 24, total: 192, status: 'confirmed', shiftId: 'lisa-upcoming' },
+  { providerName: 'Dr. James W.',providerInitials: 'JW', avatarUrl: 'https://randomuser.me/api/portraits/men/52.jpg',   role: 'Dentist',           cred: 'DDS',  shortRole: 'Dentist',        timeShort: '8:00am–6:00pm', timeRange: '8:00 AM – 6:00 PM',  hours: 9.5, hourlyRate: 95, total: 902, status: 'confirmed', shiftId: 'james-upcoming' },
+  { providerName: 'Emma T.',     providerInitials: 'ET', avatarUrl: 'https://randomuser.me/api/portraits/women/22.jpg', role: 'Dental Hygienist',  cred: 'RDH',  shortRole: 'Hygienist',      timeShort: '8:30am–5:30pm', timeRange: '8:30 AM – 5:30 PM',  hours: 8.5, hourlyRate: 55, total: 467, status: 'confirmed', shiftId: 'emma-upcoming' },
+  { providerName: 'Carlos M.',   providerInitials: 'CM', avatarUrl: 'https://randomuser.me/api/portraits/men/77.jpg',   role: 'Dental Assistant',  cred: 'EFDA', shortRole: 'Assistant',      timeShort: '7:30am–3:30pm', timeRange: '7:30 AM – 3:30 PM',  hours: 7.5, hourlyRate: 30, total: 225, status: 'pending',   shiftId: 'carlos-upcoming' },
+  { providerName: 'Aisha N.',    providerInitials: 'AN', avatarUrl: 'https://randomuser.me/api/portraits/women/89.jpg', role: 'Dental Hygienist',  cred: 'RDH',  shortRole: 'RDH',            timeShort: '10:00am–6:00pm',timeRange: '10:00 AM – 6:00 PM', hours: 8,   hourlyRate: 60, total: 480, status: 'confirmed', shiftId: 'aisha-upcoming' },
 ];
 
 const MOCK_OPEN_SHIFT_POOL = [
@@ -42,16 +47,47 @@ const MOCK_OPEN_SHIFT_POOL = [
   { id: 'open-2', role: 'Dental Assistant',  timeRange: '9:00am–4:00pm', applicants: 1 },
 ];
 
+function startsInForDate(date) {
+  const today = 7;
+  const diff = date - today;
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return '1 day';
+  if (diff < 7) return `${diff} days`;
+  if (diff < 14) return '1 week';
+  return `${Math.floor(diff / 7)} weeks`;
+}
+
 function bookingsForDate(date) {
   const count = (date % 3) + 1; // 1–3 bookings per booked day
   const start = (date * 2) % MOCK_PROVIDER_POOL.length;
+  const dow = APRIL_2026_DOW_FULL[date] || '';
+  const dateLong = `${dow ? dow + ', ' : ''}April ${date}`;
+  const startsIn = startsInForDate(date);
   const list = [];
   for (let i = 0; i < count; i++) {
     const base = MOCK_PROVIDER_POOL[(start + i) % MOCK_PROVIDER_POOL.length];
-    list.push({ ...base, id: `bk-${date}-${i}` });
+    list.push({
+      ...base,
+      id: `bk-${date}-${i}`,
+      dateLong,
+      startsIn,
+      // UpcomingBookingPopup ProStrip expects { name, initials } — map from
+      // our providerName/providerInitials so both shapes are satisfied.
+      name: base.providerName,
+      initials: base.providerInitials,
+    });
   }
   return list;
 }
+
+const APRIL_2026_DOW_FULL = {
+  1: 'Wed', 2: 'Thu', 3: 'Fri', 4: 'Sat', 5: 'Sun',
+  6: 'Mon', 7: 'Tue', 8: 'Wed', 9: 'Thu', 10: 'Fri',
+  11: 'Sat', 12: 'Sun', 13: 'Mon', 14: 'Tue', 15: 'Wed',
+  16: 'Thu', 17: 'Fri', 18: 'Sat', 19: 'Sun', 20: 'Mon',
+  21: 'Tue', 22: 'Wed', 23: 'Thu', 24: 'Fri', 25: 'Sat',
+  26: 'Sun', 27: 'Mon', 28: 'Tue', 29: 'Wed', 30: 'Thu',
+};
 
 function openShiftsForDate(date) {
   const offset = date % MOCK_OPEN_SHIFT_POOL.length;
@@ -132,6 +168,7 @@ export default function OfficeDashboard() {
   const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
   const [findProsOpen, setFindProsOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null); // day object for DayBookingsSheet
+  const [selectedBooking, setSelectedBooking] = useState(null); // booking object for UpcomingBookingPopup
   // Map of mock on-site id → real Prisma provider id, resolved once on mount.
   const [onsiteRealIds, setOnsiteRealIds] = useState({});
 
@@ -208,8 +245,11 @@ export default function OfficeDashboard() {
   };
 
   const handleBookingTap = (booking) => {
-    setSelectedDay(null);
-    navigate(`/shift/${booking.shiftId}`);
+    // Open the office-side "Confirmed shift" popup in place — same
+    // popup shown in Bookings → Upcoming → tap provider. Keep the
+    // DayBookingsSheet mounted underneath so the user returns to
+    // their day view after closing the popup.
+    setSelectedBooking(booking);
   };
 
   const handleOpenShiftTap = () => {
@@ -305,6 +345,16 @@ export default function OfficeDashboard() {
         onOpenShiftTap={handleOpenShiftTap}
         onViewAllOpen={handleViewAllOpen}
       />
+
+      {/* Confirmed-shift popup — same office-side detail view used
+          on the Bookings → Upcoming list, rendered on top of the
+          day sheet when a booking row is tapped. */}
+      {selectedBooking && (
+        <UpcomingBookingPopup
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
+        />
+      )}
     </div>
   );
 }

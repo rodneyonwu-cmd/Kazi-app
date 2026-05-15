@@ -338,7 +338,7 @@ function BookingRow({ booking, onTap }) {
             letterSpacing: '-0.01em',
           }}
         >
-          {booking.role} · {booking.timeRange}
+          {(booking.shortRole || booking.role)} · {(booking.timeShort || booking.timeRange)}
         </div>
       </div>
 
