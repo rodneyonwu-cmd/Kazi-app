@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/clerk-react';
 import TopBar from '../components/TopBar';
 import BottomNav from '../components/BottomNav';
 import FindProsSheet from '../components/FindProsSheet';
+import DayBookingsSheet from '../components/DayBookingsSheet';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -21,6 +22,41 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
  *   - Sage gradient avatars (#a8c9b8 → #7ab8a8)
  *   - DM Sans body · Outfit headings · 16–20px card radius · 100px pill buttons
  */
+
+// ── Mock booking pool used to dress booked days in the
+// dashboard calendar. Each booked day gets a deterministic slice
+// based on its date so the day-sheet has something to show until
+// the API is wired up.
+const MOCK_PROVIDER_POOL = [
+  { providerName: 'Sarah K.',    providerInitials: 'SK', role: 'RDH',          timeRange: '8:00am–5:00pm', status: 'confirmed', shiftId: 'mock-1' },
+  { providerName: 'Mike R.',     providerInitials: 'MR', role: 'Dental Assistant', timeRange: '8:00am–4:00pm', status: 'confirmed', shiftId: 'mock-2' },
+  { providerName: 'Lisa P.',     providerInitials: 'LP', role: 'Front Desk',   timeRange: '9:00am–5:00pm', status: 'confirmed', shiftId: 'mock-3' },
+  { providerName: 'Dr. James W.',providerInitials: 'JW', role: 'Dentist',      timeRange: '8:00am–6:00pm', status: 'confirmed', shiftId: 'mock-4' },
+  { providerName: 'Emma T.',     providerInitials: 'ET', role: 'Hygienist',    timeRange: '8:30am–5:30pm', status: 'confirmed', shiftId: 'mock-5' },
+  { providerName: 'Carlos M.',   providerInitials: 'CM', role: 'Dental Assistant', timeRange: '7:30am–3:30pm', status: 'pending',   shiftId: 'mock-6' },
+  { providerName: 'Aisha N.',    providerInitials: 'AN', role: 'RDH',          timeRange: '10:00am–6:00pm',status: 'confirmed', shiftId: 'mock-7' },
+];
+
+const MOCK_OPEN_SHIFT_POOL = [
+  { id: 'open-1', role: 'Hygienist',         timeRange: '8:00am–5:00pm', applicants: 3 },
+  { id: 'open-2', role: 'Dental Assistant',  timeRange: '9:00am–4:00pm', applicants: 1 },
+];
+
+function bookingsForDate(date) {
+  const count = (date % 3) + 1; // 1–3 bookings per booked day
+  const start = (date * 2) % MOCK_PROVIDER_POOL.length;
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const base = MOCK_PROVIDER_POOL[(start + i) % MOCK_PROVIDER_POOL.length];
+    list.push({ ...base, id: `bk-${date}-${i}` });
+  }
+  return list;
+}
+
+function openShiftsForDate(date) {
+  const offset = date % MOCK_OPEN_SHIFT_POOL.length;
+  return [{ ...MOCK_OPEN_SHIFT_POOL[offset], id: `os-${date}-0` }];
+}
 
 // ── Mock data (replace with API response later) ──────────────
 const mockOffice = {
@@ -95,6 +131,7 @@ export default function OfficeDashboard() {
 
   const [calendarView, setCalendarView] = useState('month'); // 'week' | 'month'
   const [findProsOpen, setFindProsOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null); // day object for DayBookingsSheet
   // Map of mock on-site id → real Prisma provider id, resolved once on mount.
   const [onsiteRealIds, setOnsiteRealIds] = useState({});
 
@@ -157,8 +194,34 @@ export default function OfficeDashboard() {
 
   const handleCalendarDayTap = (day) => {
     if (day.empty) return;
-    const d = String(day.date).padStart(2, '0');
-    navigate(`/bookings?date=2026-04-${d}`);
+    if (day.status !== 'booked' && day.status !== 'booked-open') return;
+    const dd = String(day.date).padStart(2, '0');
+    const dow = APRIL_2026_DOW[day.date] || '';
+    const label = `${dow ? dow + ', ' : ''}April ${day.date}`;
+    setSelectedDay({
+      date: day.date,
+      iso: `2026-04-${dd}`,
+      label,
+      bookings: bookingsForDate(day.date),
+      openShifts: day.status === 'booked-open' ? openShiftsForDate(day.date) : [],
+    });
+  };
+
+  const handleBookingTap = (booking) => {
+    setSelectedDay(null);
+    navigate(`/shift/${booking.shiftId}`);
+  };
+
+  const handleOpenShiftTap = () => {
+    if (!selectedDay) return;
+    setSelectedDay(null);
+    navigate(`/bookings?date=${selectedDay.iso}&tab=open`);
+  };
+
+  const handleViewAllOpen = () => {
+    if (!selectedDay) return;
+    setSelectedDay(null);
+    navigate(`/bookings?date=${selectedDay.iso}&tab=open`);
   };
 
   const handleCalendarNav = (direction) => {
@@ -230,6 +293,17 @@ export default function OfficeDashboard() {
         open={findProsOpen}
         onClose={() => setFindProsOpen(false)}
         onSubmit={handleFindProsSubmit}
+      />
+
+      {/* Day bookings sheet — opens when an office user taps a
+          booked day on the calendar. */}
+      <DayBookingsSheet
+        open={!!selectedDay}
+        onClose={() => setSelectedDay(null)}
+        day={selectedDay}
+        onBookingTap={handleBookingTap}
+        onOpenShiftTap={handleOpenShiftTap}
+        onViewAllOpen={handleViewAllOpen}
       />
     </div>
   );
