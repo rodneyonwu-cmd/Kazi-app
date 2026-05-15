@@ -99,14 +99,13 @@ export default function UpcomingBookingPopup({ booking, onClose }) {
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 24px 20px' }}>
-          <Hero label="Confirmed shift" title={booking.dateLong} sub={`${booking.timeRange} · ${booking.hours} hours`} />
+          <Hero label="Confirmed shift" title={booking.timeRange} sub={`${booking.hours} hours`} />
           <Chip>Starts in <strong style={{ fontWeight: 700, letterSpacing: '-0.01em' }}>{booking.startsIn}</strong></Chip>
           <ProStrip booking={booking} />
 
           <Section title="Shift details">
             <InfoRow label="Hourly rate" value={`$${booking.hourlyRate}/hr`} />
             <InfoRow label="Hours" value={booking.hours.toString()} />
-            <InfoRow label="Estimated payout" value={`$${booking.total}`} valueGreen />
           </Section>
 
           <Section title="Location">
