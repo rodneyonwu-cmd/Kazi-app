@@ -263,24 +263,38 @@ function BookingRow({ booking, onTap }) {
         fontFamily: 'inherit',
       }}
     >
-      <div
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 12,
-          background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
-          color: '#0f1d1b',
-          display: 'grid',
-          placeItems: 'center',
-          fontFamily: "'DM Sans', sans-serif",
-          fontWeight: 700,
-          fontSize: 14,
-          flexShrink: 0,
-          letterSpacing: '-0.01em',
-        }}
-      >
-        {booking.providerInitials}
-      </div>
+      {booking.avatarUrl ? (
+        <img
+          src={booking.avatarUrl}
+          alt={booking.providerName}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            objectFit: 'cover',
+            flexShrink: 0,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
+            color: '#0f1d1b',
+            display: 'grid',
+            placeItems: 'center',
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 700,
+            fontSize: 14,
+            flexShrink: 0,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {booking.providerInitials}
+        </div>
+      )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>

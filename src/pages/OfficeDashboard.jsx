@@ -28,13 +28,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 // based on its date so the day-sheet has something to show until
 // the API is wired up.
 const MOCK_PROVIDER_POOL = [
-  { providerName: 'Sarah K.',    providerInitials: 'SK', role: 'RDH',          timeRange: '8:00am–5:00pm', status: 'confirmed', shiftId: 'mock-1' },
-  { providerName: 'Mike R.',     providerInitials: 'MR', role: 'Dental Assistant', timeRange: '8:00am–4:00pm', status: 'confirmed', shiftId: 'mock-2' },
-  { providerName: 'Lisa P.',     providerInitials: 'LP', role: 'Front Desk',   timeRange: '9:00am–5:00pm', status: 'confirmed', shiftId: 'mock-3' },
-  { providerName: 'Dr. James W.',providerInitials: 'JW', role: 'Dentist',      timeRange: '8:00am–6:00pm', status: 'confirmed', shiftId: 'mock-4' },
-  { providerName: 'Emma T.',     providerInitials: 'ET', role: 'Hygienist',    timeRange: '8:30am–5:30pm', status: 'confirmed', shiftId: 'mock-5' },
-  { providerName: 'Carlos M.',   providerInitials: 'CM', role: 'Dental Assistant', timeRange: '7:30am–3:30pm', status: 'pending',   shiftId: 'mock-6' },
-  { providerName: 'Aisha N.',    providerInitials: 'AN', role: 'RDH',          timeRange: '10:00am–6:00pm',status: 'confirmed', shiftId: 'mock-7' },
+  { providerName: 'Sarah K.',    providerInitials: 'SK', avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg', role: 'RDH',          timeRange: '8:00am–5:00pm', status: 'confirmed', shiftId: 'mock-1' },
+  { providerName: 'Mike R.',     providerInitials: 'MR', avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',   role: 'Dental Assistant', timeRange: '8:00am–4:00pm', status: 'confirmed', shiftId: 'mock-2' },
+  { providerName: 'Lisa P.',     providerInitials: 'LP', avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg', role: 'Front Desk',   timeRange: '9:00am–5:00pm', status: 'confirmed', shiftId: 'mock-3' },
+  { providerName: 'Dr. James W.',providerInitials: 'JW', avatarUrl: 'https://randomuser.me/api/portraits/men/52.jpg',   role: 'Dentist',      timeRange: '8:00am–6:00pm', status: 'confirmed', shiftId: 'mock-4' },
+  { providerName: 'Emma T.',     providerInitials: 'ET', avatarUrl: 'https://randomuser.me/api/portraits/women/22.jpg', role: 'Hygienist',    timeRange: '8:30am–5:30pm', status: 'confirmed', shiftId: 'mock-5' },
+  { providerName: 'Carlos M.',   providerInitials: 'CM', avatarUrl: 'https://randomuser.me/api/portraits/men/77.jpg',   role: 'Dental Assistant', timeRange: '7:30am–3:30pm', status: 'pending',   shiftId: 'mock-6' },
+  { providerName: 'Aisha N.',    providerInitials: 'AN', avatarUrl: 'https://randomuser.me/api/portraits/women/89.jpg', role: 'RDH',          timeRange: '10:00am–6:00pm',status: 'confirmed', shiftId: 'mock-7' },
 ];
 
 const MOCK_OPEN_SHIFT_POOL = [
