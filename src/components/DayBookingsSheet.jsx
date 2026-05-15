@@ -31,13 +31,6 @@ const COLORS = {
   border: '#e8e6e1',
 };
 
-const STATUS_META = {
-  confirmed: { label: 'Confirmed', bg: '#e8f2ed', color: '#1a7f5e' },
-  'checked-in': { label: 'Checked in', bg: '#e8f2ed', color: '#1a7f5e' },
-  pending: { label: 'Pending', bg: '#fef6e4', color: '#c98b16' },
-  completed: { label: 'Completed', bg: '#eef0ee', color: '#6b7875' },
-};
-
 export default function DayBookingsSheet({
   open,
   onClose,
@@ -244,17 +237,19 @@ function SectionHeader({ label, trailing }) {
 }
 
 function BookingRow({ booking, onTap }) {
-  const status = STATUS_META[booking.status] || STATUS_META.confirmed;
+  const isConfirmed = booking.status === 'confirmed' || booking.status === 'checked-in';
+  const roleText = booking.shortRole || booking.role;
+  const timeText = booking.timeShort || booking.timeRange;
   return (
     <button
       onClick={onTap}
       style={{
         width: '100%',
         background: '#ffffff',
-        border: `1px solid ${COLORS.border}`,
-        borderRadius: 14,
-        padding: '12px 14px',
-        marginBottom: 8,
+        border: `1px solid #f3f3f3`,
+        borderRadius: 18,
+        padding: '16px 18px',
+        marginBottom: 12,
         display: 'flex',
         alignItems: 'center',
         gap: 12,
@@ -268,28 +263,30 @@ function BookingRow({ booking, onTap }) {
           src={booking.avatarUrl}
           alt={booking.providerName}
           style={{
-            width: 42,
-            height: 42,
+            width: 48,
+            height: 48,
             borderRadius: 12,
             objectFit: 'cover',
             flexShrink: 0,
+            border: '1px solid #f3f3f3',
           }}
         />
       ) : (
         <div
           style={{
-            width: 42,
-            height: 42,
+            width: 48,
+            height: 48,
             borderRadius: 12,
-            background: 'linear-gradient(135deg, #a8c9b8, #7ab8a8)',
-            color: '#0f1d1b',
+            background: '#f9f8f6',
+            border: '1px solid #f3f3f3',
+            color: '#1a1a1a',
             display: 'grid',
             placeItems: 'center',
             fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700,
             fontSize: 14,
             flexShrink: 0,
-            letterSpacing: '-0.01em',
+            letterSpacing: '-0.02em',
           }}
         >
           {booking.providerInitials}
@@ -297,56 +294,98 @@ function BookingRow({ booking, onTap }) {
       )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-          <span
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 700,
-              fontSize: 15,
-              color: COLORS.text,
-              letterSpacing: '-0.02em',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {booking.providerName}
-          </span>
-          <span
-            style={{
-              background: status.bg,
-              color: status.color,
-              padding: '2px 8px',
-              borderRadius: 999,
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 700,
-              fontSize: 9.5,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              flexShrink: 0,
-            }}
-          >
-            {status.label}
-          </span>
+        <div
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 700,
+            fontSize: 15,
+            color: '#1a1a1a',
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            marginBottom: 2,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {booking.providerName}
         </div>
         <div
           style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: 12.5,
+            color: '#8a8a8a',
             fontWeight: 500,
-            color: COLORS.textMid,
             letterSpacing: '-0.01em',
+            lineHeight: 1.35,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            flexWrap: 'wrap',
           }}
         >
-          {(booking.shortRole || booking.role)} · {(booking.timeShort || booking.timeRange)}
+          <span>{roleText}</span>
+          <Dot />
+          <span>{timeText}</span>
+          {typeof booking.hours === 'number' && (
+            <>
+              <Dot />
+              <span>{booking.hours} hrs</span>
+            </>
+          )}
         </div>
       </div>
 
-      <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.textLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
+      <div style={{ flexShrink: 0 }}>
+        {isConfirmed ? (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              background: '#1a7f5e',
+              color: 'white',
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              padding: '5px 10px',
+              borderRadius: 100,
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: 8, height: 8 }}>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Confirmed
+          </span>
+        ) : (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              padding: '5px 10px',
+              borderRadius: 100,
+              background: '#fef3e6',
+              color: '#d97706',
+              border: '1px solid #fce0bf',
+            }}
+          >
+            Pending
+          </span>
+        )}
+      </div>
     </button>
   );
+}
+
+function Dot() {
+  return <span style={{ width: 2, height: 2, background: '#8a8a8a', borderRadius: '50%' }} />;
 }
 
 function OpenShiftRow({ shift, onTap }) {
