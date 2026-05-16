@@ -187,6 +187,52 @@ export function CardBadge({ children }) {
   );
 }
 
+// In-profile variant of CardHeader — the office header is redundant
+// when the card is rendered on an office's own profile, so this
+// promotes the role to the primary line and keeps just the
+// applied-count chip from the original rating row.
+export function SlimCardHeader({ item }) {
+  return (
+    <div style={{ marginBottom: 14, paddingRight: 72 /* reserve room for $/hr top-right */ }}>
+      <div
+        style={{
+          fontFamily: "'Outfit', sans-serif",
+          fontWeight: 600,
+          fontSize: 19,
+          color: '#111111',
+          lineHeight: 1.2,
+          marginBottom: item.applied != null ? 8 : 0,
+          letterSpacing: '-0.3px',
+        }}
+      >
+        {item.role}
+      </div>
+      {item.applied != null && (
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
+            fontSize: 12,
+            color: COLORS.green,
+            fontWeight: 700,
+            background: COLORS.greenTint,
+            border: `1px solid ${COLORS.greenSoft}`,
+            padding: '5px 10px',
+            borderRadius: 100,
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke={COLORS.green} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+          <strong style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, fontSize: 13 }}>{item.applied}</strong> applied
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ExtraChip({ children }) {
   return (
     <span
@@ -222,7 +268,7 @@ export function ExtraChip({ children }) {
  *    lunch/software chips row, reduces internal padding, and makes the
  *    entire card tappable.
  */
-export default function TempShiftCard({ shift, onApply, style, compact = false, badge }) {
+export default function TempShiftCard({ shift, onApply, style, compact = false, badge, hideOffice = false }) {
   const handleCardClick = compact && onApply ? onApply : undefined;
   return (
     <div
@@ -245,7 +291,7 @@ export default function TempShiftCard({ shift, onApply, style, compact = false, 
           ${shift.pay}/hr
         </div>
       </div>
-      <CardHeader item={shift} />
+      {hideOffice ? <SlimCardHeader item={shift} /> : <CardHeader item={shift} />}
       <div
         style={{
           display: 'flex',

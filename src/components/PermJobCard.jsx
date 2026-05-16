@@ -1,5 +1,5 @@
 import React from 'react';
-import { CardHeader, CardBadge } from './TempShiftCard';
+import { CardHeader, SlimCardHeader, CardBadge } from './TempShiftCard';
 
 // ============================================================
 // Shared permanent-job card.
@@ -20,7 +20,7 @@ const COLORS = {
   borderSoft: '#f3f3f3',
 };
 
-export default function PermJobCard({ job, onTap, style, badge }) {
+export default function PermJobCard({ job, onTap, style, badge, hideOffice = false }) {
   return (
     <div
       onClick={onTap}
@@ -44,7 +44,7 @@ export default function PermJobCard({ job, onTap, style, badge }) {
           {job.payUnit}
         </div>
       </div>
-      <CardHeader item={job} />
+      {hideOffice ? <SlimCardHeader item={job} /> : <CardHeader item={job} />}
       {/* Tags row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: job.benefits?.length ? 10 : 0 }}>
         {job.tags?.map((t, i) => (

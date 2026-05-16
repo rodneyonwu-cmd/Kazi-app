@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import TopBar from '../components/TopBar';
+import TempShiftCard from '../components/TempShiftCard';
+import PermJobCard from '../components/PermJobCard';
 
 // ============================================================
 // KAZI · Office "My Office" profile
@@ -32,15 +34,38 @@ const HERO_STATS = [
   { label: 'Response', value: '< 1h' },
 ];
 
+// Mock shift data — shape matches the canonical TempShiftCard /
+// PermJobCard so the office profile reuses the exact cards that
+// providers see on FindShifts. `hideOffice` strips the redundant
+// office header since the cards live on the office's own profile.
 const TEMP_SHIFTS = [
-  { id: 'sh-11', day: 11, name: 'Fri', gold: true, role: 'Dental Hygienist', meta: '8:00 AM – 5:00 PM · 8 hrs', pay: '$55/hr', applicants: 8 },
-  { id: 'sh-14', day: 14, name: 'Mon', role: 'Dental Assistant', meta: '8:00 AM – 4:00 PM · 7 hrs', pay: '$28/hr', applicants: 3 },
-  { id: 'sh-17', day: 17, name: 'Thu', role: 'Front Desk', meta: '9:00 AM – 5:00 PM · 7 hrs', pay: '$22/hr', applicants: 0 },
+  { id: 'sh-11', role: 'Dental Hygienist', when: 'Fri, Apr 11 · 8:00 AM – 5:00 PM', pay: 55, applied: 8, lunch: '45 min lunch', software: 'Dentrix' },
+  { id: 'sh-14', role: 'Dental Assistant',  when: 'Mon, Apr 14 · 8:00 AM – 4:00 PM', pay: 28, applied: 3, lunch: '30 min lunch', software: 'Dentrix' },
+  { id: 'sh-17', role: 'Front Desk',        when: 'Thu, Apr 17 · 9:00 AM – 5:00 PM', pay: 22, applied: 0, lunch: '30 min lunch' },
 ];
 
 const PERM_JOBS = [
-  { id: 'perm-1', badge: 'Full-Time', title: 'Dental Hygienist', type: 'Full-Time · Start date flexible', salary: '$65K – $78K / year', benefits: ['Health', 'Dental', '401(k)', 'PTO', 'CE Allowance'] },
-  { id: 'perm-2', badge: 'Part-Time', title: 'Front Desk Coordinator', type: 'Part-Time · Starts May 1', salary: '$22 – $26 / hour', benefits: ['Flexible Hours', 'PTO'] },
+  {
+    id: 'perm-1',
+    role: 'Dental Hygienist',
+    applied: 12,
+    tags: [{ label: 'Full-time' }, { label: 'Mon–Fri', gray: true }, { label: 'Starts ASAP', gray: true }],
+    benefits: ['Health', 'Dental', '401(k)', 'PTO', 'CE Allowance'],
+    payRange: '$65K – $78K',
+    payUnit: 'per year',
+    // Kept for PermanentJobModal backward-compat
+    badge: 'Full-Time', title: 'Dental Hygienist', type: 'Full-Time · Start date flexible', salary: '$65K – $78K / year',
+  },
+  {
+    id: 'perm-2',
+    role: 'Front Desk Coordinator',
+    applied: 5,
+    tags: [{ label: 'Part-time' }, { label: 'Mon/Wed/Fri', gray: true }, { label: 'Starts May 1', gray: true }],
+    benefits: ['Flexible Hours', 'PTO'],
+    payRange: '$22 – $26',
+    payUnit: 'per hour',
+    badge: 'Part-Time', title: 'Front Desk Coordinator', type: 'Part-Time · Starts May 1', salary: '$22 – $26 / hour',
+  },
 ];
 
 const ABOUT = `Modern general dentistry practice in the Galleria area of Houston. Busy 4-chair office with a strong focus on patient experience, hygiene excellence, and a welcoming team culture. We hire for same-day coverage and longer engagements.
@@ -248,7 +273,7 @@ export default function OfficeMyProfile() {
         )}
 
         {activeTab === 'shifts' && (
-          <ProfileSection title="Open roles">
+          <div style={{ padding: '0 16px' }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
               <SubtabPill active={activeSub === 'temp'} onClick={() => setActiveSub('temp')} variant="temp">
                 Temp shifts <CountChip active={activeSub === 'temp'}>{TEMP_SHIFTS.length}</CountChip>
@@ -258,13 +283,25 @@ export default function OfficeMyProfile() {
               </SubtabPill>
             </div>
 
-            {activeSub === 'temp' && TEMP_SHIFTS.map((s, i) => (
-              <ShiftRow key={s.id} shift={s} isLast={i === TEMP_SHIFTS.length - 1} onClick={() => navigate(`/shift/${s.id}`)} />
+            {activeSub === 'temp' && TEMP_SHIFTS.map((s) => (
+              <div key={s.id} style={{ marginBottom: 12 }}>
+                <TempShiftCard
+                  shift={s}
+                  hideOffice
+                  onApply={() => navigate(`/shift/${s.id}`)}
+                />
+              </div>
             ))}
             {activeSub === 'perm' && PERM_JOBS.map((j) => (
-              <PermCard key={j.id} job={j} onApply={() => navigate(`/shift/${j.id}`)} />
+              <div key={j.id} style={{ marginBottom: 12 }}>
+                <PermJobCard
+                  job={j}
+                  hideOffice
+                  onTap={() => navigate(`/shift/${j.id}`)}
+                />
+              </div>
             ))}
-          </ProfileSection>
+          </div>
         )}
 
         {activeTab === 'reviews' && (
@@ -384,59 +421,6 @@ function CountChip({ active, variant, children }) {
   const color = active ? (isPerm ? '#fff' : '#1a7f5e') : '#6b7280';
   return (
     <span style={{ fontSize: 10, background: bg, color, padding: '1px 7px', borderRadius: 100, fontWeight: 700, letterSpacing: '0.04em' }}>{children}</span>
-  );
-}
-
-function ShiftRow({ shift, isLast, onClick }) {
-  return (
-    <div onClick={onClick} style={{ display: 'flex', gap: 12, padding: '14px 0', borderBottom: isLast ? 'none' : '1px solid #f3f3f3', alignItems: 'center', cursor: 'pointer' }}>
-      <div style={{ width: 54, background: shift.gold ? '#fef6e4' : '#f9f8f6', border: `1px solid ${shift.gold ? '#f5e3b8' : '#efede8'}`, borderRadius: 10, padding: '8px 4px', textAlign: 'center', flexShrink: 0 }}>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>{shift.day}</div>
-        <div style={{ fontSize: 9, fontWeight: 700, color: '#9aa5a1', textTransform: 'uppercase', marginTop: 3 }}>{shift.name}</div>
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 2 }}>{shift.role}</div>
-        <div style={{ fontSize: 11, color: '#9aa5a1', marginBottom: 6 }}>{shift.meta}</div>
-        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#1a7f5e', marginRight: 8 }}>{shift.pay}</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 100, background: '#ffffff', color: '#6b7280', border: '1px solid #efede8' }}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          {shift.applicants} applicants
-        </span>
-      </div>
-      <button aria-label="Open" style={{ width: 36, height: 36, borderRadius: '50%', background: '#e8f5f0', border: '1px solid #cfe8de', display: 'grid', placeItems: 'center', flexShrink: 0, padding: 0 }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-function PermCard({ job, onApply }) {
-  return (
-    <div style={{ background: 'linear-gradient(135deg, #faf7fc, #ffffff)', border: '1px solid #efe8f5', borderRadius: 14, padding: 16, marginBottom: 10, position: 'relative' }}>
-      <span style={{ position: 'absolute', top: 12, right: 12, background: '#7c5aa8', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{job.badge}</span>
-      <div style={{ width: 36, height: 36, borderRadius: 10, background: '#efe8f5', display: 'grid', placeItems: 'center', marginBottom: 10 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5aa8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="7" width="20" height="14" rx="2" />
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-        </svg>
-      </div>
-      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, marginBottom: 3, letterSpacing: '-0.02em' }}>{job.title}</div>
-      <div style={{ fontSize: 11, color: '#9aa5a1', fontWeight: 600, marginBottom: 10 }}>{job.type}</div>
-      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', color: '#1a7f5e', marginBottom: 10 }}>{job.salary}</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
-        {job.benefits.map((b) => (
-          <span key={b} style={{ background: '#fff', border: '1px solid #efede8', color: '#6b7280', fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 100 }}>{b}</span>
-        ))}
-      </div>
-      <button onClick={onApply} style={{ width: '100%', background: '#7c5aa8', color: '#fff', border: 'none', borderRadius: 100, padding: 10, fontFamily: 'inherit', fontSize: 12, fontWeight: 700 }}>View & Apply</button>
-    </div>
   );
 }
 
