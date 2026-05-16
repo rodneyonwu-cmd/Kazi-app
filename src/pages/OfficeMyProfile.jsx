@@ -13,6 +13,7 @@ import TopBar from '../components/TopBar';
 // ============================================================
 
 const MAP_URL = 'https://staticmap.openstreetmap.de/staticmap.php?center=29.7339,-95.4663&zoom=15&size=600x360&maptype=mapnik&markers=29.7339,-95.4663,red-pushpin';
+const OFFICE_PHOTO_URL = 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=240&q=80';
 
 const PHOTOS = [
   { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=80', label: 'Reception', featured: true },
@@ -75,7 +76,7 @@ export default function OfficeMyProfile() {
   const notImpl = (label) => () => alert(`${label} — coming soon`);
 
   return (
-    <div className="kazi-omp" style={{ background: '#f9f8f6', minHeight: '100vh', maxWidth: 480, margin: '0 auto', boxShadow: '0 0 40px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif", color: '#1a1a1a', WebkitFontSmoothing: 'antialiased', paddingBottom: 110, position: 'relative' }}>
+    <div className="kazi-omp" style={{ background: '#ffffff', minHeight: '100vh', maxWidth: 480, margin: '0 auto', boxShadow: '0 0 40px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif", color: '#1a1a1a', WebkitFontSmoothing: 'antialiased', paddingBottom: 110, position: 'relative' }}>
       <style>{`
         .kazi-omp * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         .kazi-omp button { font-family: inherit; cursor: pointer; }
@@ -85,7 +86,7 @@ export default function OfficeMyProfile() {
 
       {/* Local topbar — sticky on white */}
       <section style={{ position: 'sticky', top: 0, zIndex: 40, background: '#fff', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #f0eee8' }}>
-        <button onClick={() => navigate('/dashboard')} aria-label="Back" style={{ width: 36, height: 36, borderRadius: '50%', background: '#f9f8f6', border: '1px solid #ececec', display: 'grid', placeItems: 'center', padding: 0 }}>
+        <button onClick={() => navigate('/dashboard')} aria-label="Back" style={{ width: 36, height: 36, borderRadius: '50%', background: '#ffffff', border: '1px solid #ececec', display: 'grid', placeItems: 'center', padding: 0 }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
@@ -123,7 +124,18 @@ export default function OfficeMyProfile() {
             overflow: 'visible',
             boxShadow: '0 4px 14px rgba(15,29,27,0.12)',
           }}>
-            BS
+            {/* Initials underneath; img overlays. If the img fails
+                to load, onError hides it and the initials show
+                through against the sage gradient. */}
+            <span style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: 28, letterSpacing: '-0.02em' }}>
+              BS
+            </span>
+            <img
+              src={OFFICE_PHOTO_URL}
+              alt="Bright Smile Dental"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 20 }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
             <span style={{ position: 'absolute', bottom: 3, right: 3, width: 22, height: 22, borderRadius: '50%', background: '#1a7f5e', border: '2.5px solid #fff', display: 'grid', placeItems: 'center', zIndex: 2 }}>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
@@ -170,7 +182,7 @@ export default function OfficeMyProfile() {
       </section>
 
       {/* Sticky underline tabs */}
-      <section style={{ position: 'sticky', top: 60, zIndex: 30, background: '#f9f8f6', padding: '4px 20px 0' }}>
+      <section style={{ position: 'sticky', top: 60, zIndex: 30, background: '#ffffff', padding: '4px 20px 0' }}>
         <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid #f0eee8' }}>
           {[
             { k: 'overview', label: 'Overview' },
@@ -293,7 +305,7 @@ export default function OfficeMyProfile() {
                     gridColumn: p.featured ? 'span 2' : 'auto',
                     borderRadius: 14,
                     overflow: 'hidden',
-                    background: '#f9f8f6',
+                    background: '#ffffff',
                   }}
                 >
                   <img src={p.src} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -386,7 +398,7 @@ function ShiftRow({ shift, isLast, onClick }) {
         <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 2 }}>{shift.role}</div>
         <div style={{ fontSize: 11, color: '#9aa5a1', marginBottom: 6 }}>{shift.meta}</div>
         <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#1a7f5e', marginRight: 8 }}>{shift.pay}</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 100, background: '#f9f8f6', color: '#6b7280', border: '1px solid #efede8' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 100, background: '#ffffff', color: '#6b7280', border: '1px solid #efede8' }}>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
