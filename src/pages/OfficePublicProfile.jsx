@@ -4,120 +4,16 @@ import TopBar from '../components/TopBar';
 import ShiftDetailModal from '../components/ShiftDetailModal';
 import PermanentJobModal from '../components/PermanentJobModal';
 
-const styles = `
-.kazi-opp { --green: #1a7f5e; --green-dark: #0f1d1b; --green-deep: #1a2e2c; --green-soft: #e8f5f0; --orange: #F97316; --gold-bg: #dcfce7; --gold-text: #166534; --amber: #f4b740; --amber-soft: #fef6e4; --coral: #e8734a; --coral-soft: #fdeee7; --purple: #7c5aa8; --purple-soft: #efe8f5; --bg: #f9f8f6; --card: #fff; --text: #1a1a1a; --text-mid: #6b7280; --text-light: #9ca3af; --border: #e5e7eb; --border-soft: #f3f4f6; --chrome: #efede8; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; padding-bottom: 40px; max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 40px rgba(0,0,0,.06); position: relative; }
-.kazi-opp * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-.kazi-opp button { font-family: inherit; cursor: pointer; }
-.kazi-opp .topbar { position: sticky; top: 0; z-index: 50; background: var(--card); padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-soft); }
-.kazi-opp .icon-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
-.kazi-opp .icon-btn svg { width: 16px; height: 16px; stroke: var(--text); stroke-width: 2; fill: none; }
-.kazi-opp .icon-btn.saved { background: var(--coral-soft); }
-.kazi-opp .icon-btn.saved svg { stroke: var(--coral); fill: var(--coral); }
-.kazi-opp .topbar-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 18px; flex: 1; letter-spacing: -.02em; }
+// ============================================================
+// KAZI · Office public profile (provider's view of an office)
+//
+// Mirrors ProfessionalProfile's aesthetic: flat warm-beige page,
+// inline hero with sage-gradient logo / name / rating, stat tiles
+// separated by a top border, green Send Request + outlined
+// Message action row, sticky underline tabs, and white rounded
+// section cards.
+// ============================================================
 
-.kazi-opp .hero { position: relative; }
-.kazi-opp .hero-cover { height: 130px; position: relative; overflow: hidden; background: linear-gradient(135deg, #1a2e2c, #0f1d1b); }
-.kazi-opp .hero-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.kazi-opp .hero-cover-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,29,27,0) 0%, rgba(15,29,27,0.55) 65%, #0f1d1b 100%); }
-.kazi-opp .hero-content { background: linear-gradient(180deg, #0f1d1b 0%, #1a2e2c 100%); color: white; padding: 0 20px 22px; position: relative; }
-.kazi-opp .hero-top { display: flex; align-items: flex-end; gap: 14px; margin-top: -34px; position: relative; }
-.kazi-opp .hero-logo-wrap { position: relative; width: 78px; height: 78px; flex-shrink: 0; }
-.kazi-opp .office-logo { width: 78px; height: 78px; border-radius: 20px; background: linear-gradient(135deg, #a8c9b8, #7ab8a8); display: flex; align-items: center; justify-content: center; color: #0f1d1b; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 26px; letter-spacing: -.02em; border: 3px solid #0f1d1b; box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
-.kazi-opp .verified-badge { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2.5px solid #0f1d1b; }
-.kazi-opp .verified-badge svg { width: 10px; height: 10px; stroke: white; stroke-width: 3; fill: none; }
-.kazi-opp .hero-meta { flex: 1; min-width: 0; padding-bottom: 6px; }
-.kazi-opp .office-name { font-family: 'DM Sans', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; color: white; margin: 0; display: inline-flex; align-items: center; gap: 7px; }
-.kazi-opp .office-type { font-size: 12.5px; color: rgba(255,255,255,0.7); font-weight: 500; letter-spacing: -.01em; margin-top: 4px; }
-.kazi-opp .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 18px; }
-.kazi-opp .hero-stat { text-align: left; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; padding: 9px 10px 11px; }
-.kazi-opp .hero-stat-value { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 16px; line-height: 1; letter-spacing: -.02em; color: white; display: flex; align-items: center; gap: 3px; }
-.kazi-opp .hero-stat-star { color: var(--amber); font-size: 13px; line-height: 1; }
-.kazi-opp .hero-stat-label { font-size: 9.5px; color: rgba(255,255,255,0.6); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-top: 6px; }
-
-.kazi-opp .tabs { display: flex; gap: 4px; background: var(--card); margin: 14px 20px 0; border-radius: 14px; padding: 4px; border: 1px solid var(--chrome); box-shadow: 0 1px 2px rgba(15,29,27,0.04); }
-.kazi-opp .tab { flex: 1; background: none; border: none; padding: 10px 6px; font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; color: var(--text-mid); cursor: pointer; border-radius: 10px; }
-.kazi-opp .tab.active { background: var(--green); color: white; }
-.kazi-opp .section { background: var(--card); margin: 14px 20px 0; border-radius: 16px; padding: 18px 18px 20px; border: 1px solid var(--chrome); box-shadow: 0 1px 2px rgba(15,29,27,0.04); }
-.kazi-opp .section-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -.02em; margin-bottom: 12px; }
-.kazi-opp .about-text { font-size: 14px; line-height: 1.6; color: var(--text-mid); }
-.kazi-opp .about-text.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.kazi-opp .see-more-btn { background: none; border: none; color: var(--green); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; padding: 8px 0 0; display: inline-flex; align-items: center; gap: 4px; }
-.kazi-opp .see-more-btn svg { width: 11px; height: 11px; stroke: var(--green); stroke-width: 2.5; fill: none; transition: transform .2s; }
-.kazi-opp .see-more-btn.open svg { transform: rotate(180deg); }
-.kazi-opp .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border-soft); font-size: 13px; }
-.kazi-opp .detail-row:last-child { border-bottom: none; }
-.kazi-opp .detail-label { color: var(--text-mid); font-weight: 500; }
-.kazi-opp .detail-val { font-weight: 700; color: var(--text); }
-
-.kazi-opp .location-card { background: var(--card); margin: 14px 20px 0; border-radius: 16px; border: 1px solid var(--chrome); overflow: hidden; box-shadow: 0 1px 2px rgba(15,29,27,0.04); }
-.kazi-opp .map-preview { height: 180px; position: relative; overflow: hidden; background: var(--bg); }
-.kazi-opp .map-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.kazi-opp .map-pin { width: 38px; height: 38px; background: var(--green); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); position: absolute; top: 50%; left: 50%; margin: -19px 0 0 -19px; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,.28); }
-.kazi-opp .map-pin::after { content: ''; width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
-.kazi-opp .loc-meta { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-.kazi-opp .loc-addr { font-size: 14px; color: var(--text); line-height: 1.5; font-weight: 500; }
-.kazi-opp .loc-dist { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -.02em; color: var(--green); flex-shrink: 0; }
-
-.kazi-opp .subtabs { display: flex; gap: 8px; margin-bottom: 14px; }
-.kazi-opp .subtab { flex: 1; padding: 9px 10px; border-radius: 100px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid var(--chrome); background: var(--bg); color: var(--text-mid); display: flex; align-items: center; justify-content: center; gap: 6px; }
-.kazi-opp .subtab.active { background: var(--green-soft); color: var(--green); border-color: #cfe8de; }
-.kazi-opp .subtab.perm { color: var(--purple); border-color: var(--purple-soft); background: #faf7fc; }
-.kazi-opp .subtab.perm.active { background: var(--purple); color: white; border-color: var(--purple); }
-.kazi-opp .subtab-count { font-size: 10px; background: var(--card); color: var(--text-mid); padding: 1px 7px; border-radius: 100px; font-weight: 700; letter-spacing: .04em; }
-.kazi-opp .subtab.active .subtab-count { background: var(--card); color: var(--green); }
-.kazi-opp .subtab.perm.active .subtab-count { background: rgba(255,255,255,.25); color: white; }
-.kazi-opp .shift-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-soft); align-items: center; cursor: pointer; }
-.kazi-opp .shift-item:last-child { border-bottom: none; padding-bottom: 0; }
-.kazi-opp .shift-item:first-child { padding-top: 0; }
-.kazi-opp .shift-date { width: 54px; background: var(--bg); border: 1px solid var(--chrome); border-radius: 10px; padding: 8px 4px; text-align: center; flex-shrink: 0; }
-.kazi-opp .shift-date.gold { background: var(--amber-soft); border-color: #f5e3b8; }
-.kazi-opp .shift-day-num { font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
-.kazi-opp .shift-day-name { font-size: 9px; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-top: 3px; }
-.kazi-opp .shift-info { flex: 1; min-width: 0; }
-.kazi-opp .shift-role { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 2px; }
-.kazi-opp .shift-meta { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
-.kazi-opp .shift-pay { font-size: 13px; font-weight: 700; letter-spacing: -.01em; color: var(--green); display: inline-block; margin-right: 8px; }
-.kazi-opp .applicant-count { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; background: var(--bg); color: var(--text-mid); border: 1px solid var(--chrome); }
-.kazi-opp .applicant-count svg { width: 10px; height: 10px; stroke: var(--text-mid); stroke-width: 2; fill: none; }
-.kazi-opp .shift-arrow { width: 36px; height: 36px; border-radius: 50%; background: var(--green-soft); border: 1px solid #cfe8de; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-.kazi-opp .shift-arrow svg { width: 14px; height: 14px; stroke: var(--green); stroke-width: 3; fill: none; }
-.kazi-opp .perm-card { background: linear-gradient(135deg,#faf7fc,#ffffff); border: 1px solid var(--purple-soft); border-radius: 14px; padding: 16px; margin-bottom: 10px; position: relative; }
-.kazi-opp .perm-card:last-child { margin-bottom: 0; }
-.kazi-opp .perm-badge { position: absolute; top: 12px; right: 12px; background: var(--purple); color: white; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: .06em; }
-.kazi-opp .perm-title { font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 3px; letter-spacing: -.02em; }
-.kazi-opp .perm-type { font-size: 11px; color: var(--text-light); font-weight: 600; margin-bottom: 10px; }
-.kazi-opp .perm-salary { font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.02em; color: var(--green); margin-bottom: 10px; }
-.kazi-opp .perm-benefits { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
-.kazi-opp .benefit { background: var(--card); border: 1px solid var(--chrome); color: var(--text-mid); font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 100px; }
-.kazi-opp .rating-summary { display: flex; gap: 16px; align-items: center; padding: 4px 0 16px; border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; }
-.kazi-opp .rating-big { font-family: 'DM Sans', sans-serif; font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -.03em; }
-.kazi-opp .rating-meta { flex: 1; }
-.kazi-opp .rating-stars { color: #f4b740; font-size: 15px; letter-spacing: 1px; margin-bottom: 3px; }
-.kazi-opp .rating-count { font-size: 12px; color: var(--text-light); font-weight: 600; }
-.kazi-opp .breakdown { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.kazi-opp .bd-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
-.kazi-opp .bd-num { width: 14px; color: var(--text-light); font-weight: 700; text-align: right; }
-.kazi-opp .bd-bar { flex: 1; height: 5px; background: var(--border-soft); border-radius: 100px; overflow: hidden; }
-.kazi-opp .bd-fill { height: 100%; background: #f4b740; border-radius: 100px; }
-.kazi-opp .bd-pct { width: 32px; color: var(--text-light); font-weight: 600; text-align: right; }
-.kazi-opp .review { padding: 14px 0; border-bottom: 1px solid var(--border-soft); }
-.kazi-opp .review:last-child { border-bottom: none; }
-.kazi-opp .review-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.kazi-opp .reviewer-avatar { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg,#c8a8d4,#e8a87c); display: flex; align-items: center; justify-content: center; color: white; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: -.01em; flex-shrink: 0; }
-.kazi-opp .reviewer-info { flex: 1; }
-.kazi-opp .reviewer-name { font-size: 13px; font-weight: 700; }
-.kazi-opp .review-date { font-size: 11px; color: var(--text-light); margin-top: 1px; }
-.kazi-opp .review-stars { color: #f4b740; font-size: 12px; letter-spacing: .5px; }
-.kazi-opp .review-text { font-size: 13px; line-height: 1.55; color: var(--text-mid); }
-.kazi-opp .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.kazi-opp .photo { aspect-ratio: 1; border-radius: 14px; position: relative; overflow: hidden; background: var(--bg); }
-.kazi-opp .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.kazi-opp .photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.45)); pointer-events: none; }
-.kazi-opp .photo.featured { grid-column: span 2; aspect-ratio: 2/1; }
-.kazi-opp .photo-label { position: absolute; bottom: 10px; left: 12px; color: white; font-size: 11.5px; font-weight: 700; letter-spacing: -.01em; z-index: 1; }
-`;
-
-const COVER_URL = 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=80';
 const MAP_URL = 'https://staticmap.openstreetmap.de/staticmap.php?center=29.7339,-95.4663&zoom=15&size=600x360&maptype=mapnik&markers=29.7339,-95.4663,red-pushpin';
 
 const PHOTOS = [
@@ -131,10 +27,10 @@ const PHOTOS = [
 ];
 
 const HERO_STATS = [
-  { value: '4.8', star: true, label: 'Rating' },
-  { value: '18', label: 'Reviews' },
-  { value: '142', label: 'Hires' },
-  { value: '< 1h', label: 'Response' },
+  { label: 'Rating', value: '★ 4.8' },
+  { label: 'Reviews', value: '18' },
+  { label: 'Hires', value: '142' },
+  { label: 'Response', value: '< 1h' },
 ];
 
 const TEMP_SHIFTS = [
@@ -154,6 +50,25 @@ Our team has been serving the Houston community for over a decade. Dr. Patel lea
 
 We're looking for professionals who are reliable, friendly, and take pride in their craft. Same-day bookings preferred for hygienists, and we frequently need coverage for vacations, maternity leave, and busy seasons. If you're a great fit, we'll invite you back regularly.`;
 
+const DETAILS = [
+  { label: 'Hours', value: 'Mon–Fri 8am–5pm' },
+  { label: 'Chairs', value: '4' },
+  { label: 'Software', value: 'Dentrix · Dexis' },
+  { label: 'Parking', value: 'Free lot' },
+  { label: 'Dress code', value: 'Navy scrubs' },
+  { label: 'Lunch', value: 'Provided' },
+];
+
+const REVIEWS = [
+  { logo: 'SK', name: 'Sarah K., RDH', when: '2 weeks ago', stars: 5, text: 'Great office to work at. Dr. Patel is super organized and the team is welcoming. Got lunch provided and they paid out on time.' },
+  { logo: 'MT', name: 'Marcus T., RDA', when: '1 month ago', stars: 5, text: "Modern setup with Dentrix and digital imaging. Clean, efficient, and well-run. I'd come back any time they need coverage." },
+  { logo: 'JR', name: 'Jasmine R., RDH', when: '2 months ago', stars: 5, text: 'Front desk was prepared for my arrival, parking was easy. A+ office for RDHs.' },
+];
+
+const RATING_BREAKDOWN = [
+  { n: 5, p: 85 }, { n: 4, p: 10 }, { n: 3, p: 3 }, { n: 2, p: 2 }, { n: 1, p: 0 },
+];
+
 export default function OfficePublicProfile() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -170,189 +85,372 @@ export default function OfficePublicProfile() {
   };
 
   return (
-    <div className="kazi-opp">
-      <style>{styles}</style>
+    <div className="kazi-opp" style={{ background: '#f9f8f6', minHeight: '100vh', maxWidth: 480, margin: '0 auto', boxShadow: '0 0 40px rgba(0,0,0,0.06)', fontFamily: "'DM Sans', sans-serif", color: '#1a1a1a', WebkitFontSmoothing: 'antialiased', paddingBottom: 40, position: 'relative' }}>
+      <style>{`
+        .kazi-opp * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        .kazi-opp button { font-family: inherit; cursor: pointer; }
+      `}</style>
+
       <TopBar role="provider" />
-      <div className="topbar">
-        <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back">
-          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
-        </button>
-        <div className="topbar-title">Office</div>
-        <button className="icon-btn" onClick={handleShare} aria-label="Share">
-          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
-        </button>
-        <button className={`icon-btn ${saved ? 'saved' : ''}`} onClick={() => setSaved((s) => !s)} aria-label="Save">
-          <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-        </button>
-      </div>
 
-      <div className="hero">
-        <div className="hero-cover">
-          <img src={COVER_URL} alt="" />
-          <div className="hero-cover-grad" />
+      {/* Local topbar — sticky on white */}
+      <section style={{ position: 'sticky', top: 0, zIndex: 40, background: '#fff', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #f0eee8' }}>
+        <button onClick={() => navigate(-1)} aria-label="Back" style={{ width: 36, height: 36, borderRadius: '50%', background: '#f9f8f6', border: '1px solid #ececec', display: 'grid', placeItems: 'center', padding: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>Office</div>
+        <button onClick={handleShare} aria-label="Share" style={{ width: 36, height: 36, borderRadius: '50%', background: '#f9f8f6', border: '1px solid #ececec', display: 'grid', placeItems: 'center', padding: 0 }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" />
+            <polyline points="16 6 12 2 8 6" />
+            <line x1="12" y1="2" x2="12" y2="15" />
+          </svg>
+        </button>
+        <button
+          onClick={() => setSaved((s) => !s)}
+          aria-label={saved ? 'Unsave' : 'Save'}
+          style={{ width: 36, height: 36, borderRadius: '50%', background: saved ? '#fdeee7' : '#f9f8f6', border: `1px solid ${saved ? '#fdeee7' : '#ececec'}`, display: 'grid', placeItems: 'center', padding: 0 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={saved ? '#e8734a' : 'none'} stroke={saved ? '#e8734a' : '#1a1a1a'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+      </section>
+
+      {/* Hero — flat on warm-beige page */}
+      <section style={{ padding: '14px 20px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 4 }}>
+          <div style={{
+            position: 'relative',
+            width: 84,
+            height: 84,
+            borderRadius: 20,
+            background: 'linear-gradient(135deg, #a8c9b8 0%, #7ab8a8 100%)',
+            display: 'grid',
+            placeItems: 'center',
+            color: '#fff',
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 700,
+            fontSize: 28,
+            letterSpacing: '-0.02em',
+            flexShrink: 0,
+            boxShadow: '0 4px 14px rgba(15,29,27,0.12)',
+          }}>
+            BS
+            <span style={{ position: 'absolute', bottom: 3, right: 3, width: 22, height: 22, borderRadius: '50%', background: '#1a7f5e', border: '2.5px solid #fff', display: 'grid', placeItems: 'center', zIndex: 2 }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0, paddingBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 22, color: '#0f1a16', letterSpacing: '-0.02em', lineHeight: 1.15, minWidth: 0 }}>
+                Bright Smile Dental
+              </div>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, color: '#9aa5a1', fontWeight: 500, letterSpacing: '-0.01em', flexShrink: 0 }}>
+                3.1 mi
+              </div>
+            </div>
+            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6b7875', fontWeight: 500, letterSpacing: '-0.01em', marginTop: 2 }}>
+              Houston, TX · Galleria area
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#0f1a16', fontWeight: 600, letterSpacing: '-0.01em' }}>
+              <span style={{ color: '#f4b740', fontSize: 22, lineHeight: 1 }}>★</span>
+              <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>4.8</span>
+              <span style={{ color: '#9aa5a1', fontWeight: 500, fontSize: 13, letterSpacing: '-0.01em' }}>(18 reviews)</span>
+            </div>
+          </div>
         </div>
-        <div className="hero-content">
-          <div className="hero-top">
-            <div className="hero-logo-wrap">
-              <div className="office-logo">BS</div>
-              <div className="verified-badge"><svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></div>
-            </div>
-            <div className="hero-meta">
-              <h1 className="office-name">Bright Smile Dental</h1>
-              <div className="office-type">Houston, TX · Galleria area</div>
-            </div>
-          </div>
-          <div className="hero-stats">
-            {HERO_STATS.map((s) => (
-              <div key={s.label} className="hero-stat">
-                <div className="hero-stat-value">
-                  {s.star && <span className="hero-stat-star">★</span>}
-                  {s.value}
-                </div>
-                <div className="hero-stat-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      <div className="tabs">
-        {[
-          { k: 'overview', label: 'Overview' },
-          { k: 'shifts', label: 'Jobs' },
-          { k: 'reviews', label: 'Reviews' },
-          { k: 'photos', label: 'Photos' },
-        ].map((t) => (
-          <button key={t.k} className={`tab ${activeTab === t.k ? 'active' : ''}`} onClick={() => setActiveTab(t.k)}>{t.label}</button>
-        ))}
-      </div>
-
-      {activeTab === 'overview' && (
-        <>
-          <div className="section">
-            <div className="section-title">About</div>
-            <div className={`about-text ${aboutOpen ? '' : 'clamped'}`} style={{ whiteSpace: 'pre-line' }}>{ABOUT}</div>
-            <button className={`see-more-btn ${aboutOpen ? 'open' : ''}`} onClick={() => setAboutOpen((o) => !o)}>
-              {aboutOpen ? 'See less' : 'See more'}
-              <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-            </button>
-          </div>
-          <div className="section">
-            <div className="section-title">Practice Details</div>
-            <div className="detail-row"><span className="detail-label">Hours</span><span className="detail-val">Mon–Fri 8am–5pm</span></div>
-            <div className="detail-row"><span className="detail-label">Chairs</span><span className="detail-val">4</span></div>
-            <div className="detail-row"><span className="detail-label">Software</span><span className="detail-val">Dentrix · Dexis</span></div>
-            <div className="detail-row"><span className="detail-label">Parking</span><span className="detail-val">Free lot</span></div>
-            <div className="detail-row"><span className="detail-label">Dress code</span><span className="detail-val">Navy scrubs</span></div>
-            <div className="detail-row"><span className="detail-label">Lunch</span><span className="detail-val">Provided</span></div>
-          </div>
-          <div className="location-card">
-            <div className="map-preview">
-              <img src={MAP_URL} alt="Map of office location" />
-              <div className="map-pin" />
-            </div>
-            <div className="loc-meta">
-              <div className="loc-addr">4820 Westheimer Rd<br />Houston, TX 77056</div>
-              <div className="loc-dist">3.1 mi</div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'shifts' && (
-        <div className="section">
-          <div className="subtabs">
-            <button className={`subtab ${activeSub === 'temp' ? 'active' : ''}`} onClick={() => setActiveSub('temp')}>
-              Temp Shifts <span className="subtab-count">{TEMP_SHIFTS.length}</span>
-            </button>
-            <button className={`subtab perm ${activeSub === 'perm' ? 'active' : ''}`} onClick={() => setActiveSub('perm')}>
-              Permanent <span className="subtab-count">{PERM_JOBS.length}</span>
-            </button>
-          </div>
-          {activeSub === 'temp' && TEMP_SHIFTS.map((s) => (
-            <div key={s.id} className="shift-item" onClick={() => setSelectedTempShift(s)}>
-              <div className={`shift-date ${s.gold ? 'gold' : ''}`}>
-                <div className="shift-day-num">{s.day}</div>
-                <div className="shift-day-name">{s.name}</div>
-              </div>
-              <div className="shift-info">
-                <div className="shift-role">{s.role}</div>
-                <div className="shift-meta">{s.meta}</div>
-                <span className="shift-pay">{s.pay}</span>
-                <span className="applicant-count">
-                  <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                  {s.applicants} applicants
-                </span>
-              </div>
-              <button className="shift-arrow" aria-label="Open">
-                <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-              </button>
-            </div>
-          ))}
-          {activeSub === 'perm' && PERM_JOBS.map((j) => (
-            <div key={j.id} className="perm-card" onClick={() => setSelectedPermJob(j)} style={{ cursor: 'pointer' }}>
-              <span className="perm-badge">{j.badge}</span>
-              <div className="perm-title">{j.title}</div>
-              <div className="perm-type">{j.type}</div>
-              <div className="perm-salary">{j.salary}</div>
-              <div className="perm-benefits">{j.benefits.map((b) => <span key={b} className="benefit">{b}</span>)}</div>
-              <div style={{ textAlign: 'right', fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em', color: '#7c5aa8', marginTop: 4 }}>
-                View details →
-              </div>
-            </div>
+        {/* Stats tiles row */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, paddingTop: 14, borderTop: '1px solid #f3f3f3' }}>
+          {HERO_STATS.map((s) => (
+            <OfficeStatTile key={s.label} label={s.label} value={s.value} />
           ))}
         </div>
-      )}
 
-      {activeTab === 'reviews' && (
-        <div className="section">
-          <div className="section-title">Reviews</div>
-          <div className="rating-summary">
-            <div className="rating-big">4.8</div>
-            <div className="rating-meta"><div className="rating-stars">★★★★★</div><div className="rating-count">Based on 18 provider reviews</div></div>
-          </div>
-          <div className="breakdown">
-            {[{ n: 5, p: 85 }, { n: 4, p: 10 }, { n: 3, p: 3 }, { n: 2, p: 2 }, { n: 1, p: 0 }].map((r) => (
-              <div key={r.n} className="bd-row">
-                <span className="bd-num">{r.n}</span>
-                <div className="bd-bar"><div className="bd-fill" style={{ width: `${r.p}%` }} /></div>
-                <span className="bd-pct">{r.p}%</span>
-              </div>
-            ))}
-          </div>
+        {/* Action row */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button
+            onClick={() => alert('Send request — coming soon')}
+            style={{ flex: 1, background: '#1a7f5e', color: '#fff', border: 'none', borderRadius: 100, padding: '10px 16px', fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+            Send request
+          </button>
+          <button
+            onClick={() => navigate('/messages')}
+            style={{ flex: 1, background: '#fff', color: '#0f1a16', border: '1px solid #e8e6e1', borderRadius: 100, padding: '10px 16px', fontSize: 13, fontWeight: 600, letterSpacing: '-0.01em', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f1a16" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Message
+          </button>
+        </div>
+      </section>
+
+      {/* Sticky underline tabs */}
+      <section style={{ position: 'sticky', top: 60, zIndex: 30, background: '#f9f8f6', padding: '4px 20px 0' }}>
+        <div style={{ display: 'flex', gap: 24, borderBottom: '1px solid #f0eee8' }}>
           {[
-            { logo: 'SK', name: 'Sarah K., RDH', when: '2 weeks ago', text: 'Great office to work at. Dr. Patel is super organized and the team is welcoming. Got lunch provided and they paid out on time.' },
-            { logo: 'MT', name: 'Marcus T., RDA', when: '1 month ago', text: "Modern setup with Dentrix and digital imaging. Clean, efficient, and well-run. I'd come back any time they need coverage." },
-            { logo: 'JR', name: 'Jasmine R., RDH', when: '2 months ago', text: 'Front desk was prepared for my arrival, parking was easy. A+ office for RDHs.' },
-          ].map((r) => (
-            <div key={r.logo} className="review">
-              <div className="review-head">
-                <div className="reviewer-avatar">{r.logo}</div>
-                <div className="reviewer-info"><div className="reviewer-name">{r.name}</div><div className="review-date">{r.when}</div></div>
-                <div className="review-stars">★★★★★</div>
-              </div>
-              <div className="review-text">{r.text}</div>
-            </div>
-          ))}
+            { k: 'overview', label: 'Overview' },
+            { k: 'shifts', label: 'Jobs' },
+            { k: 'reviews', label: 'Reviews' },
+            { k: 'photos', label: 'Photos' },
+          ].map((t) => {
+            const active = activeTab === t.k;
+            return (
+              <button
+                key={t.k}
+                onClick={() => setActiveTab(t.k)}
+                style={{ background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: active ? '#0f1a16' : '#9aa5a1', padding: '12px 0', position: 'relative', letterSpacing: '-0.01em' }}
+              >
+                {t.label}
+                {active && <span style={{ position: 'absolute', bottom: -1, left: 0, right: 0, height: 2, background: '#1a7f5e', borderRadius: 2 }} />}
+              </button>
+            );
+          })}
         </div>
-      )}
+      </section>
 
-      {activeTab === 'photos' && (
-        <div className="section">
-          <div className="section-title">Photos · {PHOTOS.length}</div>
-          <div className="gallery">
-            {PHOTOS.map((p) => (
-              <div key={p.label} className={`photo ${p.featured ? 'featured' : ''}`}>
-                <img src={p.src} alt={p.label} />
-                <div className="photo-label">{p.label}</div>
+      <section style={{ padding: '14px 0 30px' }}>
+        {activeTab === 'overview' && (
+          <>
+            <ProfileSection title="About">
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#444', letterSpacing: '-0.01em', lineHeight: 1.55, whiteSpace: 'pre-line', display: aboutOpen ? 'block' : '-webkit-box', WebkitLineClamp: aboutOpen ? 'unset' : 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {ABOUT}
               </div>
+              <button
+                onClick={() => setAboutOpen((o) => !o)}
+                style={{ background: 'none', border: 'none', color: '#1a7f5e', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', padding: '8px 0 0', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+              >
+                {aboutOpen ? 'See less' : 'See more'}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: aboutOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            </ProfileSection>
+
+            <ProfileSection title="Practice details">
+              {DETAILS.map((d, i) => (
+                <DetailRow key={d.label} label={d.label} value={d.value} isLast={i === DETAILS.length - 1} />
+              ))}
+            </ProfileSection>
+
+            <ProfileSection title="Location">
+              <div style={{ position: 'relative', height: 180, overflow: 'hidden', borderRadius: 14, marginBottom: 14, background: '#f9f8f6' }}>
+                <img src={MAP_URL} alt="Map" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', width: 38, height: 38, background: '#1a7f5e', borderRadius: '50% 50% 50% 0', transform: 'translate(-50%, -50%) rotate(-45deg)', boxShadow: '0 4px 14px rgba(0,0,0,0.28)' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', width: 12, height: 12, background: '#fff', borderRadius: '50%', transform: 'translate(-50%, -50%)' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14 }}>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#1a1a1a', fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.5 }}>
+                  4820 Westheimer Rd<br />Houston, TX 77056
+                </div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, color: '#1a7f5e', letterSpacing: '-0.02em' }}>3.1 mi</div>
+              </div>
+            </ProfileSection>
+          </>
+        )}
+
+        {activeTab === 'shifts' && (
+          <ProfileSection title="Open roles">
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              <SubtabPill active={activeSub === 'temp'} onClick={() => setActiveSub('temp')} variant="temp">
+                Temp shifts <CountChip active={activeSub === 'temp'}>{TEMP_SHIFTS.length}</CountChip>
+              </SubtabPill>
+              <SubtabPill active={activeSub === 'perm'} onClick={() => setActiveSub('perm')} variant="perm">
+                Permanent <CountChip active={activeSub === 'perm'} variant="perm">{PERM_JOBS.length}</CountChip>
+              </SubtabPill>
+            </div>
+
+            {activeSub === 'temp' && TEMP_SHIFTS.map((s, i) => (
+              <ShiftRow key={s.id} shift={s} isLast={i === TEMP_SHIFTS.length - 1} onClick={() => setSelectedTempShift(s)} />
             ))}
-          </div>
-        </div>
-      )}
+            {activeSub === 'perm' && PERM_JOBS.map((j) => (
+              <PermCard key={j.id} job={j} onApply={() => setSelectedPermJob(j)} />
+            ))}
+          </ProfileSection>
+        )}
+
+        {activeTab === 'reviews' && (
+          <ProfileSection title="Reviews">
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', paddingBottom: 16, borderBottom: '1px solid #f3f3f3', marginBottom: 14 }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 44, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.03em' }}>4.8</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: '#f4b740', fontSize: 15, letterSpacing: 1, marginBottom: 3 }}>★★★★★</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9aa5a1', fontWeight: 600 }}>Based on 18 provider reviews</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+              {RATING_BREAKDOWN.map((r) => (
+                <div key={r.n} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
+                  <span style={{ width: 14, color: '#9aa5a1', fontWeight: 700, textAlign: 'right' }}>{r.n}</span>
+                  <div style={{ flex: 1, height: 5, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: '#f4b740', borderRadius: 100, width: `${r.p}%` }} />
+                  </div>
+                  <span style={{ width: 32, color: '#9aa5a1', fontWeight: 600, textAlign: 'right' }}>{r.p}%</span>
+                </div>
+              ))}
+            </div>
+            {REVIEWS.map((r, i) => (
+              <ReviewRow key={r.logo} review={r} isLast={i === REVIEWS.length - 1} />
+            ))}
+          </ProfileSection>
+        )}
+
+        {activeTab === 'photos' && (
+          <ProfileSection title={`Photos · ${PHOTOS.length}`}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {PHOTOS.map((p) => (
+                <div
+                  key={p.label}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: p.featured ? '2 / 1' : '1 / 1',
+                    gridColumn: p.featured ? 'span 2' : 'auto',
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                    background: '#f9f8f6',
+                  }}
+                >
+                  <img src={p.src} alt={p.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.45))', pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', bottom: 10, left: 12, color: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 11.5, fontWeight: 700, letterSpacing: '-0.01em' }}>{p.label}</div>
+                </div>
+              ))}
+            </div>
+          </ProfileSection>
+        )}
+      </section>
 
       <ShiftDetailModal open={!!selectedTempShift} shift={selectedTempShift} onClose={() => setSelectedTempShift(null)} />
       <PermanentJobModal open={!!selectedPermJob} job={selectedPermJob} onClose={() => setSelectedPermJob(null)} />
+    </div>
+  );
+}
+
+// ── Helpers ─────────────────────────────────────────────────
+
+function OfficeStatTile({ label, value }) {
+  return (
+    <div style={{ flex: 1, background: '#ffffff', border: '1px solid #f0eee8', borderRadius: 12, padding: '10px 8px', textAlign: 'center', minWidth: 0 }}>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#8a8a8a', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14, color: '#1a1a1a', lineHeight: 1, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
+    </div>
+  );
+}
+
+function ProfileSection({ title, children }) {
+  return (
+    <div style={{ background: '#ffffff', margin: '0 16px 12px', borderRadius: 20, padding: '18px 18px 20px', border: '1px solid #f3f3f3' }}>
+      <div style={{ marginBottom: 14, fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: '#1a1a1a', letterSpacing: '-0.02em' }}>{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function DetailRow({ label, value, isLast }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0', borderBottom: isLast ? 'none' : '1px solid #f3f3f3', fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: '-0.01em' }}>
+      <span style={{ color: '#6b7875', fontWeight: 500 }}>{label}</span>
+      <span style={{ color: '#1a1a1a', fontWeight: 700 }}>{value}</span>
+    </div>
+  );
+}
+
+function SubtabPill({ active, onClick, variant, children }) {
+  const isPerm = variant === 'perm';
+  const bg = active ? (isPerm ? '#7c5aa8' : '#e8f5f0') : (isPerm ? '#faf7fc' : '#f9f8f6');
+  const color = active ? (isPerm ? '#fff' : '#1a7f5e') : (isPerm ? '#7c5aa8' : '#6b7280');
+  const borderColor = active ? (isPerm ? '#7c5aa8' : '#cfe8de') : (isPerm ? '#efe8f5' : '#efede8');
+  return (
+    <button
+      onClick={onClick}
+      style={{ flex: 1, padding: '9px 10px', borderRadius: 100, fontFamily: 'inherit', fontSize: 12, fontWeight: 700, border: `1px solid ${borderColor}`, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, letterSpacing: '-0.01em' }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function CountChip({ active, variant, children }) {
+  const isPerm = variant === 'perm';
+  const bg = active ? (isPerm ? 'rgba(255,255,255,0.25)' : '#ffffff') : '#ffffff';
+  const color = active ? (isPerm ? '#fff' : '#1a7f5e') : '#6b7280';
+  return (
+    <span style={{ fontSize: 10, background: bg, color, padding: '1px 7px', borderRadius: 100, fontWeight: 700, letterSpacing: '0.04em' }}>{children}</span>
+  );
+}
+
+function ShiftRow({ shift, isLast, onClick }) {
+  return (
+    <div onClick={onClick} style={{ display: 'flex', gap: 12, padding: '14px 0', borderBottom: isLast ? 'none' : '1px solid #f3f3f3', alignItems: 'center', cursor: 'pointer' }}>
+      <div style={{ width: 54, background: shift.gold ? '#fef6e4' : '#f9f8f6', border: `1px solid ${shift.gold ? '#f5e3b8' : '#efede8'}`, borderRadius: 10, padding: '8px 4px', textAlign: 'center', flexShrink: 0 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>{shift.day}</div>
+        <div style={{ fontSize: 9, fontWeight: 700, color: '#9aa5a1', textTransform: 'uppercase', marginTop: 3 }}>{shift.name}</div>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 2 }}>{shift.role}</div>
+        <div style={{ fontSize: 11, color: '#9aa5a1', marginBottom: 6 }}>{shift.meta}</div>
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#1a7f5e', marginRight: 8 }}>{shift.pay}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 100, background: '#f9f8f6', color: '#6b7280', border: '1px solid #efede8' }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          {shift.applicants} applicants
+        </span>
+      </div>
+      <button aria-label="Open" style={{ width: 36, height: 36, borderRadius: '50%', background: '#e8f5f0', border: '1px solid #cfe8de', display: 'grid', placeItems: 'center', flexShrink: 0, padding: 0 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7f5e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function PermCard({ job, onApply }) {
+  return (
+    <div onClick={onApply} style={{ background: 'linear-gradient(135deg, #faf7fc, #ffffff)', border: '1px solid #efe8f5', borderRadius: 14, padding: 16, marginBottom: 10, position: 'relative', cursor: 'pointer' }}>
+      <span style={{ position: 'absolute', top: 12, right: 12, background: '#7c5aa8', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 100, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{job.badge}</span>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, fontWeight: 700, marginBottom: 3, letterSpacing: '-0.02em' }}>{job.title}</div>
+      <div style={{ fontSize: 11, color: '#9aa5a1', fontWeight: 600, marginBottom: 10 }}>{job.type}</div>
+      <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', color: '#1a7f5e', marginBottom: 10 }}>{job.salary}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+        {job.benefits.map((b) => (
+          <span key={b} style={{ background: '#fff', border: '1px solid #efede8', color: '#6b7280', fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 100 }}>{b}</span>
+        ))}
+      </div>
+      <div style={{ textAlign: 'right', fontFamily: "'DM Sans', sans-serif", fontSize: 12.5, fontWeight: 600, letterSpacing: '-0.01em', color: '#7c5aa8' }}>View details →</div>
+    </div>
+  );
+}
+
+function ReviewRow({ review, isLast }) {
+  return (
+    <div style={{ padding: '14px 0', borderBottom: isLast ? 'none' : '1px solid #f3f3f3' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg, #c8a8d4, #e8a87c)', display: 'grid', placeItems: 'center', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: '-0.01em', flexShrink: 0 }}>{review.logo}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>{review.name}</div>
+          <div style={{ fontSize: 11, color: '#9aa5a1', marginTop: 1 }}>{review.when}</div>
+        </div>
+        <div style={{ color: '#f4b740', fontSize: 12, letterSpacing: 0.5 }}>{'★'.repeat(review.stars)}</div>
+      </div>
+      <div style={{ fontSize: 13, lineHeight: 1.55, color: '#6b7875' }}>{review.text}</div>
     </div>
   );
 }
